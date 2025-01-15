@@ -1,0 +1,153 @@
+definitions:
+  request.Login:
+    properties:
+      captcha:
+        type: string
+      captcha_id:
+        type: string
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+      username:
+        maxLength: 8
+        minLength: 4
+        type: string
+    required:
+    - captcha
+    - captcha_id
+    - password
+    - username
+    type: object
+  response.Captcha:
+    properties:
+      captcha_id:
+        type: string
+      captcha_length:
+        type: integer
+      pic_path:
+        type: string
+    type: object
+  response.Token:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: 接口文档
+  title: API接口文档
+  version: v0.1.0
+paths:
+  /captcha:
+    get:
+      consumes:
+      - application/json
+      description: 获取验证码
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 验证码
+          schema:
+            $ref: '#/definitions/response.Captcha'
+        "400":
+          description: 验证码获取失败
+          schema:
+            type: string
+      summary: 获取验证码
+      tags:
+      - 验证码
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 登录
+      parameters:
+      - description: 登录请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登录成功
+          schema:
+            $ref: '#/definitions/response.Token'
+        "400":
+          description: 登录失败
+          schema:
+            type: string
+      summary: 登录
+      tags:
+      - Auth
+  /logout:
+    get:
+      consumes:
+      - application/json
+      description: 登出
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: 登出成功
+        "400":
+          description: 登出失败
+          schema:
+            type: string
+        "401":
+          description: 未授权
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: 登出
+      tags:
+      - Auth
+  /refresh_token:
+    get:
+      consumes:
+      - application/json
+      description: 刷新令牌
+      parameters:
+      - description: 刷新令牌
+        in: query
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 刷新令牌成功
+          schema:
+            $ref: '#/definitions/response.Token'
+        "400":
+          description: 刷新令牌失败
+          schema:
+            type: string
+        "401":
+          description: 未授权
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: 刷新令牌
+      tags:
+      - Auth
+securityDefinitions:
+  BearerAuth:
+    description: Bearer 令牌授权方式，格式：Bearer <token>
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

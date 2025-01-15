@@ -1,0 +1,40 @@
+# auth configuration
+auth:
+  client_id: client_id
+  client_secret: client_secret
+  domain: http://localhost:6020
+  access_expire_time: 2h
+  refresh_expire_time: 7d
+  is_generate_refresh_token: true
+
+# zap logger configuration
+zap:
+  level: info
+  format: console
+  prefix: "[github.com/imehc/do-exercise/server]"
+  director: log
+  show_line: true
+  encode_level: LowercaseColorLevelEncoder
+  stacktrace_key: stacktrace
+  log_in_console: true
+  retention_day: -1
+
+redis:
+  addr: 127.0.0.1:6379
+  password: ""
+  db: 1
+
+# system configuration
+system:
+  addr: 6020
+  #  路由全局前缀
+  router_prefix: ""
+  # 使用redis
+  use_redis: true
+
+# captcha configuration
+captcha:
+  key_long: 6
+  img_width: 240
+  img_height: 80
+  captcha_timeout: 3600 # open-captcha大于0时才生效

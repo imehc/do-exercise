@@ -7,7 +7,7 @@ type Login struct {
 	Password  string `json:"password" binding:"required,min=6,max=16,complexPassword"`
 	Captcha   string `json:"captcha" binding:"required"`
 	CaptchaId string `json:"captcha_id" binding:"required"`
-}
+} // @name LoginRequest
 
 func (l Login) GetMessage() utils.ValidatorMessages {
 	return utils.ValidatorMessages{
@@ -28,7 +28,7 @@ func (l Login) GetMessage() utils.ValidatorMessages {
 
 type RefreshToken struct {
 	RefreshToken string `form:"refresh_token" binding:"required"`
-}
+} // @name RefreshTokenRequest
 
 func (r RefreshToken) GetMessage() utils.ValidatorMessages {
 	return utils.ValidatorMessages{

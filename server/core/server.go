@@ -15,9 +15,10 @@ func RunServer() {
 
 	r := initialize.InitRouter()
 
-	address := fmt.Sprintf(":%d", global.CONFIG.System.Addr)
-	s := initServer(address, r)
-	fmt.Printf(`swagger文档地址:http://127.0.0.1%s/swagger/index.html`, address)
+	host := global.CONFIG.System.Host
+	addr := fmt.Sprintf(":%d", global.CONFIG.System.Port)
+	s := initServer(addr, r)
+	fmt.Printf(`swagger文档地址:http://%s%s/swagger/index.html`, host, addr)
 
 	global.LOG.Error(s.ListenAndServe().Error())
 }

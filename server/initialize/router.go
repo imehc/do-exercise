@@ -6,12 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/imehc/do-exercise/server/docs"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/router"
-	swaggerFiles "github.com/swaggo/files"
-	swagger "github.com/swaggo/gin-swagger"
+	// swaggerFiles "github.com/swaggo/files"
+	// swagger "github.com/swaggo/gin-swagger"
 )
 
 func InitRouter() *gin.Engine {
@@ -27,8 +26,12 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 
 	system := router.RouterGroupApp.System
-	docs.SwaggerInfo.BasePath = global.CONFIG.System.RouterPrefix
-	r.GET(global.CONFIG.System.RouterPrefix+"/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
+
+	// 存在许多问题，暂时注释
+	// docs.SwaggerInfo.BasePath = global.CONFIG.System.RouterPrefix
+	// docs.SwaggerInfo.Host = fmt.Sprintf("%s:%d", global.CONFIG.System.Host, global.CONFIG.System.Port)
+	// docs.SwaggerInfo.BasePath = global.CONFIG.System.RouterPrefix
+	// r.GET(global.CONFIG.System.RouterPrefix+"/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
 	public := r.Group(global.CONFIG.System.RouterPrefix)
 	// protected := r.Group(global.CONFIG.System.RouterPrefix)

@@ -21,15 +21,16 @@ const (
 
 type AuthApi struct{}
 
-// @Summary 登录
-// @Description 登录
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body request.Login true "登录请求"
-// @Success 200 {object} response.Token "登录成功"
-// @Failure 400 {string} string "登录失败"
-// @Router /login [post]
+// @summary 登录
+// @description 使用用户名和密码登录
+// @tags auth
+// @accept json
+// @produce json
+// @param request body LoginRequest true "登录请求"
+// @success 200 {object} TokenResponse "登录成功"
+// @failure 400 {string} string "登录失败"
+// @router /login [post]
+// @id login
 func (a *AuthApi) Login(ctx *gin.Context) {
 	req := request.Login{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -71,16 +72,17 @@ func (a *AuthApi) Login(ctx *gin.Context) {
 	response.BadRequest("验证码错误", ctx)
 }
 
-// @Summary 登出
-// @Description 登出
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Success 204 {object} nil "登出成功"
-// @Failure 400 {string} string "登出失败"
-// @Failure 401 {string} string "未授权"
-// @Router /logout [get]
+// @summary 登出
+// @description 退出登录
+// @tags auth
+// @accept json
+// @produce json
+// @security bearerauth
+// @success 204 {object} nil "登出成功"
+// @failure 400 {string} string "登出失败"
+// @failure 401 {string} string "未授权"
+// @router /logout [get]
+// @id logout
 func (a *AuthApi) Logout(ctx *gin.Context) {
 	// claims := c.MustGet("claims").(system.Claims)
 	// TODO: 从redis中删除对应信息
@@ -89,17 +91,17 @@ func (a *AuthApi) Logout(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
-// @Summary 刷新令牌
-// @Description 刷新令牌
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param refresh_token query string true "刷新令牌"
-// @Success 200 {object} response.Token "刷新令牌成功"
-// @Failure 400 {string} string "刷新令牌失败"
-// @Failure 401 {string} string "未授权"
-// @Router /refresh_token [get]
+// @summary 刷新令牌
+// @description 使用refresh_token刷新access_token
+// @tags auth
+// @accept json
+// @produce json
+// @security bearerauth
+// @param refresh_token query string true "刷新令牌"
+// @success 200 {object} TokenResponse "刷新令牌成功"
+// @failure 400 {string} string "刷新令牌失败"
+// @router /refresh_token [get]
+// @id refresh_token
 func (a *AuthApi) RefreshToken(ctx *gin.Context) {
 	req := request.RefreshToken{}
 	if err := ctx.ShouldBindQuery(&req); err != nil {

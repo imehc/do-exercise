@@ -11,14 +11,15 @@ import (
 
 type CaptchaApi struct{}
 
-// @Summary 获取验证码
-// @Description 获取验证码
-// @Tags 验证码
-// @Accept json
-// @Produce json
-// @Success 200 {object} response.Captcha "验证码"
-// @Failure 400 {object} string "验证码获取失败"
-// @Router /captcha [get]
+// @summary 获取验证码
+// @description 获取成功后将验证码ID和图片路径返回
+// @tags captcha
+// @accept json
+// @produce json
+// @success 200 {object} CaptchaResponse "验证码"
+// @failure 400 {object} string "验证码获取失败"
+// @router /captcha [get]
+// @id get_captcha
 func (c *CaptchaApi) GetCaptcha(ctx *gin.Context) {
 	imageHeight := global.CONFIG.Captcha.ImgHeight
 	imageWidth := global.CONFIG.Captcha.ImgWidth

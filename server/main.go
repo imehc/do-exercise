@@ -14,13 +14,11 @@ func init() {
 	initialize.InitOther()
 }
 
-// @title                       API接口文档
-// @version                     v0.1.0
-// @description                 接口文档
-// @securityDefinitions.apikey  BearerAuth
-// @in                          header
-// @name                        Authorization
-// @description                 Bearer 令牌授权方式，格式：Bearer <token>
+// docs https://goswagger.io/go-swagger/
+// @title                       					API接口文档
+// @version                     					v0.1.0
+// @description                 					API接口文档
+// @securitydefinitions.bearerauth        bearer
 func main() {
 	core.RunServer()
 }

@@ -1,0 +1,44 @@
+{
+  "theme": {
+    "md2": "Md2 亮色",
+    "md2Dark": "Md2 暗色",
+    "md3": "Md3 亮色",
+    "md3Dark": "Md3 暗色"
+  },
+  "headerLeftMenu": {
+    "home": "首页"
+  },
+  "headerRightMenu": {
+    "theme": "主题",
+    "language": "语言",
+    "signOut": "登出"
+  },
+  "login": "登 录",
+  "loginFormLabel": {
+    "username": "用户名",
+    "password": "密码",
+    "captcha": "验证码"
+  },
+  "loginSuccess": "登录成功",
+  "loginFailed": "登录失败",
+  "loginValidate": {
+    "username": {
+      "required": "用户名不能为空",
+      "min": "用户名最少为4个字符",
+      "max": "用户名最多为8个字符",
+      "pattern": "用户名只能包含字母和数字",
+      "prefix": "用户名必须以字母开头"
+    },
+    "password": {
+      "required": "密码不能为空",
+      "min": "密码最少为6个字符",
+      "max": "密码最多为16个字符"
+    },
+    "captcha": {
+      "required": "验证码不能为空"
+    },
+    "captachaId": {
+      "required": "验证码Id不能为空"
+    }
+  }
+}

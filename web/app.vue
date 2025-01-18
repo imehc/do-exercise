@@ -1,16 +1,23 @@
 <script setup lang="ts">
+	import { Locale } from '@varlet/ui';
+	import { useI18nStore } from './store/i18n';
+
+	const store = useI18nStore();
+	const { messages, locale } = storeToRefs(store);
+
 	onNuxtReady(() => {
-		useMdDark();
+		useMd().init();
+		Locale.add('en-US', Locale.enUS);
 	});
 </script>
 
 <template>
-	<div>
+	<var-locale-provider :locale="locale" :messages="messages">
 		<nuxt-layout>
 			<nuxt-page />
 		</nuxt-layout>
 		<nuxt-route-announcer />
-	</div>
+	</var-locale-provider>
 </template>
 
 <style>

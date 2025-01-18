@@ -19,6 +19,10 @@ export default defineNuxtConfig({
 		'@nuxt/image',
 		'nuxt-auth-utils',
 		'@vueuse/nuxt',
+		'@nuxtjs/i18n',
+		'@pinia/nuxt',
+		'pinia-plugin-persistedstate',
+		'@nuxt/icon',
 	],
 	app: {
 		pageTransition: { name: 'page', mode: 'out-in' },
@@ -32,4 +36,15 @@ export default defineNuxtConfig({
 	experimental: {
 		viewTransition: true,
 	},
+	i18n: {
+		strategy: 'prefix_except_default',
+		locales: [
+			{ code: 'en', language: 'en-US' },
+			{ code: 'zh', language: 'zh-CN' },
+		],
+		lazy: true,
+		defaultLocale: 'zh',
+		vueI18n: './i18n.config.ts',
+	},
+	icon: { componentName: 'NuxtIcon' }, // https://icon-sets.iconify.design/
 });

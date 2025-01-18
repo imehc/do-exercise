@@ -9,6 +9,7 @@
 	definePageMeta({
 		layout: 'no-auth',
 	});
+	const { t } = useI18n();
 
 	const router = useRouter();
 	const { data, status, refresh } =
@@ -26,7 +27,7 @@
 		() => data.value,
 		(val) => {
 			if (status.value !== 'success') return;
-			formData.value = { ...formData.value, captchaId: val?.captchaId };
+			formData.value = { ...formData.value, captchaId: val!.captchaId };
 		},
 		{ immediate: true }
 	);
@@ -43,21 +44,21 @@
 		})
 			.then(async () => {
 				// Refresh the session on client-side and redirect to the home page
-				Snackbar.success('登录成功');
+				Snackbar.success(t('loginSuccess'));
 				await refreshSession();
 				await router.replace('/');
 			})
 			.catch((error) => {
-				let msg = '登录失败';
+				let msg = t('loginFailed');
 				if (error instanceof FetchError) {
 					if (error.response?._data.message) {
 						msg = error.response?._data.message;
 					}
 				}
+				refresh();
 				Snackbar.error(msg);
 			})
 			.finally(() => {
-				refresh();
 				disabled.value = false;
 			});
 	};
@@ -77,7 +78,7 @@
 						<var-input
 							v-model.trim="formData.username"
 							variant="outlined"
-							placeholder="请输入用户名"
+							:placeholder="$t('loginFormLabel.username')"
 							:rules="loginSchema.shape.username"
 							:maxlength="8"
 						>
@@ -91,7 +92,7 @@
 						<var-input
 							v-model.trim="formData.password"
 							variant="outlined"
-							placeholder="请输入密码"
+							:placeholder="$t('loginFormLabel.password')"
 							type="password"
 							:rules="loginSchema.shape.password"
 							:maxlength="16"
@@ -107,7 +108,7 @@
 							<var-input
 								v-model.trim="formData.captcha"
 								variant="outlined"
-								placeholder="请输入验证码"
+								:placeholder="$t('loginFormLabel.captcha')"
 								:rules="loginSchema.shape.captcha"
 								:maxlength="6"
 							/>
@@ -128,7 +129,7 @@
 							type="success"
 							native-type="submit"
 						>
-							登 录
+							{{ $t('login') }}
 						</var-button>
 					</var-space>
 				</var-form>

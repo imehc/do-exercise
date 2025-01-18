@@ -12,22 +12,28 @@
 		"lint:fix": "eslint . --fix",
 		"prettier": "prettier --write .",
 		"format": "npm-run-all -p lint:fix prettier",
-		"gen:apis": "openapi-generator generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./do-exercise-api -i ../server/docs/swagger.yaml && node ./scripts/post-generate.cjs"
+		"gen:apis": "openapi-generator generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./do-exercise-api -i ../server/docs/swagger.yaml && node ./scripts/post-generate.cjs",
+		"gen:apis:win": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./do-exercise-api -i ../server/docs/swagger.yaml && node ./scripts/post-generate.cjs"
 	},
 	"dependencies": {
 		"@varlet/nuxt": "0.1.5",
 		"nuxt": "^3.15.1",
 		"nuxt-auth-utils": "0.5.7",
+		"pinia": "^2.3.0",
 		"vue": "latest",
 		"vue-router": "latest",
 		"zod": "^3.24.1"
 	},
 	"devDependencies": {
 		"@formkit/auto-animate": "^0.8.2",
+		"@iconify-json/material-symbols": "^1.2.12",
 		"@nuxt/eslint": "0.7.5",
 		"@nuxt/icon": "^1.10.3",
 		"@nuxt/image": "^1.9.0",
+		"@nuxt/types": "^2.18.1",
+		"@nuxtjs/i18n": "^9.1.1",
 		"@nuxtjs/tailwindcss": "6.13.1",
+		"@pinia/nuxt": "^0.9.0",
 		"@varlet/preset-tailwindcss": "^3.8.3",
 		"@varlet/ui": "^3.8.3",
 		"@vueuse/core": "^12.4.0",
@@ -36,6 +42,7 @@
 		"eslint-plugin-prettier": "^5.2.2",
 		"npm-run-all": "^4.1.5",
 		"nuxi": "^3.20.0",
+		"pinia-plugin-persistedstate": "^4.2.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-organize-imports": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.6.9",

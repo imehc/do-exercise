@@ -16,7 +16,5 @@ export const loginSchema = z.object({
 		.min(6, '密码最少为6个字符')
 		.max(16, '密码最多为16个字符'),
 	captcha: z.string().trim().min(1, '验证码不能为空'),
-	captchaId: z
-		.string({ required_error: '验证码Id不能为空' })
-		.min(1, '验证码Id不能为空'),
+	captchaId: z.string().min(1, '验证码Id不能为空'),
 });

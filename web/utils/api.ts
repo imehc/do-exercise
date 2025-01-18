@@ -7,8 +7,8 @@ import {
 export function apiInstance<
 	T extends new (conf?: Configuration) => InstanceType<T>,
 >(Api: T, conf?: ConfigurationParameters) {
-	const { session } = useUserSession();
-	const accessToken = session.value.secure?.accessToken;
+	// const { session } = useUserSession();
+	const accessToken = ''; // session.value.secure?.accessToken;
 
 	const _conf = new Configuration({
 		basePath: process.env.API_SERVER || BASE_PATH,

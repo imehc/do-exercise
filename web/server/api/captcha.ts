@@ -1,6 +1,4 @@
 import { CaptchaApi } from '~/do-exercise-api';
-import { apiInstance } from '~/utils/api';
-import { handleResponse } from '~/utils/format-response';
 
 export default defineEventHandler(async (event) => {
 	const captchaApi = apiInstance(CaptchaApi);

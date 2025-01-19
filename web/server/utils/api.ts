@@ -7,7 +7,9 @@ import {
 export function apiInstance<
 	T extends new (conf?: Configuration) => InstanceType<T>,
 >(Api: T, conf?: ConfigurationParameters) {
-	// const { session } = useUserSession();
+	// https://nuxt.com/docs/guide/directory-structure/server#server-utilities
+	// https://github.com/atinux/nuxt-auth-utils/issues/91
+	// const session = getUserSession();
 	const accessToken = ''; // session.value.secure?.accessToken;
 
 	const _conf = new Configuration({

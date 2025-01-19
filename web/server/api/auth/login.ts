@@ -1,7 +1,5 @@
 import { AuthApi } from '~/do-exercise-api';
 import { loginSchema } from '~/schemas/auth/login';
-import { apiInstance } from '~/utils/api';
-import { handleResponse } from '~/utils/format-response';
 
 export default defineEventHandler(async (event) => {
 	const body = await readValidatedBody(event, loginSchema.parse);

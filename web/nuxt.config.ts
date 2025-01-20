@@ -28,15 +28,16 @@ export default defineNuxtConfig({
 		pageTransition: { name: 'page', mode: 'out-in' },
 		layoutTransition: { name: 'layout', mode: 'out-in' },
 	},
-	routeRules: {
-		'/': { redirect: 'dashboard' },
-		'/**': { appMiddleware: 'authenticated' },
-	},
 	// https://nuxt.com/docs/getting-started/transitions#view-transitions-api-experimental
 	experimental: {
 		viewTransition: true,
 	},
 	i18n: {
+		detectBrowserLanguage: {
+			useCookie: true,
+			cookieKey: 'i18n_redirected',
+			redirectOn: 'root', // recommended
+		},
 		strategy: 'prefix_except_default',
 		locales: [
 			{ code: 'en', language: 'en-US' },

@@ -9,7 +9,8 @@
 	definePageMeta({
 		layout: 'no-auth',
 	});
-	const { t } = useI18n();
+	const { t, locale } = useI18n();
+	const localeRoute = useLocaleRoute();
 
 	const router = useRouter();
 	const { data, status, refresh } =
@@ -33,6 +34,10 @@
 	);
 
 	const form = ref<Form>();
+	const linkPath = computed(() => {
+		const route = localeRoute('dashboard', locale.value);
+		return route != null ? route.path : '/';
+	});
 	const disabled = ref(false);
 
 	const handleSubmit = async (valid: boolean) => {
@@ -46,7 +51,7 @@
 				// Refresh the session on client-side and redirect to the home page
 				Snackbar.success(t('loginSuccess'));
 				await refreshSession();
-				await router.replace('/');
+				await router.replace(linkPath.value);
 			})
 			.catch((error) => {
 				let msg = t('loginFailed');

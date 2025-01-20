@@ -12,7 +12,7 @@ type ResponseData<T = unknown> =
 	  };
 
 // 处理 response
-export async function handleResponse<T>(
+export async function wrapperResponseHandler<T>(
 	response: Promise<T>
 ): Promise<ResponseData<T>> {
 	try {

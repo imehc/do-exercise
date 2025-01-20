@@ -21,6 +21,8 @@
   },
   "loginSuccess": "登录成功",
   "loginFailed": "登录失败",
+  "logoutSuccess": "登出成功",
+  "logoutFailed": "登出失败",
   "loginValidate": {
     "username": {
       "required": "用户名不能为空",

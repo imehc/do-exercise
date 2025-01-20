@@ -21,6 +21,8 @@
   },
   "loginSuccess": "Login success",
   "loginFailed": "Login failed",
+  "logoutSuccess": "Logout success",
+  "logoutFailed": "Logout failed",
   "loginValidate": {
     "username": {
       "required": "Username cannot be empty",

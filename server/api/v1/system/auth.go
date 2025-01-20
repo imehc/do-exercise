@@ -96,7 +96,6 @@ func (a *AuthApi) Logout(ctx *gin.Context) {
 // @tags auth
 // @accept json
 // @produce json
-// @security bearerauth
 // @param refresh_token query string true "刷新令牌"
 // @success 200 {object} TokenResponse "刷新令牌成功"
 // @failure 400 {string} string "刷新令牌失败"

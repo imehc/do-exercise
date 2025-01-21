@@ -1,0 +1,18 @@
+{
+  "System": {
+    "light": "light",
+    "dark": "dark",
+    "system": "system"
+  },
+  "LoginPage": {
+    "title": "Please Login First",
+    "subTitle": "Question Management Backend",
+    "account": "Account",
+    "accountPlaceholder": "Please enter your account",
+    "password": "Password",
+    "passwordPlaceholder": "Please enter your password",
+    "captcha": "Captcha",
+    "captchaPlaceholder": "Please enter the captcha",
+    "signOn": "Sign on"
+  }
+}

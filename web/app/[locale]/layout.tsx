@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import type { LocaleType } from '~/i18n/i18';
+import { Toaster } from '~/components/ui/sonner';
 import '~/app/globals.css';
 
 type Props = PropsWithChildren & { params: Promise<{ locale: LocaleType }> };
@@ -32,6 +33,7 @@ export default async function RootLayout({ children, params }: Props) {
           <NextIntlClientProvider messages={messages}>
             {children}
           </NextIntlClientProvider>
+          <Toaster position='top-center' />
         </ThemeProvider>
       </body>
     </html>

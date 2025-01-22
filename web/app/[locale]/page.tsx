@@ -4,8 +4,8 @@ import { Link } from '~/i18n/routing';
 export default function HomePage() {
   return (
     <div>
-      <Link href="/login">
-        <Button>Login</Button>
+      <Link href="/auth/signin">
+        <Button>signin</Button>
       </Link>
     </div>
   );

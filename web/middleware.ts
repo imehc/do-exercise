@@ -32,7 +32,7 @@ const handleAuth = async (req: NextRequest, isAuthPage: boolean, isProtectedPage
   if (isAuth && isAuthPage) {
     const url = req.nextUrl.clone();
     const fromValue = url.searchParams.get("from");
-    return NextResponse.redirect(new URL(fromValue ?? "/", req.nextUrl));
+    return NextResponse.redirect(new URL(fromValue ?? "/dashboard", req.nextUrl));
   }
 
   return intlMiddleware(req);

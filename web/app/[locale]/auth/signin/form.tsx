@@ -13,7 +13,7 @@ import {
 import { Input } from '~/components/ui/input';
 import Image from 'next/image';
 import SubmitButton from '~/components/common/submit-button';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { type SigninSchema, signinSchema } from './schema';
 import {
   Form,
@@ -27,7 +27,10 @@ import { signinAction } from './action';
 import type { CaptchaResponse } from '~/do-exercise-api';
 import type { ResponseData } from '~/helper/format-response';
 import { toast } from 'sonner';
-import { useDebounceEffect } from "ahooks";
+import { useDebounceEffect } from 'ahooks';
+import clsx from 'clsx';
+import { useEffect } from 'react';
+import { useRouter } from '~/i18n/routing';
 
 interface SigninFormProps {
   captchaRes: ResponseData<CaptchaResponse>;
@@ -46,19 +49,43 @@ export default function SigninForm({ captchaRes }: SigninFormProps) {
     },
   });
 
-  useDebounceEffect(()=>{
+  useDebounceEffect(() => {
     if (captchaRes.ok) return;
     toast.error(captchaRes.message);
-  },[captchaRes])
+  }, [captchaRes]);
 
-  if (captchaRes.ok) {
+  const router = useRouter();
+  const locale = useLocale();
+
+  const isSubmitting = form.formState.isValid && form.formState.isSubmitting;
+  const isPending = form.formState.isSubmitSuccessful || isSubmitting;
+
+  const onSubmit = async (data: SigninSchema) => {
+    const res = await signinAction(data);
+    if (!res.ok) {
+      toast.error(t(res.message));
+      router.refresh();
+      form.reset();
+      throw new Error('run time error');
+    }
+    if (res.ok) {
+      const data = res.data as { message: string; path?: string };
+      if (data.path) {
+        router.replace(data.path, { locale });
+      }
+      toast.success(t(data.message))
+    }
+  };
+
+  useEffect(() => {
+    if (!captchaRes.ok) return;
     form.setValue('captchaId', captchaRes.data.captchaId);
-  }
+  }, [captchaRes, form]);
 
   return (
     <div className="flex justify-center items-center h-full">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(signinAction)}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card className="w-[350px]">
             <CardHeader>
               <CardTitle>{t('title')}</CardTitle>
@@ -75,6 +102,7 @@ export default function SigninForm({ captchaRes }: SigninFormProps) {
                         <FormLabel>{t('account')}</FormLabel>
                         <FormControl>
                           <Input
+                            disabled={isPending}
                             startIcon="material-symbols:person-4-outline"
                             placeholder={t('accountPlaceholder')}
                             {...field}
@@ -94,6 +122,7 @@ export default function SigninForm({ captchaRes }: SigninFormProps) {
                         <FormLabel>{t('password')}</FormLabel>
                         <FormControl>
                           <Input
+                            disabled={isPending}
                             startIcon="material-symbols:lock-outline"
                             type="password"
                             placeholder={t('passwordPlaceholder')}
@@ -115,6 +144,7 @@ export default function SigninForm({ captchaRes }: SigninFormProps) {
                           <FormLabel>{t('captcha')}</FormLabel>
                           <FormControl>
                             <Input
+                              disabled={isPending}
                               startIcon="material-symbols:health-and-safety-outline"
                               placeholder={t('captchaPlaceholder')}
                               {...field}
@@ -126,15 +156,27 @@ export default function SigninForm({ captchaRes }: SigninFormProps) {
                     />
                   </div>
                   <div className="h-9 aspect-[3/1] relative rounded-md">
-                    {captchaRes.ok && (
-                      <Image fill src={captchaRes.data.picPath} alt="captcha" />
-                    )}
+                    {captchaRes.ok ? (
+                      <Image
+                        className={clsx([
+                          !isPending
+                            ? 'cursor-pointer pointer-events-auto'
+                            : 'pointer-events-none cursor-none',
+                        ])}
+                        fill
+                        src={captchaRes.data.picPath}
+                        alt="captcha"
+                        onClick={() => router.refresh()}
+                      />
+                    ) : null}
                   </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-x-3">
-              <SubmitButton>{t('signIn')}</SubmitButton>
+              <SubmitButton className="w-full" loading={isPending}>
+                {t('signIn')}
+              </SubmitButton>
             </CardFooter>
           </Card>
         </form>

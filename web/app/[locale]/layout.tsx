@@ -33,7 +33,7 @@ export default async function RootLayout({ children, params }: Props) {
           <NextIntlClientProvider messages={messages}>
             {children}
           </NextIntlClientProvider>
-          <Toaster position='top-center' />
+          <Toaster position='top-center' richColors />
         </ThemeProvider>
       </body>
     </html>

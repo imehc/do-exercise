@@ -31,6 +31,8 @@
     "captchaIdFail": {
       "required": "验证码不能为空"
     },
-    "signIn": "登 录"
+    "signIn": "登 录",
+    "signinSuccess": "登录成功",
+    "signinFailed": "登录失败"
   }
 }

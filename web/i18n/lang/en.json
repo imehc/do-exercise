@@ -31,6 +31,8 @@
     "captchaIdFail": {
       "required": "Captcha ID cannot be empty"
     },
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signinSuccess": "Sign in successful",
+    "signinFailed": "Sign in failed"
   }
 }

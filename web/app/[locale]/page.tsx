@@ -1,12 +1,12 @@
-import { Button } from '~/components/ui/button';
-import { Link } from '~/i18n/routing';
+import { LocaleType } from '~/i18n/i18';
+import { redirect } from '~/i18n/routing';
 
-export default function HomePage() {
-  return (
-    <div>
-      <Link href="/auth/signin">
-        <Button>signin</Button>
-      </Link>
-    </div>
-  );
+interface HomePageProps {
+  params: Promise<{ locale: LocaleType }>;
+}
+
+export default async function HomePage({ params }: HomePageProps) {
+  const { locale } = await params;
+
+  return redirect({ href: '/dashboard', locale });
 }

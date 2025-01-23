@@ -2,14 +2,18 @@ import { ResponseError } from '~/do-exercise-api';
 
 export type ResponseData<T = unknown> =
 	| {
-			data: T;
-			ok: true;
-	  }
+		data: T;
+		ok: true;
+		href?: string
+		i18n?: string
+	}
 	| {
-			ok: false;
-			code: number;
-			message: string;
-	  };
+		ok: false;
+		code: number;
+		message: string;
+		href?: string
+		i18n?: string
+	};
 
 // 处理 response
 export async function handleResponse<T>(

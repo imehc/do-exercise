@@ -1,4 +1,5 @@
 import type { PropsWithChildren } from 'react';
+import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from '~/components/theme-provider';
 import { routing } from '~/i18n/routing';
 import { notFound } from 'next/navigation';
@@ -7,6 +8,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import type { LocaleType } from '~/i18n/i18';
 import { Toaster } from '~/components/ui/sonner';
 import '~/app/globals.css';
+import { auth } from '~/helper/auth';
 
 type Props = PropsWithChildren & { params: Promise<{ locale: LocaleType }> };
 
@@ -20,6 +22,8 @@ export default async function RootLayout({ children, params }: Props) {
   // side is the easiest way to get started
   const messages = await getMessages();
 
+  const session = await auth();
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <head />
@@ -31,9 +35,9 @@ export default async function RootLayout({ children, params }: Props) {
           disableTransitionOnChange
         >
           <NextIntlClientProvider messages={messages}>
-            {children}
+            <SessionProvider session={session}>{children}</SessionProvider>
           </NextIntlClientProvider>
-          <Toaster position='top-center' richColors />
+          <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>
     </html>

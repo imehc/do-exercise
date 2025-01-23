@@ -63,17 +63,22 @@ export default function SigninForm({ captchaRes }: SigninFormProps) {
   const onSubmit = async (data: SigninSchema) => {
     const res = await signinAction(data);
     if (!res.ok) {
-      toast.error(t(res.message));
+      if (res.message) {
+        toast.error(res.message);
+      } else if (res.i18n) {
+        toast.error(t(res.message));
+      }
       router.refresh();
       form.reset();
-      throw new Error('run time error');
+      throw new Error('signin fail');
     }
     if (res.ok) {
-      const data = res.data as { message: string; path?: string };
-      if (data.path) {
-        router.replace(data.path, { locale });
+      if (res.href) {
+        router.replace(res.href, { locale });
       }
-      toast.success(t(data.message))
+      if (res.i18n) {
+        toast.success(t(res.i18n));
+      }
     }
   };
 

@@ -1,34 +1,16 @@
-import prettierPlugin from 'eslint-plugin-prettier';
-// @ts-check
-import withNuxt from './.nuxt/eslint.config.mjs';
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
 
-export default withNuxt(
-	// Your custom configs here
-	{
-		plugins: {
-			prettier: prettierPlugin,
-		},
-		rules: {
-			'prettier/prettier': [
-				'error',
-				{
-					endOfLine: 'auto',
-				},
-			],
-		},
-	},
-	{
-		files: ['**/*.ts', '**/*.vue', '**/*.js'],
-		ignores: ['**/node_modules/**', '**/dist/**', '**/do-exercise-api/**'],
-		rules: {
-			'@typescript-eslint/no-explicit-any': 'warn',
-			'@typescript-eslint/no-unused-vars': 'off',
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-			'vue/multi-word-component-names': 'off',
-			'vue/html-self-closing': 'off',
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
 
-			'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-			'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-		},
-	}
-);
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
+];
+
+export default eslintConfig;

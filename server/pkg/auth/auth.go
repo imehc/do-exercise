@@ -41,6 +41,8 @@ func NewAuthService(auth *AuthService) *server.Server {
 	// 	IsGenerateRefresh: true,               // 是否生成 Refresh Token
 	// })
 	manager.SetAuthorizeCodeTokenCfg(&auth.Config)
+	manager.SetPasswordTokenCfg(&auth.Config) //  设置密码模式的 Token 过期时间
+	// manager.MustTokenStorage(store.NewMemoryTokenStore())// 基于内存创建令牌存储实例
 
 	oauthServer := server.NewServer(server.NewConfig(), manager)
 	oauthServer.SetClientInfoHandler(server.ClientFormHandler)                          // 从表单中获取客户端信息

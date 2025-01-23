@@ -1,3 +1,3 @@
-declare module 'global' {
-	type MdThemeType = 'md2' | 'md2-dark' | 'md3' | 'md3-dark';
+declare namespace globalThis {
+  type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 }

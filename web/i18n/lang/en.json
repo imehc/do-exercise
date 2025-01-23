@@ -1,0 +1,38 @@
+{
+  "System": {
+    "light": "light",
+    "dark": "dark",
+    "system": "system"
+  },
+  "SigninPage": {
+    "title": "Please Login First",
+    "subTitle": "Question Management Backend",
+    "account": "Account",
+    "accountFail": {
+      "required": "Username cannot be empty",
+      "min": "Username must be at least 4 characters",
+      "max": "Username cannot exceed 8 characters",
+      "pattern": "Username can only contain letters and numbers",
+      "prefix": "Username must start with a letter"
+    },
+    "accountPlaceholder": "Please enter your account",
+    "password": "Password",
+    "passwordFail": {
+      "required": "Password cannot be empty",
+      "min": "Password must be at least 6 characters",
+      "max": "Password cannot exceed 16 characters"
+    },
+    "passwordPlaceholder": "Please enter your password",
+    "captcha": "Captcha",
+    "captchaFail": {
+      "required": "Captcha cannot be empty"
+    },
+    "captchaPlaceholder": "Please enter the captcha",
+    "captchaIdFail": {
+      "required": "Captcha ID cannot be empty"
+    },
+    "signIn": "Sign in",
+    "signinSuccess": "Sign in successful",
+    "signinFailed": "Sign in failed"
+  }
+}

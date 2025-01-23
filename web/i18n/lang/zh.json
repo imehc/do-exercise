@@ -1,0 +1,38 @@
+{
+  "System": {
+    "light": "亮色",
+    "dark": "暗色",
+    "system": "系统"
+  },
+  "SigninPage": {
+    "title": "请先登录",
+    "subTitle": "刷题管理后台",
+    "account": "账号",
+    "accountPlaceholder": "请输入账号",
+    "accountFail": {
+      "required": "用户名不能为空",
+      "min": "用户名最少为4个字符",
+      "max": "用户名最多为8个字符",
+      "pattern": "用户名只能包含字母和数字",
+      "prefix": "用户名必须以字母开头"
+    },
+    "password": "密码",
+    "passwordFail": {
+      "required": "密码不能为空",
+      "min": "密码最少为6个字符",
+      "max": "密码最多为16个字符"
+    },
+    "passwordPlaceholder": "请输入密码",
+    "captcha": "验证码",
+    "captchaFail": {
+      "required": "验证码不能为空"
+    },
+    "captchaPlaceholder": "请输入验证码",
+    "captchaIdFail": {
+      "required": "验证码不能为空"
+    },
+    "signIn": "登 录",
+    "signinSuccess": "登录成功",
+    "signinFailed": "登录失败"
+  }
+}

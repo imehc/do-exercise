@@ -34,5 +34,8 @@
     "signIn": "Sign in",
     "signinSuccess": "Sign in successful",
     "signinFailed": "Sign in failed"
+  },
+  "User":{
+    "signout": "Sign out"
   }
 }

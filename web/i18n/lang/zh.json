@@ -34,5 +34,8 @@
     "signIn": "登 录",
     "signinSuccess": "登录成功",
     "signinFailed": "登录失败"
+  },
+  "User":{
+    "signout": "登 出"
   }
 }

@@ -1,18 +1,26 @@
-import { SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar';
+import {
+  SidebarInset,
+  SidebarProvider,
+} from '~/components/ui/sidebar';
 import { AppSidebar } from '~/components/other/app-sidebar';
+import { cookies } from 'next/headers';
 
 type LayoutProps = {
   children: React.ReactNode;
 };
 
-export default function DashboardLayout({ children }: LayoutProps) {
+export default async function DashboardLayout({ children }: LayoutProps) {
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
+      <SidebarInset>
+        <main>
+          {children}
+        </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

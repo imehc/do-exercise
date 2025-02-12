@@ -28,3 +28,4 @@ go.work.sum
 vendor
 log
 __debug*
+auth

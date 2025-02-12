@@ -14,12 +14,12 @@ func InitAuth() {
 	accessExpire, err := utils.ParseDurationString(global.CONFIG.Auth.AccessExpire)
 	if err != nil {
 		global.LOG.Error("auth config error", zap.Error(err))
-		panic(err)
+		return
 	}
 	refreshExpire, err2 := utils.ParseDurationString(global.CONFIG.Auth.RefreshExpire)
 	if err2 != nil {
 		global.LOG.Error("auth config error", zap.Error(err2))
-		panic(err2)
+		return
 	}
 
 	config := NewAuthConfig(

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/imehc/do-exercise/server/core"
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/initialize"
 	_ "go.uber.org/automaxprocs"
 )
@@ -10,6 +13,8 @@ func init() {
 	initialize.InitViper()
 	initialize.InitZap()
 	initialize.InitCache()
+	initialize.InitPostgres()
+	initialize.InitCasbin()
 	initialize.InitAuth()
 	initialize.InitOther()
 }
@@ -20,5 +25,13 @@ func init() {
 // @description                 					API接口文档
 // @securitydefinitions.bearerauth        bearer
 func main() {
+	if global.DB != nil {
+		initialize.InitRegisterTable()
+		fmt.Println("数据库初始化成功")
+
+		db, _ := global.DB.DB()
+		defer db.Close()
+	}
+
 	core.RunServer()
 }

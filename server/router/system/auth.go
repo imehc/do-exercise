@@ -7,9 +7,8 @@ import (
 
 type AuthRouter struct{}
 
-func (s *AuthRouter) InitAuthRouter(Router *gin.RouterGroup) (R gin.IRoutes) {
-	r := Router.Group("")
-	r.Use(middleware.ResponseError())
+func (s *AuthRouter) InitAuthRouter(router *gin.RouterGroup) gin.IRoutes {
+	r := router.Group("")
 
 	r2 := r.Group("").Use(middleware.JWTAuth())
 	{

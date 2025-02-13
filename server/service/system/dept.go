@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
@@ -21,7 +22,7 @@ func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (e
 		ParentId: request.ParentId,
 		Name:     request.Name,
 		Leader:   request.Leader,
-		ControlBy: global.ControlBy{
+		ControlWrapper: model.ControlWrapper{
 			CreatedBy: createdBy,
 		},
 	}
@@ -91,7 +92,7 @@ func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRe
 	dept.Sort = request.Sort
 	dept.Status = request.Status
 	dept.ParentId = request.ParentId
-	dept.ControlBy = global.ControlBy{
+	dept.ControlWrapper = model.ControlWrapper{
 		UpdatedBy: updatedBy,
 	}
 
@@ -115,16 +116,19 @@ func (d *DeptService) GetDep(param request.DeptParam) (response.DeptItem, error)
 	}
 
 	return response.DeptItem{
-		Model: dept.Model,
+		IDWrapper: dept.IDWrapper,
 		DeptRequest: request.DeptRequest{
-			Email:    dept.Email,
-			Leader:   dept.Leader,
-			Name:     dept.Name,
-			ParentId: dept.ParentId,
-			Phone:    dept.Phone,
-			Sort:     dept.Sort,
-			Status:   dept.Status,
+			Email:       dept.Email,
+			Leader:      dept.Leader,
+			Name:        dept.Name,
+			ParentId:    dept.ParentId,
+			Phone:       dept.Phone,
+			SortWrapper: dept.SortWrapper,
+			StatusWrapper: model.StatusWrapper{
+				Status: dept.Status,
+			},
 		},
+		ControlWrapper: dept.ControlWrapper,
 	}, nil
 }
 
@@ -136,7 +140,7 @@ func (d *DeptService) GetDeptList(query request.DeptQueryParams) (response.DeptR
 	var originDepts []system.Dept
 	offset := (query.Page - 1) * query.PageSize
 	depts := response.DeptResponse{}
-	err := db.Model(&system.Dept{}).Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).Count(&total).Offset(offset).Limit(query.PageSize).Find(&originDepts).Error
+	err := db.Model(&system.Dept{}).Order("id ASC").Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).Count(&total).Offset(offset).Limit(query.PageSize).Find(&originDepts).Error
 	if err != nil {
 		return depts, err
 	}
@@ -146,7 +150,8 @@ func (d *DeptService) GetDeptList(query request.DeptQueryParams) (response.DeptR
 
 	depts.Data = make([]response.DeptItem, len(originDepts))
 	for i, dept := range originDepts {
-		depts.Data[i].Model = dept.Model
+		depts.Data[i].ID = dept.ID
+		depts.Data[i].ControlWrapper = dept.ControlWrapper
 		depts.Data[i].ParentId = dept.ParentId
 		depts.Data[i].Name = dept.Name
 		depts.Data[i].Sort = dept.Sort

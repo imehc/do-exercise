@@ -1,6 +1,7 @@
 package request
 
 import (
+	"github.com/imehc/do-exercise/server/model"
 	commonReq "github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/utils"
 )
@@ -13,10 +14,11 @@ type UserItem struct {
 	Email    string `json:"email"`                                                                           // 邮箱
 	Username string `json:"username" binding:"required,min=4,max=8,alphanum,startWithLetter,containsLetter"` // 用户名
 	Sex      int    `json:"sex"`                                                                             // 性别
-	Status   int    `json:"status"`                                                                          // 状态
 	PostId   int    `json:"post_id" binding:"required"`                                                      // 岗位
 	RoleId   int    `json:"role_id" binding:"required"`                                                      // 角色
-	Remark   string `json:"remark"`
+
+	model.RemarkWrapper
+	model.StatusWrapper
 }
 
 type UserRequest struct {

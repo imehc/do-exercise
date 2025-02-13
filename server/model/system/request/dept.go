@@ -1,6 +1,7 @@
 package request
 
 import (
+	"github.com/imehc/do-exercise/server/model"
 	commonReq "github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/utils"
 )
@@ -8,11 +9,11 @@ import (
 type DeptRequest struct {
 	ParentId *int   `json:"parent_id" binding:"required"` // 上级部门
 	Name     string `json:"name" binding:"required"`      // 部门名称
-	Sort     int    `json:"sort"`                         // 排序
 	Leader   string `json:"leader" binding:"required"`    // 负责人
 	Phone    string `json:"phone"`                        // 手机号
 	Email    string `json:"email"`                        // 邮箱
-	Status   int    `json:"status"`                       // 状态
+	model.SortWrapper
+	model.StatusWrapper
 }
 
 func (d DeptRequest) GetMessage() utils.ValidatorMessages {

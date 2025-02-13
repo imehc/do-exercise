@@ -1,13 +1,14 @@
 package response
 
 import (
-	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	commonRes "github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
 )
 
 type DeptItem struct {
-	global.Model
+	model.IDWrapper
+	model.ControlWrapper
 	request.DeptRequest
 }
 

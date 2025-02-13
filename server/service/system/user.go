@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
@@ -35,7 +36,7 @@ func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (e
 		DeptIds:  []int{request.DeptId},
 		PostIds:  []int{request.PostId},
 		RoleIds:  []int{request.RoleId},
-		ControlBy: global.ControlBy{
+		ControlWrapper: model.ControlWrapper{
 			CreatedBy: createdBy,
 		},
 	}
@@ -115,7 +116,7 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 	user.RoleId = request.RoleId
 	user.Remark = request.Remark
 	user.Avatar = request.Avatar
-	user.ControlBy = global.ControlBy{
+	user.ControlWrapper = model.ControlWrapper{
 		UpdatedBy: updatedBy,
 	}
 
@@ -130,7 +131,7 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 
 	var userRep response.UserItem
 	var user system.User
-	result := db.First(&user, param.UserId)
+	result := db.Preload("Dept").First(&user, param.UserId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return userRep, errors.New("用户不存在")
@@ -139,7 +140,8 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 	}
 
 	return response.UserItem{
-		Model: user.Model,
+		IDWrapper:      user.IDWrapper,
+		ControlWrapper: user.ControlWrapper,
 		UserItem: request.UserItem{
 			Avatar:   user.Avatar,
 			Nickname: user.Nickname,
@@ -148,22 +150,29 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 			Email:    user.Email,
 			Username: user.Username,
 			Sex:      user.Sex,
-			Status:   user.Status,
 			PostId:   user.PostId,
 			RoleId:   user.RoleId,
-			Remark:   user.Remark,
+			RemarkWrapper: model.RemarkWrapper{
+				Remark: user.Remark,
+			},
+			StatusWrapper: model.StatusWrapper{
+				Status: user.Status,
+			},
 		},
 		DeptIds: user.DeptIds,
 		Dept: response.DeptItem{
-			Model: user.Dept.Model,
+			IDWrapper:      user.Dept.IDWrapper,
+			ControlWrapper: user.Dept.ControlWrapper,
 			DeptRequest: request.DeptRequest{
-				ParentId: user.Dept.ParentId,
-				Name:     user.Dept.Name,
-				Sort:     user.Dept.Sort,
-				Leader:   user.Dept.Leader,
-				Phone:    user.Dept.Phone,
-				Email:    user.Dept.Email,
-				Status:   user.Dept.Status,
+				ParentId:    user.Dept.ParentId,
+				Name:        user.Dept.Name,
+				Leader:      user.Dept.Leader,
+				Phone:       user.Dept.Phone,
+				Email:       user.Dept.Email,
+				SortWrapper: user.Dept.SortWrapper,
+				StatusWrapper: model.StatusWrapper{
+					Status: user.Dept.Status,
+				},
 			},
 		},
 		PostIds: user.PostIds,
@@ -179,7 +188,7 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 	var originUsers []system.User
 	offset := (query.Page - 1) * query.PageSize
 	users := response.UserResponse{}
-	err := db.Model(&system.User{}).Preload("Dept").Where(fmt.Sprintf("username LIKE '%%%s%%'", query.Name)).Count(&total).Offset(offset).Limit(query.PageSize).Find(&originUsers).Error
+	err := db.Model(&system.User{}).Order("id ASC").Preload("Dept").Where(fmt.Sprintf("username LIKE '%%%s%%'", query.Name)).Count(&total).Offset(offset).Limit(query.PageSize).Find(&originUsers).Error
 	if err != nil {
 		return users, err
 	}
@@ -189,7 +198,8 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 
 	users.Data = make([]response.UserItem, len(originUsers))
 	for i, user := range originUsers {
-		users.Data[i].Model = user.Model
+		users.Data[i].ID = user.ID
+		users.Data[i].ControlWrapper = user.ControlWrapper
 		users.Data[i].Nickname = user.Nickname
 		users.Data[i].Phone = user.Phone
 		users.Data[i].Email = user.Email
@@ -204,15 +214,18 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 		users.Data[i].PostIds = user.PostIds
 		users.Data[i].RoleIds = user.RoleIds
 		users.Data[i].Dept = response.DeptItem{
-			Model: user.Dept.Model,
+			IDWrapper:      user.Dept.IDWrapper,
+			ControlWrapper: user.Dept.ControlWrapper,
 			DeptRequest: request.DeptRequest{
-				ParentId: user.Dept.ParentId,
-				Name:     user.Dept.Name,
-				Sort:     user.Dept.Sort,
-				Leader:   user.Dept.Leader,
-				Phone:    user.Dept.Phone,
-				Email:    user.Dept.Email,
-				Status:   user.Dept.Status,
+				ParentId:    user.Dept.ParentId,
+				Name:        user.Dept.Name,
+				Leader:      user.Dept.Leader,
+				Phone:       user.Dept.Phone,
+				Email:       user.Dept.Email,
+				SortWrapper: user.Dept.SortWrapper,
+				StatusWrapper: model.StatusWrapper{
+					Status: user.Dept.Status,
+				},
 			},
 		}
 	}

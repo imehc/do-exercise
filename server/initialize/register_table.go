@@ -15,6 +15,8 @@ func InitRegisterTable() {
 	err := db.AutoMigrate(
 		system.User{},
 		system.Dept{},
+		system.Dict{},
+		system.DictData{},
 	)
 
 	if err != nil {

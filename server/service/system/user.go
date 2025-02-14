@@ -22,7 +22,10 @@ func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (e
 
 	// TODO: 检验部门、角色、岗位是否存在
 	var dept system.Dept
-	err = db.Model(system.Dept{}).First(&dept, request.DeptId).Error
+	err = db.
+		Model(system.Dept{}).
+		First(&dept, request.DeptId).
+		Error
 	if err != nil {
 		return errors.New("该部门不存在")
 	}
@@ -60,7 +63,9 @@ func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (e
 		user.Remark = request.Remark
 	}
 
-	err = db.Create(&user).Error
+	err = db.
+		Create(&user).
+		Error
 	return
 }
 
@@ -69,7 +74,9 @@ func (u *UserService) DeleteUser(param request.UserParam, deletedBy uint) (err e
 	db := global.DB
 
 	var user system.User
-	result := db.Unscoped().First(&user, param.UserId)
+	result := db.
+		Unscoped().
+		First(&user, param.UserId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return errors.New("用户不存在")
@@ -81,7 +88,11 @@ func (u *UserService) DeleteUser(param request.UserParam, deletedBy uint) (err e
 		return errors.New("用户已删除")
 	}
 
-	db.Model(system.User{}).Where("id = ?", param.UserId).Update("deleted_by", deletedBy).Delete(&user)
+	db.
+		Model(system.User{}).
+		Where("id = ?", param.UserId).
+		Update("deleted_by", deletedBy).
+		Delete(&user)
 	return nil
 }
 
@@ -90,7 +101,8 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 	db := global.DB
 
 	var user system.User
-	result := db.First(&user, param.UserId)
+	result := db.
+		First(&user, param.UserId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return errors.New("用户不存在")
@@ -100,7 +112,10 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 
 	// TODO: 检验部门、角色、岗位是否存在
 	var dept system.Dept
-	err = db.Model(system.Dept{}).First(&dept, request.DeptId).Error
+	err = db.
+		Model(system.Dept{}).
+		First(&dept, request.DeptId).
+		Error
 	if err != nil {
 		return errors.New("该部门不存在")
 	}
@@ -120,7 +135,11 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 		UpdatedBy: updatedBy,
 	}
 
-	db.Model(system.User{}).Where("id = ?", param.UserId).Updates(&user).Omit("id", "created_at")
+	db.
+		Model(system.User{}).
+		Where("id = ?", param.UserId).
+		Updates(&user).
+		Omit("id", "created_at")
 
 	return nil
 }
@@ -131,7 +150,9 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 
 	var userRep response.UserItem
 	var user system.User
-	result := db.Preload("Dept").First(&user, param.UserId)
+	result := db.
+		Preload("Dept").
+		First(&user, param.UserId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return userRep, errors.New("用户不存在")
@@ -188,7 +209,14 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 	var originUsers []system.User
 	offset := (query.Page - 1) * query.PageSize
 	users := response.UserResponse{}
-	err := db.Model(&system.User{}).Order("id ASC").Preload("Dept").Where(fmt.Sprintf("username LIKE '%%%s%%'", query.Name)).Count(&total).Offset(offset).Limit(query.PageSize).Find(&originUsers).Error
+	err := db.
+		Model(&system.User{}).
+		Order("id ASC").Preload("Dept").
+		Where(fmt.Sprintf("username LIKE '%%%s%%'", query.Name)).
+		Count(&total).Offset(offset).
+		Limit(query.PageSize).
+		Find(&originUsers).
+		Error
 	if err != nil {
 		return users, err
 	}

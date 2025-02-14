@@ -8,7 +8,7 @@ import (
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
-	"github.com/imehc/do-exercise/server/model/system/response"
+	sysRes "github.com/imehc/do-exercise/server/model/system/response"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +40,9 @@ func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (e
 		dept.Status = request.Status
 	}
 
-	err = db.Create(&dept).Error
+	err = db.
+		Create(&dept).
+		Error
 	return
 }
 
@@ -49,7 +51,9 @@ func (d *DeptService) DeleteDept(param request.DeptParam, deletedBy uint) (err e
 	db := global.DB
 
 	var dept system.Dept
-	result := db.Unscoped().First(&dept, param.DeptId)
+	result := db.
+		Unscoped().
+		First(&dept, param.DeptId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return errors.New("部门不存在")
@@ -63,12 +67,19 @@ func (d *DeptService) DeleteDept(param request.DeptParam, deletedBy uint) (err e
 
 	// 检查该部门下是否有其它用户
 	var user system.User
-	result = db.Model(system.User{}).Where("dept_id = ?", param.DeptId).Find(&user)
+	result = db.
+		Model(system.User{}).
+		Where("dept_id = ?", param.DeptId).
+		Find(&user)
 	if result.RowsAffected > 0 {
 		return errors.New("该部门下存在用户，无法删除")
 	}
 
-	db.Model(system.Dept{}).Where("id = ?", param.DeptId).Update("deleted_by", deletedBy).Delete(&dept)
+	db.
+		Model(system.Dept{}).
+		Where("id = ?", param.DeptId).
+		Update("deleted_by", deletedBy).
+		Delete(&dept)
 	return nil
 }
 
@@ -77,7 +88,8 @@ func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRe
 	db := global.DB
 
 	var dept system.Dept
-	result := db.First(&dept, param.DeptId)
+	result := db.
+		First(&dept, param.DeptId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return errors.New("部门不存在")
@@ -96,80 +108,93 @@ func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRe
 		UpdatedBy: updatedBy,
 	}
 
-	db.Model(system.Dept{}).Where("id = ?", param.DeptId).Updates(&dept).Omit("id", "created_at")
+	db.
+		Model(system.Dept{}).
+		Where("id = ?", param.DeptId).
+		Updates(&dept).Omit("id", "created_at")
 
 	return nil
 }
 
 // 查询单个部门
-func (d *DeptService) GetDep(param request.DeptParam) (response.DeptItem, error) {
+func (d *DeptService) GetDep(param request.DeptParam) (response sysRes.DeptItem, err error) {
 	db := global.DB
 
-	var deptRep response.DeptItem
 	var dept system.Dept
-	result := db.First(&dept, param.DeptId)
+	result := db.
+		First(&dept, param.DeptId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return deptRep, errors.New("部门不存在")
+			return response, errors.New("部门不存在")
 		}
-		return deptRep, result.Error
+		return response, result.Error
 	}
 
-	return response.DeptItem{
-		IDWrapper: dept.IDWrapper,
-		DeptRequest: request.DeptRequest{
-			Email:       dept.Email,
-			Leader:      dept.Leader,
-			Name:        dept.Name,
-			ParentId:    dept.ParentId,
-			Phone:       dept.Phone,
-			SortWrapper: dept.SortWrapper,
-			StatusWrapper: model.StatusWrapper{
-				Status: dept.Status,
-			},
+	response.ID = dept.ID
+	response.DeptRequest = request.DeptRequest{
+		Email:       dept.Email,
+		Leader:      dept.Leader,
+		Name:        dept.Name,
+		ParentId:    dept.ParentId,
+		Phone:       dept.Phone,
+		SortWrapper: dept.SortWrapper,
+		StatusWrapper: model.StatusWrapper{
+			Status: dept.Status,
 		},
-		ControlWrapper: dept.ControlWrapper,
-	}, nil
+	}
+	response.ControlWrapper = dept.ControlWrapper
+	return
 }
 
 // 查询部门
-func (d *DeptService) GetDeptList(query request.DeptQueryParams) (response.DeptResponse, error) {
+func (d *DeptService) GetDeptList(query request.DeptQueryParams) (response sysRes.DeptResponse, err error) {
 	db := global.DB
 
 	var total int64
 	var originDepts []system.Dept
 	offset := (query.Page - 1) * query.PageSize
-	depts := response.DeptResponse{}
-	err := db.Model(&system.Dept{}).Order("id ASC").Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).Count(&total).Offset(offset).Limit(query.PageSize).Find(&originDepts).Error
+	err = db.
+		Model(&system.Dept{}).
+		Order("sort Desc").
+		Order("id ASC").
+		Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).
+		Count(&total).
+		Offset(offset).
+		Limit(query.PageSize).
+		Find(&originDepts).
+		Error
 	if err != nil {
-		return depts, err
+		return response, err
 	}
-	depts.Meta.Page = query.Page
-	depts.Meta.PageSize = query.PageSize
-	depts.Meta.Total = total
+	response.Meta.Page = query.Page
+	response.Meta.PageSize = query.PageSize
+	response.Meta.Total = total
 
-	depts.Data = make([]response.DeptItem, len(originDepts))
+	response.Data = make([]sysRes.DeptItem, len(originDepts))
 	for i, dept := range originDepts {
-		depts.Data[i].ID = dept.ID
-		depts.Data[i].ControlWrapper = dept.ControlWrapper
-		depts.Data[i].ParentId = dept.ParentId
-		depts.Data[i].Name = dept.Name
-		depts.Data[i].Sort = dept.Sort
-		depts.Data[i].Leader = dept.Leader
-		depts.Data[i].Phone = dept.Phone
-		depts.Data[i].Email = dept.Email
-		depts.Data[i].Status = dept.Status
+		response.Data[i].ID = dept.ID
+		response.Data[i].ControlWrapper = dept.ControlWrapper
+		response.Data[i].ParentId = dept.ParentId
+		response.Data[i].Name = dept.Name
+		response.Data[i].Sort = dept.Sort
+		response.Data[i].Leader = dept.Leader
+		response.Data[i].Phone = dept.Phone
+		response.Data[i].Email = dept.Email
+		response.Data[i].Status = dept.Status
 	}
 
-	return depts, nil
+	return
 }
 
 // 部门树
-func (d *DeptService) GetDeptTree() ([]response.DeptTree, error) {
+func (d *DeptService) GetDeptTree() (response []sysRes.DeptTree, err error) {
 	db := global.DB
 	var depts []system.Dept
-	if err := db.Find(&depts).Error; err != nil {
-		return []response.DeptTree{}, err
+	if err := db.
+		Order("sort Desc").
+		Order("id ASC").
+		Find(&depts).Error; err != nil {
+		return []sysRes.DeptTree{}, err
 	}
 
 	// 创建一个映射来存储部门及其子部门
@@ -183,17 +208,17 @@ func (d *DeptService) GetDeptTree() ([]response.DeptTree, error) {
 	}
 
 	// 递归构建部门树
-	var buildTree func(parentId int) []response.DeptTree
-	buildTree = func(parentId int) []response.DeptTree {
-		var tree []response.DeptTree
+	var buildTree func(parentId int) []sysRes.DeptTree
+	buildTree = func(parentId int) []sysRes.DeptTree {
+		var tree []sysRes.DeptTree
 		for _, dept := range deptMap[parentId] {
 			// 递归构建子部门
 			children := buildTree(int(dept.ID))
 			if children == nil {
 				// 如果没有子部门，则设置 children 为空数组
-				children = []response.DeptTree{}
+				children = []sysRes.DeptTree{}
 			}
-			tree = append(tree, response.DeptTree{
+			tree = append(tree, sysRes.DeptTree{
 				ID:       int(dept.ID),
 				Label:    dept.Name,
 				Children: children,

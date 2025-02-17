@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
 
@@ -36,9 +37,6 @@ func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (e
 		DeptId:   request.DeptId,
 		PostId:   request.PostId,
 		RoleId:   request.RoleId,
-		DeptIds:  []int{request.DeptId},
-		PostIds:  []int{request.PostId},
-		RoleIds:  []int{request.RoleId},
 		ControlWrapper: model.ControlWrapper{
 			CreatedBy: createdBy,
 		},
@@ -152,6 +150,7 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 	var user system.User
 	result := db.
 		Preload("Dept").
+		Preload("Post").
 		First(&user, param.UserId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -160,19 +159,16 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 		return userRep, result.Error
 	}
 
-	return response.UserItem{
+	userRep = response.UserItem{
 		IDWrapper:      user.IDWrapper,
 		ControlWrapper: user.ControlWrapper,
 		UserItem: request.UserItem{
 			Avatar:   user.Avatar,
 			Nickname: user.Nickname,
-			DeptId:   user.DeptId,
 			Phone:    user.Phone,
 			Email:    user.Email,
 			Username: user.Username,
 			Sex:      user.Sex,
-			PostId:   user.PostId,
-			RoleId:   user.RoleId,
 			RemarkWrapper: model.RemarkWrapper{
 				Remark: user.Remark,
 			},
@@ -180,8 +176,16 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 				Status: user.Status,
 			},
 		},
-		DeptIds: user.DeptIds,
-		Dept: response.DeptItem{
+	}
+	hasDeptId := user.DeptId != nil && user.Dept.ID != 0
+	hasPostId := user.PostId != nil && user.Post.ID != 0
+	hasRoleId := /*  user.RoleId != nil && user.Role.ID != 0 */ *user.RoleId != 0
+	if !hasDeptId {
+		userRep.DeptId = nil
+		userRep.Dept = nil
+	} else {
+		userRep.DeptId = user.DeptId
+		userRep.Dept = &response.DeptItem{
 			IDWrapper:      user.Dept.IDWrapper,
 			ControlWrapper: user.Dept.ControlWrapper,
 			DeptRequest: request.DeptRequest{
@@ -195,10 +199,35 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 					Status: user.Dept.Status,
 				},
 			},
-		},
-		PostIds: user.PostIds,
-		RoleIds: user.RoleIds,
-	}, nil
+		}
+	}
+
+	if !hasPostId {
+		userRep.PostId = nil
+		userRep.Post = nil
+	} else {
+		userRep.PostId = user.PostId
+		userRep.Post = &response.PostItem{
+			IDWrapper:      user.Post.IDWrapper,
+			ControlWrapper: user.Post.ControlWrapper,
+			PostRequest: request.PostRequest{
+				Name:          user.Post.Name,
+				Code:          user.Post.Code,
+				SortWrapper:   user.Post.SortWrapper,
+				StatusWrapper: user.Post.StatusWrapper,
+				RemarkWrapper: user.Post.RemarkWrapper,
+			},
+		}
+	}
+
+	if !hasRoleId {
+		userRep.RoleId = nil
+		// userRep.Role = nil
+	} else {
+		// TODO: 对应角色信息
+	}
+
+	return userRep, nil
 }
 
 // 查询用户
@@ -207,14 +236,15 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 
 	var total int64
 	var originUsers []system.User
-	offset := (query.Page - 1) * query.PageSize
 	users := response.UserResponse{}
 	err := db.
 		Model(&system.User{}).
-		Order("id ASC").Preload("Dept").
+		Order("id ASC").
+		Preload("Dept").
+		Preload("Post").
 		Where(fmt.Sprintf("username LIKE '%%%s%%'", query.Name)).
-		Count(&total).Offset(offset).
-		Limit(query.PageSize).
+		Count(&total).
+		Scopes(utils.Paginate(query.PageSize, query.Page)).
 		Find(&originUsers).
 		Error
 	if err != nil {
@@ -235,26 +265,52 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 		users.Data[i].Sex = user.Sex
 		users.Data[i].Status = user.Status
 		users.Data[i].Remark = user.Remark
-		users.Data[i].DeptId = user.DeptId
-		users.Data[i].PostId = user.PostId
-		users.Data[i].RoleId = user.RoleId
-		users.Data[i].DeptIds = user.DeptIds
-		users.Data[i].PostIds = user.PostIds
-		users.Data[i].RoleIds = user.RoleIds
-		users.Data[i].Dept = response.DeptItem{
-			IDWrapper:      user.Dept.IDWrapper,
-			ControlWrapper: user.Dept.ControlWrapper,
-			DeptRequest: request.DeptRequest{
-				ParentId:    user.Dept.ParentId,
-				Name:        user.Dept.Name,
-				Leader:      user.Dept.Leader,
-				Phone:       user.Dept.Phone,
-				Email:       user.Dept.Email,
-				SortWrapper: user.Dept.SortWrapper,
-				StatusWrapper: model.StatusWrapper{
-					Status: user.Dept.Status,
+
+		hasDeptId := user.DeptId != nil && user.Dept.ID != 0
+		hasPostId := user.PostId != nil && user.Post.ID != 0
+		hasRoleId := /*  user.RoleId != nil && user.Role.ID != 0 */ *user.RoleId != 0
+		if !hasDeptId {
+			users.Data[i].DeptId = nil
+			users.Data[i].Dept = nil
+		} else {
+			users.Data[i].DeptId = user.DeptId
+			users.Data[i].Dept = &response.DeptItem{
+				IDWrapper:      user.Dept.IDWrapper,
+				ControlWrapper: user.Dept.ControlWrapper,
+				DeptRequest: request.DeptRequest{
+					ParentId:    user.Dept.ParentId,
+					Name:        user.Dept.Name,
+					Leader:      user.Dept.Leader,
+					Phone:       user.Dept.Phone,
+					Email:       user.Dept.Email,
+					SortWrapper: user.Dept.SortWrapper,
+					StatusWrapper: model.StatusWrapper{
+						Status: user.Dept.Status,
+					},
 				},
-			},
+			}
+		}
+		if !hasPostId {
+			users.Data[i].PostId = nil
+			users.Data[i].Post = nil
+		} else {
+			users.Data[i].PostId = user.PostId
+			users.Data[i].Post = &response.PostItem{
+				IDWrapper:      user.Post.IDWrapper,
+				ControlWrapper: user.Post.ControlWrapper,
+				PostRequest: request.PostRequest{
+					Name:          user.Post.Name,
+					Code:          user.Post.Code,
+					SortWrapper:   user.Post.SortWrapper,
+					StatusWrapper: user.Post.StatusWrapper,
+					RemarkWrapper: user.Post.RemarkWrapper,
+				},
+			}
+		}
+		if !hasRoleId {
+			users.Data[i].RoleId = nil
+		} else {
+			// TODO: 对应角色信息
 		}
 	}
 

@@ -9,13 +9,13 @@ import (
 type UserItem struct {
 	Avatar   string `json:"avatar"`                                                                          // 头像路径
 	Nickname string `json:"nickname"`                                                                        // 昵称
-	DeptId   int    `json:"dept_id" binding:"required"`                                                      // 归属部门
+	DeptId   *int   `json:"dept_id" binding:"required"`                                                      // 归属部门
 	Phone    string `json:"phone"`                                                                           // 手机号
 	Email    string `json:"email"`                                                                           // 邮箱
 	Username string `json:"username" binding:"required,min=4,max=8,alphanum,startWithLetter,containsLetter"` // 用户名
 	Sex      int    `json:"sex"`                                                                             // 性别
-	PostId   int    `json:"post_id" binding:"required"`                                                      // 岗位
-	RoleId   int    `json:"role_id" binding:"required"`                                                      // 角色
+	PostId   *int   `json:"post_id,omitempty" binding:"required"`                                            // 岗位
+	RoleId   *int   `json:"role_id,omitempty" binding:"required"`                                            // 角色
 
 	model.RemarkWrapper
 	model.StatusWrapper

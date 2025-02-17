@@ -6,15 +6,14 @@ import (
 	"github.com/imehc/do-exercise/server/model/system/request"
 )
 
-type UserItem struct {
+type PostItem struct {
 	model.IDWrapper
 	model.ControlWrapper
-	request.UserItem
+	request.PostRequest
 	Dept *DeptItem `json:"dept,omitempty"`
-	Post *PostItem `json:"post,omitempty"`
 }
 
-type UserResponse struct {
-	Data []UserItem         `json:"data"`
+type PostResponse struct {
+	Data []PostItem         `json:"data"`
 	Meta commonRes.Paginate `json:"meta"`
 }

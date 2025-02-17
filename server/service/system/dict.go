@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
 
@@ -122,14 +123,13 @@ func (d *DictService) GetDictList(query request.DictQueryParams) (response sysRe
 
 	var total int64
 	var originDicts []system.Dict
-	offset := (query.Page - 1) * query.PageSize
+
 	err = db.
 		Model(&system.Dict{}).
 		Order("id ASC").
 		Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).
 		Count(&total).
-		Offset(offset).
-		Limit(query.PageSize).
+		Scopes(utils.Paginate(query.PageSize, query.Page)).
 		Find(&originDicts).
 		Error
 	if err != nil {
@@ -304,15 +304,15 @@ func (d *DictService) GetDictDataList(query request.DictDataQueryParams) (respon
 
 	var total int64
 	var originDictData []system.DictData
-	offset := (query.Page - 1) * query.PageSize
+
 	err = db.
 		Model(&system.DictData{}).
 		Order("sort Desc").
 		Order("id ASC").
 		Where(fmt.Sprintf("label LIKE '%%%s%%'", query.Label)).
 		Where("dict_type = ?", query.DictType).
-		Count(&total).Offset(offset).
-		Limit(query.PageSize).
+		Count(&total).
+		Scopes(utils.Paginate(query.PageSize, query.Page)).
 		Find(&originDictData).
 		Error
 	if err != nil {

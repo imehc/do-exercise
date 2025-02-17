@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
 
@@ -111,7 +112,8 @@ func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRe
 	db.
 		Model(system.Dept{}).
 		Where("id = ?", param.DeptId).
-		Updates(&dept).Omit("id", "created_at")
+		Updates(&dept).
+		Omit("id", "created_at")
 
 	return nil
 }
@@ -152,15 +154,13 @@ func (d *DeptService) GetDeptList(query request.DeptQueryParams) (response sysRe
 
 	var total int64
 	var originDepts []system.Dept
-	offset := (query.Page - 1) * query.PageSize
 	err = db.
 		Model(&system.Dept{}).
 		Order("sort Desc").
 		Order("id ASC").
 		Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).
 		Count(&total).
-		Offset(offset).
-		Limit(query.PageSize).
+		Scopes(utils.Paginate(query.PageSize, query.Page)).
 		Find(&originDepts).
 		Error
 	if err != nil {

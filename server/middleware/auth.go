@@ -43,9 +43,9 @@ func JWTAuth() gin.HandlerFunc {
 			}
 			claims.ID = user.ID
 			claims.Username = user.Username
-			claims.DeptId = *user.DeptId
-			claims.PostId = *user.PostId
-			claims.RoleId = *user.RoleId
+			claims.DeptId = user.DeptId
+			claims.PostId = user.PostId
+			claims.RoleId = user.RoleId
 
 			expire, err := utils.ParseDurationString(global.CONFIG.Auth.AccessExpire)
 			if err == nil {

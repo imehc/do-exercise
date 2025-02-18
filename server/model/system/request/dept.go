@@ -7,13 +7,13 @@ import (
 )
 
 type DeptRequest struct {
-	ParentId *int   `json:"parent_id" binding:"required"` // 上级部门
-	Name     string `json:"name" binding:"required"`      // 部门名称
-	Leader   string `json:"leader" binding:"required"`    // 负责人
-	Phone    string `json:"phone"`                        // 手机号
-	Email    string `json:"email"`                        // 邮箱
-	model.SortWrapper
-	model.StatusWrapper
+	ParentId            int    `json:"parent_id,omitzero" binding:"required"` // 上级部门
+	Name                string `json:"name" binding:"required"`               // 部门名称
+	Leader              string `json:"leader" binding:"required"`             // 负责人
+	Phone               string `json:"phone"`                                 // 手机号
+	Email               string `json:"email"`                                 // 邮箱
+	model.SortWrapper   `json:",inline"`
+	model.StatusWrapper `json:",inline"`
 }
 
 func (d DeptRequest) GetMessage() utils.ValidatorMessages {
@@ -29,6 +29,6 @@ type DeptParam struct {
 }
 
 type DeptQueryParams struct {
-	commonReq.QueryParams
-	Name string `json:"name" form:"name"`
+	commonReq.QueryParams `json:",inline"`
+	Name                  string `json:"name" form:"name"`
 }

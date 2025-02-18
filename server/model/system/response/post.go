@@ -7,10 +7,10 @@ import (
 )
 
 type PostItem struct {
-	model.IDWrapper
-	model.ControlWrapper
-	request.PostRequest
-	Dept *DeptItem `json:"dept,omitempty"`
+	model.IDWrapper      `json:",inline"`
+	model.ControlWrapper `json:",inline"`
+	request.PostRequest  `json:",inline"`
+	Dept                 DeptItem `json:"dept,omitzero"`
 }
 
 type PostResponse struct {

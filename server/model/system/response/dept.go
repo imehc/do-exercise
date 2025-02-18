@@ -7,9 +7,9 @@ import (
 )
 
 type DeptItem struct {
-	model.IDWrapper
-	model.ControlWrapper
-	request.DeptRequest
+	model.IDWrapper      `json:",inline"`
+	model.ControlWrapper `json:",inline"`
+	request.DeptRequest  `json:",inline"`
 }
 
 type DeptResponse struct {

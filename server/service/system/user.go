@@ -177,15 +177,12 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 			},
 		},
 	}
-	hasDeptId := user.DeptId != nil && user.Dept.ID != 0
-	hasPostId := user.PostId != nil && user.Post.ID != 0
-	hasRoleId := /*  user.RoleId != nil && user.Role.ID != 0 */ *user.RoleId != 0
-	if !hasDeptId {
-		userRep.DeptId = nil
-		userRep.Dept = nil
-	} else {
+	hasDeptId := user.Dept.ID != 0
+	hasPostId := user.Post.ID != 0
+	// hasRoleId := user.RoleId != 0
+	if hasDeptId {
 		userRep.DeptId = user.DeptId
-		userRep.Dept = &response.DeptItem{
+		userRep.Dept = response.DeptItem{
 			IDWrapper:      user.Dept.IDWrapper,
 			ControlWrapper: user.Dept.ControlWrapper,
 			DeptRequest: request.DeptRequest{
@@ -202,12 +199,9 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 		}
 	}
 
-	if !hasPostId {
-		userRep.PostId = nil
-		userRep.Post = nil
-	} else {
+	if hasPostId {
 		userRep.PostId = user.PostId
-		userRep.Post = &response.PostItem{
+		userRep.Post = response.PostItem{
 			IDWrapper:      user.Post.IDWrapper,
 			ControlWrapper: user.Post.ControlWrapper,
 			PostRequest: request.PostRequest{
@@ -220,12 +214,9 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 		}
 	}
 
-	if !hasRoleId {
-		userRep.RoleId = nil
-		// userRep.Role = nil
-	} else {
-		// TODO: 对应角色信息
-	}
+	// if hasRoleId {
+	// 	// TODO: 对应角色信息
+	// }
 
 	return userRep, nil
 }
@@ -266,15 +257,12 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 		users.Data[i].Status = user.Status
 		users.Data[i].Remark = user.Remark
 
-		hasDeptId := user.DeptId != nil && user.Dept.ID != 0
-		hasPostId := user.PostId != nil && user.Post.ID != 0
-		hasRoleId := /*  user.RoleId != nil && user.Role.ID != 0 */ *user.RoleId != 0
-		if !hasDeptId {
-			users.Data[i].DeptId = nil
-			users.Data[i].Dept = nil
-		} else {
+		hasDeptId := user.Dept.ID != 0
+		hasPostId := user.Post.ID != 0
+		// hasRoleId := user.RoleId != 0
+		if hasDeptId {
 			users.Data[i].DeptId = user.DeptId
-			users.Data[i].Dept = &response.DeptItem{
+			users.Data[i].Dept = response.DeptItem{
 				IDWrapper:      user.Dept.IDWrapper,
 				ControlWrapper: user.Dept.ControlWrapper,
 				DeptRequest: request.DeptRequest{
@@ -290,12 +278,9 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 				},
 			}
 		}
-		if !hasPostId {
-			users.Data[i].PostId = nil
-			users.Data[i].Post = nil
-		} else {
+		if hasPostId {
 			users.Data[i].PostId = user.PostId
-			users.Data[i].Post = &response.PostItem{
+			users.Data[i].Post = response.PostItem{
 				IDWrapper:      user.Post.IDWrapper,
 				ControlWrapper: user.Post.ControlWrapper,
 				PostRequest: request.PostRequest{
@@ -307,11 +292,9 @@ func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserR
 				},
 			}
 		}
-		if !hasRoleId {
-			users.Data[i].RoleId = nil
-		} else {
-			// TODO: 对应角色信息
-		}
+		// if hasRoleId {
+		// 	// TODO: 对应角色信息
+		// }
 	}
 
 	return users, nil

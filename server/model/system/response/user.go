@@ -7,11 +7,11 @@ import (
 )
 
 type UserItem struct {
-	model.IDWrapper
-	model.ControlWrapper
-	request.UserItem
-	Dept *DeptItem `json:"dept,omitempty"`
-	Post *PostItem `json:"post,omitempty"`
+	model.IDWrapper      `json:",inline"`
+	model.ControlWrapper `json:",inline"`
+	request.UserItem     `json:",inline"`
+	Dept                 DeptItem `json:"dept,omitzero"`
+	Post                 PostItem `json:"post,omitzero"`
 }
 
 type UserResponse struct {

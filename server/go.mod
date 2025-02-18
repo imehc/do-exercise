@@ -1,6 +1,6 @@
 module github.com/imehc/do-exercise/server
 
-go 1.23.4
+go 1.24.0
 
 require (
 	github.com/casbin/casbin/v2 v2.103.0
@@ -12,11 +12,11 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/swaggo/swag/v2 v2.0.0-rc3
 	go.uber.org/zap v1.27.0
+	golang.org/x/crypto v0.33.0
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
 	github.com/bytedance/sonic v1.12.8 // indirect
@@ -48,7 +48,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/jinzhu/gorm v1.9.16 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -66,7 +65,6 @@ require (
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -87,7 +85,6 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20250207012021-f9890c6ad9f3 // indirect
 	golang.org/x/image v0.24.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
@@ -105,7 +102,6 @@ require (
 )
 
 require (
-	github.com/casbin/gorm-adapter v1.0.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/mojocn/base64Captcha v1.3.8
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect

@@ -23,7 +23,7 @@ func (s *PostService) CreatePost(request request.PostRequest, createdBy uint) (e
 		return errors.New("存在相同岗位编码")
 	}
 
-	if request.DeptId != nil {
+	if request.DeptId != 0 {
 		if errors.Is(global.DB.Where("id = ?", request.DeptId).First(&system.Dept{}).Error, gorm.ErrRecordNotFound) {
 			return errors.New("不存在该部门")
 		}
@@ -104,7 +104,7 @@ func (s *PostService) UpdatePost(param request.PostParam, request request.PostRe
 		return result.Error
 	}
 
-	if request.DeptId != nil {
+	if request.DeptId != 0 {
 		if errors.Is(global.DB.Where("id = ?", request.DeptId).First(&system.Dept{}).Error, gorm.ErrRecordNotFound) {
 			return errors.New("不存在该部门")
 		}
@@ -152,13 +152,10 @@ func (s *PostService) GetPost(param request.PostParam) (response sysRes.PostItem
 		StatusWrapper: post.StatusWrapper,
 		RemarkWrapper: post.RemarkWrapper,
 	}
-	hasDeptId := post.DeptId != nil && post.Dept.ID != 0
-	if !hasDeptId {
-		response.DeptId = nil
-		response.Dept = nil
-	} else {
+	hasDeptId := post.Dept.ID != 0
+	if hasDeptId {
 		response.DeptId = post.DeptId
-		response.Dept = &sysRes.DeptItem{
+		response.Dept = sysRes.DeptItem{
 			IDWrapper:      post.Dept.IDWrapper,
 			ControlWrapper: post.Dept.ControlWrapper,
 			DeptRequest: request.DeptRequest{
@@ -211,13 +208,10 @@ func (s *PostService) GetPostList(query request.PostQueryParams) (response sysRe
 		response.Data[i].Sort = post.Sort
 		response.Data[i].Status = post.Status
 
-		hasDeptId := post.DeptId != nil && post.Dept.ID != 0
-		if !hasDeptId {
-			response.Data[i].DeptId = nil
-			response.Data[i].Dept = nil
-		} else {
+		hasDeptId := post.Dept.ID != 0
+		if hasDeptId {
 			response.Data[i].DeptId = post.DeptId
-			response.Data[i].Dept = &sysRes.DeptItem{
+			response.Data[i].Dept = sysRes.DeptItem{
 				IDWrapper:      post.Dept.IDWrapper,
 				ControlWrapper: post.Dept.ControlWrapper,
 				DeptRequest: request.DeptRequest{

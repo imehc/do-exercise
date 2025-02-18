@@ -15,9 +15,9 @@ type DictRequest struct {
 
 // 创建
 type CreateDictRequest struct {
-	Name string `json:"name" binding:"required"` // 字典名称
-	Type string `json:"type" binding:"required"` // 字典类型
-	DictRequest
+	Name        string `json:"name" binding:"required"` // 字典名称
+	Type        string `json:"type" binding:"required"` // 字典类型
+	DictRequest `json:",inline"`
 }
 
 func (d CreateDictRequest) GetMessage() utils.ValidatorMessages {
@@ -41,8 +41,8 @@ type DictParam struct {
 }
 
 type DictQueryParams struct {
-	commonReq.QueryParams
-	Name string `json:"name" form:"name"`
+	commonReq.QueryParams `json:",inline"`
+	Name                  string `json:"name" form:"name"`
 }
 
 type DictTypeWrapper struct {
@@ -63,10 +63,10 @@ type DictDataRequest struct {
 }
 
 type CreateDictDataRequest struct {
-	DictTypeWrapper
-	Label string `json:"label" binding:"required"` // 数据标签
-	Value string `json:"value" binding:"required"` // 数据键值
-	DictDataRequest
+	DictTypeWrapper `json:",inline"`
+	Label           string `json:"label" binding:"required"` // 数据标签
+	Value           string `json:"value" binding:"required"` // 数据键值
+	DictDataRequest `json:",inline"`
 }
 
 func (d CreateDictDataRequest) GetMessage() utils.ValidatorMessages {
@@ -97,9 +97,9 @@ type DictDataParam struct {
 }
 
 type DictDataQueryParams struct {
-	commonReq.QueryParams
-	DictTypeWrapper
-	Label string `json:"label" form:"label"`
+	commonReq.QueryParams `json:",inline"`
+	DictTypeWrapper       `json:",inline"`
+	Label                 string `json:"label" form:"label"`
 }
 
 // TIP: 如果结构体内部都实现了同一个接口，则需要指明分别调用那个一个接口

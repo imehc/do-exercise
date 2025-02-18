@@ -7,14 +7,12 @@ import (
 )
 
 type PostRequest struct {
-	Name   string `json:"name" binding:"required"` // 岗位名称
-	Code   string `json:"code" binding:"required"` // 岗位编码
-	DeptId *int   `json:"dept_id,omitempty"`       // 所属部门
-	// DeptId   int    `json:"dept_id" binding:"required"`   // 所属部门
-
-	model.SortWrapper
-	model.StatusWrapper
-	model.RemarkWrapper
+	Name                string `json:"name" binding:"required"` // 岗位名称
+	Code                string `json:"code" binding:"required"` // 岗位编码
+	DeptId              int    `json:"dept_id,omitzero"`        // 所属部门
+	model.SortWrapper   `json:",inline"`
+	model.StatusWrapper `json:",inline"`
+	model.RemarkWrapper `json:",inline"`
 }
 
 func (p PostRequest) GetMessage() utils.ValidatorMessages {
@@ -30,6 +28,6 @@ type PostParam struct {
 }
 
 type PostQueryParams struct {
-	commonReq.QueryParams
-	Name string `json:"name" form:"name"`
+	commonReq.QueryParams `json:",inline"`
+	Name                  string `json:"name" form:"name"`
 }

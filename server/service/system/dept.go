@@ -200,8 +200,8 @@ func (d *DeptService) GetDeptTree() (response []sysRes.DeptTree, err error) {
 	// 创建一个映射来存储部门及其子部门
 	deptMap := make(map[int][]*system.Dept)
 	for _, dept := range depts {
-		if dept.ParentId != nil {
-			deptMap[*dept.ParentId] = append(deptMap[*dept.ParentId], &dept)
+		if dept.ParentId != 0 {
+			deptMap[dept.ParentId] = append(deptMap[dept.ParentId], &dept)
 		} else {
 			deptMap[0] = append(deptMap[0], &dept)
 		}

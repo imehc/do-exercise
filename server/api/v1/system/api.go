@@ -11,19 +11,19 @@ import (
 	"github.com/imehc/do-exercise/server/utils"
 )
 
-type MenuApi struct{}
+type ApiApi struct{}
 
-func (m *MenuApi) CreateMenu(ctx *gin.Context) {
+func (r *ApiApi) CreateApi(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
 
-	req := request.MenuRequest{}
+	req := request.ApiRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(utils.GetValidMsg(req, err), ctx)
 		return
 	}
 
-	err := menuService.CreateMenu(req, claims.ID)
+	err := apiService.Create(req, claims.ID)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -32,20 +32,20 @@ func (m *MenuApi) CreateMenu(ctx *gin.Context) {
 	response.Created(ctx)
 }
 
-func (m *MenuApi) DeleteMenu(ctx *gin.Context) {
+func (r *ApiApi) DeleteApi(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
 
-	var param request.MenuParam
+	var param request.ApiParam
 	var err error
-	idStr := ctx.Param("menuId")
-	param.MenuId, err = strconv.Atoi(idStr)
+	idStr := ctx.Param("apiId")
+	param.ApiId, err = strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest("menu_id 类型错误", ctx)
+		response.BadRequest("api_id 类型错误", ctx)
 		return
 	}
 
-	err = menuService.DeleteMenu(param, claims.ID)
+	err = apiService.Delete(param, claims.ID)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -54,26 +54,26 @@ func (m *MenuApi) DeleteMenu(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
-func (m *MenuApi) UpdateMenu(ctx *gin.Context) {
+func (r *ApiApi) UpdateApi(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
 
-	var param request.MenuParam
+	var param request.ApiParam
 	var err error
-	idStr := ctx.Param("menuId")
-	param.MenuId, err = strconv.Atoi(idStr)
+	idStr := ctx.Param("apiId")
+	param.ApiId, err = strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest("menu_id 类型错误", ctx)
+		response.BadRequest("api_id 类型错误", ctx)
 		return
 	}
 
-	req := request.MenuRequest{}
+	req := request.ApiRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(utils.GetValidMsg(req, err), ctx)
 		return
 	}
 
-	err = menuService.UpdateMenu(param, req, claims.ID)
+	err = apiService.Update(param, req, claims.ID)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -82,17 +82,17 @@ func (m *MenuApi) UpdateMenu(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
-func (m *MenuApi) GetMenu(ctx *gin.Context) {
-	var param request.MenuParam
+func (r *ApiApi) GetApi(ctx *gin.Context) {
+	var param request.ApiParam
 	var err error
-	idStr := ctx.Param("menuId")
-	param.MenuId, err = strconv.Atoi(idStr)
+	idStr := ctx.Param("apiId")
+	param.ApiId, err = strconv.Atoi(idStr)
 	if err != nil {
-		response.BadRequest("menu_id 类型错误", ctx)
+		response.BadRequest("api_id 类型错误", ctx)
 		return
 	}
 
-	data, err := menuService.GetMenu(param)
+	data, err := apiService.Find(param)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -101,24 +101,24 @@ func (m *MenuApi) GetMenu(ctx *gin.Context) {
 	response.Success(data, ctx)
 }
 
-func (m *MenuApi) GetMenuList(ctx *gin.Context) {
-	query := request.MenuQueryParams{}
+func (r *ApiApi) GetApis(ctx *gin.Context) {
+	data, err := apiService.FindAll()
+	if err != nil {
+		response.BadRequest(err.Error(), ctx)
+		return
+	}
+
+	response.Success(data, ctx)
+}
+
+func (r *ApiApi) GetApiList(ctx *gin.Context) {
+	query := request.ApiQueryParams{}
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		response.BadRequest(utils.GetValidMsg(query, err), ctx)
 		return
 	}
 
-	data, err := menuService.GetMenuList(query)
-	if err != nil {
-		response.BadRequest(err.Error(), ctx)
-		return
-	}
-
-	response.Success(data, ctx)
-}
-
-func (m *MenuApi) GetMenuTree(ctx *gin.Context) {
-	data, err := menuService.GetMenuTree()
+	data, err := apiService.FindList(query)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

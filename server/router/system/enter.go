@@ -15,4 +15,5 @@ var (
 	postApi    = api.ApiGroupApp.SystemApiGroup.PostApi
 	roleApi    = api.ApiGroupApp.SystemApiGroup.RoleApi
 	userApi    = api.ApiGroupApp.SystemApiGroup.UserApi
+	apiApi     = api.ApiGroupApp.SystemApiGroup.ApiApi
 )

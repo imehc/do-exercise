@@ -11,6 +11,7 @@ import (
 
 type AuthService struct{}
 
+// 用户登录
 func (a *AuthService) Login(req request.Login) (enable bool, err error) {
 	db := global.DB
 
@@ -32,6 +33,7 @@ func (a *AuthService) Login(req request.Login) (enable bool, err error) {
 	return true, nil
 }
 
+// 用户登出
 func (a *AuthService) Logout() error {
 	// 模拟成功
 	return nil

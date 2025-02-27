@@ -15,6 +15,7 @@ import (
 
 type DictService struct{}
 
+// 创建字典
 func (d *DictService) CreateDict(request request.CreateDictRequest, createdBy uint) (err error) {
 	db := global.DB
 
@@ -34,6 +35,7 @@ func (d *DictService) CreateDict(request request.CreateDictRequest, createdBy ui
 	return
 }
 
+// 删除字典
 func (d *DictService) DeleteDict(param request.DictParam, deletedBy uint) (err error) {
 	db := global.DB
 
@@ -60,6 +62,7 @@ func (d *DictService) DeleteDict(param request.DictParam, deletedBy uint) (err e
 	return nil
 }
 
+// 更新字典
 func (d *DictService) UpdateDict(param request.DictParam, request request.UpdateDictRequest, updatedBy uint) (err error) {
 	db := global.DB
 
@@ -88,6 +91,7 @@ func (d *DictService) UpdateDict(param request.DictParam, request request.Update
 	return nil
 }
 
+// 获取字典
 func (d *DictService) GetDict(param request.DictParam) (response sysRes.DictItem, err error) {
 	db := global.DB
 
@@ -118,6 +122,7 @@ func (d *DictService) GetDict(param request.DictParam) (response sysRes.DictItem
 	return
 }
 
+// 获取字典列表
 func (d *DictService) GetDictList(query request.DictQueryParams) (response sysRes.DictResponse, err error) {
 	db := global.DB
 
@@ -152,8 +157,7 @@ func (d *DictService) GetDictList(query request.DictQueryParams) (response sysRe
 	return
 }
 
-// 字典数据
-
+// 创建字典数据
 func (d *DictService) CreateDictData(request request.CreateDictDataRequest, createdBy uint) (err error) {
 	db := global.DB
 
@@ -200,6 +204,7 @@ func (d *DictService) CreateDictData(request request.CreateDictDataRequest, crea
 	return
 }
 
+// 更新字典数据
 func (d *DictService) DeleteDictData(param request.DictDataParam, deletedBy uint) (err error) {
 	db := global.DB
 
@@ -226,6 +231,7 @@ func (d *DictService) DeleteDictData(param request.DictDataParam, deletedBy uint
 	return nil
 }
 
+// 更新字典数据
 func (d *DictService) UpdateDictData(param request.DictDataParam, request request.UpdateDictDataRequest, updatedBy uint) (err error) {
 	db := global.DB
 
@@ -255,6 +261,7 @@ func (d *DictService) UpdateDictData(param request.DictDataParam, request reques
 	return nil
 }
 
+// 获取字典数据
 func (d *DictService) GetDictData(param request.DictDataParam) (response sysRes.DictDataItem, err error) {
 	db := global.DB
 
@@ -283,6 +290,7 @@ func (d *DictService) GetDictData(param request.DictDataParam) (response sysRes.
 	return
 }
 
+// 获取字典数据列表
 func (d *DictService) GetDictDataList(query request.DictDataQueryParams) (response sysRes.DictDataResponse, err error) {
 	db := global.DB
 

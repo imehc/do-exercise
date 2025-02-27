@@ -8,4 +8,5 @@ type ServiceGroup struct {
 	PostService
 	RoleService
 	UserService
+	ApiService
 }

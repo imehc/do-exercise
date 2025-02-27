@@ -15,7 +15,7 @@ import (
 
 type PostService struct{}
 
-// CreatePost 创建岗位
+// 创建岗位
 func (s *PostService) CreatePost(request request.PostRequest, createdBy uint) (err error) {
 	db := global.DB
 
@@ -53,7 +53,7 @@ func (s *PostService) CreatePost(request request.PostRequest, createdBy uint) (e
 		Error
 }
 
-// DeletePost 删除岗位
+// 删除岗位
 func (s *PostService) DeletePost(param request.PostParam, deletedBy uint) (err error) {
 	db := global.DB
 
@@ -90,7 +90,7 @@ func (s *PostService) DeletePost(param request.PostParam, deletedBy uint) (err e
 	return nil
 }
 
-// UpdatePost 更新岗位
+// 更新岗位
 func (s *PostService) UpdatePost(param request.PostParam, request request.PostRequest, updatedBy uint) (err error) {
 	db := global.DB
 
@@ -129,7 +129,7 @@ func (s *PostService) UpdatePost(param request.PostParam, request request.PostRe
 	return nil
 }
 
-// GetPost 根据id获取岗位信息
+// 根据id获取岗位信息
 func (s *PostService) GetPost(param request.PostParam) (response sysRes.PostItem, err error) {
 	db := global.DB
 
@@ -175,7 +175,7 @@ func (s *PostService) GetPost(param request.PostParam) (response sysRes.PostItem
 	return
 }
 
-// GetPostList 获取岗位列表
+// 获取岗位列表
 func (s *PostService) GetPostList(query request.PostQueryParams) (response sysRes.PostResponse, err error) {
 	db := global.DB
 

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/middleware"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/router"
 	// swaggerFiles "github.com/swaggo/files"
@@ -34,7 +35,10 @@ func InitRouter() *gin.Engine {
 	// r.GET(global.CONFIG.System.RouterPrefix+"/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
 	public := r.Group(global.CONFIG.System.RouterPrefix)
-	// protected := r.Group(global.CONFIG.System.RouterPrefix)
+	protected := r.Group(global.CONFIG.System.RouterPrefix)
+
+	protected.Use(middleware.JWTAuth()).Use(middleware.ResponseError())
+
 	{
 		// 健康监测
 		public.GET("/health", func(c *gin.Context) {
@@ -43,6 +47,14 @@ func InitRouter() *gin.Engine {
 	}
 	{
 		system.InitAuthRouter(public)
+	}
+	{
+		system.InitDeptRouter(protected)
+		system.InitDictRouter(protected)
+		system.InitMenuRouter(protected)
+		system.InitPostRouter(protected)
+		system.InitRoleRouter(protected)
+		system.InitUserRouter(protected)
 	}
 
 	return r

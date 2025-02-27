@@ -9,6 +9,7 @@ import type { LocaleType } from '~/i18n/i18';
 import { Toaster } from '~/components/ui/sonner';
 import '~/app/globals.css';
 import { auth } from '~/helper/auth';
+import { ReactScan } from '~/components/scan';
 
 type Props = PropsWithChildren & { params: Promise<{ locale: LocaleType }> };
 
@@ -27,6 +28,7 @@ export default async function RootLayout({ children, params }: Props) {
   return (
     <html lang={locale} suppressHydrationWarning>
       <head />
+      <ReactScan />
       <body>
         <ThemeProvider
           attribute="class"

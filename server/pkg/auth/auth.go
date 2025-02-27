@@ -21,8 +21,9 @@ type AuthService struct {
 func NewAuthService(auth *AuthService) *server.Server {
 	// 1. 创建 OAuth 管理器
 	manager := manage.NewDefaultManager()
-	// 1.1 设置令牌存储（使用内存存储）
-	manager.MustTokenStorage(store.NewMemoryTokenStore())
+	// 1.1 设置令牌存储（使用文件存储）
+	// TODO: 使用redis存储
+	manager.MustTokenStorage(store.NewFileTokenStore("auth"))
 	// 1.2 设置访问令牌生成器
 	manager.MapAccessGenerate(generates.NewAccessGenerate())
 	// 1.3 设置客户端存储

@@ -1,6 +1,7 @@
 package global
 
 import (
+	"github.com/casbin/casbin/v2"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/imehc/do-exercise/server/config"
 	"github.com/imehc/do-exercise/server/pkg/utils/cache"
@@ -8,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
+	"gorm.io/gorm"
 )
 
 var (
@@ -18,4 +20,6 @@ var (
 	Cache               cache.Cache             // 缓存
 	Concurrency_Control = &singleflight.Group{} // 并发控制
 	CAPTCHA_STORE       base64Captcha.Store     // 验证码存储
+	DB                  *gorm.DB
+	Enforcer            *casbin.Enforcer
 )

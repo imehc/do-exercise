@@ -18,7 +18,7 @@ func InitCache() {
 	cache, err := cache.NewCache(cacheType, addr, global.CONFIG.Redis.Password, global.CONFIG.Redis.DB)
 	if err != nil {
 		global.LOG.Error("初始化缓存失败", zap.Error(err))
-		panic(err)
+		return
 	}
 	global.Cache = cache
 }

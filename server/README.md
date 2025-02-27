@@ -17,3 +17,19 @@ go generate
 go get -u github.com/swaggo/swag  
 swag init --v3.1 
 ```
+
+## 数据库
+### 使用docker
+``` bash
+docker run --name do_exercise \
+  -e POSTGRES_USER=[用户名] \
+  -e POSTGRES_PASSWORD=[密码] \
+  -e POSTGRES_DB=[数据库] \
+  -e TZ='Asia/Shanghai' \
+  -e ALLOW_IP_RANGE=0.0.0.0/0 \
+  # -v 数据卷挂载
+  # -v /Users/tom/person/learning/postgresql-data:/var/lib/postgresql \
+  -p 5432:5432 \
+  --restart always \
+  -d postgres 
+```

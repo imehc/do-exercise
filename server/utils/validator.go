@@ -29,5 +29,6 @@ func GetValidMsg(request Validator, err error) string {
 			return strings.Join(messages, "; ")
 		}
 	}
-	return "Parameter error"
+
+	return err.Error()
 }

@@ -40,3 +40,15 @@ captcha:
   img_width: 240
   img_height: 80
   captcha_timeout: 3600 # open-captcha大于0时才生效
+
+database:
+  path: 127.0.0.1
+  port: 5432
+  config: ""
+  db-name: do_exercise
+  username: admin
+  password: admin2025
+  max-idle-conns: 10
+  max-open-conns: 100
+  log-mode: ""
+  log-zap: true

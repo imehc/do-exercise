@@ -18,6 +18,9 @@ func InitRegisterTable() {
 		system.Dict{},
 		system.DictData{},
 		system.Post{},
+		system.Api{},
+		system.Menu{},
+		// system.Role{},
 	)
 
 	if err != nil {

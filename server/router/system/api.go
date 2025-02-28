@@ -15,7 +15,7 @@ func (s *AuthRouter) InitApiRouter(router *gin.RouterGroup) gin.IRoutes {
 		r.DELETE(":apiId", apiApi.DeleteApi)
 		r.PUT(":apiId", apiApi.UpdateApi)
 		r.GET(":apiId", apiApi.GetApi)
-		r.GET("list", apiApi.GetApis)
+		r.GET("all", apiApi.GetApis)
 	}
 	return r
 }

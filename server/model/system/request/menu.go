@@ -7,8 +7,8 @@ import (
 )
 
 type MenuRequest struct {
-	ParentId   uint   `json:"parent_id" binding:"required"` // 上级菜单ID
-	Name       string `json:"name"`                         // 菜单名称
+	ParentId   *uint  `json:"parent_id" binding:"required"` // 上级菜单ID
+	Name       string `json:"name"`                         // 路由名称
 	Icon       string `json:"icon"`                         // 菜单图标
 	Type       string `json:"type" binding:"required"`      // 菜单类型（M目录 C菜单 F按钮）
 	Action     string `json:"action"`                       // 路由地址
@@ -18,7 +18,7 @@ type MenuRequest struct {
 	Component  string `json:"component"`                    // 组件路径
 	Path       string `json:"path"`                         // 路由地址
 	Permission string `json:"permission"`                   // 权限标识
-	ApiIds     []uint `json:"api_ids"`
+	ApiIds     []uint `json:"api_ids,omitzero"`
 
 	model.SortWrapper `json:",inline"`
 }

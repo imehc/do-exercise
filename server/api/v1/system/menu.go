@@ -108,7 +108,7 @@ func (m *MenuApi) GetMenuList(ctx *gin.Context) {
 		return
 	}
 
-	data, err := menuService.GetMenuList(query)
+	data, err := menuService.GetMenuTreeList(query)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

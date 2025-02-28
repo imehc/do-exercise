@@ -37,7 +37,9 @@ func InitRouter() *gin.Engine {
 	public := r.Group(global.CONFIG.System.RouterPrefix)
 	protected := r.Group(global.CONFIG.System.RouterPrefix)
 
-	protected.Use(middleware.JWTAuth()).Use(middleware.CasbinAuth()).Use(middleware.ResponseError())
+	protected.Use(middleware.JWTAuth()).
+		// Use(middleware.CasbinAuth()).
+		Use(middleware.ResponseError())
 
 	{
 		// 健康监测
@@ -51,6 +53,7 @@ func InitRouter() *gin.Engine {
 	{
 		system.InitDeptRouter(protected)
 		system.InitDictRouter(protected)
+		system.InitApiRouter(protected)
 		system.InitMenuRouter(protected)
 		system.InitPostRouter(protected)
 		system.InitRoleRouter(protected)

@@ -19,7 +19,7 @@ type ApiService struct{}
 func (r ApiService) Create(request request.ApiRequest, createdBy uint) (err error) {
 	db := global.DB
 
-	api := system.SysApi{
+	api := system.Api{
 		Handle: request.Handle,
 		Title:  request.Title,
 		Path:   request.Path,
@@ -38,7 +38,7 @@ func (r ApiService) Create(request request.ApiRequest, createdBy uint) (err erro
 func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
 	db := global.DB
 
-	var api system.SysApi
+	var api system.Api
 	result := db.
 		Unscoped().
 		First(&api, param.ApiId)
@@ -54,7 +54,7 @@ func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
 	}
 
 	db.
-		Model(system.SysApi{}).
+		Model(system.Api{}).
 		Where("id = ?", param.ApiId).
 		Update("deleted_by", deletedBy).
 		Delete(&api)
@@ -65,7 +65,7 @@ func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
 func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, updatedBy uint) (err error) {
 	db := global.DB
 
-	var api system.SysApi
+	var api system.Api
 	result := db.
 		First(&api, param.ApiId)
 	if result.Error != nil {
@@ -85,7 +85,7 @@ func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, u
 	}
 
 	db.
-		Model(system.SysApi{}).
+		Model(system.Api{}).
 		Where("id = ?", param.ApiId).
 		Updates(&api).
 		Omit("id", "created_at")
@@ -97,7 +97,7 @@ func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, u
 func (r ApiService) Find(param request.ApiParam) (response sysRes.ApiItem, err error) {
 	db := global.DB
 
-	var api system.SysApi
+	var api system.Api
 	result := db.
 		First(&api, param.ApiId)
 	if result.Error != nil {
@@ -121,7 +121,7 @@ func (r ApiService) Find(param request.ApiParam) (response sysRes.ApiItem, err e
 func (r ApiService) FindAll() (response []sysRes.ApiItem, err error) {
 	db := global.DB
 
-	var apis []system.SysApi
+	var apis []system.Api
 	err = db.
 		Order("id ASC").
 		Find(&apis).
@@ -149,9 +149,9 @@ func (r ApiService) FindList(query request.ApiQueryParams) (response sysRes.ApiR
 	db := global.DB
 
 	var total int64
-	var originApis []system.SysApi
+	var originApis []system.Api
 	err = db.
-		Model(&system.SysApi{}).
+		Model(&system.Api{}).
 		Order("id ASC").
 		Where(fmt.Sprintf("title LIKE '%%%s%%'", query.Name)).
 		Count(&total).

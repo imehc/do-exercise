@@ -15,8 +15,8 @@ type MenuItem struct {
 	NoCache              bool         `json:"no_cache"`
 	Params               string       `json:"params"`
 	Paths                string       `json:"paths"`
-	Apis                 []system.Api `json:"apis"`
-	Children             []MenuItem   `json:"children"`
+	Apis                 []system.Api `json:"apis,omitzero"`
+	Children             []MenuItem   `json:"children,omitzero"`
 	// Breadcrumb string `json:"breadcrumb"`	// 面包屑
 }
 

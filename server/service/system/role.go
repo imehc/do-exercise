@@ -1,48 +1,458 @@
 package system
 
 import (
+	"errors"
+
+	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"gorm.io/gorm"
 )
 
 type RoleService struct{}
 
 // 创建角色
 func (r RoleService) Create(request request.CreateRoleRequest, createdBy uint) (err error) {
+	db := global.DB
+
+	role := system.Role{
+		Name: request.Name,
+		Key:  request.Key,
+		ControlWrapper: model.ControlWrapper{
+			CreatedBy: createdBy,
+		},
+	}
+
+	if request.Sort != 0 {
+		role.Sort = request.Sort
+	}
+	if request.Status != 0 {
+		role.Status = request.Status
+	}
+	if request.Remark != "" {
+		role.Remark = request.Remark
+	}
+
+	err = db.Create(&role).Error
 	return
 }
 
 // 删除角色
 func (r RoleService) Delete(param request.RoleParam, deletedBy uint) (err error) {
-	return
+	db := global.DB
+
+	var role system.Role
+	result := db.
+		Unscoped().
+		First(&role, param.RoleId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return errors.New("角色不存在")
+		}
+		return result.Error
+	}
+
+	if !role.DeletedAt.Time.IsZero() {
+		return errors.New("角色已删除")
+	}
+
+	var user system.User
+	result = db.
+		First(&user, "role_id = ?", param.RoleId)
+	if result.Error == nil && user.ID != 0 {
+		return errors.New("该角色已被使用,无法删除")
+	}
+
+	db.
+		Model(system.Role{}).
+		Where("id = ?", param.RoleId).
+		Update("deleted_by", deletedBy).
+		Delete(&role)
+	return nil
 }
 
 // 更新角色
 func (r RoleService) Update(param request.RoleParam, request request.UpdateRoleRequest, updatedBy uint) (err error) {
-	return
+	db := global.DB
+
+	var role system.Role
+	result := db.
+		First(&role, param.RoleId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return errors.New("角色不存在")
+		}
+		return result.Error
+	}
+
+	role.Sort = request.Sort
+	role.Status = request.Status
+	role.Remark = request.Remark
+	role.ControlWrapper = model.ControlWrapper{
+		UpdatedBy: updatedBy,
+	}
+
+	db.
+		Model(system.Role{}).
+		Where("id = ?", param.RoleId).
+		Updates(&role).
+		Omit("id", "created_at")
+
+	return nil
 }
 
 // 查询角色
 func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, err error) {
+	db := global.DB
+
+	var role system.Role
+	result := db.
+		Preload("Depts").
+		Preload("Menus").
+		Preload("Apis").
+		First(&role, param.RoleId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return response, errors.New("角色不存在")
+		}
+		return response, result.Error
+	}
+
+	response.ID = role.ID
+	response.Name = role.Name
+	response.Key = role.Key
+	response.IsAdmin = role.IsAdmin
+	response.DataScope = role.DataScope
+	response.ControlWrapper = role.ControlWrapper
+	response.Sort = role.Sort
+	response.Status = role.Status
+	response.Remark = role.Remark
+
+	// 加载部门信息
+	response.Depts = make([]sysRes.DeptItem, len(role.Depts))
+	for i, dept := range role.Depts {
+		response.Depts[i] = sysRes.DeptItem{
+			IDWrapper:      dept.IDWrapper,
+			ControlWrapper: dept.ControlWrapper,
+			DeptRequest: request.DeptRequest{
+				ParentId:    dept.ParentId,
+				Name:        dept.Name,
+				Leader:      dept.Leader,
+				Phone:       dept.Phone,
+				Email:       dept.Email,
+				SortWrapper: dept.SortWrapper,
+				StatusWrapper: model.StatusWrapper{
+					Status: dept.Status,
+				},
+			},
+		}
+	}
+
+	// 加载菜单信息
+	response.Menus = make([]sysRes.MenuItem, len(role.Menus))
+	for i, menu := range role.Menus {
+		response.Menus[i] = sysRes.MenuItem{
+			IDWrapper:      menu.IDWrapper,
+			ControlWrapper: menu.ControlWrapper,
+			MenuRequest: request.MenuRequest{
+				ParentId:   &menu.ParentId,
+				Name:       menu.Name,
+				Icon:       menu.Icon,
+				Type:       menu.Type,
+				Action:     menu.Action,
+				IsFrame:    menu.IsFrame,
+				Visible:    menu.Visible,
+				Title:      menu.Title,
+				Component:  menu.Component,
+				Path:       menu.Path,
+				Permission: menu.Permission,
+				SortWrapper: model.SortWrapper{
+					Sort: menu.Sort,
+				},
+			},
+			NoCache: menu.NoCache,
+			Params:  menu.Params,
+			Paths:   menu.Paths,
+		}
+	}
+
+	// 加载API信息
+	response.Apis = make([]sysRes.ApiItem, len(role.Apis))
+	for i, api := range role.Apis {
+		response.Apis[i] = sysRes.ApiItem{
+			IDWrapper:      api.IDWrapper,
+			ControlWrapper: api.ControlWrapper,
+			ApiRequest: request.ApiRequest{
+				Handle: api.Handle,
+				Title:  api.Title,
+				Path:   api.Path,
+				Type:   api.Type,
+				Action: api.Action,
+			},
+		}
+	}
+
 	return
 }
 
 // 查询角色列表
-func (r RoleService) FindList(query request.RoleQueryParams) (response []sysRes.RoleResponse, err error) {
+func (r RoleService) FindList(query request.RoleQueryParams) (response sysRes.RoleResponse, err error) {
+	db := global.DB
+
+	var total int64
+	var originRoles []system.Role
+	err = db.
+		Model(&system.Role{}).
+		Order("sort Desc").
+		Order("id ASC").
+		Preload("Depts").
+		Preload("Menus").
+		Preload("Apis").
+		Where("name LIKE ?", "%"+query.Name+"%").
+		Count(&total).
+		Find(&originRoles).
+		Error
+	if err != nil {
+		return response, err
+	}
+
+	response.Meta.Page = query.Page
+	response.Meta.PageSize = query.PageSize
+	response.Meta.Total = total
+
+	response.Data = make([]sysRes.RoleItem, len(originRoles))
+	for i, role := range originRoles {
+		response.Data[i].ID = role.ID
+		response.Data[i].ControlWrapper = role.ControlWrapper
+		response.Data[i].Name = role.Name
+		response.Data[i].Key = role.Key
+		response.Data[i].IsAdmin = role.IsAdmin
+		response.Data[i].DataScope = role.DataScope
+		response.Data[i].Sort = role.Sort
+		response.Data[i].Status = role.Status
+		response.Data[i].Remark = role.Remark
+
+		// 加载部门信息
+		response.Data[i].Depts = make([]sysRes.DeptItem, len(role.Depts))
+		for j, dept := range role.Depts {
+			response.Data[i].Depts[j] = sysRes.DeptItem{
+				IDWrapper:      dept.IDWrapper,
+				ControlWrapper: dept.ControlWrapper,
+				DeptRequest: request.DeptRequest{
+					ParentId:    dept.ParentId,
+					Name:        dept.Name,
+					Leader:      dept.Leader,
+					Phone:       dept.Phone,
+					Email:       dept.Email,
+					SortWrapper: dept.SortWrapper,
+					StatusWrapper: model.StatusWrapper{
+						Status: dept.Status,
+					},
+				},
+			}
+		}
+
+		// 加载菜单信息
+		response.Data[i].Menus = make([]sysRes.MenuItem, len(role.Menus))
+		for j, menu := range role.Menus {
+			response.Data[i].Menus[j] = sysRes.MenuItem{
+				IDWrapper:      menu.IDWrapper,
+				ControlWrapper: menu.ControlWrapper,
+				MenuRequest: request.MenuRequest{
+					ParentId:   &menu.ParentId,
+					Name:       menu.Name,
+					Icon:       menu.Icon,
+					Type:       menu.Type,
+					Action:     menu.Action,
+					IsFrame:    menu.IsFrame,
+					Visible:    menu.Visible,
+					Title:      menu.Title,
+					Component:  menu.Component,
+					Path:       menu.Path,
+					Permission: menu.Permission,
+					SortWrapper: model.SortWrapper{
+						Sort: menu.Sort,
+					},
+				},
+				NoCache: menu.NoCache,
+				Params:  menu.Params,
+				Paths:   menu.Paths,
+			}
+		}
+
+		// 加载API信息
+		response.Data[i].Apis = make([]sysRes.ApiItem, len(role.Apis))
+		for j, api := range role.Apis {
+			response.Data[i].Apis[j] = sysRes.ApiItem{
+				IDWrapper:      api.IDWrapper,
+				ControlWrapper: api.ControlWrapper,
+				ApiRequest: request.ApiRequest{
+					Handle: api.Handle,
+					Title:  api.Title,
+					Path:   api.Path,
+					Type:   api.Type,
+					Action: api.Action,
+				},
+			}
+		}
+	}
+
 	return
 }
 
 // 更新角色数据权限
 func (r RoleService) UpdateDataScope(param request.RoleParam, request request.UpdateRoleDataScope, updatedBy uint) (err error) {
-	return
+	db := global.DB
+
+	var role system.Role
+	result := db.
+		First(&role, param.RoleId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return errors.New("角色不存在")
+		}
+		return result.Error
+	}
+
+	// 更新角色的数据范围
+	role.DataScope = request.DataScope
+	role.ControlWrapper = model.ControlWrapper{
+		UpdatedBy: updatedBy,
+	}
+
+	// 如果是自定义数据权限，需要处理角色与部门的关联
+	if request.DataScope == 2 { // 自定数据权限
+		// 检查部门是否存在
+		if len(request.DeptIds) > 0 {
+			var depts []system.Dept
+			if err = db.Where("id IN ?", request.DeptIds).Find(&depts).Error; err != nil {
+				return err
+			}
+			if len(depts) != len(request.DeptIds) {
+				return errors.New("部分部门不存在")
+			}
+
+			// 更新角色与部门的关联关系
+			if err = db.Model(&role).Association("Depts").Replace(depts); err != nil {
+				return err
+			}
+		} else {
+			// 如果没有指定部门，清除所有关联关系
+			if err = db.Model(&role).Association("Depts").Clear(); err != nil {
+				return err
+			}
+		}
+	} else {
+		// 非自定义数据权限时，清除所有部门关联
+		if err = db.Model(&role).Association("Depts").Clear(); err != nil {
+			return err
+		}
+	}
+
+	// 更新角色基本信息
+	db.
+		Model(system.Role{}).
+		Where("id = ?", param.RoleId).
+		Updates(&role).
+		Omit("id", "created_at")
+
+	return nil
 }
 
 // 更新角色菜单权限
 func (r RoleService) UpdateMenuScope(param request.RoleParam, request request.UpdateMenuDataScope, updatedBy uint) (err error) {
-	return
+	db := global.DB
+
+	var role system.Role
+	result := db.
+		First(&role, param.RoleId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return errors.New("角色不存在")
+		}
+		return result.Error
+	}
+
+	// 检查菜单是否存在
+	if len(request.MenuIds) > 0 {
+		var menus []system.Menu
+		if err = db.Where("id IN ?", request.MenuIds).Find(&menus).Error; err != nil {
+			return err
+		}
+		if len(menus) != len(request.MenuIds) {
+			return errors.New("部分菜单不存在")
+		}
+
+		// 更新角色与菜单的关联关系
+		if err = db.Model(&role).Association("Menus").Replace(menus); err != nil {
+			return err
+		}
+	} else {
+		// 如果没有指定菜单，清除所有关联关系
+		if err = db.Model(&role).Association("Menus").Clear(); err != nil {
+			return err
+		}
+	}
+
+	// 更新角色基本信息
+	role.ControlWrapper = model.ControlWrapper{
+		UpdatedBy: updatedBy,
+	}
+	db.
+		Model(system.Role{}).
+		Where("id = ?", param.RoleId).
+		Updates(&role).
+		Omit("id", "created_at")
+
+	return nil
 }
 
 // 更新角色api权限
 func (r RoleService) UpdateApiScope(param request.RoleParam, request request.UpdateApiDataScope, updatedBy uint) (err error) {
-	return
+	db := global.DB
+
+	var role system.Role
+	result := db.
+		First(&role, param.RoleId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return errors.New("角色不存在")
+		}
+		return result.Error
+	}
+
+	// 检查API是否存在
+	if len(request.ApiIds) > 0 {
+		var apis []system.Api
+		if err = db.Where("id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
+			return err
+		}
+		if len(apis) != len(request.ApiIds) {
+			return errors.New("部分API不存在")
+		}
+
+		// 更新角色与API的关联关系
+		if err = db.Model(&role).Association("Apis").Replace(apis); err != nil {
+			return err
+		}
+	} else {
+		// 如果没有指定API，清除所有关联关系
+		if err = db.Model(&role).Association("Apis").Clear(); err != nil {
+			return err
+		}
+	}
+
+	// 更新角色基本信息
+	role.ControlWrapper = model.ControlWrapper{
+		UpdatedBy: updatedBy,
+	}
+	db.
+		Model(system.Role{}).
+		Where("id = ?", param.RoleId).
+		Updates(&role).
+		Omit("id", "created_at")
+
+	return nil
 }

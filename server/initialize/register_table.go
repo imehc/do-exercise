@@ -20,7 +20,7 @@ func InitRegisterTable() {
 		system.Post{},
 		system.Api{},
 		system.Menu{},
-		// system.Role{},
+		system.Role{},
 	)
 
 	if err != nil {

@@ -10,7 +10,6 @@ type ApiItem struct {
 	model.IDWrapper      `json:",inline"`
 	model.ControlWrapper `json:",inline"`
 	request.ApiRequest   `json:",inline"`
-	Dept                 DeptItem `json:"dept,omitzero"`
 }
 
 type ApiResponse struct {

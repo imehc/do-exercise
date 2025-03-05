@@ -5,9 +5,11 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
 	"gorm.io/gorm"
 )
 
@@ -56,6 +58,18 @@ func (r RoleService) Delete(param request.RoleParam, deletedBy uint) (err error)
 
 	if !role.DeletedAt.Time.IsZero() {
 		return errors.New("角色已删除")
+	}
+
+	// 检查是否有权限删除
+	if role.CreatedBy != deletedBy {
+		// 检查是否是超级管理员
+		var currentUserRole system.Role
+		if err := db.First(&currentUserRole, deletedBy).Error; err != nil {
+			return err
+		}
+		if !currentUserRole.IsAdmin {
+			return errors.New("无权删除其他用户创建的数据")
+		}
 	}
 
 	var user system.User
@@ -174,7 +188,7 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 			},
 			NoCache: menu.NoCache,
 			Params:  menu.Params,
-			Paths:   menu.Paths,
+			Route:   menu.Route,
 		}
 	}
 
@@ -198,20 +212,22 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 }
 
 // 查询角色列表
-func (r RoleService) FindList(query request.RoleQueryParams) (response sysRes.RoleResponse, err error) {
+func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData) (response sysRes.RoleResponse, err error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_role")
 
 	var total int64
 	var originRoles []system.Role
-	err = db.
-		Model(&system.Role{}).
+	db = db.Model(&system.Role{}).
 		Order("sort Desc").
 		Order("id ASC").
 		Preload("Depts").
 		Preload("Menus").
 		Preload("Apis").
-		Where("name LIKE ?", "%"+query.Name+"%").
-		Count(&total).
+		Where("name LIKE ?", "%"+query.Name+"%")
+
+	err = db.Count(&total).
 		Find(&originRoles).
 		Error
 	if err != nil {
@@ -278,7 +294,7 @@ func (r RoleService) FindList(query request.RoleQueryParams) (response sysRes.Ro
 				},
 				NoCache: menu.NoCache,
 				Params:  menu.Params,
-				Paths:   menu.Paths,
+				Route:   menu.Route,
 			}
 		}
 

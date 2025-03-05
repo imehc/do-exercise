@@ -5,9 +5,12 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
+	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
 
@@ -43,22 +46,44 @@ func (m *MenuService) CreateMenu(request request.MenuRequest, createdBy uint) (e
 		menu.Sort = request.Sort
 	}
 
+	tx := db.Begin()
 	// 创建菜单
-	err = db.Create(&menu).Error
+	err = tx.Create(&menu).Error
 	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if menu.ParentId == 0 {
+		menu.Path = utils.FormatFullpath(uint(menu.ParentId), menu.ID, "")
+	} else {
+		var parentMenu system.Menu
+		err = tx.First(&parentMenu, *request.ParentId).Error
+		if err != nil {
+			return err
+		}
+		menu.Path = utils.FormatFullpath(uint(menu.ParentId), menu.ID, parentMenu.Path)
+	}
+
+	// 更新菜单的Path字段
+	if err = tx.Model(&menu).Update("path", menu.Path).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	// 如果有关联的API，创建关联关系
 	if len(request.ApiIds) > 0 {
 		var apis []system.Api
-		if err = db.Where("id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
+		if err = tx.Where("id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
+			tx.Rollback()
 			return err
 		}
-		if err = db.Model(&menu).Association("Apis").Replace(apis); err != nil {
+		if err = tx.Model(&menu).Association("Apis").Replace(apis); err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
+	tx.Commit()
 
 	return nil
 }
@@ -140,6 +165,17 @@ func (m *MenuService) UpdateMenu(param request.MenuParam, request request.MenuRe
 		UpdatedBy: updatedBy,
 	}
 
+	if menu.ParentId == 0 {
+		menu.Path = utils.FormatFullpath(uint(menu.ParentId), menu.ID, "")
+	} else {
+		var parentMenu system.Menu
+		err = db.First(&parentMenu, *request.ParentId).Error
+		if err != nil {
+			return err
+		}
+		menu.Path = utils.FormatFullpath(uint(menu.ParentId), menu.ID, parentMenu.Path)
+	}
+
 	// 更新菜单基本信息
 	db.
 		Model(system.Menu{}).
@@ -206,7 +242,7 @@ func (m *MenuService) GetMenu(param request.MenuParam) (response sysRes.MenuItem
 		},
 		NoCache: menu.NoCache,
 		Params:  menu.Params,
-		Paths:   menu.Paths,
+		Route:   menu.Route,
 		Apis:    menu.Apis,
 	}
 
@@ -220,8 +256,12 @@ func (m *MenuService) GetMenu(param request.MenuParam) (response sysRes.MenuItem
 }
 
 // 获取菜单列表
-func (m *MenuService) GetMenuTreeList(query request.MenuQueryParams) (menus []sysRes.MenuItem, err error) {
+func (m *MenuService) GetMenuTreeList(s common.ScopeData) (menus []sysRes.MenuItem, err error) {
+	// TODO: 支持模糊查询
+
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_menu")
 
 	// 查询所有根菜单（ParentId为0的菜单）
 	var rootMenus []system.Menu
@@ -255,7 +295,7 @@ func (m *MenuService) GetMenuTreeList(query request.MenuQueryParams) (menus []sy
 			},
 			NoCache: menu.NoCache,
 			Params:  menu.Params,
-			Paths:   menu.Paths,
+			Route:   menu.Route,
 			Apis:    menu.Apis,
 		}
 
@@ -375,7 +415,7 @@ func (m *MenuService) getChildrenMenus(parentId uint) (children []sysRes.MenuIte
 			},
 			NoCache: menu.NoCache,
 			Params:  menu.Params,
-			Paths:   menu.Paths,
+			Route:   menu.Route,
 			Apis:    menu.Apis,
 			// 初始化空的子菜单数组
 			Children: make([]sysRes.MenuItem, 0),

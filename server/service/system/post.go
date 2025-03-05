@@ -6,9 +6,11 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
 	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
@@ -16,7 +18,7 @@ import (
 type PostService struct{}
 
 // 创建岗位
-func (s *PostService) CreatePost(request request.PostRequest, createdBy uint) (err error) {
+func (p *PostService) CreatePost(request request.PostRequest, createdBy uint) (err error) {
 	db := global.DB
 
 	if !errors.Is(global.DB.Where("code = ?", request.Code).First(&system.Post{}).Error, gorm.ErrRecordNotFound) {
@@ -54,7 +56,7 @@ func (s *PostService) CreatePost(request request.PostRequest, createdBy uint) (e
 }
 
 // 删除岗位
-func (s *PostService) DeletePost(param request.PostParam, deletedBy uint) (err error) {
+func (p *PostService) DeletePost(param request.PostParam, deletedBy uint) (err error) {
 	db := global.DB
 
 	var post system.Post
@@ -91,7 +93,7 @@ func (s *PostService) DeletePost(param request.PostParam, deletedBy uint) (err e
 }
 
 // 更新岗位
-func (s *PostService) UpdatePost(param request.PostParam, request request.PostRequest, updatedBy uint) (err error) {
+func (p *PostService) UpdatePost(param request.PostParam, request request.PostRequest, updatedBy uint) (err error) {
 	db := global.DB
 
 	var post system.Post
@@ -130,7 +132,7 @@ func (s *PostService) UpdatePost(param request.PostParam, request request.PostRe
 }
 
 // 根据id获取岗位信息
-func (s *PostService) GetPost(param request.PostParam) (response sysRes.PostItem, err error) {
+func (p *PostService) GetPost(param request.PostParam) (response sysRes.PostItem, err error) {
 	db := global.DB
 
 	var post system.Post
@@ -176,8 +178,10 @@ func (s *PostService) GetPost(param request.PostParam) (response sysRes.PostItem
 }
 
 // 获取岗位列表
-func (s *PostService) GetPostList(query request.PostQueryParams) (response sysRes.PostResponse, err error) {
+func (p *PostService) GetPostList(query request.PostQueryParams, s common.ScopeData) (response sysRes.PostResponse, err error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_post")
 
 	var total int64
 	var originPosts []system.Post

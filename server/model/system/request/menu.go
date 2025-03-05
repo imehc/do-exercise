@@ -2,7 +2,6 @@ package request
 
 import (
 	"github.com/imehc/do-exercise/server/model"
-	commonReq "github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/utils"
 )
 
@@ -36,6 +35,5 @@ type MenuParam struct {
 }
 
 type MenuQueryParams struct {
-	commonReq.QueryParams `json:",inline"`
-	Name                  string `json:"name" form:"name"`
+	Name string `json:"name" form:"name"`
 }

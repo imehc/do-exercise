@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -102,13 +103,16 @@ func (d *DictApi) GetDict(ctx *gin.Context) {
 }
 
 func (d *DictApi) GetDictList(ctx *gin.Context) {
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+
 	query := request.DictQueryParams{}
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		response.BadRequest(utils.GetValidMsg(query, err), ctx)
 		return
 	}
 
-	dicts, err := dictService.GetDictList(query)
+	dicts, err := dictService.GetDictList(query, common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -208,13 +212,16 @@ func (d *DictApi) GetDictData(ctx *gin.Context) {
 }
 
 func (d *DictApi) GetDictDataList(ctx *gin.Context) {
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+
 	query := request.DictDataQueryParams{}
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		response.BadRequest(utils.GetValidMsg(query, err), ctx)
 		return
 	}
 
-	dictData, err := dictService.GetDictDataList(query)
+	dictData, err := dictService.GetDictDataList(query, common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

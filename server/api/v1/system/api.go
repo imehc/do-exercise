@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -112,13 +113,16 @@ func (r *ApiApi) GetApis(ctx *gin.Context) {
 }
 
 func (r *ApiApi) GetApiList(ctx *gin.Context) {
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+
 	query := request.ApiQueryParams{}
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		response.BadRequest(utils.GetValidMsg(query, err), ctx)
 		return
 	}
 
-	data, err := apiService.FindList(query)
+	data, err := apiService.FindList(query, common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

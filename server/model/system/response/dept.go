@@ -2,7 +2,6 @@ package response
 
 import (
 	"github.com/imehc/do-exercise/server/model"
-	commonRes "github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
 )
 
@@ -13,8 +12,8 @@ type DeptItem struct {
 }
 
 type DeptResponse struct {
-	Data []DeptItem         `json:"data"`
-	Meta commonRes.Paginate `json:"meta"`
+	DeptItem `json:",inline"`
+	Children []DeptResponse `json:"children"`
 }
 
 type DeptTree struct {

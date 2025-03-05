@@ -8,8 +8,8 @@ type Menu struct {
 	Name       string `gorm:"size:128;comment:路由名称" json:"name"`
 	Title      string `gorm:"size:128;comment:菜单标题" json:"title"`
 	Icon       string `gorm:"size:128;comment:菜单图标" json:"icon"`
-	Path       string `gorm:"size:128;comment:路由地址" json:"path"`
-	Paths      string `gorm:"size:128;comment:组件路径" json:"paths"`
+	Route      string `gorm:"size:128;comment:路由地址" json:"route"`
+	Path       string `gorm:"size:128;comment:组件路径" json:"path"`
 	Type       string `gorm:"size:1;comment:菜单类型（M目录 C菜单 F按钮）" json:"type"`
 	Action     string `gorm:"size:16;comment:请求方法" json:"action"`
 	Permission string `gorm:"size:255;comment:权限标识" json:"perms"`

@@ -2,13 +2,15 @@ package system
 
 import (
 	"errors"
-	"fmt"
+	"sort"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
 	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
@@ -18,6 +20,19 @@ type DeptService struct{}
 // 创建部门
 func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (err error) {
 	db := global.DB
+
+	// 检查是否有效的父级部门
+	if *request.ParentId != 0 {
+		var parentDept system.Dept
+		result := db.
+			First(&parentDept, request.ParentId)
+		if result.Error != nil {
+			if result.Error == gorm.ErrRecordNotFound {
+				return errors.New("父级部门不存在")
+			}
+			return result.Error
+		}
+	}
 
 	dept := system.Dept{
 		ParentId: request.ParentId,
@@ -41,9 +56,32 @@ func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (e
 		dept.Status = request.Status
 	}
 
-	err = db.
+	tx := db.Begin()
+	err = tx.
 		Create(&dept).
 		Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if *dept.ParentId == 0 {
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, "")
+	} else {
+		var parentDept system.Dept
+		err = tx.First(&parentDept, *request.ParentId).Error
+		if err != nil {
+			return err
+		}
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, parentDept.Path)
+	}
+
+	if err = tx.Model(&dept).Update("path", dept.Path).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+
 	return
 }
 
@@ -109,6 +147,17 @@ func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRe
 		UpdatedBy: updatedBy,
 	}
 
+	if *dept.ParentId == 0 {
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, "")
+	} else {
+		var parentDept system.Dept
+		err = db.First(&parentDept, *request.ParentId).Error
+		if err != nil {
+			return err
+		}
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, parentDept.Path)
+	}
+
 	db.
 		Model(system.Dept{}).
 		Where("id = ?", param.DeptId).
@@ -148,85 +197,181 @@ func (d *DeptService) GetDep(param request.DeptParam) (response sysRes.DeptItem,
 	return
 }
 
-// 查询部门
-func (d *DeptService) GetDeptList(query request.DeptQueryParams) (response sysRes.DeptResponse, err error) {
+// 查询部门树列表
+func (d *DeptService) GetDeptTreeList(s common.ScopeData) (response []sysRes.DeptResponse, err error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_dept")
 
-	var total int64
-	var originDepts []system.Dept
-	err = db.
-		Model(&system.Dept{}).
-		Order("sort Desc").
+	var depts []system.Dept
+	if err := db.
+		Order("sort DESC").
 		Order("id ASC").
-		Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).
-		Count(&total).
-		Scopes(utils.Paginate(query.PageSize, query.Page)).
-		Find(&originDepts).
-		Error
-	if err != nil {
-		return response, err
+		Find(&depts).Error; err != nil {
+		return []sysRes.DeptResponse{}, err
 	}
-	response.Meta.Page = query.Page
-	response.Meta.PageSize = query.PageSize
-	response.Meta.Total = total
 
-	response.Data = make([]sysRes.DeptItem, len(originDepts))
-	for i, dept := range originDepts {
-		response.Data[i].ID = dept.ID
-		response.Data[i].ControlWrapper = dept.ControlWrapper
-		response.Data[i].ParentId = dept.ParentId
-		response.Data[i].Name = dept.Name
-		response.Data[i].Sort = dept.Sort
-		response.Data[i].Leader = dept.Leader
-		response.Data[i].Phone = dept.Phone
-		response.Data[i].Email = dept.Email
-		response.Data[i].Status = dept.Status
+	// 构建ID到部门的映射
+	deptMap := make(map[uint]*system.Dept)
+	for i := range depts {
+		deptMap[depts[i].ID] = &depts[i]
+	}
+
+	// 构建树形结构
+	response = make([]sysRes.DeptResponse, 0)
+	for _, dept := range depts {
+		if *dept.ParentId == 0 {
+			// 根节点
+			root := sysRes.DeptResponse{
+				DeptItem: sysRes.DeptItem{
+					IDWrapper:      dept.IDWrapper,
+					ControlWrapper: dept.ControlWrapper,
+					DeptRequest: request.DeptRequest{
+						ParentId:    dept.ParentId,
+						Name:        dept.Name,
+						Leader:      dept.Leader,
+						Phone:       dept.Phone,
+						Email:       dept.Email,
+						SortWrapper: dept.SortWrapper,
+						StatusWrapper: model.StatusWrapper{
+							Status: dept.Status,
+						},
+					},
+				},
+				Children: make([]sysRes.DeptResponse, 0), // 初始化为空数组
+			}
+			response = append(response, root)
+		}
+	}
+
+	// 递归构建子树
+	for i := range response {
+		response[i].Children = d.buildDeptResponseSubTree(deptMap, uint(response[i].ID))
 	}
 
 	return
 }
 
 // 部门树
-func (d *DeptService) GetDeptTree() (response []sysRes.DeptTree, err error) {
+func (d *DeptService) GetDeptTree(s *common.ScopeData) (response []sysRes.DeptTree, err error) {
 	db := global.DB
+	db = scope.GetDataScope(db, s, "sys_dept")
+
 	var depts []system.Dept
 	if err := db.
-		Order("sort Desc").
+		Order("sort DESC").
 		Order("id ASC").
 		Find(&depts).Error; err != nil {
 		return []sysRes.DeptTree{}, err
 	}
 
-	// 创建一个映射来存储部门及其子部门
-	deptMap := make(map[int][]*system.Dept)
-	for _, dept := range depts {
-		if dept.ParentId != 0 {
-			deptMap[dept.ParentId] = append(deptMap[dept.ParentId], &dept)
-		} else {
-			deptMap[0] = append(deptMap[0], &dept)
-		}
+	// 构建ID到部门的映射
+	deptMap := make(map[uint]*system.Dept)
+	for i := range depts {
+		deptMap[depts[i].ID] = &depts[i]
 	}
 
-	// 递归构建部门树
-	var buildTree func(parentId int) []sysRes.DeptTree
-	buildTree = func(parentId int) []sysRes.DeptTree {
-		var tree []sysRes.DeptTree
-		for _, dept := range deptMap[parentId] {
-			// 递归构建子部门
-			children := buildTree(int(dept.ID))
-			if children == nil {
-				// 如果没有子部门，则设置 children 为空数组
-				children = []sysRes.DeptTree{}
-			}
-			tree = append(tree, sysRes.DeptTree{
+	// 构建树形结构
+	var roots []sysRes.DeptTree
+	for _, dept := range depts {
+		if *dept.ParentId == 0 {
+			// 根节点
+			root := sysRes.DeptTree{
 				ID:       int(dept.ID),
 				Label:    dept.Name,
-				Children: children,
-			})
+				Children: make([]sysRes.DeptTree, 0), // 初始化为空数组
+			}
+			roots = append(roots, root)
 		}
-		return tree
 	}
 
-	// 从 parentId 为 0 的部门开始构建树
-	return buildTree(0), nil
+	// 递归构建子树
+	for i := range roots {
+		roots[i].Children = d.buildDeptSubTree(deptMap, uint(roots[i].ID))
+	}
+
+	return roots, nil
+}
+
+// 递归构建子树
+func (d *DeptService) buildDeptSubTree(deptMap map[uint]*system.Dept, parentId uint) []sysRes.DeptTree {
+	children := make([]sysRes.DeptTree, 0)
+
+	// 遍历所有部门，找到当前父节点的直接子节点
+	for id, dept := range deptMap {
+		if dept != nil && *dept.ParentId == parentId {
+			child := sysRes.DeptTree{
+				ID:       int(id),
+				Label:    dept.Name,
+				Children: make([]sysRes.DeptTree, 0), // 初始化为空数组
+			}
+			// 递归构建该子节点的子树
+			child.Children = d.buildDeptSubTree(deptMap, id)
+			children = append(children, child)
+		}
+	}
+
+	// 按照Sort和ID排序
+	if len(children) > 1 {
+		sort.Slice(children, func(i, j int) bool {
+			deptI := deptMap[uint(children[i].ID)]
+			deptJ := deptMap[uint(children[j].ID)]
+			// 优先按Sort降序
+			if deptI.Sort != deptJ.Sort {
+				return deptI.Sort > deptJ.Sort
+			}
+			// Sort相同时按ID升序
+			return children[i].ID < children[j].ID
+		})
+	}
+
+	return children
+}
+
+// 递归构建子树
+func (d *DeptService) buildDeptResponseSubTree(deptMap map[uint]*system.Dept, parentId uint) []sysRes.DeptResponse {
+	children := make([]sysRes.DeptResponse, 0)
+
+	// 遍历所有部门，找到当前父节点的直接子节点
+	for id, dept := range deptMap {
+		if dept != nil && *dept.ParentId == parentId {
+			child := sysRes.DeptResponse{
+				DeptItem: sysRes.DeptItem{
+					IDWrapper:      dept.IDWrapper,
+					ControlWrapper: dept.ControlWrapper,
+					DeptRequest: request.DeptRequest{
+						ParentId:    dept.ParentId,
+						Name:        dept.Name,
+						Leader:      dept.Leader,
+						Phone:       dept.Phone,
+						Email:       dept.Email,
+						SortWrapper: dept.SortWrapper,
+						StatusWrapper: model.StatusWrapper{
+							Status: dept.Status,
+						},
+					},
+				},
+				Children: make([]sysRes.DeptResponse, 0), // 初始化为空数组
+			}
+			// 递归构建该子节点的子树
+			child.Children = d.buildDeptResponseSubTree(deptMap, id)
+			children = append(children, child)
+		}
+	}
+
+	// 按照Sort和ID排序
+	if len(children) > 1 {
+		sort.Slice(children, func(i, j int) bool {
+			deptI := deptMap[uint(children[i].ID)]
+			deptJ := deptMap[uint(children[j].ID)]
+			// 优先按Sort降序
+			if deptI.Sort != deptJ.Sort {
+				return deptI.Sort > deptJ.Sort
+			}
+			// Sort相同时按ID升序
+			return children[i].ID < children[j].ID
+		})
+	}
+
+	return children
 }

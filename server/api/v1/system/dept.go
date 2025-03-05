@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -102,13 +103,10 @@ func (d *DeptApi) GetDept(ctx *gin.Context) {
 }
 
 func (d *DeptApi) GetDeptList(ctx *gin.Context) {
-	query := request.DeptQueryParams{}
-	if err := ctx.ShouldBindQuery(&query); err != nil {
-		response.BadRequest(utils.GetValidMsg(query, err), ctx)
-		return
-	}
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
 
-	depts, err := deptService.GetDeptList(query)
+	depts, err := deptService.GetDeptTreeList(common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -118,7 +116,10 @@ func (d *DeptApi) GetDeptList(ctx *gin.Context) {
 }
 
 func (d *DeptApi) GetDeptTree(ctx *gin.Context) {
-	depts, err := deptService.GetDeptTree()
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+
+	depts, err := deptService.GetDeptTree(&common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

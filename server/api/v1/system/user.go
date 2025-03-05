@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -107,13 +108,16 @@ func (u *UserApi) GetUser(ctx *gin.Context) {
 
 // 查询用户列表
 func (u *UserApi) GetUserList(ctx *gin.Context) {
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+
 	query := request.UserQueryParams{}
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		response.BadRequest(utils.GetValidMsg(query, err), ctx)
 		return
 	}
 
-	users, err := userService.GetUserList(query)
+	users, err := userService.GetUserList(query, common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

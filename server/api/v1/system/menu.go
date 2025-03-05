@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -102,13 +103,10 @@ func (m *MenuApi) GetMenu(ctx *gin.Context) {
 }
 
 func (m *MenuApi) GetMenuList(ctx *gin.Context) {
-	query := request.MenuQueryParams{}
-	if err := ctx.ShouldBindQuery(&query); err != nil {
-		response.BadRequest(utils.GetValidMsg(query, err), ctx)
-		return
-	}
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
 
-	data, err := menuService.GetMenuTreeList(query)
+	data, err := menuService.GetMenuTreeList(common.ScopeData{Claims: claims})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

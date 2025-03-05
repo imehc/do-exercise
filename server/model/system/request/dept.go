@@ -2,12 +2,11 @@ package request
 
 import (
 	"github.com/imehc/do-exercise/server/model"
-	commonReq "github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/utils"
 )
 
 type DeptRequest struct {
-	ParentId            int    `json:"parent_id,omitzero" binding:"required"` // 上级部门
+	ParentId            *uint  `json:"parent_id,omitzero" binding:"required"` // 上级部门
 	Name                string `json:"name" binding:"required"`               // 部门名称
 	Leader              string `json:"leader" binding:"required"`             // 负责人
 	Phone               string `json:"phone"`                                 // 手机号
@@ -29,6 +28,5 @@ type DeptParam struct {
 }
 
 type DeptQueryParams struct {
-	commonReq.QueryParams `json:",inline"`
-	Name                  string `json:"name" form:"name"`
+	Name string `json:"name" form:"name"`
 }

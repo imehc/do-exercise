@@ -6,9 +6,11 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
 	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
@@ -86,6 +88,18 @@ func (u *UserService) DeleteUser(param request.UserParam, deletedBy uint) (err e
 		return errors.New("用户已删除")
 	}
 
+	// 检查是否有权限删除
+	if user.CreatedBy != deletedBy {
+		// 检查是否是超级管理员
+		var role system.Role
+		if err := db.First(&role, user.RoleId).Error; err != nil {
+			return err
+		}
+		if !role.IsAdmin {
+			return errors.New("无权删除其他用户创建的数据")
+		}
+	}
+
 	db.
 		Model(system.User{}).
 		Where("id = ?", param.UserId).
@@ -106,6 +120,18 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 			return errors.New("用户不存在")
 		}
 		return result.Error
+	}
+
+	// 检查是否有权限更新
+	if user.CreatedBy != updatedBy {
+		// 检查是否是超级管理员
+		var role system.Role
+		if err := db.First(&role, user.RoleId).Error; err != nil {
+			return err
+		}
+		if !role.IsAdmin {
+			return errors.New("无权更新其他用户创建的数据")
+		}
 	}
 
 	// TODO: 检验部门、角色、岗位是否存在
@@ -222,8 +248,10 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 }
 
 // 查询用户
-func (u *UserService) GetUserList(query request.UserQueryParams) (response.UserResponse, error) {
+func (u *UserService) GetUserList(query request.UserQueryParams, s common.ScopeData) (response.UserResponse, error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_user")
 
 	var total int64
 	var originUsers []system.User

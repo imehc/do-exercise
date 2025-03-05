@@ -14,7 +14,7 @@ type MenuItem struct {
 	IsSelect             bool         `json:"is_select"`  // 是否选中
 	NoCache              bool         `json:"no_cache"`
 	Params               string       `json:"params"`
-	Paths                string       `json:"paths"`
+	Route                string       `json:"route"`
 	Apis                 []system.Api `json:"apis,omitzero"`
 	Children             []MenuItem   `json:"children,omitzero"`
 	// Breadcrumb string `json:"breadcrumb"`	// 面包屑

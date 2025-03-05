@@ -6,9 +6,11 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
 	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
@@ -53,6 +55,18 @@ func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
 		return errors.New("接口已删除")
 	}
 
+	// 检查是否有权限删除
+	if api.CreatedBy != deletedBy {
+		// 检查是否是超级管理员
+		var role system.Role
+		if err := db.First(&role, deletedBy).Error; err != nil {
+			return err
+		}
+		if !role.IsAdmin {
+			return errors.New("无权删除其他用户创建的数据")
+		}
+	}
+
 	db.
 		Model(system.Api{}).
 		Where("id = ?", param.ApiId).
@@ -73,6 +87,18 @@ func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, u
 			return errors.New("接口不存在")
 		}
 		return result.Error
+	}
+
+	// 检查是否有权限更新
+	if api.CreatedBy != updatedBy {
+		// 检查是否是超级管理员
+		var role system.Role
+		if err := db.First(&role, updatedBy).Error; err != nil {
+			return err
+		}
+		if !role.IsAdmin {
+			return errors.New("无权更新其他用户创建的数据")
+		}
 	}
 
 	api.Handle = request.Handle
@@ -145,8 +171,10 @@ func (r ApiService) FindAll() (response []sysRes.ApiItem, err error) {
 }
 
 // 查询api列表
-func (r ApiService) FindList(query request.ApiQueryParams) (response sysRes.ApiResponse, err error) {
+func (r ApiService) FindList(query request.ApiQueryParams, s common.ScopeData) (response sysRes.ApiResponse, err error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_api")
 
 	var total int64
 	var originApis []system.Api

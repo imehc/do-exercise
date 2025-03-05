@@ -6,9 +6,11 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	sysRes "github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/pkg/utils/scope"
 	"github.com/imehc/do-exercise/server/utils"
 	"gorm.io/gorm"
 )
@@ -123,8 +125,10 @@ func (d *DictService) GetDict(param request.DictParam) (response sysRes.DictItem
 }
 
 // 获取字典列表
-func (d *DictService) GetDictList(query request.DictQueryParams) (response sysRes.DictResponse, err error) {
+func (d *DictService) GetDictList(query request.DictQueryParams, s common.ScopeData) (response sysRes.DictResponse, err error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_dict")
 
 	var total int64
 	var originDicts []system.Dict
@@ -291,8 +295,10 @@ func (d *DictService) GetDictData(param request.DictDataParam) (response sysRes.
 }
 
 // 获取字典数据列表
-func (d *DictService) GetDictDataList(query request.DictDataQueryParams) (response sysRes.DictDataResponse, err error) {
+func (d *DictService) GetDictDataList(query request.DictDataQueryParams, s common.ScopeData) (response sysRes.DictDataResponse, err error) {
 	db := global.DB
+	// 应用数据权限过滤
+	db = scope.GetDataScope(db, &s, "sys_dict_data")
 
 	var dict system.Dict
 	result := db.

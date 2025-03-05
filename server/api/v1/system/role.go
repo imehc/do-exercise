@@ -24,7 +24,7 @@ func (r *RoleApi) CreateRole(ctx *gin.Context) {
 		return
 	}
 
-	err := roleService.Create(req, claims.ID)
+	err := roleService.Create(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -46,7 +46,7 @@ func (r *RoleApi) DeleteRole(ctx *gin.Context) {
 		return
 	}
 
-	err = roleService.Delete(param, claims.ID)
+	err = roleService.Delete(param, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -74,7 +74,7 @@ func (r *RoleApi) UpdateRole(ctx *gin.Context) {
 		return
 	}
 
-	err = roleService.Update(param, req, claims.ID)
+	err = roleService.Update(param, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -122,8 +122,8 @@ func (r *RoleApi) GetRoleList(ctx *gin.Context) {
 }
 
 func (r *RoleApi) UpdateRoleDataScope(ctx *gin.Context) {
-	data, _ := ctx.Get(global.CLAIMS)
-	claims := data.(system.Claims)
+	// data, _ := ctx.Get(global.CLAIMS)
+	// claims := data.(system.Claims)
 
 	var param request.RoleParam
 	var err error
@@ -140,13 +140,15 @@ func (r *RoleApi) UpdateRoleDataScope(ctx *gin.Context) {
 		return
 	}
 
-	err = roleService.UpdateDataScope(param, req, claims.ID)
-	if err != nil {
-		response.BadRequest(err.Error(), ctx)
-		return
-	}
+	// TODO: 暂时不支持更新角色数据范围, 最后来实现该功能
+	response.NotImplemented(ctx)
+	// err = roleService.UpdateDataScope(param, req, claims.UserId)
+	// if err != nil {
+	// 	response.BadRequest(err.Error(), ctx)
+	// 	return
+	// }
 
-	response.NoContent(ctx)
+	// response.NoContent(ctx)
 }
 
 func (r *RoleApi) UpdateMenuDataScope(ctx *gin.Context) {
@@ -168,7 +170,7 @@ func (r *RoleApi) UpdateMenuDataScope(ctx *gin.Context) {
 		return
 	}
 
-	err = roleService.UpdateMenuScope(param, req, claims.ID)
+	err = roleService.UpdateMenuScope(param, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -196,7 +198,7 @@ func (r *RoleApi) UpdateApiDataScope(ctx *gin.Context) {
 		return
 	}
 
-	err = roleService.UpdateApiScope(param, req, claims.ID)
+	err = roleService.UpdateApiScope(param, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

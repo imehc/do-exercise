@@ -18,7 +18,7 @@ import (
 type ApiService struct{}
 
 // 创建api
-func (r ApiService) Create(request request.ApiRequest, createdBy uint) (err error) {
+func (r ApiService) Create(request request.ApiRequest, createBy uint) (err error) {
 	db := global.DB
 
 	api := system.Api{
@@ -28,7 +28,7 @@ func (r ApiService) Create(request request.ApiRequest, createdBy uint) (err erro
 		Type:   request.Type,
 		Action: request.Action,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 
@@ -37,7 +37,7 @@ func (r ApiService) Create(request request.ApiRequest, createdBy uint) (err erro
 }
 
 // 删除api
-func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
+func (r ApiService) Delete(param request.ApiParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var api system.Api
@@ -51,15 +51,15 @@ func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
 		return result.Error
 	}
 
-	if !api.DeletedAt.Time.IsZero() {
+	if !api.DeleteAt.Time.IsZero() {
 		return errors.New("接口已删除")
 	}
 
 	// 检查是否有权限删除
-	if api.CreatedBy != deletedBy {
+	if api.CreateBy != deleteBy {
 		// 检查是否是超级管理员
 		var role system.Role
-		if err := db.First(&role, deletedBy).Error; err != nil {
+		if err := db.First(&role, deleteBy).Error; err != nil {
 			return err
 		}
 		if !role.IsAdmin {
@@ -69,14 +69,14 @@ func (r ApiService) Delete(param request.ApiParam, deletedBy uint) (err error) {
 
 	db.
 		Model(system.Api{}).
-		Where("id = ?", param.ApiId).
-		Update("deleted_by", deletedBy).
+		Where("api_id = ?", param.ApiId).
+		Update("deleted_by", deleteBy).
 		Delete(&api)
 	return nil
 }
 
 // 更新api
-func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, updatedBy uint) (err error) {
+func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var api system.Api
@@ -90,10 +90,10 @@ func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, u
 	}
 
 	// 检查是否有权限更新
-	if api.CreatedBy != updatedBy {
+	if api.CreateBy != updateBy {
 		// 检查是否是超级管理员
 		var role system.Role
-		if err := db.First(&role, updatedBy).Error; err != nil {
+		if err := db.First(&role, updateBy).Error; err != nil {
 			return err
 		}
 		if !role.IsAdmin {
@@ -107,14 +107,14 @@ func (r ApiService) Update(param request.ApiParam, request request.ApiRequest, u
 	api.Type = request.Type
 	api.Action = request.Action
 	api.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	db.
 		Model(system.Api{}).
-		Where("id = ?", param.ApiId).
+		Where("api_id = ?", param.ApiId).
 		Updates(&api).
-		Omit("id", "created_at")
+		Omit("api_id", "created_at")
 
 	return nil
 }
@@ -133,7 +133,7 @@ func (r ApiService) Find(param request.ApiParam) (response sysRes.ApiItem, err e
 		return response, result.Error
 	}
 
-	response.ID = api.ID
+	response.ID = api.ApiId
 	response.ControlWrapper = api.ControlWrapper
 	response.Handle = api.Handle
 	response.Title = api.Title
@@ -149,7 +149,7 @@ func (r ApiService) FindAll() (response []sysRes.ApiItem, err error) {
 
 	var apis []system.Api
 	err = db.
-		Order("id ASC").
+		Order("api_id ASC").
 		Find(&apis).
 		Error
 	if err != nil {
@@ -158,7 +158,7 @@ func (r ApiService) FindAll() (response []sysRes.ApiItem, err error) {
 
 	response = make([]sysRes.ApiItem, len(apis))
 	for i, api := range apis {
-		response[i].ID = api.ID
+		response[i].ID = api.ApiId
 		response[i].ControlWrapper = api.ControlWrapper
 		response[i].Handle = api.Handle
 		response[i].Title = api.Title
@@ -180,7 +180,7 @@ func (r ApiService) FindList(query request.ApiQueryParams, s common.ScopeData) (
 	var originApis []system.Api
 	err = db.
 		Model(&system.Api{}).
-		Order("id ASC").
+		Order("api_id ASC").
 		Where(fmt.Sprintf("title LIKE '%%%s%%'", query.Name)).
 		Count(&total).
 		Scopes(utils.Paginate(query.PageSize, query.Page)).
@@ -196,7 +196,7 @@ func (r ApiService) FindList(query request.ApiQueryParams, s common.ScopeData) (
 
 	response.Data = make([]sysRes.ApiItem, len(originApis))
 	for i, api := range originApis {
-		response.Data[i].ID = api.ID
+		response.Data[i].ID = api.ApiId
 		response.Data[i].ControlWrapper = api.ControlWrapper
 		response.Data[i].Handle = api.Handle
 		response.Data[i].Title = api.Title

@@ -16,14 +16,14 @@ import (
 type RoleService struct{}
 
 // 创建角色
-func (r RoleService) Create(request request.CreateRoleRequest, createdBy uint) (err error) {
+func (r RoleService) Create(request request.CreateRoleRequest, createBy uint) (err error) {
 	db := global.DB
 
 	role := system.Role{
 		Name: request.Name,
 		Key:  request.Key,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 
@@ -42,7 +42,7 @@ func (r RoleService) Create(request request.CreateRoleRequest, createdBy uint) (
 }
 
 // 删除角色
-func (r RoleService) Delete(param request.RoleParam, deletedBy uint) (err error) {
+func (r RoleService) Delete(param request.RoleParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var role system.Role
@@ -56,15 +56,15 @@ func (r RoleService) Delete(param request.RoleParam, deletedBy uint) (err error)
 		return result.Error
 	}
 
-	if !role.DeletedAt.Time.IsZero() {
+	if !role.DeleteAt.Time.IsZero() {
 		return errors.New("角色已删除")
 	}
 
 	// 检查是否有权限删除
-	if role.CreatedBy != deletedBy {
+	if role.CreateBy != deleteBy {
 		// 检查是否是超级管理员
 		var currentUserRole system.Role
-		if err := db.First(&currentUserRole, deletedBy).Error; err != nil {
+		if err := db.First(&currentUserRole, deleteBy).Error; err != nil {
 			return err
 		}
 		if !currentUserRole.IsAdmin {
@@ -75,20 +75,20 @@ func (r RoleService) Delete(param request.RoleParam, deletedBy uint) (err error)
 	var user system.User
 	result = db.
 		First(&user, "role_id = ?", param.RoleId)
-	if result.Error == nil && user.ID != 0 {
+	if result.Error == nil && user.UserId != 0 {
 		return errors.New("该角色已被使用,无法删除")
 	}
 
 	db.
 		Model(system.Role{}).
-		Where("id = ?", param.RoleId).
-		Update("deleted_by", deletedBy).
+		Where("role_id = ?", param.RoleId).
+		Update("deleted_by", deleteBy).
 		Delete(&role)
 	return nil
 }
 
 // 更新角色
-func (r RoleService) Update(param request.RoleParam, request request.UpdateRoleRequest, updatedBy uint) (err error) {
+func (r RoleService) Update(param request.RoleParam, request request.UpdateRoleRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var role system.Role
@@ -105,14 +105,14 @@ func (r RoleService) Update(param request.RoleParam, request request.UpdateRoleR
 	role.Status = request.Status
 	role.Remark = request.Remark
 	role.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	db.
 		Model(system.Role{}).
-		Where("id = ?", param.RoleId).
+		Where("role_id = ?", param.RoleId).
 		Updates(&role).
-		Omit("id", "created_at")
+		Omit("role_id", "created_at")
 
 	return nil
 }
@@ -123,7 +123,6 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 
 	var role system.Role
 	result := db.
-		Preload("Depts").
 		Preload("Menus").
 		Preload("Apis").
 		First(&role, param.RoleId)
@@ -134,7 +133,7 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 		return response, result.Error
 	}
 
-	response.ID = role.ID
+	response.ID = role.RoleId
 	response.Name = role.Name
 	response.Key = role.Key
 	response.IsAdmin = role.IsAdmin
@@ -144,31 +143,13 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 	response.Status = role.Status
 	response.Remark = role.Remark
 
-	// 加载部门信息
-	response.Depts = make([]sysRes.DeptItem, len(role.Depts))
-	for i, dept := range role.Depts {
-		response.Depts[i] = sysRes.DeptItem{
-			IDWrapper:      dept.IDWrapper,
-			ControlWrapper: dept.ControlWrapper,
-			DeptRequest: request.DeptRequest{
-				ParentId:    dept.ParentId,
-				Name:        dept.Name,
-				Leader:      dept.Leader,
-				Phone:       dept.Phone,
-				Email:       dept.Email,
-				SortWrapper: dept.SortWrapper,
-				StatusWrapper: model.StatusWrapper{
-					Status: dept.Status,
-				},
-			},
-		}
-	}
-
 	// 加载菜单信息
 	response.Menus = make([]sysRes.MenuItem, len(role.Menus))
 	for i, menu := range role.Menus {
 		response.Menus[i] = sysRes.MenuItem{
-			IDWrapper:      menu.IDWrapper,
+			IDWrapper: common.IDWrapper{
+				ID: menu.MenuId,
+			},
 			ControlWrapper: menu.ControlWrapper,
 			MenuRequest: request.MenuRequest{
 				ParentId:   &menu.ParentId,
@@ -176,19 +157,14 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 				Icon:       menu.Icon,
 				Type:       menu.Type,
 				Action:     menu.Action,
-				IsFrame:    menu.IsFrame,
-				Visible:    menu.Visible,
 				Title:      menu.Title,
-				Component:  menu.Component,
 				Path:       menu.Path,
 				Permission: menu.Permission,
 				SortWrapper: model.SortWrapper{
 					Sort: menu.Sort,
 				},
 			},
-			NoCache: menu.NoCache,
-			Params:  menu.Params,
-			Route:   menu.Route,
+			Route: menu.Route,
 		}
 	}
 
@@ -196,7 +172,9 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 	response.Apis = make([]sysRes.ApiItem, len(role.Apis))
 	for i, api := range role.Apis {
 		response.Apis[i] = sysRes.ApiItem{
-			IDWrapper:      api.IDWrapper,
+			IDWrapper: common.IDWrapper{
+				ID: api.ApiId,
+			},
 			ControlWrapper: api.ControlWrapper,
 			ApiRequest: request.ApiRequest{
 				Handle: api.Handle,
@@ -221,8 +199,7 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 	var originRoles []system.Role
 	db = db.Model(&system.Role{}).
 		Order("sort Desc").
-		Order("id ASC").
-		Preload("Depts").
+		Order("role_id ASC").
 		Preload("Menus").
 		Preload("Apis").
 		Where("name LIKE ?", "%"+query.Name+"%")
@@ -240,7 +217,7 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 
 	response.Data = make([]sysRes.RoleItem, len(originRoles))
 	for i, role := range originRoles {
-		response.Data[i].ID = role.ID
+		response.Data[i].ID = role.RoleId
 		response.Data[i].ControlWrapper = role.ControlWrapper
 		response.Data[i].Name = role.Name
 		response.Data[i].Key = role.Key
@@ -250,31 +227,13 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 		response.Data[i].Status = role.Status
 		response.Data[i].Remark = role.Remark
 
-		// 加载部门信息
-		response.Data[i].Depts = make([]sysRes.DeptItem, len(role.Depts))
-		for j, dept := range role.Depts {
-			response.Data[i].Depts[j] = sysRes.DeptItem{
-				IDWrapper:      dept.IDWrapper,
-				ControlWrapper: dept.ControlWrapper,
-				DeptRequest: request.DeptRequest{
-					ParentId:    dept.ParentId,
-					Name:        dept.Name,
-					Leader:      dept.Leader,
-					Phone:       dept.Phone,
-					Email:       dept.Email,
-					SortWrapper: dept.SortWrapper,
-					StatusWrapper: model.StatusWrapper{
-						Status: dept.Status,
-					},
-				},
-			}
-		}
-
 		// 加载菜单信息
 		response.Data[i].Menus = make([]sysRes.MenuItem, len(role.Menus))
 		for j, menu := range role.Menus {
 			response.Data[i].Menus[j] = sysRes.MenuItem{
-				IDWrapper:      menu.IDWrapper,
+				IDWrapper: common.IDWrapper{
+					ID: menu.MenuId,
+				},
 				ControlWrapper: menu.ControlWrapper,
 				MenuRequest: request.MenuRequest{
 					ParentId:   &menu.ParentId,
@@ -282,19 +241,14 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 					Icon:       menu.Icon,
 					Type:       menu.Type,
 					Action:     menu.Action,
-					IsFrame:    menu.IsFrame,
-					Visible:    menu.Visible,
 					Title:      menu.Title,
-					Component:  menu.Component,
 					Path:       menu.Path,
 					Permission: menu.Permission,
 					SortWrapper: model.SortWrapper{
 						Sort: menu.Sort,
 					},
 				},
-				NoCache: menu.NoCache,
-				Params:  menu.Params,
-				Route:   menu.Route,
+				Route: menu.Route,
 			}
 		}
 
@@ -302,7 +256,9 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 		response.Data[i].Apis = make([]sysRes.ApiItem, len(role.Apis))
 		for j, api := range role.Apis {
 			response.Data[i].Apis[j] = sysRes.ApiItem{
-				IDWrapper:      api.IDWrapper,
+				IDWrapper: common.IDWrapper{
+					ID: api.ApiId,
+				},
 				ControlWrapper: api.ControlWrapper,
 				ApiRequest: request.ApiRequest{
 					Handle: api.Handle,
@@ -319,7 +275,7 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 }
 
 // 更新角色数据权限
-func (r RoleService) UpdateDataScope(param request.RoleParam, request request.UpdateRoleDataScope, updatedBy uint) (err error) {
+func (r RoleService) UpdateDataScope(param request.RoleParam, request request.UpdateRoleDataScope, updateBy uint) (err error) {
 	db := global.DB
 
 	var role system.Role
@@ -335,7 +291,7 @@ func (r RoleService) UpdateDataScope(param request.RoleParam, request request.Up
 	// 更新角色的数据范围
 	role.DataScope = request.DataScope
 	role.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	// 如果是自定义数据权限，需要处理角色与部门的关联
@@ -343,7 +299,7 @@ func (r RoleService) UpdateDataScope(param request.RoleParam, request request.Up
 		// 检查部门是否存在
 		if len(request.DeptIds) > 0 {
 			var depts []system.Dept
-			if err = db.Where("id IN ?", request.DeptIds).Find(&depts).Error; err != nil {
+			if err = db.Where("dept_id IN ?", request.DeptIds).Find(&depts).Error; err != nil {
 				return err
 			}
 			if len(depts) != len(request.DeptIds) {
@@ -370,15 +326,15 @@ func (r RoleService) UpdateDataScope(param request.RoleParam, request request.Up
 	// 更新角色基本信息
 	db.
 		Model(system.Role{}).
-		Where("id = ?", param.RoleId).
+		Where("role_id = ?", param.RoleId).
 		Updates(&role).
-		Omit("id", "created_at")
+		Omit("role_id", "created_at")
 
 	return nil
 }
 
 // 更新角色菜单权限
-func (r RoleService) UpdateMenuScope(param request.RoleParam, request request.UpdateMenuDataScope, updatedBy uint) (err error) {
+func (r RoleService) UpdateMenuScope(param request.RoleParam, request request.UpdateMenuDataScope, updateBy uint) (err error) {
 	db := global.DB
 
 	var role system.Role
@@ -394,7 +350,7 @@ func (r RoleService) UpdateMenuScope(param request.RoleParam, request request.Up
 	// 检查菜单是否存在
 	if len(request.MenuIds) > 0 {
 		var menus []system.Menu
-		if err = db.Where("id IN ?", request.MenuIds).Find(&menus).Error; err != nil {
+		if err = db.Where("menu_id IN ?", request.MenuIds).Find(&menus).Error; err != nil {
 			return err
 		}
 		if len(menus) != len(request.MenuIds) {
@@ -414,19 +370,19 @@ func (r RoleService) UpdateMenuScope(param request.RoleParam, request request.Up
 
 	// 更新角色基本信息
 	role.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 	db.
 		Model(system.Role{}).
-		Where("id = ?", param.RoleId).
+		Where("role_id = ?", param.RoleId).
 		Updates(&role).
-		Omit("id", "created_at")
+		Omit("role_id", "created_at")
 
 	return nil
 }
 
 // 更新角色api权限
-func (r RoleService) UpdateApiScope(param request.RoleParam, request request.UpdateApiDataScope, updatedBy uint) (err error) {
+func (r RoleService) UpdateApiScope(param request.RoleParam, request request.UpdateApiDataScope, updateBy uint) (err error) {
 	db := global.DB
 
 	var role system.Role
@@ -442,7 +398,7 @@ func (r RoleService) UpdateApiScope(param request.RoleParam, request request.Upd
 	// 检查API是否存在
 	if len(request.ApiIds) > 0 {
 		var apis []system.Api
-		if err = db.Where("id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
+		if err = db.Where("api_id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
 			return err
 		}
 		if len(apis) != len(request.ApiIds) {
@@ -462,13 +418,13 @@ func (r RoleService) UpdateApiScope(param request.RoleParam, request request.Upd
 
 	// 更新角色基本信息
 	role.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 	db.
 		Model(system.Role{}).
-		Where("id = ?", param.RoleId).
+		Where("role_id = ?", param.RoleId).
 		Updates(&role).
-		Omit("id", "created_at")
+		Omit("role_id", "created_at")
 
 	return nil
 }

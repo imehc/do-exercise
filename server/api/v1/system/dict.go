@@ -24,7 +24,7 @@ func (d *DictApi) CreateDict(ctx *gin.Context) {
 		return
 	}
 
-	err := dictService.CreateDict(req, claims.ID)
+	err := dictService.CreateDict(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -46,7 +46,7 @@ func (d *DictApi) DeleteDict(ctx *gin.Context) {
 		return
 	}
 
-	err = dictService.DeleteDict(dictParam, claims.ID)
+	err = dictService.DeleteDict(dictParam, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -74,7 +74,7 @@ func (d *DictApi) UpdateDict(ctx *gin.Context) {
 		return
 	}
 
-	err = dictService.UpdateDict(dictParam, req, claims.ID)
+	err = dictService.UpdateDict(dictParam, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -133,7 +133,7 @@ func (d *DictApi) CreateDictData(ctx *gin.Context) {
 		return
 	}
 
-	err := dictService.CreateDictData(req, claims.ID)
+	err := dictService.CreateDictData(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -155,7 +155,7 @@ func (d *DictApi) DeleteDictData(ctx *gin.Context) {
 		return
 	}
 
-	err = dictService.DeleteDictData(dictDataParam, claims.ID)
+	err = dictService.DeleteDictData(dictDataParam, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -183,7 +183,7 @@ func (d *DictApi) UpdateDictData(ctx *gin.Context) {
 		return
 	}
 
-	err = dictService.UpdateDictData(dictDataParam, req, claims.ID)
+	err = dictService.UpdateDictData(dictDataParam, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

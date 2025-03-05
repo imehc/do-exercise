@@ -9,7 +9,6 @@ import (
 type PostRequest struct {
 	Name                string `json:"name" binding:"required"` // 岗位名称
 	Code                string `json:"code" binding:"required"` // 岗位编码
-	DeptId              int    `json:"dept_id,omitzero"`        // 所属部门
 	model.SortWrapper   `json:",inline"`
 	model.StatusWrapper `json:",inline"`
 	model.RemarkWrapper `json:",inline"`

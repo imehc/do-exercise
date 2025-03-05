@@ -25,7 +25,7 @@ func (u *UserApi) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	err := userService.CreateUser(req, claims.ID)
+	err := userService.CreateUser(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -48,7 +48,7 @@ func (u *UserApi) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = userService.DeleteUser(userParam, claims.ID)
+	err = userService.DeleteUser(userParam, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -77,7 +77,7 @@ func (u *UserApi) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	err = userService.UpdateUser(userParam, req, claims.ID)
+	err = userService.UpdateUser(userParam, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -130,7 +130,7 @@ func (u *UserApi) GetUserList(ctx *gin.Context) {
 func (u *UserApi) GetUserInfo(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
-	user, err := userService.GetUser(request.UserParam{UserId: int(claims.ID)})
+	user, err := userService.GetUser(request.UserParam{UserId: int(claims.UserId)})
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -150,7 +150,7 @@ func (u *UserApi) UpdateUserInfo(ctx *gin.Context) {
 		return
 	}
 
-	err := userService.UpdateUser(request.UserParam{UserId: int(claims.ID)}, req, claims.ID)
+	err := userService.UpdateUser(request.UserParam{UserId: int(claims.UserId)}, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

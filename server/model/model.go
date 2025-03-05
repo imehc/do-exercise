@@ -6,32 +6,28 @@ import (
 	"gorm.io/gorm"
 )
 
-type IDWrapper struct {
-	ID uint `json:"id" gorm:"primarykey;autoIncrement;comment:主键ID"`
-}
-
 type ControlWrapper struct {
-	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
-	CreatedBy uint           `json:"created_by" gorm:"index;comment:创建者"`
-	UpdatedAt time.Time      `json:"updated_at" gorm:"comment:更新时间"`
-	UpdatedBy uint           `json:"updated_by" gorm:"index;comment:更新者"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
-	DeletedBy uint           `json:"-" gorm:"index;comment:删除者"`
+	CreateAt time.Time      `json:"create_at" gorm:"comment:创建时间"`
+	CreateBy uint           `json:"create_by" gorm:"index;comment:创建者"`
+	UpdateAt time.Time      `json:"update_at" gorm:"comment:更新时间"`
+	UpdateBy uint           `json:"update_by" gorm:"index;comment:更新者"`
+	DeleteAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	DeleteBy uint           `json:"-" gorm:"index;comment:删除者"`
 }
 
 // 修改创建者
-func (c *ControlWrapper) ModifyCreatedBy(createdBy uint) {
-	c.CreatedBy = createdBy
+func (c *ControlWrapper) ModifyCreateBy(createBy uint) {
+	c.CreateBy = createBy
 }
 
 // 修改更新者
-func (c *ControlWrapper) ModifyUpdatedBy(updatedBy uint) {
-	c.UpdatedBy = updatedBy
+func (c *ControlWrapper) ModifyUpdateBy(updateBy uint) {
+	c.UpdateBy = updateBy
 }
 
 // 修改删除者
-func (c *ControlWrapper) ModifyDeletedBy(deletedBy uint) {
-	c.DeletedBy = deletedBy
+func (c *ControlWrapper) ModifyDeleteBy(deleteBy uint) {
+	c.DeleteBy = deleteBy
 }
 
 type StatusWrapper struct {

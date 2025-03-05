@@ -18,7 +18,7 @@ import (
 type DictService struct{}
 
 // 创建字典
-func (d *DictService) CreateDict(request request.CreateDictRequest, createdBy uint) (err error) {
+func (d *DictService) CreateDict(request request.CreateDictRequest, createBy uint) (err error) {
 	db := global.DB
 
 	dict := system.Dict{
@@ -26,7 +26,7 @@ func (d *DictService) CreateDict(request request.CreateDictRequest, createdBy ui
 		Type:   request.Type,
 		Remark: request.Remark,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 	dict.Status = request.Status
@@ -38,7 +38,7 @@ func (d *DictService) CreateDict(request request.CreateDictRequest, createdBy ui
 }
 
 // 删除字典
-func (d *DictService) DeleteDict(param request.DictParam, deletedBy uint) (err error) {
+func (d *DictService) DeleteDict(param request.DictParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var dict system.Dict
@@ -52,20 +52,20 @@ func (d *DictService) DeleteDict(param request.DictParam, deletedBy uint) (err e
 		return result.Error
 	}
 
-	if !dict.DeletedAt.Time.IsZero() {
+	if !dict.DeleteAt.Time.IsZero() {
 		return errors.New("字典已删除")
 	}
 
 	db.
 		Model(system.Dict{}).
-		Where("id = ?", param.DictId).
-		Update("deleted_by", deletedBy).
+		Where("dict_id = ?", param.DictId).
+		Update("deleted_by", deleteBy).
 		Delete(&dict)
 	return nil
 }
 
 // 更新字典
-func (d *DictService) UpdateDict(param request.DictParam, request request.UpdateDictRequest, updatedBy uint) (err error) {
+func (d *DictService) UpdateDict(param request.DictParam, request request.UpdateDictRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var dict system.Dict
@@ -81,12 +81,12 @@ func (d *DictService) UpdateDict(param request.DictParam, request request.Update
 	dict.Status = request.Status
 	dict.Remark = request.Remark
 	dict.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	db.
 		Model(system.Dict{}).
-		Where("id = ?", param.DictId).
+		Where("dict_id = ?", param.DictId).
 		Updates(&dict).
 		Select("status", "remark")
 
@@ -107,7 +107,7 @@ func (d *DictService) GetDict(param request.DictParam) (response sysRes.DictItem
 		return response, result.Error
 	}
 
-	response.ID = dict.ID
+	response.ID = dict.DictId
 	response.CreateDictRequest = request.CreateDictRequest{
 		Name: dict.Name,
 		Type: dict.Type,
@@ -135,7 +135,7 @@ func (d *DictService) GetDictList(query request.DictQueryParams, s common.ScopeD
 
 	err = db.
 		Model(&system.Dict{}).
-		Order("id ASC").
+		Order("dict_id ASC").
 		Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).
 		Count(&total).
 		Scopes(utils.Paginate(query.PageSize, query.Page)).
@@ -150,7 +150,7 @@ func (d *DictService) GetDictList(query request.DictQueryParams, s common.ScopeD
 
 	response.Data = make([]sysRes.DictItem, len(originDicts))
 	for i, dict := range originDicts {
-		response.Data[i].ID = dict.ID
+		response.Data[i].ID = dict.DictId
 		response.Data[i].ControlWrapper = dict.ControlWrapper
 		response.Data[i].Name = dict.Name
 		response.Data[i].Type = dict.Type
@@ -162,7 +162,7 @@ func (d *DictService) GetDictList(query request.DictQueryParams, s common.ScopeD
 }
 
 // 创建字典数据
-func (d *DictService) CreateDictData(request request.CreateDictDataRequest, createdBy uint) (err error) {
+func (d *DictService) CreateDictData(request request.CreateDictDataRequest, createBy uint) (err error) {
 	db := global.DB
 
 	var dict system.Dict
@@ -177,7 +177,7 @@ func (d *DictService) CreateDictData(request request.CreateDictDataRequest, crea
 		return result.Error
 	}
 
-	if !dict.DeletedAt.Time.IsZero() {
+	if !dict.DeleteAt.Time.IsZero() {
 		return errors.New("字典已删除")
 	}
 
@@ -196,7 +196,7 @@ func (d *DictService) CreateDictData(request request.CreateDictDataRequest, crea
 		Label:    request.Label,
 		Value:    request.Value,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 	dictData.Status = request.Status
@@ -209,7 +209,7 @@ func (d *DictService) CreateDictData(request request.CreateDictDataRequest, crea
 }
 
 // 更新字典数据
-func (d *DictService) DeleteDictData(param request.DictDataParam, deletedBy uint) (err error) {
+func (d *DictService) DeleteDictData(param request.DictDataParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var dictData system.DictData
@@ -223,20 +223,20 @@ func (d *DictService) DeleteDictData(param request.DictDataParam, deletedBy uint
 		return result.Error
 	}
 
-	if !dictData.DeletedAt.Time.IsZero() {
+	if !dictData.DeleteAt.Time.IsZero() {
 		return errors.New("字典数据已删除")
 	}
 
 	db.
 		Model(system.DictData{}).
-		Where("id = ?", param.DictDataId).
-		Update("deleted_by", deletedBy).
+		Where("dict_data_id = ?", param.DictDataId).
+		Update("deleted_by", deleteBy).
 		Delete(&dictData)
 	return nil
 }
 
 // 更新字典数据
-func (d *DictService) UpdateDictData(param request.DictDataParam, request request.UpdateDictDataRequest, updatedBy uint) (err error) {
+func (d *DictService) UpdateDictData(param request.DictDataParam, request request.UpdateDictDataRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var dictData system.DictData
@@ -253,12 +253,12 @@ func (d *DictService) UpdateDictData(param request.DictDataParam, request reques
 	dictData.Sort = request.Sort
 	dictData.Status = request.Status
 	dictData.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	db.
 		Model(system.DictData{}).
-		Where("id = ?", param.DictDataId).
+		Where("dict_data_id = ?", param.DictDataId).
 		Updates(&dictData).
 		Select("status", "remark", "sort")
 
@@ -279,7 +279,7 @@ func (d *DictService) GetDictData(param request.DictDataParam) (response sysRes.
 		return response, result.Error
 	}
 
-	response.ID = dictData.ID
+	response.ID = dictData.DictDataId
 	response.CreateDictDataRequest = request.CreateDictDataRequest{
 		DictTypeWrapper: request.DictTypeWrapper{
 			DictType: dictData.DictType,
@@ -312,7 +312,7 @@ func (d *DictService) GetDictDataList(query request.DictDataQueryParams, s commo
 		return response, result.Error
 	}
 
-	if !dict.DeletedAt.Time.IsZero() {
+	if !dict.DeleteAt.Time.IsZero() {
 		return response, errors.New("字典已删除")
 	}
 
@@ -322,7 +322,7 @@ func (d *DictService) GetDictDataList(query request.DictDataQueryParams, s commo
 	err = db.
 		Model(&system.DictData{}).
 		Order("sort Desc").
-		Order("id ASC").
+		Order("dict_data_id ASC").
 		Where(fmt.Sprintf("label LIKE '%%%s%%'", query.Label)).
 		Where("dict_type = ?", query.DictType).
 		Count(&total).
@@ -338,7 +338,7 @@ func (d *DictService) GetDictDataList(query request.DictDataQueryParams, s commo
 
 	response.Data = make([]sysRes.DictDataItem, len(originDictData))
 	for i, dict := range originDictData {
-		response.Data[i].ID = dict.ID
+		response.Data[i].ID = dict.DictDataId
 		response.Data[i].ControlWrapper = dict.ControlWrapper
 		response.Data[i].DictType = dict.DictType
 		response.Data[i].Label = dict.Label

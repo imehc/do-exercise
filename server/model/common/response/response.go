@@ -14,6 +14,7 @@ const (
 	UNAUTHORIZED          = http.StatusUnauthorized
 	FORBIDDEN             = http.StatusForbidden
 	NOT_FOUND             = http.StatusNotFound
+	NOT_IMPLEMENTED       = http.StatusNotImplemented
 	INTERNAL_SERVER_ERROR = http.StatusInternalServerError
 )
 
@@ -40,7 +41,7 @@ func Created(c *gin.Context) {
 
 // NoContent 无内容响应
 func NoContent(c *gin.Context) {
-	Response(c, NO_CONTENT, nil)
+	Response(c, NO_CONTENT, "No Content")
 }
 
 // BadRequest 请求错误响应
@@ -61,6 +62,11 @@ func Forbidden(c *gin.Context) {
 // NotFound 资源不存在响应
 func NotFound(c *gin.Context) {
 	Response(c, NOT_FOUND, "Not Found")
+}
+
+// NotImplemented 未实现
+func NotImplemented(c *gin.Context) {
+	Response(c, NOT_IMPLEMENTED, "Not Implemented")
 }
 
 // ServerError 服务器错误响应

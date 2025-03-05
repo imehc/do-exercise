@@ -2,12 +2,13 @@ package response
 
 import (
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	commonRes "github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
 )
 
 type UserItem struct {
-	model.IDWrapper      `json:",inline"`
+	common.IDWrapper     `json:",inline"`
 	model.ControlWrapper `json:",inline"`
 	request.UserItem     `json:",inline"`
 	Dept                 DeptItem `json:"dept,omitzero"`

@@ -24,7 +24,7 @@ func (d *DeptApi) CreateDept(ctx *gin.Context) {
 		return
 	}
 
-	err := deptService.CreateDept(req, claims.ID)
+	err := deptService.CreateDept(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -46,7 +46,7 @@ func (d *DeptApi) DeleteDept(ctx *gin.Context) {
 		return
 	}
 
-	err = deptService.DeleteDept(deptParam, claims.ID)
+	err = deptService.DeleteDept(deptParam, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -74,7 +74,7 @@ func (d *DeptApi) UpdateDept(ctx *gin.Context) {
 		return
 	}
 
-	err = deptService.UpdateDept(deptParam, req, claims.ID)
+	err = deptService.UpdateDept(deptParam, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

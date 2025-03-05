@@ -18,7 +18,7 @@ import (
 type DeptService struct{}
 
 // 创建部门
-func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (err error) {
+func (d *DeptService) CreateDept(request request.DeptRequest, createBy uint) (err error) {
 	db := global.DB
 
 	// 检查是否有效的父级部门
@@ -37,20 +37,13 @@ func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (e
 	dept := system.Dept{
 		ParentId: request.ParentId,
 		Name:     request.Name,
-		Leader:   request.Leader,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 
 	if request.Sort != 0 {
 		dept.Sort = request.Sort
-	}
-	if request.Phone != "" {
-		dept.Phone = request.Phone
-	}
-	if request.Email != "" {
-		dept.Email = request.Email
 	}
 	if request.Status != 0 {
 		dept.Status = request.Status
@@ -66,14 +59,14 @@ func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (e
 	}
 
 	if *dept.ParentId == 0 {
-		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, "")
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.DeptId, "")
 	} else {
 		var parentDept system.Dept
 		err = tx.First(&parentDept, *request.ParentId).Error
 		if err != nil {
 			return err
 		}
-		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, parentDept.Path)
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.DeptId, parentDept.Path)
 	}
 
 	if err = tx.Model(&dept).Update("path", dept.Path).Error; err != nil {
@@ -86,7 +79,7 @@ func (d *DeptService) CreateDept(request request.DeptRequest, createdBy uint) (e
 }
 
 // 删除部门
-func (d *DeptService) DeleteDept(param request.DeptParam, deletedBy uint) (err error) {
+func (d *DeptService) DeleteDept(param request.DeptParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var dept system.Dept
@@ -100,7 +93,7 @@ func (d *DeptService) DeleteDept(param request.DeptParam, deletedBy uint) (err e
 		return result.Error
 	}
 
-	if !dept.DeletedAt.Time.IsZero() {
+	if !dept.DeleteAt.Time.IsZero() {
 		return errors.New("部门已删除")
 	}
 
@@ -116,14 +109,14 @@ func (d *DeptService) DeleteDept(param request.DeptParam, deletedBy uint) (err e
 
 	db.
 		Model(system.Dept{}).
-		Where("id = ?", param.DeptId).
-		Update("deleted_by", deletedBy).
+		Where("dept_id = ?", param.DeptId).
+		Update("deleted_by", deleteBy).
 		Delete(&dept)
 	return nil
 }
 
 // 更新部门
-func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRequest, updatedBy uint) (err error) {
+func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var dept system.Dept
@@ -136,33 +129,30 @@ func (d *DeptService) UpdateDept(param request.DeptParam, request request.DeptRe
 		return result.Error
 	}
 
-	dept.Email = request.Email
-	dept.Leader = request.Leader
 	dept.Name = request.Name
-	dept.Phone = request.Phone
 	dept.Sort = request.Sort
 	dept.Status = request.Status
 	dept.ParentId = request.ParentId
 	dept.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	if *dept.ParentId == 0 {
-		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, "")
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.DeptId, "")
 	} else {
 		var parentDept system.Dept
 		err = db.First(&parentDept, *request.ParentId).Error
 		if err != nil {
 			return err
 		}
-		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.ID, parentDept.Path)
+		dept.Path = utils.FormatFullpath(uint(*dept.ParentId), dept.DeptId, parentDept.Path)
 	}
 
 	db.
 		Model(system.Dept{}).
-		Where("id = ?", param.DeptId).
+		Where("dept_id = ?", param.DeptId).
 		Updates(&dept).
-		Omit("id", "created_at")
+		Omit("dept_id", "created_at")
 
 	return nil
 }
@@ -181,13 +171,10 @@ func (d *DeptService) GetDep(param request.DeptParam) (response sysRes.DeptItem,
 		return response, result.Error
 	}
 
-	response.ID = dept.ID
+	response.ID = dept.DeptId
 	response.DeptRequest = request.DeptRequest{
-		Email:       dept.Email,
-		Leader:      dept.Leader,
 		Name:        dept.Name,
 		ParentId:    dept.ParentId,
-		Phone:       dept.Phone,
 		SortWrapper: dept.SortWrapper,
 		StatusWrapper: model.StatusWrapper{
 			Status: dept.Status,
@@ -206,7 +193,7 @@ func (d *DeptService) GetDeptTreeList(s common.ScopeData) (response []sysRes.Dep
 	var depts []system.Dept
 	if err := db.
 		Order("sort DESC").
-		Order("id ASC").
+		Order("dept_id ASC").
 		Find(&depts).Error; err != nil {
 		return []sysRes.DeptResponse{}, err
 	}
@@ -214,7 +201,7 @@ func (d *DeptService) GetDeptTreeList(s common.ScopeData) (response []sysRes.Dep
 	// 构建ID到部门的映射
 	deptMap := make(map[uint]*system.Dept)
 	for i := range depts {
-		deptMap[depts[i].ID] = &depts[i]
+		deptMap[depts[i].DeptId] = &depts[i]
 	}
 
 	// 构建树形结构
@@ -224,14 +211,13 @@ func (d *DeptService) GetDeptTreeList(s common.ScopeData) (response []sysRes.Dep
 			// 根节点
 			root := sysRes.DeptResponse{
 				DeptItem: sysRes.DeptItem{
-					IDWrapper:      dept.IDWrapper,
+					IDWrapper: common.IDWrapper{
+						ID: dept.DeptId,
+					},
 					ControlWrapper: dept.ControlWrapper,
 					DeptRequest: request.DeptRequest{
 						ParentId:    dept.ParentId,
 						Name:        dept.Name,
-						Leader:      dept.Leader,
-						Phone:       dept.Phone,
-						Email:       dept.Email,
 						SortWrapper: dept.SortWrapper,
 						StatusWrapper: model.StatusWrapper{
 							Status: dept.Status,
@@ -260,7 +246,7 @@ func (d *DeptService) GetDeptTree(s *common.ScopeData) (response []sysRes.DeptTr
 	var depts []system.Dept
 	if err := db.
 		Order("sort DESC").
-		Order("id ASC").
+		Order("dept_id ASC").
 		Find(&depts).Error; err != nil {
 		return []sysRes.DeptTree{}, err
 	}
@@ -268,7 +254,7 @@ func (d *DeptService) GetDeptTree(s *common.ScopeData) (response []sysRes.DeptTr
 	// 构建ID到部门的映射
 	deptMap := make(map[uint]*system.Dept)
 	for i := range depts {
-		deptMap[depts[i].ID] = &depts[i]
+		deptMap[depts[i].DeptId] = &depts[i]
 	}
 
 	// 构建树形结构
@@ -277,7 +263,7 @@ func (d *DeptService) GetDeptTree(s *common.ScopeData) (response []sysRes.DeptTr
 		if *dept.ParentId == 0 {
 			// 根节点
 			root := sysRes.DeptTree{
-				ID:       int(dept.ID),
+				ID:       int(dept.DeptId),
 				Label:    dept.Name,
 				Children: make([]sysRes.DeptTree, 0), // 初始化为空数组
 			}
@@ -337,14 +323,13 @@ func (d *DeptService) buildDeptResponseSubTree(deptMap map[uint]*system.Dept, pa
 		if dept != nil && *dept.ParentId == parentId {
 			child := sysRes.DeptResponse{
 				DeptItem: sysRes.DeptItem{
-					IDWrapper:      dept.IDWrapper,
+					IDWrapper: common.IDWrapper{
+						ID: dept.DeptId,
+					},
 					ControlWrapper: dept.ControlWrapper,
 					DeptRequest: request.DeptRequest{
 						ParentId:    dept.ParentId,
 						Name:        dept.Name,
-						Leader:      dept.Leader,
-						Phone:       dept.Phone,
-						Email:       dept.Email,
 						SortWrapper: dept.SortWrapper,
 						StatusWrapper: model.StatusWrapper{
 							Status: dept.Status,

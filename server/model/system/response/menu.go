@@ -2,12 +2,13 @@ package response
 
 import (
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 )
 
 type MenuItem struct {
-	model.IDWrapper      `json:",inline"`
+	common.IDWrapper     `json:",inline"`
 	model.ControlWrapper `json:",inline"`
 	request.MenuRequest  `json:",inline"`
 	DataScope            string       `json:"data_scope"` // 数据权限

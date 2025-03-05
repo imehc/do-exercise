@@ -24,7 +24,7 @@ func (r *ApiApi) CreateApi(ctx *gin.Context) {
 		return
 	}
 
-	err := apiService.Create(req, claims.ID)
+	err := apiService.Create(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -46,7 +46,7 @@ func (r *ApiApi) DeleteApi(ctx *gin.Context) {
 		return
 	}
 
-	err = apiService.Delete(param, claims.ID)
+	err = apiService.Delete(param, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -74,7 +74,7 @@ func (r *ApiApi) UpdateApi(ctx *gin.Context) {
 		return
 	}
 
-	err = apiService.Update(param, req, claims.ID)
+	err = apiService.Update(param, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

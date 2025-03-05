@@ -13,14 +13,14 @@ func InitRegisterTable() {
 	log := global.LOG
 
 	err := db.AutoMigrate(
-		system.User{},
-		system.Dept{},
-		system.Dict{},
-		system.DictData{},
 		system.Post{},
+		system.Dept{},
+		system.Role{},
 		system.Api{},
 		system.Menu{},
-		system.Role{},
+		system.User{},
+		system.Dict{},
+		system.DictData{},
 	)
 
 	if err != nil {

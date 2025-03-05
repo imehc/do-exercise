@@ -18,7 +18,7 @@ import (
 type UserService struct{}
 
 // 创建用户
-func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (err error) {
+func (u *UserService) CreateUser(request request.UserRequest, createBy uint) (err error) {
 	request.EncryptPassword()
 
 	db := global.DB
@@ -40,7 +40,7 @@ func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (e
 		PostId:   request.PostId,
 		RoleId:   request.RoleId,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 
@@ -70,7 +70,7 @@ func (u *UserService) CreateUser(request request.UserRequest, createdBy uint) (e
 }
 
 // 删除用户
-func (u *UserService) DeleteUser(param request.UserParam, deletedBy uint) (err error) {
+func (u *UserService) DeleteUser(param request.UserParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var user system.User
@@ -84,12 +84,12 @@ func (u *UserService) DeleteUser(param request.UserParam, deletedBy uint) (err e
 		return result.Error
 	}
 
-	if !user.DeletedAt.Time.IsZero() {
+	if !user.DeleteAt.Time.IsZero() {
 		return errors.New("用户已删除")
 	}
 
 	// 检查是否有权限删除
-	if user.CreatedBy != deletedBy {
+	if user.CreateBy != deleteBy {
 		// 检查是否是超级管理员
 		var role system.Role
 		if err := db.First(&role, user.RoleId).Error; err != nil {
@@ -102,14 +102,14 @@ func (u *UserService) DeleteUser(param request.UserParam, deletedBy uint) (err e
 
 	db.
 		Model(system.User{}).
-		Where("id = ?", param.UserId).
-		Update("deleted_by", deletedBy).
+		Where("user_id = ?", param.UserId).
+		Update("deleted_by", deleteBy).
 		Delete(&user)
 	return nil
 }
 
 // 更新用户
-func (u *UserService) UpdateUser(param request.UserParam, request request.UserRequest, updatedBy uint) (err error) {
+func (u *UserService) UpdateUser(param request.UserParam, request request.UserRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var user system.User
@@ -123,7 +123,7 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 	}
 
 	// 检查是否有权限更新
-	if user.CreatedBy != updatedBy {
+	if user.CreateBy != updateBy {
 		// 检查是否是超级管理员
 		var role system.Role
 		if err := db.First(&role, user.RoleId).Error; err != nil {
@@ -156,14 +156,14 @@ func (u *UserService) UpdateUser(param request.UserParam, request request.UserRe
 	user.Remark = request.Remark
 	user.Avatar = request.Avatar
 	user.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	db.
 		Model(system.User{}).
-		Where("id = ?", param.UserId).
+		Where("user_id = ?", param.UserId).
 		Updates(&user).
-		Omit("id", "created_at")
+		Omit("user_id", "created_at")
 
 	return nil
 }
@@ -186,7 +186,9 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 	}
 
 	userRep = response.UserItem{
-		IDWrapper:      user.IDWrapper,
+		IDWrapper: common.IDWrapper{
+			ID: user.UserId,
+		},
 		ControlWrapper: user.ControlWrapper,
 		UserItem: request.UserItem{
 			Avatar:   user.Avatar,
@@ -203,20 +205,19 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 			},
 		},
 	}
-	hasDeptId := user.Dept.ID != 0
-	hasPostId := user.Post.ID != 0
+	hasDeptId := user.Dept.DeptId != 0
+	hasPostId := user.Post.PostId != 0
 	// hasRoleId := user.RoleId != 0
 	if hasDeptId {
 		userRep.DeptId = user.DeptId
 		userRep.Dept = response.DeptItem{
-			IDWrapper:      user.Dept.IDWrapper,
+			IDWrapper: common.IDWrapper{
+				ID: user.Dept.DeptId,
+			},
 			ControlWrapper: user.Dept.ControlWrapper,
 			DeptRequest: request.DeptRequest{
 				ParentId:    user.Dept.ParentId,
 				Name:        user.Dept.Name,
-				Leader:      user.Dept.Leader,
-				Phone:       user.Dept.Phone,
-				Email:       user.Dept.Email,
 				SortWrapper: user.Dept.SortWrapper,
 				StatusWrapper: model.StatusWrapper{
 					Status: user.Dept.Status,
@@ -228,7 +229,9 @@ func (u *UserService) GetUser(param request.UserParam) (response.UserItem, error
 	if hasPostId {
 		userRep.PostId = user.PostId
 		userRep.Post = response.PostItem{
-			IDWrapper:      user.Post.IDWrapper,
+			IDWrapper: common.IDWrapper{
+				ID: user.Post.PostId,
+			},
 			ControlWrapper: user.Post.ControlWrapper,
 			PostRequest: request.PostRequest{
 				Name:          user.Post.Name,
@@ -258,7 +261,7 @@ func (u *UserService) GetUserList(query request.UserQueryParams, s common.ScopeD
 	users := response.UserResponse{}
 	err := db.
 		Model(&system.User{}).
-		Order("id ASC").
+		Order("user_id ASC").
 		Preload("Dept").
 		Preload("Post").
 		Where(fmt.Sprintf("username LIKE '%%%s%%'", query.Name)).
@@ -275,7 +278,7 @@ func (u *UserService) GetUserList(query request.UserQueryParams, s common.ScopeD
 
 	users.Data = make([]response.UserItem, len(originUsers))
 	for i, user := range originUsers {
-		users.Data[i].ID = user.ID
+		users.Data[i].ID = user.UserId
 		users.Data[i].ControlWrapper = user.ControlWrapper
 		users.Data[i].Nickname = user.Nickname
 		users.Data[i].Phone = user.Phone
@@ -285,20 +288,19 @@ func (u *UserService) GetUserList(query request.UserQueryParams, s common.ScopeD
 		users.Data[i].Status = user.Status
 		users.Data[i].Remark = user.Remark
 
-		hasDeptId := user.Dept.ID != 0
-		hasPostId := user.Post.ID != 0
+		hasDeptId := user.Dept.DeptId != 0
+		hasPostId := user.Post.PostId != 0
 		// hasRoleId := user.RoleId != 0
 		if hasDeptId {
 			users.Data[i].DeptId = user.DeptId
 			users.Data[i].Dept = response.DeptItem{
-				IDWrapper:      user.Dept.IDWrapper,
+				IDWrapper: common.IDWrapper{
+					ID: user.Dept.DeptId,
+				},
 				ControlWrapper: user.Dept.ControlWrapper,
 				DeptRequest: request.DeptRequest{
 					ParentId:    user.Dept.ParentId,
 					Name:        user.Dept.Name,
-					Leader:      user.Dept.Leader,
-					Phone:       user.Dept.Phone,
-					Email:       user.Dept.Email,
 					SortWrapper: user.Dept.SortWrapper,
 					StatusWrapper: model.StatusWrapper{
 						Status: user.Dept.Status,
@@ -309,7 +311,9 @@ func (u *UserService) GetUserList(query request.UserQueryParams, s common.ScopeD
 		if hasPostId {
 			users.Data[i].PostId = user.PostId
 			users.Data[i].Post = response.PostItem{
-				IDWrapper:      user.Post.IDWrapper,
+				IDWrapper: common.IDWrapper{
+					ID: user.Post.PostId,
+				},
 				ControlWrapper: user.Post.ControlWrapper,
 				PostRequest: request.PostRequest{
 					Name:          user.Post.Name,

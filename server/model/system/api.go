@@ -3,8 +3,7 @@ package system
 import "github.com/imehc/do-exercise/server/model"
 
 type Api struct {
-	model.IDWrapper
-
+	ApiId  uint   `gorm:"primarykey;autoIncrement;comment:主键ID" json:"api_id"`
 	Handle string `gorm:"uniqueIndex;size:128;comment:handle" json:"handle"`
 	Title  string `gorm:"size:128;comment:标题" json:"title"`
 	Path   string `gorm:"size:128;comment:地址" json:"path"`

@@ -24,7 +24,7 @@ func (p *PostApi) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	err := postService.CreatePost(req, claims.ID)
+	err := postService.CreatePost(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -46,7 +46,7 @@ func (p *PostApi) DeletePost(ctx *gin.Context) {
 		return
 	}
 
-	err = postService.DeletePost(postParam, claims.ID)
+	err = postService.DeletePost(postParam, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -74,7 +74,7 @@ func (p *PostApi) UpdatePost(ctx *gin.Context) {
 		return
 	}
 
-	err = postService.UpdatePost(postParam, req, claims.ID)
+	err = postService.UpdatePost(postParam, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

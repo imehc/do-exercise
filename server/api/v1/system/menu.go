@@ -24,7 +24,7 @@ func (m *MenuApi) CreateMenu(ctx *gin.Context) {
 		return
 	}
 
-	err := menuService.CreateMenu(req, claims.ID)
+	err := menuService.CreateMenu(req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -46,7 +46,7 @@ func (m *MenuApi) DeleteMenu(ctx *gin.Context) {
 		return
 	}
 
-	err = menuService.DeleteMenu(param, claims.ID)
+	err = menuService.DeleteMenu(param, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return
@@ -74,7 +74,7 @@ func (m *MenuApi) UpdateMenu(ctx *gin.Context) {
 		return
 	}
 
-	err = menuService.UpdateMenu(param, req, claims.ID)
+	err = menuService.UpdateMenu(param, req, claims.UserId)
 	if err != nil {
 		response.BadRequest(err.Error(), ctx)
 		return

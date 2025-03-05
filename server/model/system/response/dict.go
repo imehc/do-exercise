@@ -2,12 +2,13 @@ package response
 
 import (
 	"github.com/imehc/do-exercise/server/model"
+	"github.com/imehc/do-exercise/server/model/common"
 	commonRes "github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
 )
 
 type DictItem struct {
-	model.IDWrapper
+	common.IDWrapper
 	model.ControlWrapper
 	request.CreateDictRequest
 }
@@ -18,7 +19,7 @@ type DictResponse struct {
 }
 
 type DictDataItem struct {
-	model.IDWrapper
+	common.IDWrapper
 	model.ControlWrapper
 	request.CreateDictDataRequest
 }

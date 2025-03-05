@@ -41,7 +41,7 @@ func JWTAuth() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-			claims.ID = user.ID
+			claims.UserId = user.UserId
 			claims.Username = user.Username
 			claims.DeptId = user.DeptId
 			claims.PostId = user.PostId

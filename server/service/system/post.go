@@ -18,25 +18,18 @@ import (
 type PostService struct{}
 
 // 创建岗位
-func (p *PostService) CreatePost(request request.PostRequest, createdBy uint) (err error) {
+func (p *PostService) CreatePost(request request.PostRequest, createBy uint) (err error) {
 	db := global.DB
 
 	if !errors.Is(global.DB.Where("code = ?", request.Code).First(&system.Post{}).Error, gorm.ErrRecordNotFound) {
 		return errors.New("存在相同岗位编码")
 	}
 
-	if request.DeptId != 0 {
-		if errors.Is(global.DB.Where("id = ?", request.DeptId).First(&system.Dept{}).Error, gorm.ErrRecordNotFound) {
-			return errors.New("不存在该部门")
-		}
-	}
-
 	post := system.Post{
-		Name:   request.Name,
-		Code:   request.Code,
-		DeptId: request.DeptId,
+		Name: request.Name,
+		Code: request.Code,
 		ControlWrapper: model.ControlWrapper{
-			CreatedBy: createdBy,
+			CreateBy: createBy,
 		},
 	}
 
@@ -56,7 +49,7 @@ func (p *PostService) CreatePost(request request.PostRequest, createdBy uint) (e
 }
 
 // 删除岗位
-func (p *PostService) DeletePost(param request.PostParam, deletedBy uint) (err error) {
+func (p *PostService) DeletePost(param request.PostParam, deleteBy uint) (err error) {
 	db := global.DB
 
 	var post system.Post
@@ -70,7 +63,7 @@ func (p *PostService) DeletePost(param request.PostParam, deletedBy uint) (err e
 		return result.Error
 	}
 
-	if !post.DeletedAt.Time.IsZero() {
+	if !post.DeleteAt.Time.IsZero() {
 		return errors.New("岗位已删除")
 	}
 
@@ -86,14 +79,14 @@ func (p *PostService) DeletePost(param request.PostParam, deletedBy uint) (err e
 
 	db.
 		Model(system.Post{}).
-		Where("id = ?", param.PostId).
-		Update("deleted_by", deletedBy).
+		Where("post_id = ?", param.PostId).
+		Update("deleted_by", deleteBy).
 		Delete(&post)
 	return nil
 }
 
 // 更新岗位
-func (p *PostService) UpdatePost(param request.PostParam, request request.PostRequest, updatedBy uint) (err error) {
+func (p *PostService) UpdatePost(param request.PostParam, request request.PostRequest, updateBy uint) (err error) {
 	db := global.DB
 
 	var post system.Post
@@ -106,27 +99,20 @@ func (p *PostService) UpdatePost(param request.PostParam, request request.PostRe
 		return result.Error
 	}
 
-	if request.DeptId != 0 {
-		if errors.Is(global.DB.Where("id = ?", request.DeptId).First(&system.Dept{}).Error, gorm.ErrRecordNotFound) {
-			return errors.New("不存在该部门")
-		}
-	}
-
 	post.Name = request.Name
 	post.Code = request.Code
-	post.DeptId = request.DeptId
 	post.Sort = request.Sort
 	post.Status = request.Status
 	post.Remark = request.Remark
 	post.ControlWrapper = model.ControlWrapper{
-		UpdatedBy: updatedBy,
+		UpdateBy: updateBy,
 	}
 
 	db.
 		Model(system.Post{}).
-		Where("id = ?", param.PostId).
+		Where("post_id = ?", param.PostId).
 		Updates(&post).
-		Omit("id", "created_at")
+		Omit("post_id", "created_at")
 
 	return nil
 }
@@ -137,7 +123,6 @@ func (p *PostService) GetPost(param request.PostParam) (response sysRes.PostItem
 
 	var post system.Post
 	result := db.
-		Preload("Dept").
 		First(&post, param.PostId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -146,7 +131,7 @@ func (p *PostService) GetPost(param request.PostParam) (response sysRes.PostItem
 		return response, result.Error
 	}
 
-	response.ID = post.ID
+	response.ID = post.PostId
 	response.PostRequest = request.PostRequest{
 		Name:          post.Name,
 		Code:          post.Code,
@@ -154,25 +139,7 @@ func (p *PostService) GetPost(param request.PostParam) (response sysRes.PostItem
 		StatusWrapper: post.StatusWrapper,
 		RemarkWrapper: post.RemarkWrapper,
 	}
-	hasDeptId := post.Dept.ID != 0
-	if hasDeptId {
-		response.DeptId = post.DeptId
-		response.Dept = sysRes.DeptItem{
-			IDWrapper:      post.Dept.IDWrapper,
-			ControlWrapper: post.Dept.ControlWrapper,
-			DeptRequest: request.DeptRequest{
-				ParentId:    post.Dept.ParentId,
-				Name:        post.Dept.Name,
-				Leader:      post.Dept.Leader,
-				Phone:       post.Dept.Phone,
-				Email:       post.Dept.Email,
-				SortWrapper: post.Dept.SortWrapper,
-				StatusWrapper: model.StatusWrapper{
-					Status: post.Dept.Status,
-				},
-			},
-		}
-	}
+
 	response.ControlWrapper = post.ControlWrapper
 	return
 }
@@ -187,9 +154,8 @@ func (p *PostService) GetPostList(query request.PostQueryParams, s common.ScopeD
 	var originPosts []system.Post
 	err = db.
 		Model(&system.Post{}).
-		Preload("Dept").
 		Order("sort Desc").
-		Order("id ASC").
+		Order("post_id ASC").
 		Where(fmt.Sprintf("name LIKE '%%%s%%'", query.Name)).
 		Count(&total).
 		Scopes(utils.Paginate(query.PageSize, query.Page)).
@@ -205,32 +171,12 @@ func (p *PostService) GetPostList(query request.PostQueryParams, s common.ScopeD
 
 	response.Data = make([]sysRes.PostItem, len(originPosts))
 	for i, post := range originPosts {
-		response.Data[i].ID = post.ID
+		response.Data[i].ID = post.PostId
 		response.Data[i].ControlWrapper = post.ControlWrapper
 		response.Data[i].Name = post.Name
 		response.Data[i].Code = post.Code
 		response.Data[i].Sort = post.Sort
 		response.Data[i].Status = post.Status
-
-		hasDeptId := post.Dept.ID != 0
-		if hasDeptId {
-			response.Data[i].DeptId = post.DeptId
-			response.Data[i].Dept = sysRes.DeptItem{
-				IDWrapper:      post.Dept.IDWrapper,
-				ControlWrapper: post.Dept.ControlWrapper,
-				DeptRequest: request.DeptRequest{
-					ParentId:    post.Dept.ParentId,
-					Name:        post.Dept.Name,
-					Leader:      post.Dept.Leader,
-					Phone:       post.Dept.Phone,
-					Email:       post.Dept.Email,
-					SortWrapper: post.Dept.SortWrapper,
-					StatusWrapper: model.StatusWrapper{
-						Status: post.Dept.Status,
-					},
-				},
-			}
-		}
 	}
 
 	return

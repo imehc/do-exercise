@@ -38,7 +38,7 @@ func InitRouter() *gin.Engine {
 	protected := r.Group(global.CONFIG.System.RouterPrefix)
 
 	protected.Use(middleware.JWTAuth()).
-		// Use(middleware.CasbinAuth()).
+		Use(middleware.CasbinAuth()).
 		Use(middleware.ResponseError())
 
 	{
@@ -49,6 +49,7 @@ func InitRouter() *gin.Engine {
 	}
 	{
 		system.InitAuthRouter(public)
+		system.InitCurrentUserRouter(public)
 	}
 	{
 		system.InitDeptRouter(protected)

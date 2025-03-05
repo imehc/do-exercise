@@ -13,6 +13,7 @@ import (
 
 type UserApi struct{}
 
+// 创建用户
 func (u *UserApi) CreateUser(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
@@ -32,6 +33,7 @@ func (u *UserApi) CreateUser(ctx *gin.Context) {
 	response.Created(ctx)
 }
 
+// 删除用户
 func (u *UserApi) DeleteUser(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
@@ -54,6 +56,7 @@ func (u *UserApi) DeleteUser(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
+// 更新用户
 func (u *UserApi) UpdateUser(ctx *gin.Context) {
 	data, _ := ctx.Get(global.CLAIMS)
 	claims := data.(system.Claims)
@@ -82,6 +85,7 @@ func (u *UserApi) UpdateUser(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
+// 查询单个用户
 func (u *UserApi) GetUser(ctx *gin.Context) {
 	var userParam request.UserParam
 	var err error
@@ -101,6 +105,7 @@ func (u *UserApi) GetUser(ctx *gin.Context) {
 	response.Success(user, ctx)
 }
 
+// 查询用户列表
 func (u *UserApi) GetUserList(ctx *gin.Context) {
 	query := request.UserQueryParams{}
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -115,4 +120,37 @@ func (u *UserApi) GetUserList(ctx *gin.Context) {
 	}
 
 	response.Success(users, ctx)
+}
+
+// 查询当前用户信息
+func (u *UserApi) GetUserInfo(ctx *gin.Context) {
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+	user, err := userService.GetUser(request.UserParam{UserId: int(claims.ID)})
+	if err != nil {
+		response.BadRequest(err.Error(), ctx)
+		return
+	}
+
+	response.Success(user, ctx)
+}
+
+// 更新当前用户信息
+func (u *UserApi) UpdateUserInfo(ctx *gin.Context) {
+	data, _ := ctx.Get(global.CLAIMS)
+	claims := data.(system.Claims)
+
+	req := request.UserRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(utils.GetValidMsg(req, err), ctx)
+		return
+	}
+
+	err := userService.UpdateUser(request.UserParam{UserId: int(claims.ID)}, req, claims.ID)
+	if err != nil {
+		response.BadRequest(err.Error(), ctx)
+		return
+	}
+
+	response.NoContent(ctx)
 }

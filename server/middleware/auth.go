@@ -30,7 +30,7 @@ func JWTAuth() gin.HandlerFunc {
 		db := global.DB
 		cache := global.Cache
 		var user system.User
-		claimsCache, exist := cache.Get(global.CLAIMS)
+		claimsCache, exist := cache.Get(global.GetCacheKey(username))
 		if exist {
 			_ = json.Unmarshal([]byte(claimsCache.(string)), &claims)
 			log.Info("Use cache")
@@ -47,11 +47,21 @@ func JWTAuth() gin.HandlerFunc {
 			claims.PostId = user.PostId
 			claims.RoleId = user.RoleId
 
+			// 获取用户角色信息
+			var role system.Role
+			if err := global.DB.First(&role, claims.RoleId).Error; err != nil {
+				response.Forbidden(c)
+				c.Abort()
+				return
+			}
+			claims.IsAdmin = role.IsAdmin
+			claims.DataScope = role.DataScope
+
 			expire, err := utils.ParseDurationString(global.CONFIG.Auth.AccessExpire)
 			if err == nil {
 				jsonData, err := json.Marshal(claims)
 				if err == nil {
-					cache.Set(global.CLAIMS, jsonData, expire)
+					cache.Set(global.GetCacheKey(username), jsonData, expire)
 				}
 			}
 			log.Info("Use database")

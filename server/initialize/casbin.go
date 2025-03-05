@@ -18,19 +18,19 @@ func InitCasbin() {
 
 	casbinModelText := `
 	[request_definition]
-	r = sub, dom, obj, act
+	r = sub, obj, act
 
 	[policy_definition]
-	p = sub, dom, obj, act
+	p = sub, obj, act
 
 	[role_definition]
-	g = _, _, _
+	g = _, _
 
 	[policy_effect]
 	e = some(where (p.eft == allow))
 
 	[matchers]
-	m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && r.obj == p.obj &&  r.act == p.act
+	m = g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act
 	`
 
 	m.LoadModelFromText(casbinModelText) // 加载上面的模型
@@ -39,7 +39,21 @@ func InitCasbin() {
 		zap.L().Error("加载模型失败!", zap.Error(err))
 		return
 	}
-	// 添加策略（示例）角色-资源-动作-租户
-	e.AddPolicy("admin", "/user", "(GET|POST)", "tenant_1")
+	// 添加基本的权限策略
+	// 管理员角色策略
+	e.AddPolicy("admin", "/apis/*", "(GET|POST|PUT|DELETE)", "*")
+	e.AddPolicy("admin", "/users/*", "(GET|POST|PUT|DELETE)", "*")
+	e.AddPolicy("admin", "/roles/*", "(GET|POST|PUT|DELETE)", "*")
+	e.AddPolicy("admin", "/menus/*", "(GET|POST|PUT|DELETE)", "*")
+	e.AddPolicy("admin", "/depts/*", "(GET|POST|PUT|DELETE)", "*")
+	e.AddPolicy("admin", "/dicts/*", "(GET|POST|PUT|DELETE)", "*")
+	e.AddPolicy("admin", "/dict-data/*", "(GET|POST|PUT|DELETE)", "*")
+
+	// 普通用户角色策略
+	e.AddPolicy("user", "/user/*", "(GET|PUT)", "*")
+
+	// 添加角色继承关系
+	e.AddGroupingPolicy("admin", "user", "*")
+
 	global.Enforcer = e
 }

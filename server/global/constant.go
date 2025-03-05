@@ -1,5 +1,13 @@
 package global
 
+import "fmt"
+
 const (
-	CLAIMS = "claims" // 存储在请求中的用户信息
+	CLAIMS = "claims"
 )
+
+// 获取缓存key
+func GetCacheKey(username string) (key string) {
+	key = fmt.Sprintf("auth:%s", username)
+	return
+}

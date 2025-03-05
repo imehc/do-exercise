@@ -18,3 +18,13 @@ func (s *AuthRouter) InitUserRouter(router *gin.RouterGroup) gin.IRoutes {
 	}
 	return r
 }
+
+func (s *AuthRouter) InitCurrentUserRouter(router *gin.RouterGroup) gin.IRoutes {
+	r := router.Group("/user")
+
+	{
+		r.POST("", userApi.UpdateUser)
+		r.GET("", userApi.GetUserInfo)
+	}
+	return r
+}

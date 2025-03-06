@@ -11,11 +11,9 @@ type MenuRequest struct {
 	Icon       string `json:"icon"`                         // 菜单图标
 	Type       string `json:"type" binding:"required"`      // 菜单类型（M目录 C菜单 F按钮）
 	Action     string `json:"action"`                       // 路由地址
-	IsFrame    int    `json:"is_frame"`                     // 是否为外链（0是 1否）
-	Visible    int    `json:"visible"`                      // 显示状态（0显示 1隐藏）
+	Visible    bool   `json:"visible"`                      // 显示状态
 	Title      string `json:"title" binding:"required"`     // 菜单标题
-	Component  string `json:"component"`                    // 组件路径
-	Path       string `json:"path"`                         // 路由地址
+	Route      string `json:"route"`                        // 路由地址
 	Permission string `json:"permission"`                   // 权限标识
 	ApiIds     []uint `json:"api_ids,omitzero"`
 

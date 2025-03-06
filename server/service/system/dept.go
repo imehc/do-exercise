@@ -258,7 +258,7 @@ func (d *DeptService) GetDeptTree(s *common.ScopeData) (response []sysRes.DeptTr
 	}
 
 	// 构建树形结构
-	var roots []sysRes.DeptTree
+	roots := make([]sysRes.DeptTree, 0)
 	for _, dept := range depts {
 		if *dept.ParentId == 0 {
 			// 根节点

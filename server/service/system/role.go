@@ -158,7 +158,8 @@ func (r RoleService) Find(param request.RoleParam) (response sysRes.RoleItem, er
 				Type:       menu.Type,
 				Action:     menu.Action,
 				Title:      menu.Title,
-				Path:       menu.Path,
+				Route:      menu.Route,
+				Visible:    menu.Visible,
 				Permission: menu.Permission,
 				SortWrapper: model.SortWrapper{
 					Sort: menu.Sort,
@@ -242,7 +243,8 @@ func (r RoleService) FindList(query request.RoleQueryParams, s common.ScopeData)
 					Type:       menu.Type,
 					Action:     menu.Action,
 					Title:      menu.Title,
-					Path:       menu.Path,
+					Route:      menu.Route,
+					Visible:    menu.Visible,
 					Permission: menu.Permission,
 					SortWrapper: model.SortWrapper{
 						Sort: menu.Sort,

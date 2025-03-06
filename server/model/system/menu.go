@@ -13,6 +13,7 @@ type Menu struct {
 	Action     string `gorm:"size:16;comment:请求方法" json:"action"`
 	Permission string `gorm:"size:255;comment:权限标识" json:"perms"`
 	ParentId   uint   `gorm:"comment:父菜单ID" json:"parent_id"`
+	Visible    bool   `gorm:"default:false;comment:是否可见" json:"visible"`
 	Apis       []Api  `gorm:"many2many:sys_menu_api;foreignKey:MenuId;joinForeignKey:menu_id;references:ApiId;joinReferences:api_id" json:"apis"`
 	ApiIds     []int  `gorm:"-" json:"api_ids"`
 	Children   []Menu `gorm:"-" json:"children"`

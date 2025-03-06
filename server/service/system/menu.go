@@ -32,7 +32,8 @@ func (m *MenuService) CreateMenu(request request.MenuRequest, createBy uint) (er
 		Type:       request.Type,
 		Action:     request.Action,
 		Title:      request.Title,
-		Path:       request.Path,
+		Route:      request.Route,
+		Visible:    request.Visible,
 		Permission: request.Permission,
 		ControlWrapper: model.ControlWrapper{
 			CreateBy: createBy,
@@ -152,7 +153,8 @@ func (m *MenuService) UpdateMenu(param request.MenuParam, request request.MenuRe
 	menu.Type = request.Type
 	menu.Action = request.Action
 	menu.Title = request.Title
-	menu.Path = request.Path
+	menu.Route = request.Route
+	menu.Visible = request.Visible
 	menu.Permission = request.Permission
 	menu.Sort = request.Sort
 	menu.ControlWrapper = model.ControlWrapper{
@@ -227,7 +229,8 @@ func (m *MenuService) GetMenu(param request.MenuParam) (response sysRes.MenuItem
 			Type:       menu.Type,
 			Action:     menu.Action,
 			Title:      menu.Title,
-			Path:       menu.Path,
+			Route:      menu.Route,
+			Visible:    menu.Visible,
 			Permission: menu.Permission,
 			SortWrapper: model.SortWrapper{
 				Sort: menu.Sort,
@@ -276,7 +279,8 @@ func (m *MenuService) GetMenuTreeList(s common.ScopeData) (menus []sysRes.MenuIt
 				Type:       menu.Type,
 				Action:     menu.Action,
 				Title:      menu.Title,
-				Path:       menu.Path,
+				Route:      menu.Route,
+				Visible:    menu.Visible,
 				Permission: menu.Permission,
 				SortWrapper: model.SortWrapper{
 					Sort: menu.Sort,
@@ -392,7 +396,8 @@ func (m *MenuService) getChildrenMenus(parentId uint) (children []sysRes.MenuIte
 				Type:       menu.Type,
 				Action:     menu.Action,
 				Title:      menu.Title,
-				Path:       menu.Path,
+				Route:      menu.Route,
+				Visible:    menu.Visible,
 				Permission: menu.Permission,
 				SortWrapper: model.SortWrapper{
 					Sort: menu.Sort,

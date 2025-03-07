@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen:apis": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./do-exercise-api -i ../server/docs/swagger.yaml && node ./scripts/post-generate.cjs"
+    "gen:apis": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./do-exercise-api -i ../server/openapi.yaml && node ./scripts/post-generate.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

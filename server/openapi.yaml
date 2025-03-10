@@ -225,7 +225,6 @@ components:
         - action
     ApiUpdate:
       allOf:
-        - $ref: "#/components/schemas/ID"
         - $ref: "#/components/schemas/ApiCreate"
     Api:
       allOf:
@@ -255,7 +254,6 @@ components:
         - type
     DictUpdate:
       allOf:
-        - $ref: "#/components/schemas/ID"
         - $ref: "#/components/schemas/DictCreate"
     Dict:
       allOf:
@@ -338,7 +336,6 @@ components:
         - leader
     DeptUpdate:
       allOf:
-        - $ref: "#/components/schemas/ID"
         - $ref: "#/components/schemas/DeptCreate"
     Dept:
       allOf:
@@ -406,7 +403,6 @@ components:
         - code
     PostUpdate:
       allOf:
-        - $ref: "#/components/schemas/ID"
         - $ref: "#/components/schemas/PostCreate"
     Post:
       allOf:
@@ -417,7 +413,7 @@ components:
         - status
         - sort
 
-    MenuCreate:
+    BaseMenu:
       type: object
       properties:
         title:
@@ -429,6 +425,17 @@ components:
           description: 父级菜单ID
         type:
           $ref: "#/components/schemas/MenuType"
+        sort:
+          type: string
+          description: 菜单排序
+      required:
+        - title
+        - parent_id
+        - type
+    MenuWithDirectory:
+      allOf:
+        - $ref: "#/components/schemas/BaseMenu"
+      properties:
         name:
           type: string
           description: 路由名称
@@ -441,23 +448,51 @@ components:
         visible:
           type: boolean
           description: 是否可见
+      required:
+        - name
+        - route
+    MenuWithMenu:
+      allOf:
+        - $ref: "#/components/schemas/MenuWithDirectory"
+      properties:
         permission:
           type: string
           description: 权限标识
-        sort:
-          type: string
-          description: 菜单排序
         api_ids:
           $ref: "#/components/schemas/IDS"
-      required:
-        - title
-        - parent_id
-        - type
+    MenuWithButton:
+      allOf:
+        - $ref: "#/components/schemas/BaseMenu"
+      properties:
+        permission:
+          type: string
+          description: 权限标识
+        api_ids:
+          $ref: "#/components/schemas/IDS"
+
+    MenuCreate:
+      oneOf:
+        - $ref: "#/components/schemas/MenuWithDirectory"
+        - $ref: "#/components/schemas/MenuWithMenu"
+        - $ref: "#/components/schemas/MenuWithButton"
+      discriminator:
+        propertyName: type
+        mapping:
+          "M": "#/components/schemas/MenuWithDirectory"
+          "C": "#/components/schemas/MenuWithMenu"
+          "F": "#/components/schemas/MenuWithButton"
 
     MenuUpdate:
-      allOf:
-        - $ref: "#/components/schemas/ID"
-        - $ref: "#/components/schemas/MenuCreate"
+      oneOf:
+        - $ref: "#/components/schemas/MenuWithDirectory"
+        - $ref: "#/components/schemas/MenuWithMenu"
+        - $ref: "#/components/schemas/MenuWithButton"
+      discriminator:
+        propertyName: type
+        mapping:
+          "M": "#/components/schemas/MenuWithDirectory"
+          "C": "#/components/schemas/MenuWithMenu"
+          "F": "#/components/schemas/MenuWithButton"
 
     Menu:
       allOf:

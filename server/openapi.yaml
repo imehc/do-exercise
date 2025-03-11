@@ -1599,7 +1599,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MenuCompact"
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuCompact"
       security:
         - bearer: [ ]
 

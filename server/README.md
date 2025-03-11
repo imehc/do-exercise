@@ -33,3 +33,13 @@ docker run --name do_exercise \
   --restart always \
   -d postgres 
 ```
+
+### 初始化数据
+在启动服务时添加 `-init-data` 参数来初始化数据库：
+```bash
+go run main.go -init-data
+```
+该命令会：
+1. 自动创建必要的数据库表
+2. 初始化基础数据（如系统配置、默认角色等）
+3. 完成数据库的初始化设置

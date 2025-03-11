@@ -22,7 +22,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth((req) => {
           const authApi = await apiInstance(AuthApi);
           const res = await handleResponse(
             authApi.login({
-              loginRequest: {
+              login: {
                 username: username as string,
                 password: password as string,
                 captcha: captcha as string,

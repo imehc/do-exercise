@@ -1,6 +1,4 @@
-import { TokenResponse } from "~/do-exercise-api";
-
-type Token = TokenResponse
+import { Token } from "~/do-exercise-api";
 
 declare module "next-auth/jwt" {
   interface JWT extends Token {

@@ -12,7 +12,7 @@ type RoleItem struct {
 	model.ControlWrapper      `json:",inline"`
 	request.CreateRoleRequest `json:",inline"`
 	Menus                     []MenuItem `json:"menus"`
-	Depts                     []DeptItem `json:"depts"`
+	Depts                     []DeptItem `json:"depts,omitzero"`
 	Apis                      []ApiItem  `json:"apis"`
 	IsAdmin                   bool       `json:"is_admin"`
 	DataScope                 uint       `json:"data_scope"`

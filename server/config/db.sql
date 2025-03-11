@@ -46,8 +46,9 @@ INSERT INTO sys_api VALUES(44, 'apis.SysDictData.Put', '字典数据通过id更�
 INSERT INTO sys_api VALUES(45, 'apis.SysDictData.Get', '字典数据通过id获取', '/apis/v1/dict-data/:id', 'SYS', 'GET','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
 INSERT INTO sys_api VALUES(46, 'apis.SysDictData.GetPage', '获取字典数据列表', '/apis/v1/dict-data', 'SYS', 'GET','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
 -- 业务
-INSERT INTO sys_api VALUES(47, 'apis.User.Put', '用户更新信息', '/apis/v1/user', 'SYS', 'PUT','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
-INSERT INTO sys_api VALUES(48, 'apis.User.GET', '用户获取信息', '/apis/v1/user', 'SYS', 'GET','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
+INSERT INTO sys_api VALUES(47, 'apis.User.Put', '用户更新信息', '/apis/v1/user', 'BUS', 'PUT','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
+INSERT INTO sys_api VALUES(48, 'apis.User.Get', '用户获取信息', '/apis/v1/user', 'BUS', 'GET','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
+INSERT INTO sys_api VALUES(49, 'apis.Menu.GetCompact', '获取精简菜单', '/apis/v1/menu/compact', 'BUS', 'GET','2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
 
 INSERT INTO sys_dept VALUES(1, 0, '/0/1', '滑水轨迹', 0, 1, '2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);
 INSERT INTO sys_dept VALUES(2, 1, '/0/1/2', '研发部', 0, 1, '2025-03-06 08:19:00.621', 1, '2025-03-06 08:19:00.621', 1, NULL, NULL);

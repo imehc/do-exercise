@@ -124,3 +124,13 @@ func (m *MenuApi) GetMenuTree(ctx *gin.Context) {
 
 	response.Success(data, ctx)
 }
+
+func (m *MenuApi) GetMenuTreeCompact(ctx *gin.Context) {
+	data, err := menuService.GetMenuTreeCompact()
+	if err != nil {
+		response.BadRequest(err.Error(), ctx)
+		return
+	}
+
+	response.Success(data, ctx)
+}

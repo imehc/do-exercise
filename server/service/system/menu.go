@@ -64,7 +64,9 @@ func (m *MenuService) CreateMenu(request request.MenuRequest, createBy uint) (er
 	}
 
 	// 更新菜单的Path字段
-	if err = tx.Model(&menu).Update("path", menu.Path).Error; err != nil {
+	if err = tx.Model(&menu).
+		Update("path", menu.Path).
+		Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -72,11 +74,17 @@ func (m *MenuService) CreateMenu(request request.MenuRequest, createBy uint) (er
 	// 如果有关联的API，创建关联关系
 	if len(request.ApiIds) > 0 {
 		var apis []system.Api
-		if err = tx.Where("api_id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
+		if err = tx.
+			Where("api_id IN ?", request.ApiIds).
+			Find(&apis).
+			Error; err != nil {
 			tx.Rollback()
 			return err
 		}
-		if err = tx.Model(&menu).Association("Apis").Replace(apis); err != nil {
+		if err = tx.
+			Model(&menu).
+			Association("Apis").
+			Replace(apis); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -182,15 +190,24 @@ func (m *MenuService) UpdateMenu(param request.MenuParam, request request.MenuRe
 	// 更新菜单与API的关联关系
 	if len(request.ApiIds) > 0 {
 		var apis []system.Api
-		if err = db.Where("api_id IN ?", request.ApiIds).Find(&apis).Error; err != nil {
+		if err = db.
+			Where("api_id IN ?", request.ApiIds).
+			Find(&apis).
+			Error; err != nil {
 			return err
 		}
-		if err = db.Model(&menu).Association("Apis").Replace(apis); err != nil {
+		if err = db.
+			Model(&menu).
+			Association("Apis").
+			Replace(apis); err != nil {
 			return err
 		}
 	} else {
 		// 如果没有关联的API，清除所有关联关系
-		if err = db.Model(&menu).Association("Apis").Clear(); err != nil {
+		if err = db.
+			Model(&menu).
+			Association("Apis").
+			Clear(); err != nil {
 			return err
 		}
 	}
@@ -208,7 +225,9 @@ func (m *MenuService) GetMenu(param request.MenuParam) (response sysRes.MenuItem
 
 	// 查询菜单基本信息
 	var menu system.Menu
-	result := db.Preload("Apis").First(&menu, param.MenuId)
+	result := db.
+		Preload("Apis").
+		First(&menu, param.MenuId)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return response, errors.New("菜单不存在")
@@ -259,7 +278,11 @@ func (m *MenuService) GetMenuTreeList(s common.ScopeData) (menus []sysRes.MenuIt
 
 	// 查询所有根菜单（ParentId为0的菜单）
 	var rootMenus []system.Menu
-	if err = db.Preload("Apis").Where("parent_id = ?", 0).Find(&rootMenus).Error; err != nil {
+	if err = db.
+		Preload("Apis").
+		Where("parent_id = ?", 0).
+		Find(&rootMenus).
+		Error; err != nil {
 		return nil, err
 	}
 
@@ -310,7 +333,12 @@ func (m *MenuService) GetMenuTree() (response []sysRes.MenuTree, err error) {
 	// 查询顶级菜单
 	db := global.DB
 	var menus []system.Menu
-	if err = db.Where("parent_id = ?", 0).Order("sort DESC").Order("menu_id ASC").Find(&menus).Error; err != nil {
+	if err = db.
+		Where("parent_id = ?", 0).
+		Order("sort DESC").
+		Order("menu_id ASC").
+		Find(&menus).
+		Error; err != nil {
 		return
 	}
 
@@ -333,6 +361,42 @@ func (m *MenuService) GetMenuTree() (response []sysRes.MenuTree, err error) {
 	return
 }
 
+// 获取菜单树 精简
+func (m *MenuService) GetMenuTreeCompact() (response []sysRes.MenuCompact, err error) {
+	// 初始化空数组
+	response = make([]sysRes.MenuCompact, 0)
+
+	// 查询顶级菜单
+	db := global.DB
+	var menus []system.Menu
+	if err = db.
+		Where("parent_id = ?", 0).
+		Order("sort DESC").
+		Order("menu_id ASC").
+		Find(&menus).
+		Error; err != nil {
+		return
+	}
+
+	// 转换为树形结构
+	for _, menu := range menus {
+		treeNode := sysRes.MenuCompact{
+			ID:    int(menu.MenuId),
+			Label: menu.Title,
+		}
+
+		// 递归获取子菜单
+		treeNode.Children, err = m.getMenuTreeCompactChildren(menu.MenuId)
+		if err != nil {
+			return nil, err
+		}
+
+		response = append(response, treeNode)
+	}
+
+	return
+}
+
 // 递归获取子菜单树
 func (m *MenuService) getMenuTreeChildren(parentId uint) (children []sysRes.MenuTree, err error) {
 	// 初始化空数组
@@ -341,7 +405,12 @@ func (m *MenuService) getMenuTreeChildren(parentId uint) (children []sysRes.Menu
 	// 查询子菜单
 	db := global.DB
 	var menus []system.Menu
-	if err = db.Where("parent_id = ?", parentId).Order("sort DESC").Order("menu_id ASC").Find(&menus).Error; err != nil {
+	if err = db.
+		Where("parent_id = ?", parentId).
+		Order("sort DESC").
+		Order("menu_id ASC").
+		Find(&menus).
+		Error; err != nil {
 		return
 	}
 
@@ -354,6 +423,45 @@ func (m *MenuService) getMenuTreeChildren(parentId uint) (children []sysRes.Menu
 
 		// 递归获取子菜单
 		treeNode.Children, err = m.getMenuTreeChildren(menu.MenuId)
+		if err != nil {
+			return nil, err
+		}
+
+		children = append(children, treeNode)
+	}
+
+	return
+}
+
+// 递归获取子菜单树 精简
+func (m *MenuService) getMenuTreeCompactChildren(parentId uint) (children []sysRes.MenuCompact, err error) {
+	// 初始化空数组
+	children = make([]sysRes.MenuCompact, 0)
+
+	// 查询子菜单
+	db := global.DB
+	var menus []system.Menu
+	if err = db.
+		Where("parent_id = ?", parentId).
+		Where("type != ?", "F").
+		Order("sort DESC").
+		Order("menu_id ASC").
+		Find(&menus).
+		Error; err != nil {
+		return
+	}
+
+	// 转换为树形结构
+	for _, menu := range menus {
+		treeNode := sysRes.MenuCompact{
+			ID:    int(menu.MenuId),
+			Label: menu.Title,
+			Icon:  menu.Icon,
+			Route: menu.Route,
+		}
+
+		// 递归获取子菜单
+		treeNode.Children, err = m.getMenuTreeCompactChildren(menu.MenuId)
 		if err != nil {
 			return nil, err
 		}

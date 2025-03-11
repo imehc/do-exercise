@@ -3,7 +3,7 @@ package system
 import "github.com/imehc/do-exercise/server/model"
 
 type Menu struct {
-	MenuId     uint   `gorm:"primarykey;autoIncrement;comment:主键ID" json:"menu_id"`
+	MenuId     uint   `gorm:"primarykey;autoIncrement;comment:主键ID" json:"id"`
 	Name       string `gorm:"size:128;comment:路由名称" json:"name"`
 	Title      string `gorm:"size:128;comment:菜单标题" json:"title"`
 	Icon       string `gorm:"size:128;comment:菜单图标" json:"icon"`

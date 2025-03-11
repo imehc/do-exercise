@@ -3,7 +3,7 @@ package system
 import "github.com/imehc/do-exercise/server/model"
 
 type Role struct {
-	RoleId    uint   `gorm:"primarykey;autoIncrement;comment:主键ID" json:"role_id"`
+	RoleId    uint   `gorm:"primarykey;autoIncrement;comment:主键ID" json:"id"`
 	Name      string `gorm:"size:128;not null;comment:角色名称" json:"name"`
 	Key       string `gorm:"size:128;comment:角色权限字符串" json:"key"`
 	IsAdmin   bool   `gorm:"comment:是否为admin角色" json:"is_admin"`

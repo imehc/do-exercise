@@ -16,6 +16,7 @@ func (s *AuthRouter) InitMenuRouter(router *gin.RouterGroup) gin.IRoutes {
 		r.PUT(":menuId", menuApi.UpdateMenu)
 		r.GET(":menuId", menuApi.GetMenu)
 		r.GET("tree", menuApi.GetMenuTree)
+		r.GET("compact", menuApi.GetMenuTreeCompact)
 	}
 	return r
 }

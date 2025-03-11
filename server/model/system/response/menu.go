@@ -16,6 +16,7 @@ type MenuItem struct {
 	NoCache              bool         `json:"no_cache"`
 	Params               string       `json:"params"`
 	Route                string       `json:"route"`
+	Icon                 string       `json:"icon"`
 	Apis                 []system.Api `json:"apis,omitzero"`
 	Children             []MenuItem   `json:"children,omitzero"`
 	// Breadcrumb string `json:"breadcrumb"`	// 面包屑
@@ -24,6 +25,14 @@ type MenuItem struct {
 type MenuListItem struct {
 	MenuItem `json:",inline"`
 	Children []MenuListItem `json:"children,inline"`
+}
+
+type MenuCompact struct {
+	ID       int           `json:"id"`
+	Label    string        `json:"label"`
+	Route    string        `json:"route"`
+	Icon     string        `json:"icon"`
+	Children []MenuCompact `json:"children"`
 }
 
 type MenuTree struct {

@@ -1,23 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { Icon } from '@iconify/react';
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
+  LucideIcon,
   SquareTerminal,
 } from 'lucide-react';
 
 import { NavMain } from '~/components/other/nav-main';
 import { NavUser } from '~/components/other/nav-user';
-import { TeamSwitcher } from '~/components/other/team-switcher';
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +15,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '~/components/ui/sidebar';
+import { type MenuCompact } from '~/do-exercise-api';
 
 // This is sample data.
 const data = {
@@ -71,7 +62,20 @@ const data = {
   // ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface Props extends React.ComponentProps<typeof Sidebar> {
+  sideMenus: MenuCompact[]
+}
+type NavMainItem = Parameters<typeof NavMain>[number]['items'][number]
+
+export function AppSidebar({ sideMenus, ...props }: Props) {
+  const transformMenu = (menu: MenuCompact): NavMainItem => ({
+    title: menu.label,
+    url: menu.route,
+    icon: menu.icon as unknown as LucideIcon,
+    items: menu.children?.map(transformMenu)
+  })
+  const items = sideMenus.map(transformMenu)
+
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
@@ -79,7 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <TeamSwitcher teams={data.teams} /> */}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={items} />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>

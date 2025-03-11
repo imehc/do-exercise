@@ -1,21 +1,25 @@
 'use client';
 
 import * as React from 'react';
-import {
-  LucideIcon,
-  SquareTerminal,
-} from 'lucide-react';
+import { SquareTerminal } from 'lucide-react';
+import { Icon } from '@iconify/react';
 
-import { NavMain } from '~/components/other/nav-main';
 import { NavUser } from '~/components/other/nav-user';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from '~/components/ui/sidebar';
 import { type MenuCompact } from '~/do-exercise-api';
+import Link from 'next/link';
 
 // This is sample data.
 const data = {
@@ -63,30 +67,55 @@ const data = {
 };
 
 interface Props extends React.ComponentProps<typeof Sidebar> {
-  sideMenus: MenuCompact[]
+  sideMenus: MenuCompact[];
 }
-type NavMainItem = Parameters<typeof NavMain>[number]['items'][number]
-
 export function AppSidebar({ sideMenus, ...props }: Props) {
-  const transformMenu = (menu: MenuCompact): NavMainItem => ({
-    title: menu.label,
-    url: menu.route,
-    icon: menu.icon as unknown as LucideIcon,
-    items: menu.children?.map(transformMenu)
-  })
-  const items = sideMenus.map(transformMenu)
-
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
-        <div className="flex justify-center items-center">dashboard</div>
-        {/* <TeamSwitcher teams={data.teams} /> */}
+        <Link href="/dashboard">
+          <SidebarMenuButton
+            size="lg"
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground pointer-events-none"
+          >
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 border border-solid">
+              <Icon
+                icon="material-symbols:quiz"
+                className="size-5 text-primary"
+              />
+            </div>
+            <div className="grid flex-1 text-left">
+              {/* TODO: 多语言 */}
+              <div className="font-semibold truncate">题库系统</div>
+            </div>
+          </SidebarMenuButton>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={items} />
-        {/* <NavProjects projects={data.projects} /> */}
+        {sideMenus.map((menu) => (
+          <SidebarGroup key={menu.id}>
+            <SidebarGroupLabel>{menu.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menu.children.map((item) => (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton asChild>
+                      <Link href={`/dashboard/${item.route}`}>
+                        <Icon
+                          icon={item.icon ?? 'material-symbols:square'}
+                          className="size-4"
+                        />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />

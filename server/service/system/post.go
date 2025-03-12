@@ -177,6 +177,7 @@ func (p *PostService) GetPostList(query request.PostQueryParams, s common.ScopeD
 		response.Data[i].Code = post.Code
 		response.Data[i].Sort = post.Sort
 		response.Data[i].Status = post.Status
+		response.Data[i].Remark = post.Remark
 	}
 
 	return

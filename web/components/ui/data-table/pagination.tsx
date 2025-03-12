@@ -27,7 +27,7 @@ export function DataTablePagination<TData>({
   table,
 }: DataTablePaginationProps<TData>) {
   const [, startTransition] = useTransition()
-  const [{ pageSize, page }, setQueryState] =
+  const [, setQueryState] =
     useQueryStates(
       {
         pageSize: parseAsInteger.withDefault(10),

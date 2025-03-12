@@ -2,13 +2,10 @@ import { DataTable } from "~/components/ui/data-table"
 import { columns } from "./columns"
 import { apiInstance } from "~/helper/api"
 import { PostApi } from "~/do-exercise-api"
-import { paginationSchema } from "~/helper/schema"
-import { z } from "zod"
 import { DataTableSearch } from "./search"
+import { postListSchema } from "./schema"
 
-export const postListSchema = paginationSchema.extend({
-  name: z.string().optional()
-})
+
 
 export default async function PostPage({ searchParams }: RouteParams) {
   const search = await searchParams

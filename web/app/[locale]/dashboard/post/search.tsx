@@ -3,7 +3,7 @@
 import { Input } from "~/components/ui/input"
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs"
 import { useTransition } from "react"
-import { postListSchema } from "./page"
+import { postListSchema } from "./schema"
 
 export function DataTableSearch() {
     const [, startTransition] = useTransition()

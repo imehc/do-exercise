@@ -3,11 +3,11 @@
 import { AuthError } from 'next-auth';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { signIn } from '~/helper/auth';
-import type { LoginRequest } from '~/do-exercise-api';
+import type { Login } from '~/do-exercise-api';
 import type { ResponseData } from '~/helper/format-response';
 
 export const signinAction = async (
-  formData: LoginRequest
+  formData: Login
 ): Promise<ResponseData> => {
   try {
     await signIn('credentials', { ...formData, redirect: false });

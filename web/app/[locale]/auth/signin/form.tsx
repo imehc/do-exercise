@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from '~/components/ui/form';
 import { signinAction } from './action';
-import type { CaptchaResponse } from '~/do-exercise-api';
+import type { Captcha } from '~/do-exercise-api';
 import type { ResponseData } from '~/helper/format-response';
 import { toast } from 'sonner';
 import { useDebounceEffect } from 'ahooks';
@@ -33,7 +33,7 @@ import { useEffect } from 'react';
 import { useRouter } from '~/i18n/routing';
 
 interface SigninFormProps {
-  captchaRes: ResponseData<CaptchaResponse>;
+  captchaRes: ResponseData<Captcha>;
 }
 
 export default function SigninForm({ captchaRes }: SigninFormProps) {

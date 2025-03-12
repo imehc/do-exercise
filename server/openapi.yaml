@@ -57,19 +57,19 @@ components:
     Auditor:
       type: object
       properties:
-        created_at:
+        create_at:
           type: string
           format: date-time
           description: 创建时间
-        created_by:
+        create_by:
           type: integer
           format: int64
           description: 创建人
-        updated_at:
+        update_at:
           type: string
           format: date-time
           description: 更新时间
-        updated_by:
+        update_by:
           type: integer
           format: int64
           description: 更新人

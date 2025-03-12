@@ -1394,7 +1394,7 @@ paths:
           in: query
           required: false
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           content:

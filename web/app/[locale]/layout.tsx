@@ -10,6 +10,7 @@ import { Toaster } from '~/components/ui/sonner';
 import '~/app/globals.css';
 import { auth } from '~/helper/auth';
 import { ReactScan } from '~/components/scan';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 type Props = PropsWithChildren & { params: Promise<{ locale: LocaleType }> };
 
@@ -37,7 +38,11 @@ export default async function RootLayout({ children, params }: Props) {
           disableTransitionOnChange
         >
           <NextIntlClientProvider messages={messages}>
-            <SessionProvider session={session}>{children}</SessionProvider>
+            <SessionProvider session={session}>
+              <NuqsAdapter>
+                {children}
+              </NuqsAdapter>
+            </SessionProvider>
           </NextIntlClientProvider>
           <Toaster position="top-center" richColors />
         </ThemeProvider>

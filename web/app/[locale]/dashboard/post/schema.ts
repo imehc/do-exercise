@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { paginationSchema } from "~/helper/schema";
+import { z } from 'zod';
+import { paginationSchema } from '~/helper/schema';
 
 export const postListSchema = paginationSchema.extend({
-    name: z.string().optional()
-})
+  name: z.coerce.string().optional().catch(''),
+});

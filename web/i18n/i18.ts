@@ -9,8 +9,8 @@ export const languages = [
     lang: 'zh',
     label: '简体中文',
   },
-] as const
+] as const;
 
-export type LocaleType = ((typeof languages)[number])['lang']
+export type LocaleType = (typeof languages)[number]['lang'];
 
 export const locales = languages.map((lang) => lang.lang);

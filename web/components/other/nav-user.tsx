@@ -1,8 +1,6 @@
 'use client';
 
-import {
-  ChevronsUpDown,
-} from 'lucide-react';
+import { ChevronsUpDown } from 'lucide-react';
 import { Icon } from '@iconify/react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';

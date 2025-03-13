@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const signinSchema = z.object({
   username: z
@@ -22,6 +22,6 @@ export const signinSchema = z.object({
   captchaId: z
     .string({ required_error: 'captchaIdFail.required' })
     .nonempty('captchaIdFail.required'),
-})
+});
 
-export type SigninSchema = z.infer<typeof signinSchema>
+export type SigninSchema = z.infer<typeof signinSchema>;

@@ -6,9 +6,7 @@ import { signIn } from '~/helper/auth';
 import type { Login } from '~/do-exercise-api';
 import type { ResponseData } from '~/helper/format-response';
 
-export const signinAction = async (
-  formData: Login
-): Promise<ResponseData> => {
+export const signinAction = async (formData: Login): Promise<ResponseData> => {
   try {
     await signIn('credentials', { ...formData, redirect: false });
     return {

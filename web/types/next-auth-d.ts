@@ -1,15 +1,15 @@
-import { Token } from "~/do-exercise-api";
+import { Token } from '~/do-exercise-api';
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   interface JWT extends Token {
-    error?: "RefreshTokenError"
+    error?: 'RefreshTokenError';
   }
 }
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session extends Token {
-    error?: "RefreshTokenError"
+    error?: 'RefreshTokenError';
   }
 
-  interface User extends Token { }
+  interface User extends Token {}
 }

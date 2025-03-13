@@ -8,7 +8,7 @@ import {
 import { auth } from './auth';
 
 export async function apiInstance<
-  T extends new (conf?: Configuration) => InstanceType<T>
+  T extends new (conf?: Configuration) => InstanceType<T>,
 >(Api: T, conf?: ConfigurationParameters) {
   const session = await auth();
 

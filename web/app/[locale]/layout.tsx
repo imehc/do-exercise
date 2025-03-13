@@ -39,9 +39,7 @@ export default async function RootLayout({ children, params }: Props) {
         >
           <NextIntlClientProvider messages={messages}>
             <SessionProvider session={session}>
-              <NuqsAdapter>
-                {children}
-              </NuqsAdapter>
+              <NuqsAdapter>{children}</NuqsAdapter>
             </SessionProvider>
           </NextIntlClientProvider>
           <Toaster position="top-center" richColors />

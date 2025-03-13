@@ -32,7 +32,10 @@ export function I18nToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {languages.map((item) => (
-          <DropdownMenuItem key={item.code} onClick={() => onValueChange(item.lang)}>
+          <DropdownMenuItem
+            key={item.code}
+            onClick={() => onValueChange(item.lang)}
+          >
             {item.label}
           </DropdownMenuItem>
         ))}

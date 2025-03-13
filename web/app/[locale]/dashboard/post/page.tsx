@@ -7,7 +7,7 @@ import { postListSchema } from "./schema"
 
 
 
-export default async function PostPage({ searchParams }: RouteParams) {
+export default async function PostPage({ searchParams }: RouteSearchParams) {
   const search = await searchParams
   const postApi = await apiInstance(PostApi)
   const { page, pageSize, name } = postListSchema.parse(search)

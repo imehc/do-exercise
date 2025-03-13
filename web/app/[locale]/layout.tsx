@@ -12,7 +12,7 @@ import { auth } from '~/helper/auth';
 import { ReactScan } from '~/components/scan';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
-type Props = PropsWithChildren & { params: Promise<{ locale: LocaleType }> };
+type Props = PropsWithChildren & RouteParams<{ locale: LocaleType }>;
 
 export default async function RootLayout({ children, params }: Props) {
   const { locale } = await params;

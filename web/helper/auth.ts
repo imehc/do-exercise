@@ -5,7 +5,7 @@ import { apiInstance } from './api';
 import { handleResponse } from './format-response';
 import { JWT } from 'next-auth/jwt';
 
-export const { handlers, signIn, signOut, auth } = NextAuth((req) => {
+export const { handlers, signIn, signOut, auth } = NextAuth(() => {
   return {
     providers: [
       Credentials({
@@ -38,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth((req) => {
       }),
     ],
     callbacks: {
-      jwt: async ({ token, user, account, trigger }) => {
+      jwt: async ({ token, user, account }) => {
         if (account && user) {
           return {
             ...token,
@@ -76,6 +76,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth((req) => {
         await handleResponse(authApi.logout());
       },
     },
+    // https://authjs.dev/reference/core#trusthost
+    trustHost: true,
   };
 });
 

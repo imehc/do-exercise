@@ -17,10 +17,12 @@ export type ResponseData<T = unknown> =
 
 // 处理 response
 export async function handleResponse<T>(
-  response: Promise<T>
+  response: Promise<T>,
+  refresh?: () => void
 ): Promise<ResponseData<T>> {
   try {
     const data = await response;
+    refresh?.();
     return {
       data,
       ok: true,

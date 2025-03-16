@@ -4,6 +4,9 @@ import { apiInstance } from '~/helper/api';
 import { PostApi } from '~/do-exercise-api';
 import { DataTableSearch } from './search';
 import { postListSchema } from './schema';
+import { Button } from '~/components/ui/button';
+import { Link } from '~/i18n/routing';
+import { Icon } from '@iconify/react';
 
 export default async function PostPage({ searchParams }: RouteSearchParams) {
   const search = await searchParams;
@@ -13,6 +16,15 @@ export default async function PostPage({ searchParams }: RouteSearchParams) {
 
   return (
     <div className="container mx-auto py-10">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">岗位管理</h2>
+        <Link href="post/new">
+          <Button>
+            <Icon icon="material-symbols:add" className="mr-2 h-4 w-4" />
+            新建岗位
+          </Button>
+        </Link>
+      </div>
       <DataTable columns={columns} pagination={meta} data={data}>
         <DataTableSearch />
       </DataTable>

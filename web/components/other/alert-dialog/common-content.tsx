@@ -6,7 +6,7 @@ import {
   AlertDialogDescription,
   AlertDialogCancel,
   AlertDialogAction,
-} from '../../ui/alert-dialog';
+} from '~/components/ui/alert-dialog';
 
 interface Props {
   onCancel(): void;

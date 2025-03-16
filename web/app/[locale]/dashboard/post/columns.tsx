@@ -14,6 +14,7 @@ import {
 } from '~/components/ui/dropdown-menu';
 import { Post } from '~/do-exercise-api';
 import { renderTableCell } from '~/helper/table-cell';
+import { Link } from '~/i18n/routing';
 
 // TODO: 多语言
 export const columns: ColumnDef<Post>[] = [
@@ -89,9 +90,11 @@ export const columns: ColumnDef<Post>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="cursor-pointer">
-                编辑{id}
-              </DropdownMenuItem>
+              <Link href={`post/${id}`}>
+                <DropdownMenuItem className="cursor-pointer">
+                  编辑
+                </DropdownMenuItem>
+              </Link>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="cursor-pointer !text-red-500/80 hover:!text-red-500">
                   删除
@@ -100,11 +103,11 @@ export const columns: ColumnDef<Post>[] = [
             </DropdownMenuContent>
           </DropdownMenu>
           <CommonAlertDialogContent
-            title={<span>确定删除吗?</span>}
+            title="确定删除吗?"
             subTitle={
               <>
-                <span>删除岗位名称为</span>
-                <span className="font-bold italic mx-1">{name}</span>
+                <span>删除</span>
+                <span className="font-bold italic">{name}</span>
                 <span>后将无法恢复</span>
               </>
             }

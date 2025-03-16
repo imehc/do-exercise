@@ -247,7 +247,8 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 字典排序
       required:
         - name
@@ -279,7 +280,8 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 字典排序
       required:
         - label
@@ -293,7 +295,8 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 字典排序
     DictData:
       allOf:
@@ -326,7 +329,8 @@ components:
         post_ids:
           $ref: "#/components/schemas/IDS"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 部门排序
         status:
           $ref: "#/components/schemas/Status"
@@ -396,7 +400,8 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 岗位排序
       required:
         - name
@@ -426,7 +431,8 @@ components:
         type:
           $ref: "#/components/schemas/MenuType"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 菜单排序
       required:
         - title
@@ -621,7 +627,8 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 角色排序
       required:
         - name
@@ -634,7 +641,8 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         sort:
-          type: string
+          type: integer
+          format: int64
           description: 角色排序
     Role:
       allOf:

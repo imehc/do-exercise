@@ -59,7 +59,7 @@ func (d *DictService) DeleteDict(param request.DictParam, deleteBy uint) (err er
 	db.
 		Model(system.Dict{}).
 		Where("dict_id = ?", param.DictId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&dict)
 	return nil
 }
@@ -230,7 +230,7 @@ func (d *DictService) DeleteDictData(param request.DictDataParam, deleteBy uint)
 	db.
 		Model(system.DictData{}).
 		Where("dict_data_id = ?", param.DictDataId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&dictData)
 	return nil
 }

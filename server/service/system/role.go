@@ -82,7 +82,7 @@ func (r RoleService) Delete(param request.RoleParam, deleteBy uint) (err error) 
 	db.
 		Model(system.Role{}).
 		Where("role_id = ?", param.RoleId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&role)
 	return nil
 }

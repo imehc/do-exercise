@@ -80,7 +80,7 @@ func (p *PostService) DeletePost(param request.PostParam, deleteBy uint) (err er
 	db.
 		Model(system.Post{}).
 		Where("post_id = ?", param.PostId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&post)
 	return nil
 }

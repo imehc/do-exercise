@@ -131,7 +131,7 @@ func (m *MenuService) DeleteMenu(param request.MenuParam, deleteBy uint) (err er
 	db.
 		Model(system.Menu{}).
 		Where("menu_id = ?", param.MenuId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&menu)
 	return nil
 }

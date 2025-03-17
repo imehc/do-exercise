@@ -70,7 +70,7 @@ func (r ApiService) Delete(param request.ApiParam, deleteBy uint) (err error) {
 	db.
 		Model(system.Api{}).
 		Where("api_id = ?", param.ApiId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&api)
 	return nil
 }

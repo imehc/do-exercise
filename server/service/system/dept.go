@@ -110,7 +110,7 @@ func (d *DeptService) DeleteDept(param request.DeptParam, deleteBy uint) (err er
 	db.
 		Model(system.Dept{}).
 		Where("dept_id = ?", param.DeptId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&dept)
 	return nil
 }

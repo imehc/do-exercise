@@ -103,7 +103,7 @@ func (u *UserService) DeleteUser(param request.UserParam, deleteBy uint) (err er
 	db.
 		Model(system.User{}).
 		Where("user_id = ?", param.UserId).
-		Update("deleted_by", deleteBy).
+		Update("delete_by", deleteBy).
 		Delete(&user)
 	return nil
 }

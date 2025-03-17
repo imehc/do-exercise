@@ -43,8 +43,10 @@
     "createTitle": "新增岗位",
     "createFail": "新增岗位失败",
     "updateFail": "修改岗位失败",
+    "deleteFail": "删除岗位失败",
     "updateSuccess": "修改岗位成功",
     "createSuccess": "新增岗位成功",
+    "deleteSuccess": "删除岗位成功",
     "name": "岗位名称",
     "namePlaceholder": "请输入岗位名称",
     "nameFail": {

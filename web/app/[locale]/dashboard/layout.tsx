@@ -19,9 +19,9 @@ export default async function DashboardLayout({ children }: LayoutProps) {
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar sideMenus={sideMenus} />
       <SidebarInset>
-        <main>
+        <main className='h-full flex flex-col'>
           <Header />
-          {children}
+          <div className="flex-1 h-full">{children}</div>
         </main>
       </SidebarInset>
     </SidebarProvider>

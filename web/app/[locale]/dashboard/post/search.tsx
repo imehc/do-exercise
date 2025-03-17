@@ -20,7 +20,7 @@ export function DataTableSearch() {
   );
 
   return (
-    <div className="flex items-center py-4">
+    <div className="flex items-center space-x-4">
       <Input
         placeholder="按名称搜索..."
         value={name ?? ''}
@@ -33,7 +33,7 @@ export function DataTableSearch() {
             };
           });
         }}
-        className="max-w-sm"
+        className="w-[280px]"
       />
     </div>
   );

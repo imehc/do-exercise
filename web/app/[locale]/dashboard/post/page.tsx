@@ -15,19 +15,26 @@ export default async function PostPage({ searchParams }: RouteSearchParams) {
   const { meta, data } = await postApi.getPosts({ page, pageSize, name });
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">岗位管理</h2>
-        <Link href="post/new">
-          <Button>
-            <Icon icon="material-symbols:add" className="mr-2 h-4 w-4" />
-            新建岗位
-          </Button>
-        </Link>
+    <div className="container mx-auto py-8">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold tracking-tight">岗位管理</h2>
+          <Link href="post/new">
+            <Button size="sm" className="h-9">
+              <Icon icon="material-symbols:add" className="mr-2 h-4 w-4" />
+              新建岗位
+            </Button>
+          </Link>
+        </div>
+        <div className="flex items-center justify-between">
+          <DataTableSearch />
+        </div>
+        <DataTable 
+          columns={columns} 
+          pagination={meta} 
+          data={data} 
+        />
       </div>
-      <DataTable columns={columns} pagination={meta} data={data}>
-        <DataTableSearch />
-      </DataTable>
     </div>
   );
 }

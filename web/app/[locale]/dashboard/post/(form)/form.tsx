@@ -16,11 +16,11 @@ import { Button } from '~/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { Switch } from '~/components/ui/switch';
 import { Post, Status } from '~/do-exercise-api';
-import { Link } from '~/i18n/routing';
+import { Link, useRouter } from '~/i18n/routing';
 import { editPostAction } from './[id]/actions';
 import type { ResponseData } from '~/helper/format-response';
-import { toast } from 'sonner';
 import { createPostAction } from './new/actions';
+import { handleClientResponse } from '~/helper/client-response';
 
 interface Props {
   data?: Post;
@@ -33,6 +33,8 @@ export function PostForm({ data: values }: Props) {
     defaultValues: values,
   });
 
+  const router = useRouter();
+
   const isSubmitting = form.formState.isValid && form.formState.isSubmitting;
   const isPending = form.formState.isSubmitSuccessful || isSubmitting;
 
@@ -43,29 +45,25 @@ export function PostForm({ data: values }: Props) {
     } else {
       res = await createPostAction(data);
     }
-    if (!res.ok) {
-      if (res.message) {
-        toast.error(res.message);
-      } else if (res.i18n) {
-        toast.error(t(res.message));
-      }
-      form.reset();
-      throw new Error('signin fail');
-    }
-    if (res.ok) {
-      if (res.i18n) {
-        toast.success(t(res.i18n));
-      }
-      form.reset();
-      form.clearErrors();
-    }
+    handleClientResponse({
+      res,
+      t,
+      onFail: () => {
+        form.reset();
+      },
+      onSuccess: () => {
+        form.reset();
+        form.clearErrors();
+        router.back();
+      },
+    });
   };
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-2xl mx-auto p-6 space-y-6 bg-card rounded-lg shadow-md"
+        className="max-w-2xl mx-auto p-6 space-y-6 rounded-lg"
       >
         <h2 className="text-2xl font-semibold text-center mb-6">
           {values?.id ? t('updateTitle') : t('createTitle')}
@@ -177,7 +175,12 @@ export function PostForm({ data: values }: Props) {
         </div>
         <div className="flex justify-end gap-x-3 pt-4">
           <Link href="../post">
-            <Button type="button" variant="outline" className="min-w-[120px]">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-w-[120px]"
+              onClick={() => router.back()}
+            >
               {t('cancel')}
             </Button>
           </Link>

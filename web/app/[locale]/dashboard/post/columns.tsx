@@ -15,6 +15,9 @@ import {
 import { Post } from '~/do-exercise-api';
 import { renderTableCell } from '~/helper/table-cell';
 import { Link } from '~/i18n/routing';
+import { deletePostAction } from './actions';
+import { useTranslations } from 'next-intl';
+import { handleClientResponse } from '~/helper/client-response';
 
 // TODO: 多语言
 export const columns: ColumnDef<Post>[] = [
@@ -73,12 +76,6 @@ export const columns: ColumnDef<Post>[] = [
     cell: ({ row }) => {
       const id: number = row.getValue('id');
       const name: string = row.getValue('name');
-      const onCancel = () => {
-        console.log('cancel');
-      };
-      const onContinue = () => {
-        console.log('continue');
-      };
 
       return (
         <AlertDialog>
@@ -102,20 +99,38 @@ export const columns: ColumnDef<Post>[] = [
               </AlertDialogTrigger>
             </DropdownMenuContent>
           </DropdownMenu>
-          <CommonAlertDialogContent
-            title="确定删除吗?"
-            subTitle={
-              <>
-                <span>删除</span>
-                <span className="font-bold italic">{name}</span>
-                <span>后将无法恢复</span>
-              </>
-            }
-            onCancel={onCancel}
-            onContinue={onContinue}
-          />
+          <DeletePostContent name={name} id={id} />
         </AlertDialog>
       );
     },
   },
 ];
+interface Props {
+  name: string;
+  id: number;
+}
+function DeletePostContent({ name, id }: Props) {
+  const t = useTranslations('PostForm');
+  const onCancel = () => {
+    console.log('cancel');
+  };
+  const onContinue = async () => {
+    const res = await deletePostAction(id);
+    handleClientResponse({ res, t });
+  };
+
+  return (
+    <CommonAlertDialogContent
+      title="确定删除吗?"
+      subTitle={
+        <>
+          <span>删除</span>
+          <span className="font-bold italic">{name}</span>
+          <span>后将无法恢复</span>
+        </>
+      }
+      onCancel={onCancel}
+      onContinue={onContinue}
+    />
+  );
+}

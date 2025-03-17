@@ -71,7 +71,7 @@ interface Props extends React.ComponentProps<typeof Sidebar> {
 }
 export function AppSidebar({ sideMenus, ...props }: Props) {
   return (
-    <Sidebar collapsible="icon" variant="inset" {...props}>
+    <Sidebar collapsible="icon" variant="floating" {...props}>
       <SidebarHeader>
         <Link href="/dashboard">
           <SidebarMenuButton

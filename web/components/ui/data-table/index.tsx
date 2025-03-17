@@ -12,7 +12,7 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table';
-import { PropsWithChildren, useState } from 'react';
+import { useState } from 'react';
 
 import {
   Table,
@@ -25,7 +25,7 @@ import {
 import { DataTablePagination } from './pagination';
 import { Pagination } from '~/do-exercise-api';
 
-interface DataTableProps<TData, TValue> extends PropsWithChildren {
+interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pagination: Pagination;
@@ -35,7 +35,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   pagination,
-  children,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -68,8 +67,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="p-4">
-      {children}
+    <div>
       <div className="rounded-md border mb-3">
         <Table>
           <TableHeader>

@@ -1,0 +1,36 @@
+system:
+  port: 6020
+
+logger:
+  level: "warn"
+  directory: "logs"
+  max_size: 10240
+  max_backups: 30
+  max_age: 7
+  compress: true
+
+database:
+  host: localhost
+  port: 5432
+  database: echo-admin
+  username: admin
+  password: admin2025
+  pool:
+    max_connections: 100
+    min_connections: 10
+    max_idle_time: 300
+    connection_timeout: 5
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  database: 0
+  pool:
+    max_connections: 50
+    min_idle_connections: 10
+    max_idle_time: 300
+  timeout:
+    connect: 5
+    read: 3
+    write: 3

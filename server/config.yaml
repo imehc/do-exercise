@@ -46,10 +46,3 @@ redis:
     connect: 5
     read: 3
     write: 3
-
-# 国际化
-i18n:
-  default_language: zh-CN
-  languages:
-    - zh-CN
-    - en-US

@@ -7,10 +7,8 @@ import (
 )
 
 var (
-	// Config 全局配置
-	Config *config.Config
-	// DB 全局数据库连接
-	DB *gorm.DB
-	// Redis 全局Redis客户端
-	Redis *redis.Client
+	Config *config.Config // Config 全局配置
+	DB     *gorm.DB       // DB 全局数据库连接
+	Redis  *redis.Client  // Redis 全局Redis客户端
+	I18    *I18n          // I18 国际化翻译器
 )

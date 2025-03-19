@@ -1,0 +1,5 @@
+hello: "你好，世界！"
+welcome: "欢迎使用我们的应用！"
+greeting: "你好，{{.Name}}！"
+age_info: "你已经{{.Age}}岁了。"
+profile: "你的名字是{{.Name}}，今年{{.Age}}岁。"

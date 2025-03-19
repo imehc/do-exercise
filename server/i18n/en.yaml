@@ -1,0 +1,5 @@
+hello: "Hello, World!"
+welcome: "Welcome to our application!"
+greeting: "Hello, {{.Name}}!"
+age_info: "You are {{.Age}} years old."
+profile: "Your name is {{.Name}} and you are {{.Age}} years old."

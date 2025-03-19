@@ -1,10 +1,9 @@
-package initialize
+package internal
 
 import (
 	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
-
 	"github.com/spf13/viper"
 )
 

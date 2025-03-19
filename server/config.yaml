@@ -1,6 +1,16 @@
+# 授权
+auth:
+  domain: http://localhost:6020
+  access_secret: access_secret
+  access_expire_time: 2h
+  refresh_secret: refresh_secret
+  refresh_expire_time: 7d
+
+# 系统
 system:
   port: 6020
 
+# 日志
 logger:
   level: "warn"
   directory: "logs"
@@ -9,6 +19,7 @@ logger:
   max_age: 7
   compress: true
 
+# 数据库
 database:
   host: localhost
   port: 5432
@@ -21,6 +32,7 @@ database:
     max_idle_time: 300
     connection_timeout: 5
 
+# redis
 redis:
   host: localhost
   port: 6379
@@ -34,3 +46,10 @@ redis:
     connect: 5
     read: 3
     write: 3
+
+# 国际化
+i18n:
+  default_language: zh-CN
+  languages:
+    - zh-CN
+    - en-US

@@ -4,16 +4,16 @@ import (
 	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
-	"github.com/imehc/do-exercise/server/initialize"
+	"github.com/imehc/do-exercise/server/internal"
 	"github.com/imehc/do-exercise/server/middleware"
 	"github.com/labstack/echo/v4"
 )
 
 func init() {
-	initialize.InitConfig()
-	initialize.InitLogger()
-	initialize.InitGorm()
-	initialize.InitRedis()
+	internal.InitConfig()
+	internal.InitLogger()
+	// internal.InitGorm()
+	// internal.InitRedis()
 }
 
 func main() {

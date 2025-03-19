@@ -26,13 +26,27 @@ var Logger = middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 
 		// 对于错误状态码，额外记录错误日志
 		if v.Status >= 400 {
+			// 获取错误信息
+			var errMsg string
+			if err := c.Get("error"); err != nil {
+				if e, ok := err.(error); ok {
+					errMsg = e.Error()
+				} else if s, ok := err.(string); ok {
+					errMsg = s
+				} else {
+					errMsg = "未知错误"
+				}
+			} else {
+				errMsg = "未知错误"
+			}
+
 			zap.L().Error("HTTP Error",
 				zap.String("method", v.Method),
 				zap.String("URI", v.URI),
 				zap.Int("status", v.Status),
 				zap.Duration("latency", v.Latency),
 				zap.String("request_id", v.RequestID),
-				zap.String("error", c.Get("error").(string)),
+				zap.String("error", errMsg),
 			)
 		}
 

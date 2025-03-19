@@ -5,16 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="315ae4c7-ed08-42d2-b82b-418713dab2c5" name="Changes" comment="feat: 完善openapi文档">
-      <change afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../LICENSE" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/config.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/router/api/v1/base.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/router/router.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/middleware/i18n.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/v1/system/sys-user.go" beforeDir="false" afterPath="$PROJECT_DIR$/api/v1/system/sys-user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/i18n/en.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/en.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/i18n/zh.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/zh.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/system/request/sys-user.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/system/request/sys-user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/router.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/validator.go" beforeDir="false" afterPath="$PROJECT_DIR$/util/validator.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,6 +39,11 @@
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="false" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/router/normal/normal.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/router/router.go" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/main.go" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="2rkpKUxHzgpAX5kCa1TwvSLynBa" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />

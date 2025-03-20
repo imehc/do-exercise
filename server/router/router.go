@@ -1,28 +1,69 @@
 package router
 
 import (
-	"fmt"
+	"regexp"
 
-	"github.com/imehc/do-exercise/server/global"
-	m "github.com/imehc/do-exercise/server/middleware"
-	"github.com/imehc/do-exercise/server/util"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
-func RunServer() {
-	e := echo.New()
+func Run() *gin.Engine {
+	r := gin.Default()
+	// 获取 validator 实例
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		// 注册自定义校验函数
+		v.RegisterValidation("startWithLetter", startWithLetter) // 校验以字母开头
+		v.RegisterValidation("containsLetter", containsLetter)   // 校验至少包含一个字母
+		v.RegisterValidation("complexPassword", complexPassword) // 校验密码是否包含字母、数字和特殊字符
+	}
 
-	e.Use(m.Logger)
-	e.Use(m.I18nMiddleware())
-	e.Use(middleware.Recover())
+	r.Use(gin.Recovery())
 
-	e.Validator = &util.CustomValidator{}
+	system := RouterGroupApp.System
 
-	g := e.Group("")
+	protected := r.Group("/system")
+	public := r.Group("/")
+	{
+		// 健康监测
+		public.GET("/health", func(c *gin.Context) {
 
-	RouterGroupApp.Normal.InitNormalRouter(g)
-	RouterGroupApp.System.InitSysUserRouter(g)
+		})
+	}
+	{
+		system.InitSysUserRouter(protected)
+	}
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", global.Config.System.Port)))
+	return r
+}
+
+// 自定义校验函数：检查字符串是否以字母开头
+func startWithLetter(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	if len(value) == 0 {
+		return false
+	}
+	// 使用正则表达式检查第一个字符是否为字母
+	match, _ := regexp.MatchString(`^[a-zA-Z]`, string(value[0]))
+	return match
+}
+
+// 自定义校验函数：检查字符串是否至少包含一个字母
+func containsLetter(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	// 使用正则表达式检查是否包含字母
+	match, _ := regexp.MatchString(`[a-zA-Z]`, value)
+	return match
+}
+
+// 自定义校验函数：检查密码是否包含字母、数字和特殊字符
+func complexPassword(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+
+	// 使用正则表达式检查密码是否包含字母、数字和特殊字符
+	hasLetter := regexp.MustCompile(`[a-zA-Z]`).MatchString(value)
+	hasDigit := regexp.MustCompile(`[0-9]`).MatchString(value)
+	hasSpecial := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]`).MatchString(value)
+
+	return hasLetter && hasDigit && hasSpecial
 }

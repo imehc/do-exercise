@@ -3,6 +3,7 @@ package global
 import (
 	"github.com/imehc/do-exercise/server/config"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -11,4 +12,5 @@ var (
 	DB     *gorm.DB       // DB 全局数据库连接
 	Redis  *redis.Client  // Redis 全局Redis客户端
 	I18    *I18n          // I18 国际化翻译器
+	Log    *zap.Logger
 )

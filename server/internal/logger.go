@@ -96,4 +96,8 @@ func InitLogger() {
 
 	// 替换全局日志记录器
 	zap.ReplaceGlobals(logger)
+
+	global.Log = logger
+
+	fmt.Println("日志初始化完成")
 }

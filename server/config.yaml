@@ -8,6 +8,7 @@ auth:
 
 # 系统
 system:
+  host: 127.0.0.1
   port: 6020
 
 # 日志
@@ -21,7 +22,7 @@ logger:
 
 # 数据库
 database:
-  host: localhost
+  host: 127.0.0.1
   port: 5432
   database: echo-admin
   username: admin
@@ -34,7 +35,7 @@ database:
 
 # redis
 redis:
-  host: localhost
+  host: 127.0.0.1
   port: 6379
   password: ""
   database: 0

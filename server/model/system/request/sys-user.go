@@ -1,9 +1,9 @@
 package request
 
 type CreateSysUserReq struct {
-	Username string `json:"username" validate:"required,alphanum,min=2,max=10"`
-	Password string `json:"password" validate:"required,alphanum,min=6,max=16"`
+	Username string `json:"username" binding:"required,alphanum,min=2,max=10,startWithLetter,containsLetter"`
+	Password string `json:"password" binding:"required,min=6,max=16,complexPassword"`
 	Phone    string `json:"phone"`
-	Email    string `json:"email" validate:"email"`
+	Email    string `json:"email" binding:"email"`
 	Avatar   string `json:"avatar"`
 }

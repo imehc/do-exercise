@@ -1,0 +1,68 @@
+package response
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+// Response 响应处理
+func Response(c *gin.Context, httpStatus int, data interface{}) {
+	// 如果数据为字符串类型，直接返回文本
+	if str, ok := data.(string); ok {
+		c.String(httpStatus, str)
+		return
+	}
+	// 其他类型返回 JSON
+	c.JSON(httpStatus, data)
+}
+
+// Success 成功响应
+func Success(c *gin.Context, data interface{}) {
+	Response(c, http.StatusOK, data)
+}
+
+// Created 创建成功响应
+func Created(c *gin.Context) {
+	Response(c, http.StatusCreated, "Created")
+}
+
+// NoContent 无内容响应
+func NoContent(c *gin.Context) {
+	Response(c, http.StatusNoContent, "No Content")
+}
+
+// BadRequest 请求错误响应
+func BadRequest(c *gin.Context, value ValidationError) {
+	Response(c, http.StatusBadRequest, value)
+}
+
+// Unauthorized 未授权响应
+func Unauthorized(c *gin.Context) {
+	Response(c, http.StatusUnauthorized, "Unauthorized")
+}
+
+// Forbidden 禁止访问响应
+func Forbidden(c *gin.Context) {
+	Response(c, http.StatusForbidden, "Forbidden")
+}
+
+// NotFound 资源不存在响应
+func NotFound(c *gin.Context) {
+	Response(c, http.StatusNotFound, "Not Found")
+}
+
+// StatusUnprocessableEntity 请求参数错误
+func StatusUnprocessableEntity(c *gin.Context) {
+	Response(c, http.StatusUnprocessableEntity, "Unprocessable Entity")
+}
+
+// NotImplemented 未实现
+func NotImplemented(c *gin.Context) {
+	Response(c, http.StatusNotImplemented, "Not Implemented")
+}
+
+// ServerError 服务器错误响应
+func ServerError(c *gin.Context) {
+	Response(c, http.StatusInternalServerError, "Internal Server Error")
+}

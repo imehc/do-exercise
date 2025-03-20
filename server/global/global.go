@@ -12,5 +12,5 @@ var (
 	DB     *gorm.DB       // DB 全局数据库连接
 	Redis  *redis.Client  // Redis 全局Redis客户端
 	I18    *I18n          // I18 国际化翻译器
-	Log    *zap.Logger
+	Log    *zap.Logger    // Log 全局日志
 )

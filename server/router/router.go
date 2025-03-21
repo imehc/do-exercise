@@ -9,7 +9,7 @@ func Run() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(gin.Recovery())
-	r.Use(middleware.LangMiddleware())
+	r.Use(middleware.ValidaterMiddleware())
 
 	system := RouterGroupApp.System
 

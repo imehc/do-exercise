@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
-	"github.com/imehc/do-exercise/server/internal"
 	"github.com/imehc/do-exercise/server/router"
 )
 
@@ -13,8 +12,6 @@ type server interface {
 }
 
 func RunServer() {
-	internal.InitTrans("zh")
-
 	r := router.Run()
 
 	// host := global.Config.System.Host

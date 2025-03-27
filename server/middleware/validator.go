@@ -12,7 +12,7 @@ import (
 )
 
 // ValidatorMiddleware 验证错误处理中间件
-func LangMiddleware() gin.HandlerFunc {
+func ValidaterMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 获取语言设置，默认为英语
 		lang := c.GetHeader("Accept-Language")

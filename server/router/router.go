@@ -12,8 +12,10 @@ func Run() *gin.Engine {
 	r.Use(middleware.ValidaterMiddleware())
 
 	system := RouterGroupApp.System
+	common := RouterGroupApp.Common
 
 	protected := r.Group("/system")
+	basic := r.Group("/")
 	public := r.Group("/")
 	{
 		// 健康监测
@@ -23,6 +25,7 @@ func Run() *gin.Engine {
 	}
 	{
 		system.InitSysUserRouter(protected)
+		common.InitAuthRouter(basic)
 	}
 
 	return r

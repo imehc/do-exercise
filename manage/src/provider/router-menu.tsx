@@ -3,8 +3,8 @@ import { createContext, lazy, PropsWithChildren, useContext, useState } from 're
 import { createBrowserRouter, Navigate, RouteObject, RouterProvider } from 'react-router'
 import LayoutPage from '~/pages/layout'
 import NotFoundPage from '~/pages/not-found'
-import { getUserMenus, MenuItem } from '#/menus'
-import { AuthWrapper } from '~/components'
+import { getAdminMenus, MenuItem } from '#/menus'
+import { AuthWrapper, Loading } from '~/components'
 
 const Dashboard = lazy(() => import('~/pages/dashboard/page.tsx'))
 const Login = lazy(() => import('~/pages/login/page.tsx'))
@@ -62,7 +62,7 @@ export default function RouteMenuProvider() {
   const { isLoading, data: menus = [] } = useQuery({
     queryKey: ['router-menu'],
     queryFn: async () => {
-      return await getUserMenus()
+      return await getAdminMenus()
     },
     onSuccess: res => {
       // 获取菜单后，动态添加路由
@@ -77,7 +77,7 @@ export default function RouteMenuProvider() {
   })
 
   if (isLoading || !router) {
-    return <div>loading...</div>
+    return <Loading global />
   }
 
   return (

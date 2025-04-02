@@ -1,2 +1,1 @@
-export * from './auth-wrapper'
-export * from './loading'
+export * from './other'

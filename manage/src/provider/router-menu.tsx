@@ -48,6 +48,8 @@ const components = Object.keys(modules).reduce<Record<string, unknown>>((prev, c
   return prev
 }, {})
 
+console.log(components)
+
 interface RouterMenuContextProvider {
   menus: MenuItem[]
 }
@@ -65,13 +67,30 @@ export default function RouteMenuProvider() {
       return await getAdminMenus()
     },
     onSuccess: res => {
+      // 递归处理菜单项，返回扁平化的路由数组
+      const flattenMenus = (menus: MenuItem[]): RouteObject[] => {
+        return menus.flatMap(menu => {
+          const route = {
+            id: menu.id,
+            path: menu.route,
+            Component: lazy(components[menu.filePath] as () => Promise<PropsWithChildren<any>>)
+          }
+          // 如果有子菜单，则递归处理子菜单，并添加重定向路由
+          if (menu.children && menu.children.length > 0) {
+            const redirectRoute = {
+              path: menu.route,
+              element: <Navigate to={menu.children[0].route} />
+            }
+            return [redirectRoute, ...flattenMenus(menu.children)]
+          }
+          return [route]
+        })
+      }
+      
       // 获取菜单后，动态添加路由
-      const children = res.map(menu => ({
-        id: menu.id + '',
-        path: menu.route,
-        Component: lazy(components[menu.filePath] as () => Promise<PropsWithChildren<any>>)
-      }))
+      const children = flattenMenus(res)
       baseRouter[0].children = [...(baseRouter[0].children as RouteObject[]), ...children]
+      console.log(baseRouter)
       setRouter(createBrowserRouter(baseRouter))
     }
   })

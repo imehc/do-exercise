@@ -1,7 +1,7 @@
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
-import './animations.css'
+import '~/animations.css'
 
 export function LoginPage() {
   return (

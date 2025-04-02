@@ -6,6 +6,7 @@ import { useRouterMenus } from '~/provider'
 import { useSidebarStore } from '~/store/sidebar'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
+import '~/animations.css'
 
 const LayoutPage: React.FC = () => {
   const menus = useRouterMenus()
@@ -21,7 +22,7 @@ const LayoutPage: React.FC = () => {
         )}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b">
-          <span className={cn('font-bold', collapsed && 'hidden')}>菜单</span>
+          <span className={cn('font-bold animate-slide-in', collapsed && 'hidden')}>菜单菜单菜单</span>
           <Button variant="ghost" size="icon" onClick={toggleCollapsed} className="ml-auto">
             <ChevronLeft
               className={cn('transition-transform duration-300', collapsed && 'rotate-180')}
@@ -31,7 +32,7 @@ const LayoutPage: React.FC = () => {
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-2 px-2">
             {menus.map(menu => (
-              <li key={menu.route}>
+              <li key={menu.route} className="space-y-1">
                 <Link
                   to={menu.route}
                   className={cn(
@@ -43,6 +44,21 @@ const LayoutPage: React.FC = () => {
                   <Menu className="shrink-0" />
                   {!collapsed && <span className="truncate">{menu.name}</span>}
                 </Link>
+                {menu.children && !collapsed && (
+                  <ul className="pl-6 space-y-1">
+                    {menu.children.map(child => (
+                      <li key={child.route}>
+                        <Link
+                          to={child.route}
+                          className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent/50 transition-colors"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-foreground/50" />
+                          <span className="truncate">{child.name}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <rect width="800" height="600" fill="#F3F4F6" />
+  <path d="M400 200L500 350H300L400 200Z" fill="#E5E7EB" />
+  <text x="400" y="300" font-family="Arial" font-size="80" font-weight="bold" text-anchor="middle" fill="#9CA3AF">404</text>
+  <path d="M200 400L300 450H100L200 400Z" fill="#E5E7EB" />
+  <path d="M600 400L700 450H500L600 400Z" fill="#E5E7EB" />
+</svg>

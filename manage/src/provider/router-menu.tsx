@@ -86,7 +86,7 @@ export default function RouteMenuProvider() {
           return [route]
         })
       }
-      
+
       // 获取菜单后，动态添加路由
       const children = flattenMenus(res)
       baseRouter[0].children = [...(baseRouter[0].children as RouteObject[]), ...children]

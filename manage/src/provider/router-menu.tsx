@@ -78,6 +78,7 @@ export default function RouteMenuProvider() {
           // 如果有子菜单，则递归处理子菜单，并添加重定向路由
           if (menu.children && menu.children.length > 0) {
             const redirectRoute = {
+              id: menu.id,
               path: menu.route,
               element: <Navigate to={menu.children[0].route} />
             }

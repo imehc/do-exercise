@@ -1,4 +1,5 @@
 import { SunIcon, MoonIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
@@ -8,8 +9,10 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { useTheme } from '~/provider'
 
-export function ModelToggle() {
-  const { setTheme } = useTheme()
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  const { t } = useTranslation('theme')
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,9 +23,24 @@ export function ModelToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>亮色</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>夜间</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>跟随系统</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setTheme('light')}
+          className={theme === 'light' ? 'bg-accent' : ''}
+        >
+          {t('light')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setTheme('dark')}
+          className={theme === 'dark' ? 'bg-accent' : ''}
+        >
+          {t('dark')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setTheme('system')}
+          className={theme === 'system' ? 'bg-accent' : ''}
+        >
+          {t('system')}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

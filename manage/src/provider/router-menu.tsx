@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createContext, lazy, PropsWithChildren, useContext, useState } from 'react'
+import { createContext, lazy, PropsWithChildren, useContext, useEffect, useState } from 'react'
 import { createBrowserRouter, Navigate, RouteObject, RouterProvider } from 'react-router'
 import LayoutPage from '~/pages/layout'
 import NotFoundPage from '~/pages/not-found'
@@ -90,7 +90,9 @@ export default function RouteMenuProvider() {
 
       // 获取菜单后，动态添加路由
       const children = flattenMenus(res)
-      baseRouter[0].children = [...(baseRouter[0].children as RouteObject[]), ...children]
+      const existingIds = new Set((baseRouter[0].children as RouteObject[]).map(r => r.id))
+      const uniqueChildren = children.filter(child => !existingIds.has(child.id))
+      baseRouter[0].children = [...(baseRouter[0].children as RouteObject[]), ...uniqueChildren]
       console.log(baseRouter)
       setRouter(createBrowserRouter(baseRouter))
     }

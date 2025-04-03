@@ -6,8 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '~/components/ui/dropdown-menu'
+import { useTheme } from '~/provider'
 
 export function ModelToggle() {
+  const { setTheme } = useTheme()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -18,7 +20,9 @@ export function ModelToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem /** onClick={() => setTheme('light')} */>夜间</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('light')}>亮色</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>夜间</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>跟随系统</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

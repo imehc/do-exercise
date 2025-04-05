@@ -11,9 +11,7 @@ export function Loading({ global = false }: LoadingProps) {
     <div
       className={clsx(
         'flex flex-col justify-center items-center gap-6 bg-background/80 backdrop-blur-sm',
-        {
-          'fixed left-0 top-0 h-screen w-screen': global
-        }
+        [global ? 'fixed left-0 top-0 h-screen w-screen' : 'w-full h-full']
       )}
     >
       <div className="relative">

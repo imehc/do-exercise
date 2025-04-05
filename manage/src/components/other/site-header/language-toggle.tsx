@@ -12,6 +12,11 @@ import { useReducer, useEffect } from 'react'
 export function LanguageToggle() {
   const [, forceUpdate] = useReducer(x => x + 1, 0)
 
+  const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'zh', label: '中文' }
+  ]
+
   useEffect(() => {
     const handleLanguageChange = () => forceUpdate()
     i18n.on('languageChanged', handleLanguageChange)
@@ -27,18 +32,15 @@ export function LanguageToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => i18n.changeLanguage('en')}
-          className={i18n.language === 'en' ? 'bg-accent' : ''}
-        >
-          English
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => i18n.changeLanguage('zh')}
-          className={i18n.language === 'zh' ? 'bg-accent' : ''}
-        >
-          中文
-        </DropdownMenuItem>
+        {languages.map(({ code, label }) => (
+          <DropdownMenuItem
+            key={code}
+            onClick={() => i18n.changeLanguage(code)}
+            className={i18n.language === code ? 'bg-accent' : ''}
+          >
+            {label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

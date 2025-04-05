@@ -2,7 +2,7 @@ import { Slot } from '@radix-ui/react-slot'
 import { VariantProps, cva } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
 
-import { useIsMobile } from '~/hooks/use-mobile'
+import { useIsMobile } from '~/hooks'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -26,7 +26,7 @@ import {
   useMemo,
   useState
 } from 'react'
-import { useSidebarStore } from '~/store/sidebar'
+import { useSidebarStore } from '~/store'
 
 const SIDEBAR_WIDTH = '16rem'
 const SIDEBAR_WIDTH_MOBILE = '18rem'
@@ -128,7 +128,7 @@ function SidebarProvider({
             } as CSSProperties
           }
           className={cn(
-            'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
+            'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-screen',
             className
           )}
           {...props}
@@ -294,7 +294,7 @@ function SidebarInset({ className, ...props }: ComponentProps<'main'>) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        'bg-background relative flex w-full flex-1 flex-col',
+        'bg-background relative flex w-0 min-w-0 flex-1 flex-col h-screen',
         'md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
         className
       )}

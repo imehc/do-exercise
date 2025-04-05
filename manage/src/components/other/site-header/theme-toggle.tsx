@@ -13,6 +13,12 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const { t } = useTranslation('theme')
 
+  const themes = [
+    { type: 'light', label: t('light') },
+    { type: 'dark', label: t('dark') },
+    { type: 'system', label: t('system') }
+  ] as const
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,24 +29,15 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => setTheme('light')}
-          className={theme === 'light' ? 'bg-accent' : ''}
-        >
-          {t('light')}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme('dark')}
-          className={theme === 'dark' ? 'bg-accent' : ''}
-        >
-          {t('dark')}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme('system')}
-          className={theme === 'system' ? 'bg-accent' : ''}
-        >
-          {t('system')}
-        </DropdownMenuItem>
+        {themes.map(({ type, label }) => (
+          <DropdownMenuItem
+            key={type}
+            onClick={() => setTheme(type)}
+            className={theme === type ? 'bg-accent' : ''}
+          >
+            {label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

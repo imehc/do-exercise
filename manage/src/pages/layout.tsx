@@ -1,5 +1,4 @@
-import { Outlet } from 'react-router'
-import { AppSidebar, SiteHeader } from '~/components'
+import { AppSidebar, SiteHeader, SiteTabs } from '~/components'
 import '~/animations.css'
 import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar'
 
@@ -9,7 +8,7 @@ const LayoutPage: React.FC = () => {
       <AppSidebar />
       <SidebarInset>
         <SiteHeader />
-        <Outlet />
+        <SiteTabs />
       </SidebarInset>
     </SidebarProvider>
   )

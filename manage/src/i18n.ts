@@ -14,7 +14,10 @@ i18n
     resources: {
       en: {
         system: {
-          loading: 'Loading...'
+          loading: 'Loading...',
+          refresh: 'Refresh',
+          close: 'Close',
+          closeOther: 'Close Other'
         },
         theme: {
           light: 'Light',
@@ -24,7 +27,10 @@ i18n
       },
       zh: {
         system: {
-          loading: '加载中...'
+          loading: '加载中...',
+          refresh: '刷新',
+          close: '关闭',
+          closeOther: '关闭其他'
         },
         theme: {
           light: '浅色',

@@ -1,10 +1,9 @@
-import { faker } from '@faker-js/faker'
-
 export interface MenuItem {
   id: string
   name: string
   route: string
   filePath: string
+  icon?: string
   children: MenuItem[]
 }
 
@@ -14,12 +13,12 @@ export const getAdminMenus = () => {
     window.setTimeout(() => {
       const menus: MenuItem[] = Array.from({ length: 3 }, (_, index) => ({
         id: `p${index + 1}`,
-        name: faker.word.sample(),
+        name: `页面${index + 1}`,
         route: `/page${index + 1}`,
         filePath: `/page${index + 1}/page.tsx`,
         children: Array.from({ length: 2 }, (_, idx) => ({
           id: `p${index + 1}c${idx + 1}`,
-          name: faker.word.sample(),
+          name: `页面${index + 1}-${idx + 1}`,
           route: `/page${index + 1}/page${idx + 1}`,
           filePath: `/page${index + 1}/page${idx + 1}/page.tsx`,
           children:
@@ -27,7 +26,7 @@ export const getAdminMenus = () => {
               ? [
                   {
                     id: `p${index + 1}c${idx + 1}c1`,
-                    name: faker.word.sample(),
+                    name: `页面${index + 1}-${idx + 1}-1`,
                     route: `/page${index + 1}/page${idx + 1}/page1`,
                     filePath: `/page${index + 1}/page${idx + 1}/page1/page.tsx`,
                     children: []
@@ -37,7 +36,7 @@ export const getAdminMenus = () => {
                 ? [
                     {
                       id: `p${index + 1}c${idx + 1}c1`,
-                      name: faker.word.sample(),
+                      name: `页面${index + 1}-${idx + 1}-1`,
                       route: `/page${index + 1}/page${idx + 1}/page1`,
                       filePath: `/page${index + 1}/page${idx + 1}/page1/page.tsx`,
                       children: []
@@ -57,7 +56,7 @@ export const getUserMenus = () => {
     window.setTimeout(() => {
       const menus: MenuItem[] = Array.from({ length: 1 }, () => ({
         id: '1',
-        name: faker.word.sample(),
+        name: '页面1',
         route: '/page1',
         filePath: `/page1/page.tsx`,
         children: []

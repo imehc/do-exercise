@@ -2,6 +2,7 @@ import { Separator } from '~/components/ui/separator'
 import { SidebarTrigger } from '~/components/ui/sidebar'
 import { ThemeToggle } from './theme-toggle'
 import { LanguageToggle } from './language-toggle'
+import { HeaderBreadcrumb } from './breadcrumb'
 
 export function SiteHeader() {
   return (
@@ -10,7 +11,7 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <div className="flex-1 flex justify-between items-center">
-          <h1 className="text-base font-medium">Documents</h1>
+          <HeaderBreadcrumb />
           <div className="flex justify-end items-center gap-x-4">
             <LanguageToggle />
             <ThemeToggle />

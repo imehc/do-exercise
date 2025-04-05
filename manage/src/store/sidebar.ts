@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import localforage from 'localforage'
 
 type SidebarStore = {
   collapsed: boolean
@@ -15,7 +16,8 @@ export const useSidebarStore = create(
       setToggled: (collapsed: boolean) => set(() => ({ collapsed }))
     }),
     {
-      name: 'sidebar-storage'
+      name: 'sidebar-storage',
+      storage: createJSONStorage(() => localforage)
     }
   )
 )

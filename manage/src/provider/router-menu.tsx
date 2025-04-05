@@ -1,10 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
-import { createContext, lazy, PropsWithChildren, useContext, useEffect, useState } from 'react'
+import { createContext, lazy, PropsWithChildren, useContext, useState } from 'react'
 import { createBrowserRouter, Navigate, RouteObject, RouterProvider } from 'react-router'
 import LayoutPage from '~/pages/layout'
 import NotFoundPage from '~/pages/not-found'
 import { getAdminMenus, MenuItem } from '#/menus'
 import { AuthWrapper, Loading } from '~/components'
+import { type IconName } from 'lucide-react/dynamic'
+
+export type RouteHandle = {
+  path: string
+  name: string
+  icon?: IconName
+}
 
 const Dashboard = lazy(() => import('~/pages/dashboard/page.tsx'))
 const Login = lazy(() => import('~/pages/login/page.tsx'))
@@ -26,7 +33,12 @@ const baseRouter: RouteObject[] = [
       {
         id: 'dashboard',
         path: '/dashboard',
-        Component: Dashboard
+        Component: Dashboard,
+        handle: {
+          path: '/dashboard',
+          name: '仪表盘',
+          icon: 'layout-dashboard'
+        } as RouteHandle
       }
     ]
   },
@@ -48,8 +60,6 @@ const components = Object.keys(modules).reduce<Record<string, unknown>>((prev, c
   return prev
 }, {})
 
-console.log(components)
-
 interface RouterMenuContextProvider {
   menus: MenuItem[]
 }
@@ -57,6 +67,8 @@ interface RouterMenuContextProvider {
 const RouterMenuContext = createContext<RouterMenuContextProvider>({
   menus: []
 })
+
+type Component = () => Promise<PropsWithChildren<any>>
 
 /** 路由菜单 */
 export default function RouteMenuProvider() {
@@ -73,8 +85,13 @@ export default function RouteMenuProvider() {
           const route = {
             id: menu.id,
             path: menu.route,
-            Component: lazy(components[menu.filePath] as () => Promise<PropsWithChildren<any>>)
-          }
+            Component: menu.filePath ? lazy(components[menu.filePath] as Component) : null,
+            handle: {
+              path: menu.route,
+              name: menu.name,
+              icon: menu.icon
+            } as RouteHandle
+          } as RouteObject
           // 如果有子菜单，则递归处理子菜单，并添加重定向路由
           if (menu.children && menu.children.length > 0) {
             const redirectRoute = {
@@ -93,7 +110,6 @@ export default function RouteMenuProvider() {
       const existingIds = new Set((baseRouter[0].children as RouteObject[]).map(r => r.id))
       const uniqueChildren = children.filter(child => !existingIds.has(child.id))
       baseRouter[0].children = [...(baseRouter[0].children as RouteObject[]), ...uniqueChildren]
-      console.log(baseRouter)
       setRouter(createBrowserRouter(baseRouter))
     }
   })
@@ -103,7 +119,20 @@ export default function RouteMenuProvider() {
   }
 
   return (
-    <RouterMenuContext.Provider value={{ menus: menus }}>
+    <RouterMenuContext.Provider
+      value={{
+        menus: [
+          {
+            id: 'dashboard',
+            name: '首页',
+            route: '/dashboard',
+            filePath: '/dashboard/page.tsx',
+            children: []
+          },
+          ...menus
+        ]
+      }}
+    >
       <RouterProvider router={router} />
     </RouterMenuContext.Provider>
   )

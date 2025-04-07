@@ -45,3 +45,14 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	}
 	response.Success(ctx, token)
 }
+
+// PublicKey 获取公钥
+func (s *AuthApi) PublicKey(ctx *gin.Context) {
+	rsaCrypto := util.NewRSACrypto(global.Redis)
+	publicKey, error := rsaCrypto.GenerateKeyPair()
+	if error != nil {
+		response.ServerError(ctx)
+		return
+	}
+	response.Success(ctx, publicKey)
+}

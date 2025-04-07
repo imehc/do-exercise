@@ -1,0 +1,166 @@
+openapi: 3.1.0
+info:
+  title: xxxx system
+  description: ""
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:6020
+    description: 开发环境
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    PublicKey:
+      type: object
+      properties:
+        public_key:
+          type: string
+          description: "RSA公钥"
+        expire_time:
+          type: integer
+          format: int64
+          description: "公钥过期时间戳(秒)"
+      required:
+        - public_key
+        - expire_time
+
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expire_time:
+          type: integer
+          format: int64
+        refresh_token:
+          type: string
+        refresh_expire_time:
+          type: integer
+          format: int64
+      required:
+        - access_token
+        - expire_time
+        - refresh_token
+        - refresh_expire_time
+    
+    Captcha:
+      type: object
+      properties:
+        captcha_id:
+          type: string
+          description: 验证码ID
+        pic_path:
+          type: string
+          description: 验证码图片路径
+        captcha_length:
+          type: string
+          description: 验证码长度
+      required:
+        - captcha_id
+        - pic_path
+        - captcha_length
+
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 用户名
+        password:
+          type: string
+          description: 密码
+        captcha_id:
+          type: string
+          description: 验证码ID
+        captcha:
+          type: string
+          description: 验证码
+        public_key:
+          type: string
+          description: 公钥
+      required:
+        - username
+        - password
+        - captcha_id
+        - captcha
+        - public_key
+
+paths:
+  /public_key:
+    get:
+      summary: 获取公钥
+      operationId: getPublicKey
+      tags:
+        - auth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicKey"
+          description: "获取成功"
+        "400":
+          description: "获取失败"
+  /captcha:
+    get:
+      summary: 获取验证码
+      operationId: getCaptcha
+      tags:
+        - auth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Captcha"
+          description: "获取成功"
+        "400":
+          description: "获取失败"
+  /login:
+    post:
+      summary: 登录
+      operationId: login
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+          description: "登录成功"
+        "400":
+          description: "登录失败"
+  /refresh_token:
+    get:
+      summary: 刷新令牌
+      operationId: refreshToken
+      tags:
+        - auth
+      parameters:
+        - name: refresh_token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+          description: 刷新令牌成功
+        "400":
+          description: 刷新令牌失败

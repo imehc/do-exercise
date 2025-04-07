@@ -11,14 +11,15 @@ import {
   BreadcrumbSeparator
 } from '~/components/ui/breadcrumb'
 
+// TODO: 面包屑
 export function HeaderBreadcrumb() {
   const location = useLocation()
   const router = useRouter()
-  const menus = useRouterMenus()
+  const { menus } = useRouterMenus()
 
   const findMenuByPath = (menus: MenuItem[], path: string): MenuItem | undefined => {
     for (const menu of menus) {
-      if (menu.route === path) {
+      if (menu.path === path) {
         return menu
       }
       if (menu.children.length > 0) {
@@ -51,7 +52,7 @@ export function HeaderBreadcrumb() {
             <Link to="dashboard">首页</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
-        {paths.map((item, index) => (
+        {/* {paths.map((item, index) => (
           <BreadcrumbItem key={item.path}>
             <BreadcrumbLink asChild>
               {item.path === location.pathname ? (
@@ -64,7 +65,7 @@ export function HeaderBreadcrumb() {
               <BreadcrumbSeparator>/</BreadcrumbSeparator>
             )}
           </BreadcrumbItem>
-        ))}
+        ))} */}
       </BreadcrumbList>
     </Breadcrumb>
   )

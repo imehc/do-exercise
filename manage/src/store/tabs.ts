@@ -1,7 +1,6 @@
 import { IconName } from 'lucide-react/dynamic'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import localforage from 'localforage'
 
 export interface Tab {
   label: string
@@ -38,7 +37,7 @@ export const useTabsStore = create(
     }),
     {
       name: 'tabs-storage',
-      storage: createJSONStorage(() => localforage),
+      storage: createJSONStorage(() => sessionStorage),
       onRehydrateStorage: () => state => {
         state?._setHasHydrated(true)
       }

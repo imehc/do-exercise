@@ -36,7 +36,7 @@ interface RecursiveMenuProps {
 // 查找第一个没有子菜单的节点
 const findFirstLeafNode = (menu: MenuItem): string => {
   if (!menu.children || menu.children.length === 0) {
-    return menu.route
+    return menu.path
   }
   return findFirstLeafNode(menu.children[0])
 }
@@ -51,7 +51,7 @@ const RecursiveMenuComponent = memo(
   }: RecursiveMenuProps) => {
     const navigate = useNavigate()
     const hasChildren = menu.children && menu.children.length > 0
-    const isActive = currentPath === menu.route
+    const isActive = currentPath === menu.path
 
     if (!hasChildren) {
       return (
@@ -60,7 +60,7 @@ const RecursiveMenuComponent = memo(
             asChild
             className={cn('w-full', isActive && 'bg-sidebar-accent text-sidebar-accent-foreground')}
           >
-            <Link to={menu.route}>
+            <Link to={menu.path}>
               <span>{menu.name}</span>
             </Link>
           </SidebarMenuSubButton>
@@ -72,7 +72,7 @@ const RecursiveMenuComponent = memo(
       <Collapsible
         key={menu.id}
         asChild
-        open={expandedPaths.includes(menu.route)}
+        open={expandedPaths.includes(menu.path)}
         className="group/collapsible"
       >
         <SidebarMenuItem>
@@ -80,12 +80,12 @@ const RecursiveMenuComponent = memo(
             <SidebarMenuButton
               tooltip={menu.name}
               className={cn(
-                expandedPaths.includes(menu.route) &&
-                  menu.route !== currentPath &&
+                expandedPaths.includes(menu.path) &&
+                  menu.path !== currentPath &&
                   'bg-sidebar-accent text-sidebar-accent-foreground'
               )}
               onClick={() => {
-                onMenuClick(menu.route)
+                onMenuClick(menu.path)
                 if (hasChildren && autoJumpToFirst) {
                   const firstLeafRoute = findFirstLeafNode(menu)
                   navigate(firstLeafRoute)
@@ -106,7 +106,7 @@ const RecursiveMenuComponent = memo(
                   expandedPaths={expandedPaths}
                   currentPath={currentPath}
                   onMenuClick={onMenuClick}
-                  isExpanded={expandedPaths.includes(menu.route)}
+                  isExpanded={expandedPaths.includes(menu.path)}
                   level={0}
                 />
               ))}
@@ -119,7 +119,7 @@ const RecursiveMenuComponent = memo(
 )
 
 export function NavMain() {
-  const menus = useRouterMenus()
+  const { menus } = useRouterMenus()
   const location = useLocation()
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set())
 
@@ -128,13 +128,13 @@ export function NavMain() {
     () =>
       (menus: MenuItem[], path: string): string[] => {
         for (const menu of menus) {
-          if (menu.route === path) {
-            return [menu.route] // Return the current route as a single-element array
+          if (menu.path === path) {
+            return [menu.path] // Return the current path as a single-element array
           }
           if (menu.children) {
             const foundInChildren = findParent(menu.children, path)
             if (foundInChildren.length > 0) {
-              return [menu.route, ...foundInChildren] // Prepend the parent route to the child route
+              return [menu.path, ...foundInChildren] // Prepend the parent path to the child path
             }
           }
         }
@@ -163,7 +163,7 @@ export function NavMain() {
   const currentPath = location.pathname
 
   useEffect(() => {
-    // Auto-expand menus based on the current route on component mount
+    // Auto-expand menus based on the current path on component mount
     const parentPaths = findParent(menus, currentPath)
     if (parentPaths.length > 0) {
       setExpandedMenus(prev => {
@@ -184,7 +184,7 @@ export function NavMain() {
             expandedPaths={expandedPaths}
             currentPath={currentPath}
             level={0}
-            isExpanded={expandedMenus.has(menu.route)}
+            isExpanded={expandedMenus.has(menu.path)}
             onMenuClick={handleMenuClick}
           />
         ))}

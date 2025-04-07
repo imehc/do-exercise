@@ -62,10 +62,12 @@ const components = Object.keys(modules).reduce<Record<string, unknown>>((prev, c
 
 interface RouterMenuContextProvider {
   menus: MenuItem[]
+  flatMenus: Omit<MenuItem, 'children' | 'filePath'>[]
 }
 
 const RouterMenuContext = createContext<RouterMenuContextProvider>({
-  menus: []
+  menus: [],
+  flatMenus: []
 })
 
 type Component = () => Promise<PropsWithChildren<any>>
@@ -73,6 +75,7 @@ type Component = () => Promise<PropsWithChildren<any>>
 /** 路由菜单 */
 export default function RouteMenuProvider() {
   const [router, setRouter] = useState<ReturnType<typeof createBrowserRouter>>()
+  const [flatMenus, setFlatMenus] = useState<Omit<MenuItem, 'children'>[]>([])
   const { isLoading, data: menus = [] } = useQuery({
     queryKey: ['router-menu'],
     queryFn: async () => {
@@ -84,10 +87,11 @@ export default function RouteMenuProvider() {
         return menus.flatMap(menu => {
           const route = {
             id: menu.id,
-            path: menu.route,
+            path: menu.path,
+            // TODO: 父级为LAYOUT
             Component: menu.filePath ? lazy(components[menu.filePath] as Component) : null,
             handle: {
-              path: menu.route,
+              path: menu.path,
               name: menu.name,
               icon: menu.icon
             } as RouteHandle
@@ -96,8 +100,8 @@ export default function RouteMenuProvider() {
           if (menu.children && menu.children.length > 0) {
             const redirectRoute = {
               id: menu.id,
-              path: menu.route,
-              element: <Navigate to={menu.children[0].route} />
+              path: menu.path,
+              element: <Navigate to={menu.children[0].path} />
             }
             return [redirectRoute, ...flattenMenus(menu.children)]
           }
@@ -110,6 +114,18 @@ export default function RouteMenuProvider() {
       const existingIds = new Set((baseRouter[0].children as RouteObject[]).map(r => r.id))
       const uniqueChildren = children.filter(child => !existingIds.has(child.id))
       baseRouter[0].children = [...(baseRouter[0].children as RouteObject[]), ...uniqueChildren]
+      setFlatMenus(
+        baseRouter[0].children
+          .map(
+            r =>
+              ({
+                id: r.id,
+                name: r.handle?.name,
+                path: r.path
+              }) as (typeof flatMenus)[number]
+          )
+          .filter(r => !!r.name)
+      )
       setRouter(createBrowserRouter(baseRouter))
     }
   })
@@ -125,12 +141,13 @@ export default function RouteMenuProvider() {
           {
             id: 'dashboard',
             name: '首页',
-            route: '/dashboard',
+            path: '/dashboard',
             filePath: '/dashboard/page.tsx',
             children: []
           },
           ...menus
-        ]
+        ],
+        flatMenus
       }}
     >
       <RouterProvider router={router} />
@@ -140,6 +157,5 @@ export default function RouteMenuProvider() {
 
 /** 获取路由菜单 */
 export const useRouterMenus = () => {
-  const { menus } = useContext(RouterMenuContext)
-  return menus
+  return useContext(RouterMenuContext)
 }

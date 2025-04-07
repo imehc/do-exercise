@@ -1,5 +1,6 @@
 export * from './app-sidebar'
 export * from './auth-wrapper'
 export * from './loading'
+export * from './scan'
 export * from './site-header'
 export * from './site-tabs'

@@ -8,7 +8,14 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: '0.0.0.0',
-    port: 6021
+    port: 6021,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:6020',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
 
   resolve: {

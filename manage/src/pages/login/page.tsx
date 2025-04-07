@@ -2,8 +2,35 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
 import '~/animations.css'
+import { useApi } from '~/hooks'
+import { AuthApi } from '~/do-exercise-api'
+import { useQuery } from '@tanstack/react-query'
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver as resolver } from "@hookform/resolvers/zod";
+import { Loading } from '~/components'
+import { loginSchema, LoginSchemaType } from './schema.'
 
 export function LoginPage() {
+  const authApi = useApi(AuthApi)
+  const { data, isLoading } = useQuery({
+    queryFn: async () => await authApi.getPublicKey(),
+    queryKey: ['getPublicKey'],
+    retry: false,
+  })
+
+  const { formState: { errors }, handleSubmit, control } = useForm<LoginSchemaType>({
+    resolver: resolver(loginSchema)
+  })
+
+  const onSubmit = (data: LoginSchemaType) => {
+    console.log(data)
+  }
+
+  // TOOD: 处理没有数据和过期以及报错情况
+  if (isLoading || !data) {
+    return <Loading />
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-amber-50 to-emerald-100 dark:from-amber-900 dark:to-emerald-900 overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -43,51 +70,75 @@ export function LoginPage() {
             请登录您的账号
           </CardDescription>
         </CardHeader>
-        <form className="space-y-6 p-6 pt-2">
-          <div className="space-y-4">
+        <form className="space-y-6 p-6 pt-2" onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-2">
             <div className="relative group">
-              <Input
-                type="text"
-                placeholder="用户名"
-                className="w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10"
+              <Controller
+                control={control}
+                name="username"
+                render={({ field }) => (
+                  <div className="relative h-[4.5rem]">
+                    <Input
+                      {...field}
+                      type="text"
+                      placeholder="用户名"
+                      className={`w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10 ${errors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''}`}
+                    />
+                    <div className="absolute left-3 top-[1.375rem] -translate-y-1/2 pointer-events-none">
+                      <svg
+                        className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    {errors.username && (
+                      <p className="text-sm text-red-500 mt-1">{errors.username.message}</p>
+                    )}
+                  </div>
+                )}
               />
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
             </div>
             <div className="relative group">
-              <Input
-                type="password"
-                placeholder="密码"
-                className="w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10"
+              <Controller
+                control={control}
+                name="password"
+                render={({ field }) => (
+                  <div className="relative h-[4.5rem]">
+                    <Input
+                      {...field}
+                      type="password"
+                      placeholder="密码"
+                      className={`w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''}`}
+                    />
+                    <div className="absolute left-3 top-[1.375rem] -translate-y-1/2 pointer-events-none">
+                      <svg
+                        className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                    </div>
+                    {errors.password && (
+                      <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+                    )}
+                  </div>
+                )}
               />
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-              </div>
             </div>
             <div className="relative group flex gap-4">
               <div className="relative flex-1">
@@ -96,7 +147,7 @@ export function LoginPage() {
                   placeholder="验证码"
                   className="w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10"
                 />
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg
                     className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
                     fill="none"

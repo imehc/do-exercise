@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"regexp"
+	"sync"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
@@ -13,8 +14,12 @@ import (
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 )
 
+var lock sync.Mutex // 添加互斥锁
+
 // 定义翻译的方法
 func InitTrans(locale string) (trans ut.Translator, err error) {
+	lock.Lock()
+	defer lock.Unlock()
 	//修改gin框架中的validator引擎属性, 实现定制
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		zhT := zh.New() //中文翻译器

@@ -3,32 +3,109 @@ import { Input } from '~/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
 import '~/animations.css'
 import { useApi } from '~/hooks'
-import { AuthApi } from '~/do-exercise-api'
-import { useQuery } from '@tanstack/react-query'
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver as resolver } from "@hookform/resolvers/zod";
+import { AuthApi, type LoginRequest } from '~/do-exercise-api'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { zodResolver as resolver } from '@hookform/resolvers/zod'
 import { Loading } from '~/components'
 import { loginSchema, LoginSchemaType } from './schema.'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '~/components/ui/form'
+import ServerErrorPage from '../server-error'
+import { DynamicIcon } from 'lucide-react/dynamic'
+import JSEncrypt from 'jsencrypt'
+import clsx from 'clsx'
 
 export function LoginPage() {
-  const authApi = useApi(AuthApi)
-  const { data, isLoading } = useQuery({
-    queryFn: async () => await authApi.getPublicKey(),
-    queryKey: ['getPublicKey'],
-    retry: false,
-  })
-
-  const { formState: { errors }, handleSubmit, control } = useForm<LoginSchemaType>({
+  const form = useForm<LoginSchemaType>({
     resolver: resolver(loginSchema)
   })
 
+  const authApi = useApi(AuthApi)
+  const {
+    data: publicKeyData,
+    isLoading: publicKeyIsLoading,
+    isError: publicKeyIsError
+  } = useQuery({
+    queryFn: async () => {
+      const data = await authApi.getPublicKey()
+      form.setValue('publicKey', data.publicKey)
+      return data
+    },
+    queryKey: ['getPublicKey'],
+    retry: false,
+    keepPreviousData: true,
+    refetchOnWindowFocus: false
+  })
+  const {
+    data: captchaData,
+    isLoading: captchaIsLoading,
+    isError: captchaIsError,
+    refetch: refreshCaptcha
+  } = useQuery({
+    queryFn: async () => {
+      const data = await authApi.getCaptcha()
+      form.setValue('captchaId', data.captchaId)
+      return data
+    },
+    queryKey: ['getCaptcha'],
+    retry: false,
+    cacheTime: 0,
+    refetchOnWindowFocus: false
+  })
+
+  const { mutate: signin } = useMutation(
+    async (value: LoginRequest) => {
+      const res = await authApi.login(value)
+      return res
+    },
+    {
+      // TODO: 登录处理
+      onSuccess: data => {
+        console.log(data)
+      },
+      onError: error => {
+        console.log(error)
+      }
+    }
+  )
+
+  // 表单提交
   const onSubmit = (data: LoginSchemaType) => {
-    console.log(data)
+    if (!publicKeyData) return
+    const encrypt = new JSEncrypt()
+    // 注意：Go 返回的可能是 PEM 格式的 base64，需要先解码
+    const publicKey = atob(publicKeyData.publicKey) // 浏览器环境用 atob，Node 用 Buffer
+    encrypt.setPublicKey(publicKey)
+    const password = encrypt.encrypt(data.password)
+    if (!password) {
+      return
+    }
+
+    signin({
+      login: {
+        ...data,
+        password: password,
+        username: data.username
+      }
+    })
   }
 
-  // TOOD: 处理没有数据和过期以及报错情况
-  if (isLoading || !data) {
+  const isSubmitting = form.formState.isValid && form.formState.isSubmitting
+  const isPending = form.formState.isSubmitSuccessful || isSubmitting
+
+  if (publicKeyIsLoading || captchaIsLoading) {
     return <Loading />
+  }
+
+  if (publicKeyIsError || captchaIsError) {
+    return <ServerErrorPage />
   }
 
   return (
@@ -70,128 +147,99 @@ export function LoginPage() {
             请登录您的账号
           </CardDescription>
         </CardHeader>
-        <form className="space-y-6 p-6 pt-2" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-2">
-            <div className="relative group">
-              <Controller
-                control={control}
-                name="username"
-                render={({ field }) => (
-                  <div className="relative h-[4.5rem]">
-                    <Input
-                      {...field}
-                      type="text"
-                      placeholder="用户名"
-                      className={`w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10 ${errors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''}`}
-                    />
-                    <div className="absolute left-3 top-[1.375rem] -translate-y-1/2 pointer-events-none">
-                      <svg
-                        className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="px-6">
+            <div className="grid w-full items-center gap-y-2">
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>用户名</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={isPending}
+                          startIcon="user"
+                          placeholder="Username"
+                          {...field}
                         />
-                      </svg>
-                    </div>
-                    {errors.username && (
-                      <p className="text-sm text-red-500 mt-1">{errors.username.message}</p>
-                    )}
-                  </div>
-                )}
-              />
-            </div>
-            <div className="relative group">
-              <Controller
-                control={control}
-                name="password"
-                render={({ field }) => (
-                  <div className="relative h-[4.5rem]">
-                    <Input
-                      {...field}
-                      type="password"
-                      placeholder="密码"
-                      className={`w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30' : ''}`}
-                    />
-                    <div className="absolute left-3 top-[1.375rem] -translate-y-1/2 pointer-events-none">
-                      <svg
-                        className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
-                      </svg>
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
-                    )}
-                  </div>
-                )}
-              />
-            </div>
-            <div className="relative group flex gap-4">
-              <div className="relative flex-1">
-                <Input
-                  type="text"
-                  placeholder="验证码"
-                  className="w-full h-11 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 border-amber-200 dark:border-amber-700/50 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/30 text-lg pl-10"
+                      </FormControl>
+                      <FormMessage namespace="SigninPage" />
+                    </FormItem>
+                  )}
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-amber-400/70 dark:text-amber-500/70"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
               </div>
-              <div className="w-32 h-11 bg-gradient-to-r from-amber-400/20 to-emerald-400/20 rounded-lg flex items-center justify-center text-lg font-mono tracking-wider text-amber-700 dark:text-amber-300 select-none cursor-pointer hover:from-amber-400/30 hover:to-emerald-400/30 transition-all duration-300">
-                AB12CD
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>密码</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={isPending}
+                          startIcon="lock"
+                          type="password"
+                          placeholder="Password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage namespace="SigninPage" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <FormField
+                  control={form.control}
+                  name="captcha"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>验证码</FormLabel>
+                      <FormControl>
+                        <div className="w-full gap-x-4 flex justify-between items-center">
+                          <Input
+                            fullWidth
+                            disabled={isPending}
+                            startIcon="binary"
+                            placeholder="Capthca"
+                            {...field}
+                          />
+                          <div className="h-9 aspect-[3/1] relative rounded-md overflow-hidden">
+                            {!!captchaData && (
+                              <img
+                                className={clsx([
+                                  !isPending
+                                    ? 'cursor-pointer pointer-events-auto'
+                                    : 'pointer-events-none cursor-none'
+                                ])}
+                                src={captchaData.picPath}
+                                alt="captcha"
+                                onClick={() => refreshCaptcha}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage namespace="SigninPage" />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center space-x-2 cursor-pointer group">
-              <input
-                type="checkbox"
-                className="rounded border-amber-300 text-amber-500 focus:ring-amber-400/30 transition-colors"
-              />
-              <span className="text-gray-600 dark:text-gray-400 group-hover:text-amber-500 transition-colors">
-                记住我
-              </span>
-            </label>
-            <a
-              href="#"
-              className="text-amber-500 hover:text-amber-400 transition-colors hover:underline"
+            <Button
+              size="sm"
+              type="submit"
+              disabled={isPending}
+              className="w-full mt-4 font-medium"
             >
-              忘记密码？
-            </a>
-          </div>
-          <Button
-            type="submit"
-            className="w-full bg-gradient-to-r from-amber-500 to-amber-400 text-white font-medium transition-all hover:from-amber-400 hover:to-amber-300 active:scale-[0.98] transform duration-200 shadow-lg hover:shadow-amber-300/50 dark:hover:shadow-amber-700/30 rounded-xl py-4 px-6"
-          >
-            登录
-          </Button>
-        </form>
+              {isPending && <DynamicIcon name="loader-circle" className="mr-2 animate-spin" />}
+              登录
+            </Button>
+          </form>
+        </Form>
       </Card>
     </div>
   )

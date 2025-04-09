@@ -4,9 +4,9 @@ import { z } from "zod"
 export const loginSchema = z.object({
     username: z.string(),
     password: z.string(),
-    captchaId: z.string().optional(),
-    captcha: z.string().optional(),
-    publicKey: z.string().optional(),
+    captchaId: z.string(),
+    captcha: z.string(),
+    publicKey: z.string(),
 })
 
 export type LoginSchemaType = z.infer<typeof loginSchema>

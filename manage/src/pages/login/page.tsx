@@ -207,17 +207,17 @@ export function LoginPage() {
                             placeholder="Capthca"
                             {...field}
                           />
-                          <div className="h-9 aspect-[3/1] relative rounded-md overflow-hidden">
+                          <div className="h-9 aspect-[3/1] relative rounded-md overflow-hidden border border-[var(--input)] border-solid">
                             {!!captchaData && (
                               <img
-                                className={clsx([
+                                className={clsx('w-full h-full', [
                                   !isPending
                                     ? 'cursor-pointer pointer-events-auto'
                                     : 'pointer-events-none cursor-none'
                                 ])}
                                 src={captchaData.picPath}
                                 alt="captcha"
-                                onClick={() => refreshCaptcha}
+                                onClick={() => refreshCaptcha()}
                               />
                             )}
                           </div>

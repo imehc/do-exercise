@@ -1,6 +1,5 @@
 import React from 'react'
 import { Button } from '~/components/ui/button'
-import { Link } from 'react-router'
 
 const ServerErrorPage: React.FC = () => {
     return (
@@ -23,9 +22,9 @@ const ServerErrorPage: React.FC = () => {
                 <Button
                     className="px-8 py-4 text-lg relative z-20 bg-primary/90 hover:bg-primary/80 transition-colors duration-300 shadow-lg hover:shadow-xl"
                     variant="default"
-                    asChild
+                    onClick={() => window.location.reload()}
                 >
-                    <Link to={{ pathname: '/' }}>返回首页</Link>
+                    刷新页面
                 </Button>
             </div>
         </div>

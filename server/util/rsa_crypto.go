@@ -15,11 +15,14 @@ import (
 
 type RSACrypto struct {
 	Redis         *redis.Client
-	ExpireMinutes time.Duration // 修改为 time.Duration 类型
+	ExpireMinutes time.Duration
 }
 
 // NewRSACrypto 创建新的RSA加密实例
 func NewRSACrypto(redisClient *redis.Client) *RSACrypto {
+	if redisClient == nil {
+		panic("Redis client is nil")
+	}
 	return &RSACrypto{
 		Redis:         redisClient,
 		ExpireMinutes: 5 * time.Minute, // 默认5分钟过期

@@ -6,4 +6,5 @@ type Config struct {
 	Redis    Redis    `yaml:"redis" mapstructure:"redis"`       // Redis配置
 	Logger   Logger   `yaml:"logger" mapstructure:"logger"`     // 日志配置
 	Auth     Auth     `yaml:"auth" mapstructure:"auth"`         // 认证配置
+	Captcha  Captcha  `yaml:"captcha" mapstructure:"captcha"`   // 验证码配置
 }

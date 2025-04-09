@@ -2,10 +2,12 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/internal"
 	"github.com/imehc/do-exercise/server/middleware"
 )
 
 func Run() *gin.Engine {
+	internal.InitCaptcha()
 	r := gin.Default()
 
 	r.Use(gin.Recovery())

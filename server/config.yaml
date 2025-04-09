@@ -47,3 +47,10 @@ redis:
     connect: 5
     read: 3
     write: 3
+
+# captcha
+captcha:
+  key_long: 6
+  img_width: 240
+  img_height: 80
+  captcha_timeout: 60 # open-captcha大于0时才生效

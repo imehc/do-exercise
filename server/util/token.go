@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -50,9 +51,9 @@ func (t *Token) GenerateToken() (common.Token, error) {
 
 	return common.Token{
 		AccessToken:       accessToken,
-		ExpireTime:        int64(t.ExpireTime.Milliseconds()),
+		ExpireTime:        int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
 		RefreshToken:      refreshToken,
-		RefreshExpireTime: int64(t.RefreshExpireTime.Milliseconds()),
+		RefreshExpireTime: int64(t.RefreshExpireTime.Seconds()), // 将毫秒转换为秒
 	}, nil
 }
 
@@ -62,19 +63,19 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 	// 获取refreshToken对应的userId
 	userId, err := global.Redis.Get(ctx, fmt.Sprintf("refreshToken:%s", refreshToken)).Result()
 	if err != nil {
-		return common.Token{}, err
+		return common.Token{}, errors.New("refreshTokenNotExist")
 	}
 
 	// 生成新的accessToken
 	newAccessToken, err := Uuid()
 	if err != nil {
-		return common.Token{}, err
+		return common.Token{}, errors.New("refreshFailed")
 	}
 
 	// 获取refreshToken的剩余过期时间
 	refreshExpire, err := global.Redis.TTL(ctx, fmt.Sprintf("refreshToken:%s", refreshToken)).Result()
-	if err != nil {
-		return common.Token{}, err
+	if err != nil || refreshExpire <= 0 {
+		return common.Token{}, errors.New("refreshTokenExpired")
 	}
 
 	tokenInfoJson, err := json.Marshal(map[string]string{
@@ -82,7 +83,7 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 		"refreshToken": refreshToken,
 	})
 	if err != nil {
-		return common.Token{}, err
+		return common.Token{}, errors.New("refreshFailed")
 	}
 	// 保存新的token信息
 	pipe := global.Redis.Pipeline()
@@ -91,13 +92,13 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 	// 执行管道操作
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return common.Token{}, err
+		return common.Token{}, errors.New("refreshFailed")
 	}
 
 	return common.Token{
 		AccessToken:       newAccessToken,
-		ExpireTime:        int64(t.ExpireTime.Milliseconds()),
+		ExpireTime:        int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
 		RefreshToken:      refreshToken,
-		RefreshExpireTime: int64(refreshExpire.Milliseconds()),
+		RefreshExpireTime: int64(refreshExpire.Seconds()), // 将毫秒转换为秒
 	}, nil
 }

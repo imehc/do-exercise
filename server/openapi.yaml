@@ -16,6 +16,39 @@ components:
       bearerFormat: JWT
 
   schemas:
+    ValidationDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: "错误字段名称"
+        messages:
+          type: array
+          items:
+            type: string
+          description: "错误信息列表"
+      required:
+        - field
+        - messages
+
+    ValidationError:
+      type: object
+      properties:
+        type:
+          type: string
+          description: "错误类型"
+        message:
+          type: string
+          description: "错误信息"
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationDetail"
+          description: "详细错误信息"
+      required:
+        - type
+        - message
+
     PublicKey:
       type: object
       properties:
@@ -106,6 +139,10 @@ paths:
                 $ref: "#/components/schemas/PublicKey"
           description: "获取成功"
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
           description: "获取失败"
   /captcha:
     get:
@@ -121,6 +158,10 @@ paths:
                 $ref: "#/components/schemas/Captcha"
           description: "获取成功"
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
           description: "获取失败"
   /login:
     post:
@@ -142,6 +183,10 @@ paths:
                 $ref: "#/components/schemas/Token"
           description: "登录成功"
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
           description: "登录失败"
   /refresh_token:
     get:
@@ -163,4 +208,8 @@ paths:
                 $ref: "#/components/schemas/Token"
           description: 刷新令牌成功
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
           description: 刷新令牌失败

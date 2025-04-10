@@ -71,6 +71,39 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	response.Success(ctx, token)
 }
 
+// RefreshToken 刷新token
+func (s *AuthApi) RefreshToken(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+
+	type RefreshTokenReq struct {
+		RefreshToken string `form:"refresh_token" binding:"required"`
+	}
+	req := RefreshTokenReq{}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("emptyRefreshToken", lang),
+		})
+		return
+	}
+	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
+	if err != nil {
+		response.ServerError(ctx)
+	}
+	baseConf := util.Token{
+		ExpireTime: accessExpire,
+	}
+	token, err := baseConf.RefreshToken(req.RefreshToken)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+	response.Success(ctx, token)
+}
+
 // PublicKey 获取公钥
 func (s *AuthApi) PublicKey(ctx *gin.Context) {
 	publicKey, error := shared.RSACrypto.GetKeyFromPool()

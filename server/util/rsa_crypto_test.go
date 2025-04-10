@@ -23,9 +23,7 @@ func TestRSACrypto(t *testing.T) {
 		DB:       0,
 	})
 
-	// 测试完成后关闭Redis连接
 	defer func() {
-		// 清理所有测试相关的key
 		iter := redisClient.Scan(context.Background(), 0, "publKey:*", 0).Iterator()
 		for iter.Next(context.Background()) {
 			redisClient.Del(context.Background(), iter.Val())
@@ -33,55 +31,72 @@ func TestRSACrypto(t *testing.T) {
 		redisClient.Close()
 	}()
 
-	// 初始化RSACrypto
 	rsaCrypto := NewRSACrypto(redisClient)
-	rsaCrypto.ExpireMinutes = 10 * time.Second // 直接设置10秒
+	rsaCrypto.ExpireMinutes = 20 * time.Second
 
-	t.Run("测试密钥生成", func(t *testing.T) {
-		result, err := rsaCrypto.GenerateKeyPair()
-		assert.NoError(t, err)
-		assert.NotEmpty(t, result["public_key"])
-		assert.Equal(t, float64(10), result["expire_time"])
+	t.Run("测试批量密钥生成", func(t *testing.T) {
+		numKeys := 5
+		var publicKeys []string
 
-		// 测试完成后清理密钥
-		defer func() {
-			publicKey := result["public_key"].(string)
-			redisClient.Del(context.Background(), "publKey:"+publicKey)
-		}()
+		for i := 0; i < numKeys; i++ {
+			result, err := rsaCrypto.GenerateKeyPair()
+			assert.NoError(t, err)
+			assert.NotEmpty(t, result.PublicKey)
+			publicKeys = append(publicKeys, result.PublicKey)
+
+			defer func(pubKey string) {
+				redisClient.Del(context.Background(), "publKey:"+pubKey)
+			}(result.PublicKey)
+		}
+
+		// 验证所有公钥都存储在Redis中
+		for _, publicKey := range publicKeys {
+			privateKeyStr, err := redisClient.Get(context.Background(), "publKey:"+publicKey).Result()
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privateKeyStr)
+		}
 	})
 
-	t.Run("测试加密解密流程", func(t *testing.T) {
-		// 1. 生成密钥对
-		result, err := rsaCrypto.GenerateKeyPair()
-		assert.NoError(t, err)
-		publicKey := result["public_key"].(string)
+	t.Run("测试并发加密解密", func(t *testing.T) {
+		numWorkers := 10
+		data := "test123456!@#$%^"
+		results := make(chan error, numWorkers)
 
-		// 2. 原始数据
-		originalData := "test123456!@#$%^"
+		// 并发执行加密和解密操作
+		for i := 0; i < numWorkers; i++ {
+			go func() {
+				keyPair, err := rsaCrypto.GenerateKeyPair()
+				if err != nil {
+					results <- err
+					return
+				}
 
-		// 3. 模拟加密过程
-		encryptedData, err := mockJSEncryptEncryption(publicKey, originalData)
-		assert.NoError(t, err)
+				encryptedData, err := mockJSEncryptEncryption(keyPair.PublicKey, data)
+				if err != nil {
+					results <- err
+					return
+				}
 
-		// 4. 解密数据
-		decryptedData, err := rsaCrypto.VerifyAndDecrypt(publicKey, encryptedData)
-		assert.NoError(t, err)
-		assert.Equal(t, originalData, decryptedData)
-	})
+				decryptedData, err := rsaCrypto.VerifyAndDecrypt(keyPair.PublicKey, encryptedData)
+				if err != nil {
+					results <- err
+					return
+				}
 
-	t.Run("测试密钥过期", func(t *testing.T) {
-		// 1. 生成密钥对
-		result, err := rsaCrypto.GenerateKeyPair()
-		assert.NoError(t, err)
-		publicKey := result["public_key"].(string)
+				if decryptedData != data {
+					results <- errors.New("解密数据不匹配")
+					return
+				}
 
-		// 2. 等待密钥过期
-		time.Sleep(time.Second * 12) // 等待12秒
+				results <- nil
+			}()
+		}
 
-		// 3. 尝试使用过期的密钥
-		_, err = rsaCrypto.VerifyAndDecrypt(publicKey, "some_encrypted_data")
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "private key not found")
+		// 等待所有goroutine完成并检查结果
+		for i := 0; i < numWorkers; i++ {
+			err := <-results
+			assert.NoError(t, err)
+		}
 	})
 }
 

@@ -3,6 +3,7 @@ package common
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
@@ -30,8 +31,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	rsaCrypto := util.NewRSACrypto(global.Redis)
-	Password, err := rsaCrypto.VerifyAndDecrypt(req.PublicKey, req.Password)
+	Password, err := shared.RSACrypto.VerifyAndDecrypt(req.PublicKey, req.Password)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -73,8 +73,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 
 // PublicKey 获取公钥
 func (s *AuthApi) PublicKey(ctx *gin.Context) {
-	rsaCrypto := util.NewRSACrypto(global.Redis)
-	publicKey, error := rsaCrypto.GenerateKeyPair()
+	publicKey, error := shared.RSACrypto.GetKeyFromPool()
 	if error != nil {
 		response.ServerError(ctx)
 		return

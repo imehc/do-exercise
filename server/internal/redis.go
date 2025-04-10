@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/global/shared"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -40,6 +42,7 @@ func InitRedis() {
 
 	// 将Redis客户端设置为全局变量
 	global.Redis = client
+	shared.RSACrypto = util.NewRSACrypto(client)
 
 	fmt.Println("Redis连接初始化成功")
 }

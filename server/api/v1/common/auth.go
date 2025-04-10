@@ -31,7 +31,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	Password, err := shared.RSACrypto.VerifyAndDecrypt(req.PublicKey, req.Password)
+	Password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -106,7 +106,7 @@ func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 
 // PublicKey 获取公钥
 func (s *AuthApi) PublicKey(ctx *gin.Context) {
-	publicKey, error := shared.RSACrypto.GetKeyFromPool()
+	publicKey, error := shared.RSACrypto.GetRandomKeyPair()
 	if error != nil {
 		response.ServerError(ctx)
 		return

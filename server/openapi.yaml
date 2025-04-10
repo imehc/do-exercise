@@ -55,13 +55,8 @@ components:
         public_key:
           type: string
           description: "RSA公钥"
-        expire_time:
-          type: integer
-          format: int64
-          description: "公钥过期时间戳(秒)"
       required:
         - public_key
-        - expire_time
 
     Token:
       type: object

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/imehc/do-exercise/server/core"
+	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/internal"
 )
 
@@ -14,5 +15,7 @@ func init() {
 }
 
 func main() {
+	defer shared.RSACrypto.Stop()
+
 	core.RunServer()
 }

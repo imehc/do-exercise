@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -24,108 +23,92 @@ func TestRSACrypto(t *testing.T) {
 	})
 
 	defer func() {
-		iter := redisClient.Scan(context.Background(), 0, "publKey:*", 0).Iterator()
-		for iter.Next(context.Background()) {
-			redisClient.Del(context.Background(), iter.Val())
-		}
+		// 清理测试数据
+		ctx := context.Background()
+		redisClient.Del(ctx, availableKeysHash)
+		redisClient.Del(ctx, inUseKeysHash)
 		redisClient.Close()
 	}()
 
-	rsaCrypto := NewRSACrypto(redisClient)
-	rsaCrypto.ExpireMinutes = 20 * time.Second
+	rsaPool := NewRSACrypto(redisClient)
 
 	t.Run("测试批量密钥生成", func(t *testing.T) {
-		numKeys := 5
-		var publicKeys []string
+		err := rsaPool.GenerateAndStoreKeys(5)
+		assert.NoError(t, err)
 
-		for i := 0; i < numKeys; i++ {
-			result, err := rsaCrypto.GenerateKeyPair()
-			assert.NoError(t, err)
-			assert.NotEmpty(t, result.PublicKey)
-			publicKeys = append(publicKeys, result.PublicKey)
-
-			defer func(pubKey string) {
-				redisClient.Del(context.Background(), "publKey:"+pubKey)
-			}(result.PublicKey)
-		}
-
-		// 验证所有公钥都存储在Redis中
-		for _, publicKey := range publicKeys {
-			privateKeyStr, err := redisClient.Get(context.Background(), "publKey:"+publicKey).Result()
-			assert.NoError(t, err)
-			assert.NotEmpty(t, privateKeyStr)
-		}
+		// 验证密钥数量
+		ctx := context.Background()
+		count, err := redisClient.HLen(ctx, availableKeysHash).Result()
+		assert.NoError(t, err)
+		assert.Equal(t, int64(5), count)
 	})
 
-	t.Run("测试并发加密解密", func(t *testing.T) {
-		numWorkers := 10
-		data := "test123456!@#$%^"
-		results := make(chan error, numWorkers)
+	t.Run("测试随机获取密钥对", func(t *testing.T) {
+		// 先生成一些密钥
+		err := rsaPool.GenerateAndStoreKeys(3)
+		assert.NoError(t, err)
 
-		// 并发执行加密和解密操作
-		for i := 0; i < numWorkers; i++ {
-			go func() {
-				keyPair, err := rsaCrypto.GenerateKeyPair()
-				if err != nil {
-					results <- err
-					return
-				}
+		// 获取密钥对
+		keyPair, err := rsaPool.GetRandomKeyPair()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, keyPair.PublicKey)
 
-				encryptedData, err := mockJSEncryptEncryption(keyPair.PublicKey, data)
-				if err != nil {
-					results <- err
-					return
-				}
+		// 验证密钥已移动到inuse哈希
+		ctx := context.Background()
+		_, err = redisClient.HGet(ctx, inUseKeysHash, keyPair.PublicKey).Result()
+		assert.NoError(t, err)
 
-				decryptedData, err := rsaCrypto.VerifyAndDecrypt(keyPair.PublicKey, encryptedData)
-				if err != nil {
-					results <- err
-					return
-				}
+		// 验证密钥已从available哈希移除
+		_, err = redisClient.HGet(ctx, availableKeysHash, keyPair.PublicKey).Result()
+		assert.Error(t, err)
+	})
 
-				if decryptedData != data {
-					results <- errors.New("解密数据不匹配")
-					return
-				}
+	t.Run("测试解密功能", func(t *testing.T) {
+		// 生成密钥对并获取
+		err := rsaPool.GenerateAndStoreKeys(1)
+		assert.NoError(t, err)
 
-				results <- nil
-			}()
-		}
+		keyPair, err := rsaPool.GetRandomKeyPair()
+		assert.NoError(t, err)
 
-		// 等待所有goroutine完成并检查结果
-		for i := 0; i < numWorkers; i++ {
-			err := <-results
-			assert.NoError(t, err)
-		}
+		// 模拟加密数据
+		originalData := "test data 123"
+		encryptedData, err := mockEncryptData(keyPair.PublicKey, originalData)
+		assert.NoError(t, err)
+
+		// 解密数据
+		decryptedData, err := rsaPool.DecryptWithKey(keyPair.PublicKey, encryptedData)
+		assert.NoError(t, err)
+		assert.Equal(t, originalData, decryptedData)
 	})
 }
 
-// mockJSEncryptEncryption 模拟前端JSEncrypt的加密过程
-func mockJSEncryptEncryption(publicKeyStr string, data string) (string, error) {
-	// 1. 解码base64的公钥
+// mockEncryptData 模拟加密过程
+func mockEncryptData(publicKeyStr string, data string) (string, error) {
+	// 解码base64的公钥
 	publicKeyPEM, err := base64.StdEncoding.DecodeString(publicKeyStr)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. 解析PEM格式的公钥
+	// 解析PEM格式的公钥
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
 		return "", errors.New("failed to decode PEM block")
 	}
 
-	// 3. 解析公钥
+	// 解析公钥
 	publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		return "", err
 	}
 
-	// 4. 使用公钥加密数据
+	// 使用公钥加密数据
 	encryptedBytes, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, []byte(data))
 	if err != nil {
 		return "", err
 	}
 
-	// 5. 将加密后的数据转换为base64
+	// 将加密后的数据转换为base64
 	return base64.StdEncoding.EncodeToString(encryptedBytes), nil
 }

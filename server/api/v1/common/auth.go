@@ -35,7 +35,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}

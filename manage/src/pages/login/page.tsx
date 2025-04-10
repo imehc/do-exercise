@@ -2,8 +2,8 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription } from '~/components/ui/card'
 import '~/animations.css'
-import { useApi } from '~/hooks'
-import { AuthApi, type LoginRequest } from '~/do-exercise-api'
+import { useApi, useRouter } from '~/hooks'
+import { AuthApi, ResponseError, type LoginRequest } from '~/do-exercise-api'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver as resolver } from '@hookform/resolvers/zod'
@@ -21,8 +21,12 @@ import ServerErrorPage from '../server-error'
 import { DynamicIcon } from 'lucide-react/dynamic'
 import JSEncrypt from 'jsencrypt'
 import clsx from 'clsx'
+import { useUserStore } from '~/store'
+import { toast } from 'sonner'
 
 export function LoginPage() {
+  const { setAuth } = useUserStore()
+  const router = useRouter()
   const form = useForm<LoginSchemaType>({
     resolver: resolver(loginSchema)
   })
@@ -31,7 +35,8 @@ export function LoginPage() {
   const {
     data: publicKeyData,
     isLoading: publicKeyIsLoading,
-    isError: publicKeyIsError
+    isError: publicKeyIsError,
+    refetch: refreshPublicKey
   } = useQuery({
     queryFn: async () => {
       const data = await authApi.getPublicKey()
@@ -41,7 +46,8 @@ export function LoginPage() {
     queryKey: ['getPublicKey'],
     retry: false,
     keepPreviousData: true,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000
   })
   const {
     data: captchaData,
@@ -57,21 +63,32 @@ export function LoginPage() {
     queryKey: ['getCaptcha'],
     retry: false,
     cacheTime: 0,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    refetchInterval: 60 * 1000
   })
 
-  const { mutate: signin } = useMutation(
+  const {
+    mutate: signin,
+    isLoading,
+    isSuccess
+  } = useMutation(
     async (value: LoginRequest) => {
       const res = await authApi.login(value)
       return res
     },
     {
-      // TODO: 登录处理
       onSuccess: data => {
-        console.log(data)
+        setAuth(data)
+        toast.success('登录成功')
+        router.replace('/')
       },
-      onError: error => {
-        console.log(error)
+      onError: async error => {
+        if (error instanceof ResponseError) {
+          const text = await error.response.text()
+          toast.error(text || '登录失败')
+        }
+        refreshCaptcha()
+        refreshPublicKey()
       }
     }
   )
@@ -97,8 +114,7 @@ export function LoginPage() {
     })
   }
 
-  const isSubmitting = form.formState.isValid && form.formState.isSubmitting
-  const isPending = form.formState.isSubmitSuccessful || isSubmitting
+  const disabled = isLoading || isSuccess
 
   if (publicKeyIsLoading || captchaIsLoading) {
     return <Loading />
@@ -159,7 +175,7 @@ export function LoginPage() {
                       <FormLabel>用户名</FormLabel>
                       <FormControl>
                         <Input
-                          disabled={isPending}
+                          disabled={disabled}
                           startIcon="user"
                           placeholder="Username"
                           {...field}
@@ -179,7 +195,7 @@ export function LoginPage() {
                       <FormLabel>密码</FormLabel>
                       <FormControl>
                         <Input
-                          disabled={isPending}
+                          disabled={disabled}
                           startIcon="lock"
                           type="password"
                           placeholder="Password"
@@ -202,7 +218,7 @@ export function LoginPage() {
                         <div className="w-full gap-x-4 flex justify-between items-center">
                           <Input
                             fullWidth
-                            disabled={isPending}
+                            disabled={disabled}
                             startIcon="binary"
                             placeholder="Capthca"
                             {...field}
@@ -211,7 +227,7 @@ export function LoginPage() {
                             {!!captchaData && (
                               <img
                                 className={clsx('w-full h-full', [
-                                  !isPending
+                                  !isLoading
                                     ? 'cursor-pointer pointer-events-auto'
                                     : 'pointer-events-none cursor-none'
                                 ])}
@@ -229,13 +245,8 @@ export function LoginPage() {
                 />
               </div>
             </div>
-            <Button
-              size="sm"
-              type="submit"
-              disabled={isPending}
-              className="w-full mt-4 font-medium"
-            >
-              {isPending && <DynamicIcon name="loader-circle" className="mr-2 animate-spin" />}
+            <Button size="sm" type="submit" disabled={disabled} className="w-full mt-4 font-medium">
+              {isLoading && <DynamicIcon name="loader-circle" className="mr-2 animate-spin" />}
               登录
             </Button>
           </form>

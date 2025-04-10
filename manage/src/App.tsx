@@ -5,6 +5,7 @@ import { ThemeProvider } from './provider'
 import './i18n'
 import { Suspense } from 'react'
 import { Loading } from './components'
+import { Toaster } from './components/ui/sonner'
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -20,6 +21,7 @@ function App() {
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           <RouterMenuProvider />
+          <Toaster position="top-center" richColors />
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
       </ThemeProvider>

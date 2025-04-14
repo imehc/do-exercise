@@ -19,7 +19,7 @@ import {
 } from '~/components/ui/form'
 import ServerErrorPage from '../server-error'
 import { DynamicIcon } from 'lucide-react/dynamic'
-import JSEncrypt from 'jsencrypt'
+import { JSEncrypt } from 'jsencrypt'
 import clsx from 'clsx'
 import { useUserStore } from '~/store'
 import { toast } from 'sonner'

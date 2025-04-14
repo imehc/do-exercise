@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
+import { AuthApi } from '~/do-exercise-api'
+import { useApi } from '~/hooks'
 
 export function Page1() {
   const [state, setState] = useState<number>(0)
+  const authApi = useApi(AuthApi)
+  authApi.getPublicKey()
   return (
     <div className="overflow-ellipsis overflow-hidden whitespace-nowrap">
       Page1 Page1

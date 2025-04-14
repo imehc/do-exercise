@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router'
 import { useMemo } from 'react'
-import { useRouter } from '~/hooks'
 import { useRouterMenus } from '~/provider'
 import type { MenuItem } from '#/menus'
 import {
@@ -8,13 +7,12 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbSeparator
 } from '~/components/ui/breadcrumb'
 
 // TODO: 面包屑
 export function HeaderBreadcrumb() {
   const location = useLocation()
-  const router = useRouter()
+  // const router = useRouter()
   const { menus } = useRouterMenus()
 
   const findMenuByPath = (menus: MenuItem[], path: string): MenuItem | undefined => {
@@ -32,7 +30,7 @@ export function HeaderBreadcrumb() {
     return undefined
   }
 
-  const paths = useMemo(() => {
+ /**  const paths = */ useMemo(() => {
     const pathSegments = location.pathname.split('/').filter(Boolean)
     return pathSegments.map((segment, index) => {
       const path = '/' + pathSegments.slice(0, index + 1).join('/')

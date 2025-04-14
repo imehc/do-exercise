@@ -10,10 +10,11 @@ servers:
 
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "通过请求头Authorization传递token进行认证"
 
   schemas:
     ValidationDetail:

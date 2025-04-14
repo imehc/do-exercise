@@ -17,6 +17,8 @@ import (
 
 const (
 	availableKeysHash = "rsa:available"
+	publicKeyPrefix   = "publicKey:"     // 新增：公钥前缀
+	keyExpiration     = 30 * time.Minute // 新增：密钥过期时间
 	inUseKeysHash     = "rsa:inuse"
 	minKeyThreshold   = 5               // 密钥池最小阈值
 	maxKeyThreshold   = 20              // 密钥池最大阈值
@@ -52,7 +54,7 @@ func (r *RSACrypto) GenerateAndStoreKeys(count int) error {
 	ctx := context.Background()
 
 	for i := 0; i < count; i++ {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
 		if err != nil {
 			return err
 		}
@@ -84,7 +86,6 @@ func (r *RSACrypto) GenerateAndStoreKeys(count int) error {
 	return nil
 }
 
-// TODO: 标记为已使用时添加过期时间，使用ZSET配合HSET
 // GetRandomKeyPair 随机获取一个可用密钥对并标记为已使用
 func (r *RSACrypto) GetRandomKeyPair() (KeyPair, error) {
 	ctx := context.Background()
@@ -112,15 +113,16 @@ func (r *RSACrypto) GetRandomKeyPair() (KeyPair, error) {
 			}
 
 			_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-				// 新增：将私钥存入inUseKeysHash
-				if err = pipe.HSet(ctx, inUseKeysHash, selectedKey, privateKey).Err(); err != nil {
+				// 使用独立key存储私钥
+				key := publicKeyPrefix + selectedKey
+				if err = pipe.Set(ctx, key, privateKey, keyExpiration).Err(); err != nil {
 					return err
 				}
-				// 保留原有的删除操作
+				// 从可用池中删除
 				return pipe.HDel(ctx, availableKeysHash, selectedKey).Err()
 			})
 			return err
-		}, availableKeysHash) // 明确watch的key
+		}, availableKeysHash)
 
 		switch {
 		case err == nil:
@@ -154,44 +156,45 @@ func (r *RSACrypto) generateKeysIfNeeded(tx *redis.Tx, currentCount int) error {
 func (r *RSACrypto) DecryptWithKey(publicKeyStr, encryptedData string) (string, error) {
 	ctx := context.Background()
 
-	// 从已使用哈希中获取私钥
-	privateKeyStr, err := r.Redis.HGet(ctx, inUseKeysHash, publicKeyStr).Result()
+	// 使用独立key获取私钥
+	key := publicKeyPrefix + publicKeyStr
+	privateKeyStr, err := r.Redis.Get(ctx, key).Result()
 	if err != nil {
-		return "", errors.New("key not found in used keys")
+		return "", errors.New("operationTimeout")
 	}
 
 	// 删除已使用的密钥
-	err = r.Redis.HDel(ctx, inUseKeysHash, publicKeyStr).Err()
+	err = r.Redis.Del(ctx, key).Err()
 	if err != nil {
-		return "", fmt.Errorf("failed to delete used key: %v", err)
+		return "", errors.New("operationTimeout")
 	}
 
 	// 解码私钥
 	privateKeyPEM, err := base64.StdEncoding.DecodeString(privateKeyStr)
 	if err != nil {
-		return "", err
+		return "", errors.New("invalidParameter")
 	}
 
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
-		return "", errors.New("failed to decode PEM block")
+		return "", errors.New("invalidParameter")
 	}
 
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		return "", err
+		return "", errors.New("invalidParameter")
 	}
 
 	// 解码加密数据
 	encryptedBytes, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {
-		return "", err
+		return "", errors.New("invalidParameter")
 	}
 
 	// 解密数据
 	decryptedBytes, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, encryptedBytes)
 	if err != nil {
-		return "", err
+		return "", errors.New("invalidParameter")
 	}
 
 	return string(decryptedBytes), nil

@@ -12,6 +12,7 @@ func init() {
 	internal.InitGorm()
 	internal.InitRedis()
 	internal.InitI18n()
+	internal.InitCasbin()
 }
 
 func main() {

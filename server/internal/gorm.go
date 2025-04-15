@@ -34,6 +34,13 @@ func InitGorm() {
 		panic(fmt.Errorf("连接数据库失败: %v", err))
 	}
 
+	// 自动迁移数据库表
+	// TODO: 待迁移的表
+	err = db.AutoMigrate()
+	if err != nil {
+		panic(fmt.Errorf("自动迁移数据库表失败: %v", err))
+	}
+
 	// 配置连接池
 	sqlDB, err := db.DB()
 	if err != nil {

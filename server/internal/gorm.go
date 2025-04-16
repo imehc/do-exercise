@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/system"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -36,7 +37,7 @@ func InitGorm() {
 
 	// 自动迁移数据库表
 	// TODO: 待迁移的表
-	err = db.AutoMigrate()
+	err = db.AutoMigrate(system.SysUser{})
 	if err != nil {
 		panic(fmt.Errorf("自动迁移数据库表失败: %v", err))
 	}

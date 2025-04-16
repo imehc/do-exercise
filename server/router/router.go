@@ -17,7 +17,7 @@ func Run() *gin.Engine {
 	common := RouterGroupApp.Common
 
 	protected := r.Group("/system")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(), middleware.CasbinHandler())
 	basic := r.Group("/")
 	public := r.Group("/")
 	{

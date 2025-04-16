@@ -7,5 +7,5 @@ type ApiGroup struct {
 }
 
 var (
-	userService = service.ServiceGroupApp.SystemServiceGroup.SysUserService // 系统用户服务
+	authService = service.ServiceGroupApp.CommonServiceGroup.AuthService // 认证服务
 )

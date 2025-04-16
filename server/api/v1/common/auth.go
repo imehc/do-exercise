@@ -40,7 +40,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	userId, err := userService.Login(common.Login{
+	userId, err := authService.Login(common.Login{
 		Username: req.Username,
 		Password: Password,
 	})

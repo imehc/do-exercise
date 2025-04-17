@@ -7,7 +7,7 @@ import (
 )
 
 type IdWrapper struct {
-	Id int64 `json:"id" gorm:"primarykey;comment:主键"`
+	Id uint `json:"id" gorm:"primarykey;comment:主键"`
 }
 
 type ControlWrapper struct {

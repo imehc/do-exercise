@@ -2,23 +2,22 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/spf13/cast"
 )
 
-type SysUserApi struct{}
+type SysMenuApi struct{}
 
-// Create 创建用户
-func (s *SysUserApi) Create(ctx *gin.Context) {
-	var req request.CreateSysUserReq
+func (s *SysMenuApi) Create(ctx *gin.Context) {
+	var req request.CreateSysMenuReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(err)
 		return
 	}
-	_, err := userService.Create(req)
+
+	_, err := menuService.Create(req)
 	if err != nil {
 		// TODO: 处理具体错误
 		response.BadRequest(ctx, response.ValidationError{
@@ -30,9 +29,8 @@ func (s *SysUserApi) Create(ctx *gin.Context) {
 	response.Created(ctx)
 }
 
-// Delete 删除用户
-func (s *SysUserApi) Delete(ctx *gin.Context) {
-	id := cast.ToInt64(ctx.Param("id"))
+func (s *SysMenuApi) Delete(ctx *gin.Context) {
+	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -41,7 +39,7 @@ func (s *SysUserApi) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := userService.Delete(id); err != nil {
+	if err := menuService.Delete(id); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: err.Error(),
@@ -51,9 +49,8 @@ func (s *SysUserApi) Delete(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
-// Update 更新用户
-func (s *SysUserApi) Update(ctx *gin.Context) {
-	id := cast.ToInt64(ctx.Param("id"))
+func (s *SysMenuApi) Update(ctx *gin.Context) {
+	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -61,19 +58,14 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	var req request.UpdateSysUserReq
+	var req request.UpdateSysMenuReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(err)
 		return
 	}
-	user := request.UpdateSysUserReq{
-		Id:       id,
-		Email:    req.Email,
-		Avatar:   req.Avatar,
-		Nickname: req.Nickname,
-	}
+	req.Id = id
 
-	if err := userService.Update(user); err != nil {
+	if err := menuService.Update(req); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: err.Error(),
@@ -83,9 +75,8 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
-// Get 获取用户
-func (s *SysUserApi) Get(ctx *gin.Context) {
-	id := cast.ToInt64(ctx.Param("id"))
+func (s *SysMenuApi) Get(ctx *gin.Context) {
+	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -93,7 +84,7 @@ func (s *SysUserApi) Get(ctx *gin.Context) {
 		})
 		return
 	}
-	user, err := userService.Get(id)
+	menu, err := menuService.Get(id)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -101,22 +92,16 @@ func (s *SysUserApi) Get(ctx *gin.Context) {
 		})
 		return
 	}
-	response.Success(ctx, user)
+	response.Success(ctx, menu)
 }
 
-// GetList 获取用户列表
-func (s *SysUserApi) GetList(ctx *gin.Context) {
-	var req common.Pagination
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.Error(err)
-		return
-	}
-	data, err := userService.GetList(req)
+func (s *SysMenuApi) GetTree(ctx *gin.Context) {
+	tree, err := menuService.GetTree()
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: err.Error(),
 		})
 	}
-	response.Success(ctx, data)
+	response.Success(ctx, tree)
 }

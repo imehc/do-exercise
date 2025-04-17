@@ -34,6 +34,8 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 		v.RegisterValidation("startWithLetter", startWithLetter) // 校验以字母开头
 		v.RegisterValidation("containsLetter", containsLetter)   // 校验至少包含一个字母
 		v.RegisterValidation("complexPassword", complexPassword) // 校验密码是否包含字母、数字和特殊字符
+		v.RegisterValidation("uniqueName", uniqueName)           // 校验可以为空，但是如果不为空则必须为唯一，且只能包含字母、数字和冒号
+		v.RegisterValidation("menuType", menuType)               // 校验菜单类型是否为1或2或3
 
 		switch locale {
 		case "zh":
@@ -56,6 +58,18 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 				t, _ := ut.T("complexPassword", fe.Field())
 				return t
 			})
+			v.RegisterTranslation("uniqueName", trans, func(ut ut.Translator) error {
+				return ut.Add("uniqueName", "{0}为空，或者必须为唯一，且只能包含字母、数字和冒号", true)
+			}, func(ut ut.Translator, fe validator.FieldError) string {
+				t, _ := ut.T("uniqueName", fe.Field())
+				return t
+			})
+			v.RegisterTranslation("menuType", trans, func(ut ut.Translator) error {
+				return ut.Add("menuType", "{0}必须为1或2或3", true)
+			}, func(ut ut.Translator, fe validator.FieldError) string {
+				t, _ := ut.T("menuType", fe.Field())
+				return t
+			})
 		default:
 			en_translations.RegisterDefaultTranslations(v, trans)
 			v.RegisterTranslation("startWithLetter", trans, func(ut ut.Translator) error {
@@ -74,6 +88,19 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 				return ut.Add("complexPassword", "{0} must contain letters, numbers, and special characters", true)
 			}, func(ut ut.Translator, fe validator.FieldError) string {
 				t, _ := ut.T("complexPassword", fe.Field())
+				return t
+			})
+			v.RegisterTranslation("uniqueName", trans, func(ut ut.Translator) error {
+				return ut.Add("uniqueName", "{0} can be empty, or must be unique, and can only contain letters, numbers, and colons", true)
+
+			}, func(ut ut.Translator, fe validator.FieldError) string {
+				t, _ := ut.T("uniqueName", fe.Field())
+				return t
+			})
+			v.RegisterTranslation("menuType", trans, func(ut ut.Translator) error {
+				return ut.Add("menuType", "{0} must be 1 or 2 or 3", true)
+			}, func(ut ut.Translator, fe validator.FieldError) string {
+				t, _ := ut.T("menuType", fe.Field())
 				return t
 			})
 		}
@@ -111,4 +138,21 @@ func complexPassword(fl validator.FieldLevel) bool {
 	hasSpecial := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]`).MatchString(value)
 
 	return hasLetter && hasDigit && hasSpecial
+}
+
+// 自定义校验函数：检查可以为空，但是如果不为空则必须为唯一，且只能包含字母、数字和冒号
+func uniqueName(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	if value == "" {
+		return true
+	}
+	// 使用正则表达式检查字符串是否只包含字母、数字和冒号
+	match, _ := regexp.MatchString(`^[a-zA-Z0-9:]+$`, value)
+	return match
+}
+
+// 自定义校验函数：检查菜单类型是否为1或2或3
+func menuType(fl validator.FieldLevel) bool {
+	value := fl.Field().Uint()
+	return value == 1 || value == 2 || value == 3
 }

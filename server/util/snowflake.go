@@ -1,8 +1,8 @@
 package util
 
 import (
-	"sync"
 	"fmt"
+	"sync"
 
 	"github.com/bwmarrin/snowflake"
 )

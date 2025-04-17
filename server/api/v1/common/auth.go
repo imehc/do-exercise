@@ -40,7 +40,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	userId, err := authService.Login(common.Login{
+	user, err := authService.Login(common.Login{
 		Username: req.Username,
 		Password: Password,
 	})
@@ -60,7 +60,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		response.ServerError(ctx)
 	}
 	baseConf := util.Token{
-		UserId:            userId,
+		UserId:            user.Id,
 		ExpireTime:        accessExpire,
 		RefreshExpireTime: refreshExpire,
 	}

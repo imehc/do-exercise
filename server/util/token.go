@@ -12,7 +12,7 @@ import (
 )
 
 type Token struct {
-	UserId            uint
+	UserId            int64
 	ExpireTime        time.Duration
 	RefreshExpireTime time.Duration
 }

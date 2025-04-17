@@ -37,7 +37,10 @@ func InitGorm() {
 
 	// 自动迁移数据库表
 	// TODO: 待迁移的表
-	err = db.AutoMigrate(system.SysUser{})
+	err = db.AutoMigrate(
+		system.SysUser{},
+		system.SysMenu{},
+	)
 	if err != nil {
 		panic(fmt.Errorf("自动迁移数据库表失败: %v", err))
 	}

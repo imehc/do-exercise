@@ -40,6 +40,7 @@ func InitGorm() {
 	err = db.AutoMigrate(
 		system.SysUser{},
 		system.SysMenu{},
+		system.SysRole{},
 	)
 	if err != nil {
 		panic(fmt.Errorf("自动迁移数据库表失败: %v", err))

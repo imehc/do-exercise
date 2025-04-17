@@ -15,6 +15,6 @@ type PageMeta struct {
 
 // PageResult 通用分页响应
 type PageResult[T any] struct {
-	Data []T      `json:"list"` // 数据列表
+	Data []T      `json:"data"` // 数据列表
 	Meta PageMeta `json:"meta"` // 分页元信息
 }

@@ -70,7 +70,7 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	return global.DB.Model(existUser).
 		Select("Avatar", "Email", "Nickname").
 		Where("id = ?", req.Id).
-		Updates(req).
+		Updates(existUser).
 		Error
 }
 

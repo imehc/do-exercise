@@ -2,6 +2,11 @@ package response
 
 import "time"
 
+type SysMenuShortResp struct {
+	Id   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
 type SysMenuResp struct {
 	Id         uint      `json:"id"`
 	Name       string    `json:"name"`

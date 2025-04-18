@@ -10,6 +10,7 @@ import (
 
 type SysMenuApi struct{}
 
+// Create 创建菜单
 func (s *SysMenuApi) Create(ctx *gin.Context) {
 	var req request.CreateSysMenuReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -29,6 +30,7 @@ func (s *SysMenuApi) Create(ctx *gin.Context) {
 	response.Created(ctx)
 }
 
+// Delete 删除菜单
 func (s *SysMenuApi) Delete(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
@@ -49,6 +51,7 @@ func (s *SysMenuApi) Delete(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
+// Update 更新菜单
 func (s *SysMenuApi) Update(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
@@ -75,6 +78,7 @@ func (s *SysMenuApi) Update(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
+// GetList 获取菜单详情
 func (s *SysMenuApi) Get(ctx *gin.Context) {
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
@@ -95,6 +99,7 @@ func (s *SysMenuApi) Get(ctx *gin.Context) {
 	response.Success(ctx, menu)
 }
 
+// GetList 获取菜单树
 func (s *SysMenuApi) GetTree(ctx *gin.Context) {
 	tree, err := menuService.GetTree()
 	if err != nil {

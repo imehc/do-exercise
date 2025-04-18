@@ -83,7 +83,7 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 	response.NoContent(ctx)
 }
 
-// Get 获取用户
+// Get 获取用户详情
 func (s *SysUserApi) Get(ctx *gin.Context) {
 	id := cast.ToInt64(ctx.Param("id"))
 	if id == 0 {

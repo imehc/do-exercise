@@ -41,6 +41,7 @@ func InitGorm() {
 		system.SysUser{},
 		system.SysMenu{},
 		system.SysRole{},
+		system.SysApi{},
 	)
 	if err != nil {
 		panic(fmt.Errorf("自动迁移数据库表失败: %v", err))

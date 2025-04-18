@@ -27,7 +27,10 @@ func Run() *gin.Engine {
 		})
 	}
 	{
+		system.InitSysApiRouter(protected)
 		system.InitSysUserRouter(protected)
+		system.InitSysMenuRouter(protected)
+		system.InitSysRoleRouter(protected)
 		common.InitAuthRouter(basic)
 	}
 

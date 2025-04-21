@@ -6,9 +6,9 @@ type SysRoleResp struct {
 	Id        uint               `json:"id"`
 	Name      string             `json:"name"`
 	Code      string             `json:"code"`
-	Menus     []SysMenuShortResp `json:"menus"`
-	CreatedAt time.Time          `json:"created_at"`
-	CreatedBy int64              `json:"created_by"`
-	UpdatedAt time.Time          `json:"updated_at"`
-	UpdatedBy int64              `json:"updated_by"`
+	Menus     []SysMenuShortResp `json:"menus,omitzero"`
+	CreatedAt time.Time          `json:"created_at,omitzero"`
+	CreatedBy int64              `json:"created_by,omitzero"`
+	UpdatedAt time.Time          `json:"updated_at,omitzero"`
+	UpdatedBy int64              `json:"updated_by,omitzero"`
 }

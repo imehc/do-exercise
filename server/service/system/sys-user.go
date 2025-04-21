@@ -1,15 +1,39 @@
 package system
 
 import (
+	"fmt"
+
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/imehc/do-exercise/server/util"
+	"github.com/samber/lo"
+	"gorm.io/gorm"
 )
 
 type SysUserService struct{}
+
+// assignRoles 分配角色
+func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds []uint) ([]system.SysRole, error) {
+	if len(roleIds) == 0 {
+		return []system.SysRole{}, nil
+	}
+	var roles []system.SysRole
+	// 检查角色是否存在
+	if err := tx.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
+		return nil, err
+	}
+	if len(roles) != len(roleIds) {
+		return nil, fmt.Errorf("部分角色不存在")
+	}
+	// 建立用户角色关联
+	if err := tx.Model(user).Association("Roles").Replace(roles); err != nil {
+		return nil, err
+	}
+	return roles, nil
+}
 
 // Create 创建用户
 func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUserResp, error) {
@@ -21,8 +45,30 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 		Password: req.Password,
 	}
 	user.Id = util.NextID()
-	err := global.DB.Create(user).Error
+
+	// 开启事务
+	tx := global.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 创建用户
+	if err := tx.Create(user).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	roles, err := s.assignRoles(tx, user, req.RoleIds)
 	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 	return &response.SysUserResp{
@@ -32,17 +78,24 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 		Email:     user.Email,
 		Avatar:    user.Avatar,
 		CreatedAt: user.CreatedAt,
-		CreatedBy: user.CreatedBy,
 		UpdatedAt: user.UpdatedAt,
-		UpdatedBy: user.UpdatedBy,
+		Roles: lo.Map(roles, func(item system.SysRole, index int) response.SysRoleResp {
+			return response.SysRoleResp{
+				Id:   item.Id,
+				Name: item.Name,
+				Code: item.Code,
+			}
+		}),
 	}, nil
 }
 
 // Delete 删除用户
 func (s *SysUserService) Delete(id int64) error {
+	db := global.DB
 	// 先检查用户是否存在
 	existUser := &system.SysUser{}
-	err := global.DB.Where("id = ?", id).
+	err := db.
+		Where("id = ?", id).
 		First(existUser).
 		Error
 	if err != nil {
@@ -55,9 +108,11 @@ func (s *SysUserService) Delete(id int64) error {
 
 // Update 更新用户
 func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
+	db := global.DB
 	// 先检查用户是否存在
 	existUser := &system.SysUser{}
-	err := global.DB.Where("id = ?", req.Id).
+	err := db.
+		Where("id = ?", req.Id).
 		First(existUser).
 		Error
 	if err != nil {
@@ -67,17 +122,45 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	existUser.Email = req.Email
 	existUser.Nickname = req.Nickname
 
-	return global.DB.Model(existUser).
+	// 开启事务
+	tx := global.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 更新用户信息
+	if err := tx.Model(existUser).
 		Select("Avatar", "Email", "Nickname").
 		Where("id = ?", req.Id).
-		Updates(existUser).
-		Error
+		Updates(existUser).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if _, err := s.assignRoles(tx, existUser, req.RoleIds); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
 }
 
 // Get 查询单个用户
 func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
+	db := global.DB
 	user := &system.SysUser{}
-	err := global.DB.Where("id =?", id).First(user).Error
+	err := db.
+		Preload("Roles").
+		Where("id = ?", id).
+		First(user).
+		Error
 	if err != nil {
 		return nil, err
 	}
@@ -88,9 +171,14 @@ func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
 		Email:     user.Email,
 		Avatar:    user.Avatar,
 		CreatedAt: user.CreatedAt,
-		CreatedBy: user.CreatedBy,
 		UpdatedAt: user.UpdatedAt,
-		UpdatedBy: user.UpdatedBy,
+		Roles: lo.Map(user.Roles, func(item system.SysRole, index int) response.SysRoleResp {
+			return response.SysRoleResp{
+				Id:   item.Id,
+				Name: item.Name,
+				Code: item.Code,
+			}
+		}),
 	}, nil
 }
 
@@ -98,16 +186,22 @@ func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
 func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[response.SysUserResp], error) {
 	var users []system.SysUser
 	var total int64
-	db := global.DB.Model(&system.SysUser{})
-	db.Count(&total)
+	db := global.DB.
+		Model(&system.SysUser{})
+	db.
+		Count(&total)
 	if req.Page < 1 {
 		req.Page = 1
 	}
 	if req.PageSize < 1 {
 		req.PageSize = 10
 	}
-	db = db.Scopes(util.Paginate(req.PageSize, req.Page))
-	err := db.Find(&users).Error
+	db = db.
+		Preload("Roles").
+		Scopes(util.Paginate(req.PageSize, req.Page))
+	err := db.
+		Find(&users).
+		Error
 	if err != nil {
 		return common.PageResult[response.SysUserResp]{}, err
 	}
@@ -120,9 +214,14 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 			Email:     user.Email,
 			Avatar:    user.Avatar,
 			CreatedAt: user.CreatedAt,
-			CreatedBy: user.CreatedBy,
 			UpdatedAt: user.UpdatedAt,
-			UpdatedBy: user.UpdatedBy,
+			Roles: lo.Map(user.Roles, func(item system.SysRole, index int) response.SysRoleResp {
+				return response.SysRoleResp{
+					Id:   item.Id,
+					Name: item.Name,
+					Code: item.Code,
+				}
+			}),
 		}
 	}
 	result := common.PageResult[response.SysUserResp]{

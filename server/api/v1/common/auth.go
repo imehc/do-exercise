@@ -7,7 +7,9 @@ import (
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
+	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/util"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -60,7 +62,10 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		response.ServerError(ctx)
 	}
 	baseConf := util.Token{
-		UserId:            user.Id,
+		UserId: user.Id,
+		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
+			return item.Id
+		}),
 		ExpireTime:        accessExpire,
 		RefreshExpireTime: refreshExpire,
 	}

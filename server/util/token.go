@@ -13,8 +13,14 @@ import (
 
 type Token struct {
 	UserId            int64
+	RoleIds           []uint
 	ExpireTime        time.Duration
 	RefreshExpireTime time.Duration
+}
+
+type refreshInfo struct {
+	UserId  string `json:"userId"`
+	RoleIds string `json:"role_ids"`
 }
 
 func (t *Token) GenerateToken() (common.Token, error) {
@@ -30,15 +36,21 @@ func (t *Token) GenerateToken() (common.Token, error) {
 	ctx := context.Background()
 	tokenInfoJson, err := json.Marshal(map[string]string{
 		"userId":       fmt.Sprintf("%d", t.UserId),
+		"roleIds":      fmt.Sprintf("%v", t.RoleIds),
 		"refreshToken": refreshToken,
 	})
 	if err != nil {
 		return common.Token{}, err
 	}
+	refreshTokenJson, err := json.Marshal(refreshInfo{
+		UserId:  fmt.Sprintf("%d", t.UserId),
+		RoleIds: fmt.Sprintf("%v", t.RoleIds),
+	})
+
 	pipe := global.Redis.Pipeline()
 	// 保存token相关信息
 	pipe.Set(ctx, fmt.Sprintf("accessToken:%s", accessToken), tokenInfoJson, t.ExpireTime)
-	pipe.Set(ctx, fmt.Sprintf("refreshToken:%s", refreshToken), t.UserId, t.RefreshExpireTime)
+	pipe.Set(ctx, fmt.Sprintf("refreshToken:%s", refreshToken), refreshTokenJson, t.RefreshExpireTime)
 
 	// 将token和refreshToken添加到用户的token集合中
 	pipe.SAdd(ctx, fmt.Sprintf("userAccessToken_%d", t.UserId), accessToken)
@@ -61,7 +73,12 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 	ctx := context.Background()
 
 	// 获取refreshToken对应的userId
-	userId, err := global.Redis.Get(ctx, fmt.Sprintf("refreshToken:%s", refreshToken)).Result()
+	refreshTokenString, err := global.Redis.Get(ctx, fmt.Sprintf("refreshToken:%s", refreshToken)).Result()
+	if err != nil {
+		return common.Token{}, errors.New("refreshTokenNotExist")
+	}
+	var refreshTokenInfo refreshInfo
+	err = json.Unmarshal([]byte(refreshTokenString), &refreshTokenInfo)
 	if err != nil {
 		return common.Token{}, errors.New("refreshTokenNotExist")
 	}
@@ -79,7 +96,8 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 	}
 
 	tokenInfoJson, err := json.Marshal(map[string]string{
-		"userId":       userId,
+		"userId":       refreshTokenInfo.UserId,
+		"roleIds":      refreshTokenInfo.RoleIds,
 		"refreshToken": refreshToken,
 	})
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common/response"
 )
 
@@ -32,7 +33,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 解析token信息
 		// TODO: 使用结构体解析
-		var tokenData map[string]string
+		var tokenData model.Auth
 		if err := json.Unmarshal([]byte(tokenInfo), &tokenData); err != nil {
 			response.ServerError(c)
 			c.Abort()
@@ -40,7 +41,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// 将用户ID存储在上下文中
-		c.Set("userId", tokenData["userId"])
+		c.Set("userId", tokenData.UserID)
+		c.Set("roles", tokenData.RoleIds)
 		c.Set("domain", "admin")
 		c.Next()
 	}

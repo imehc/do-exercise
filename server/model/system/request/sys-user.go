@@ -6,6 +6,7 @@ type CreateSysUserReq struct {
 	Nickname string `json:"nickname"`
 	Email    string `json:"email" binding:"email"`
 	Avatar   string `json:"avatar"`
+	RoleIds  []uint `json:"role_ids" binding:"required,min=1"`
 }
 
 type UpdateSysUserReq struct {
@@ -13,4 +14,5 @@ type UpdateSysUserReq struct {
 	Nickname string `json:"nickname"`
 	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`
+	RoleIds  []uint `json:"role_ids"`
 }

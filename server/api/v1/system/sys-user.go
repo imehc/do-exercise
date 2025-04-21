@@ -71,6 +71,7 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 		Email:    req.Email,
 		Avatar:   req.Avatar,
 		Nickname: req.Nickname,
+		RoleIds:  req.RoleIds,
 	}
 
 	if err := userService.Update(user); err != nil {

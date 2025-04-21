@@ -74,29 +74,26 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 	if err != nil {
 		return nil, err
 	}
-	data := make([]response.SysApiResp, len(apis))
-	for i, api := range apis {
-		data[i] = response.SysApiResp{
-			Id:          api.Id,
-			Path:        api.Path,
-			Method:      api.Method,
-			Description: api.Description,
-			Group:       api.Group,
-			Disabled:    api.Disabled,
-			Sort:        api.Sort,
-			CreatedAt:   api.CreatedAt,
-			UpdatedAt:   api.UpdatedAt,
-		}
-	}
-	result := common.PageResult[response.SysApiResp]{
-		Data: data,
+
+	return &common.PageResult[response.SysApiResp]{
+		Data: lo.Map(apis, func(api system.SysApi, index int) response.SysApiResp {
+			return response.SysApiResp{
+				Method:      api.Method,
+				Description: api.Description,
+				Group:       api.Group,
+				Disabled:    api.Disabled,
+				Sort:        api.Sort,
+				CreatedAt:   api.CreatedAt,
+				UpdatedAt:   api.UpdatedAt,
+			}
+		}),
 		Meta: common.PageMeta{
 			Page:     req.Page,
 			PageSize: req.PageSize,
 			Total:    total,
 		},
-	}
-	return &result, nil
+	}, nil
+
 }
 
 // GetAll 查询所有api

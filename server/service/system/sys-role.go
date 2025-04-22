@@ -2,6 +2,7 @@ package system
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
@@ -9,10 +10,74 @@ import (
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/imehc/do-exercise/server/util"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
 type SysRoleService struct{}
+
+// assignMenus 分配菜单
+func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds []uint) ([]system.SysMenu, error) {
+	if len(menuIds) == 0 {
+		return []system.SysMenu{}, nil
+	}
+	var menus []system.SysMenu
+	// 检查菜单是否存在
+	if err := tx.Where("id IN ?", menuIds).Find(&menus).Error; err != nil {
+		return nil, err
+	}
+	if len(menus) != len(menuIds) {
+		return nil, errors.New("菜单不存在")
+	}
+	// 建立角色菜单关联
+	if err := tx.Model(role).Association("Menus").Replace(menus); err != nil {
+		return nil, err
+	}
+
+	// 获取菜单下绑定的api
+	if err := tx.Model(&system.SysMenu{}).
+		Preload("Apis").
+		Where("id IN ?", lo.Map(menus, func(item system.SysMenu, index int) uint {
+			return item.Id
+		})).
+		Find(&menus).
+		Error; err != nil {
+		return nil, err
+	}
+	// 将菜单下的APIs合并
+	apis := lo.FlatMap(menus, func(menu system.SysMenu, _ int) []system.SysApi {
+		return menu.Apis
+	})
+
+	if len(apis) == 0 {
+		return menus, nil
+	}
+
+	enforcer := global.Enforcer
+
+	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
+		return nil, errors.New(fmt.Sprintf("清除策略失败: %v", err))
+	}
+
+	// 使用casbin批量添加策略
+	policies := lo.Map(apis, func(item system.SysApi, index int) []string {
+		return []string{
+			role.Code,
+			item.Path,
+			item.Method,
+		}
+	})
+
+	// 添加策略并检查结果
+	success, err := enforcer.AddPolicies(policies)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("添加策略失败: %v", err))
+	}
+	if !success {
+		return nil, errors.New("部分策略添加失败")
+	}
+	return menus, nil
+}
 
 // Create 创建角色
 func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRoleResp, error) {
@@ -20,41 +85,79 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 		Name: req.Name,
 		Code: req.Code,
 	}
-	err := global.DB.Create(role).Error
+
+	// 开启事务
+	tx := global.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err := tx.Create(role).Error
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
+
+	menus, err := s.assignMenus(tx, role, req.MenuIds)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	return &response.SysRoleResp{
 		Id:        role.Id,
 		Name:      role.Name,
 		Code:      role.Code,
 		CreatedAt: role.CreatedAt,
-		CreatedBy: role.CreatedBy,
 		UpdatedAt: role.UpdatedAt,
-		UpdatedBy: role.UpdatedBy,
-	}, nil
+		Menus: lo.Map(menus, func(item system.SysMenu, index int) response.SysMenuShortResp {
+			return response.SysMenuShortResp{
+				Id:   item.Id,
+				Name: item.Name,
+			}
+		})}, nil
 }
 
 // Delete 删除角色
 func (s *SysRoleService) Delete(id uint) error {
+	db := global.DB
 	// 先检查角色是否存在
 	existRole := &system.SysRole{}
-	err := global.DB.Where("id = ?", id).
+	err := db.Where("id = ?", id).
 		First(existRole).
 		Error
 	if err != nil {
 		return err
 	}
-	return global.DB.
+	err = db.
 		Delete(&system.SysRole{}, id).
 		Error
+	if err != nil {
+		return err
+	}
+
+	enforcer := global.Enforcer
+	if _, err := enforcer.RemoveFilteredPolicy(0, existRole.Code); err != nil {
+		return errors.New(fmt.Sprintf("清除策略失败: %v", err))
+	}
+
+	return nil
 }
 
 // Update 更新角色
 func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
+	db := global.DB
 	// 先检查角色是否存在
 	var role system.SysRole
-	result := global.DB.
+	result := db.
 		First(&role, req.Id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -64,12 +167,35 @@ func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
 	}
 	role.Name = req.Name
 
-	return global.DB.
+	// 开启事务
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.
 		Model(system.SysRole{}).
 		Where("id = ?", req.Id).
 		Updates(&role).
 		Omit("id", "created_at", "created_by").
-		Error
+		Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if _, err := s.assignMenus(tx, &role, req.MenuIds); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
 }
 
 // Get 查询单个角色

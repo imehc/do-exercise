@@ -1,7 +1,7 @@
 package system
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
@@ -10,6 +10,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
@@ -26,12 +27,35 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 		return nil, err
 	}
 	if len(roles) != len(roleIds) {
-		return nil, fmt.Errorf("部分角色不存在")
+		return nil, errors.New("部分角色不存在")
 	}
 	// 建立用户角色关联
 	if err := tx.Model(user).Association("Roles").Replace(roles); err != nil {
 		return nil, err
 	}
+
+	// 添加用户角色到Casbin
+	enforcer := global.Enforcer
+	// 先清除用户现有的所有角色权限
+	_, err := enforcer.DeleteRolesForUser(cast.ToString(user.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = enforcer.AddRolesForUser(cast.ToString(user.Id), lo.Map(roles, func(item system.SysRole, index int) string {
+		return item.Code
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	err = util.UpdateUserRoleInCache(user.Id, lo.Map(roles, func(item system.SysRole, index int) uint {
+		return item.Id
+	}))
+	if err != nil {
+		return nil, err
+	}
+
 	return roles, nil
 }
 
@@ -101,7 +125,7 @@ func (s *SysUserService) Delete(id int64) error {
 	if err != nil {
 		return err
 	}
-	return global.DB.
+	return db.
 		Delete(&system.SysUser{}, id).
 		Error
 }
@@ -123,7 +147,7 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	existUser.Nickname = req.Nickname
 
 	// 开启事务
-	tx := global.DB.Begin()
+	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()

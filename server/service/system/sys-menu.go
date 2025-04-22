@@ -8,12 +8,61 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
 type SysMenuService struct{}
 
+// assignApis 分配API
+func (s *SysMenuService) assignApis(tx *gorm.DB, menu *system.SysMenu, apiIds []uint) ([]system.SysApi, error) {
+	if len(apiIds) == 0 {
+		return []system.SysApi{}, nil
+	}
+	var apis []system.SysApi
+	// 检查菜单是否存在
+	if err := tx.Where("id IN ?", apiIds).Find(&apis).Error; err != nil {
+		return nil, err
+	}
+	if len(apis) != len(apiIds) {
+		return nil, errors.New("部分Api不存在")
+	}
+	// 建立角色菜单关联
+	if err := tx.Model(menu).Association("Apis").Replace(apis); err != nil {
+		return nil, err
+	}
+	return apis, nil
+}
+
+// 检查菜单是否存在
+func (s *SysMenuService) checkMenuExist(db *gorm.DB, menuId uint, isParent bool) (*system.SysMenu, error) {
+	var menu system.SysMenu
+	result := db.
+		Unscoped().
+		First(&menu, menuId)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			if isParent {
+				return nil, errors.New("父菜单不存在")
+			}
+			return nil, errors.New("菜单不存在")
+		}
+		return nil, result.Error
+	}
+	if !menu.DeletedAt.Time.IsZero() {
+		return nil, errors.New("菜单已删除")
+	}
+
+	return &menu, nil
+}
+
 func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
+	db := global.DB
+	_, err := s.checkMenuExist(db, *req.ParentId, false)
+	if err != nil {
+		return nil, err
+	}
+
 	menu := &system.SysMenu{
 		Name:       req.Name,
 		ParentId:   req.ParentId,
@@ -25,10 +74,33 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 		Sort:       req.Sort,
 		Visible:    req.Visible,
 	}
-	err := global.DB.Create(menu).Error
+
+	// 开启事务
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err = tx.Create(menu).Error
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
+
+	apis, err := s.assignApis(tx, menu, req.ApiIds)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	return &response.SysMenuResp{
 		Id:         menu.Id,
 		ParentId:   menu.ParentId,
@@ -43,26 +115,27 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 		CreatedBy:  menu.CreatedBy,
 		UpdatedAt:  menu.UpdatedAt,
 		UpdatedBy:  menu.UpdatedBy,
+		Apis: lo.Map(apis, func(item system.SysApi, index int) response.SysApiResp {
+			return response.SysApiResp{
+				Method:      item.Method,
+				Description: item.Description,
+				Group:       item.Group,
+				Disabled:    item.Disabled,
+				Sort:        item.Sort,
+			}
+		}),
 	}, nil
 }
 
 func (s *SysMenuService) Delete(id uint) error {
+	db := global.DB
 	var menu system.SysMenu
-	result := global.DB.
-		Unscoped().
-		First(&menu, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return errors.New("菜单不存在")
-		}
-		return result.Error
+	_, err := s.checkMenuExist(db, id, false)
+	if err != nil {
+		return err
 	}
 
-	if !menu.DeletedAt.Time.IsZero() {
-		return errors.New("菜单已删除")
-	}
-
-	return global.DB.
+	return db.
 		Model(&system.SysMenu{}).
 		Where("id = ?", id).
 		Delete(&menu).
@@ -70,15 +143,20 @@ func (s *SysMenuService) Delete(id uint) error {
 }
 
 func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
-	var menu system.SysMenu
-	result := global.DB.
-		First(&menu, req.Id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return errors.New("菜单不存在")
-		}
-		return result.Error
+	db := global.DB
+
+	var menu *system.SysMenu
+	menu, err := s.checkMenuExist(db, req.Id, false)
+	if err != nil {
+		return err
 	}
+	if *req.ParentId != 0 {
+		_, err = s.checkMenuExist(db, *req.ParentId, true)
+		if err != nil {
+			return err
+		}
+	}
+
 	menu.Name = req.Name
 	menu.ParentId = req.ParentId
 	menu.Permission = req.Permission
@@ -88,23 +166,44 @@ func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 	menu.Component = req.Component
 	menu.Sort = req.Sort
 	menu.Visible = req.Visible
-	return global.DB.
+
+	// 开启事务
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.
 		Model(system.SysMenu{}).
 		Where("id = ?", req.Id).
 		Updates(&menu).
 		Omit("id", "created_at", "created_by").
-		Error
+		Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if _, err := s.assignApis(tx, menu, req.ApiIds); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
 }
 
 func (s *SysMenuService) Get(id uint) (*response.SysMenuResp, error) {
-	var menu system.SysMenu
-	result := global.DB.
-		First(&menu, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return &response.SysMenuResp{}, errors.New("菜单不存在")
-		}
-		return &response.SysMenuResp{}, result.Error
+	db := global.DB
+	var menu *system.SysMenu
+	menu, err := s.checkMenuExist(db, id, false)
+	if err != nil {
+		return nil, err
 	}
 
 	return &response.SysMenuResp{

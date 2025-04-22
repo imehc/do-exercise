@@ -10,9 +10,11 @@ type CreateSysMenuReq struct {
 	Component  string  `json:"component"`
 	Sort       uint    `json:"sort"`
 	Visible    bool    `json:"visible"`
+	ApiIds     []uint  `json:"api_ids"`
 }
 
 type UpdateSysMenuReq struct {
-	Id               uint `json:"id"`
+	Id               uint   `json:"id"`
+	ApiIds           []uint `json:"api_ids"`
 	CreateSysMenuReq `json:",inline"`
 }

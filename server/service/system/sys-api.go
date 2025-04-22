@@ -14,9 +14,11 @@ type SysApiService struct{}
 
 // Update 更新api
 func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
+	db := global.DB
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
-	err := global.DB.Where("id = ?", req.Id).
+	err := db.
+		Where("id = ?", req.Id).
 		First(existApi).
 		Error
 	if err != nil {
@@ -27,7 +29,8 @@ func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
 	existApi.Disabled = req.Disabled
 	existApi.Sort = req.Sort
 
-	return global.DB.Model(existApi).
+	return db.
+		Model(existApi).
 		Select("Description", "Group", "Disabled", "Sort").
 		Where("id = ?", req.Id).
 		Updates(existApi).
@@ -36,9 +39,11 @@ func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
 
 // Get 查询单个api
 func (s *SysApiService) Get(id uint) (*response.SysApiResp, error) {
+	db := global.DB
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
-	err := global.DB.Where("id = ?", id).
+	err := db.
+		Where("id = ?", id).
 		First(existApi).
 		Error
 	if err != nil {

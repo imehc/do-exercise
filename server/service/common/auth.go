@@ -19,13 +19,13 @@ func (s *AuthService) Login(req common.Login) (system.SysUser, error) {
 		First(existUser).
 		Error
 	if err != nil {
-		return system.SysUser{}, err
+		return system.SysUser{}, errors.New("userNotExist")
 	}
 	hash := util.Hash{
 		Value: existUser.Password,
 	}
 	if !hash.Compare(req.Password) {
-		return system.SysUser{}, errors.New("密码错误")
+		return system.SysUser{}, errors.New("passwordError")
 	}
 
 	return *existUser, nil

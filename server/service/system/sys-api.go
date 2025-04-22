@@ -1,6 +1,8 @@
 package system
 
 import (
+	"errors"
+
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
@@ -22,19 +24,23 @@ func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
 		First(existApi).
 		Error
 	if err != nil {
-		return err
+		return errors.New("allApisNotFound")
 	}
 	existApi.Description = req.Description
 	existApi.Group = req.Group
 	existApi.Disabled = req.Disabled
 	existApi.Sort = req.Sort
 
-	return db.
+	err = db.
 		Model(existApi).
 		Select("Description", "Group", "Disabled", "Sort").
 		Where("id = ?", req.Id).
 		Updates(existApi).
 		Error
+	if err != nil {
+		return errors.New("updateApiFailed")
+	}
+	return nil
 }
 
 // Get 查询单个api
@@ -47,7 +53,7 @@ func (s *SysApiService) Get(id uint) (*response.SysApiResp, error) {
 		First(existApi).
 		Error
 	if err != nil {
-		return nil, err
+		return nil, errors.New("allApisNotFound")
 	}
 
 	return &response.SysApiResp{
@@ -77,7 +83,7 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 	db = db.Scopes(util.Paginate(req.PageSize, req.Page))
 	err := db.Find(&apis).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.New("getApiListFailed")
 	}
 
 	return &common.PageResult[response.SysApiResp]{
@@ -106,7 +112,7 @@ func (s *SysApiService) GetAll() ([]response.SysApiResp, error) {
 	var apis []system.SysApi
 	err := global.DB.Find(&apis).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.New("getAllApiListFailed")
 	}
 	return lo.Map(apis, func(api system.SysApi, index int) response.SysApiResp {
 		return response.SysApiResp{
@@ -133,7 +139,7 @@ func (s *SysApiService) GroupType() ([]string, error) {
 		Pluck("group", &groups).
 		Error
 	if err != nil {
-		return nil, err
+		return nil, errors.New("getApiGroupTypeFailed")
 	}
 	return groups, nil
 }

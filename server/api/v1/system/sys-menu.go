@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -12,6 +13,7 @@ type SysMenuApi struct{}
 
 // Create 创建菜单
 func (s *SysMenuApi) Create(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	var req request.CreateSysMenuReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(err)
@@ -23,7 +25,7 @@ func (s *SysMenuApi) Create(ctx *gin.Context) {
 		// TODO: 处理具体错误
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -32,11 +34,12 @@ func (s *SysMenuApi) Create(ctx *gin.Context) {
 
 // Delete 删除菜单
 func (s *SysMenuApi) Delete(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -44,7 +47,7 @@ func (s *SysMenuApi) Delete(ctx *gin.Context) {
 	if err := menuService.Delete(id); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -53,11 +56,12 @@ func (s *SysMenuApi) Delete(ctx *gin.Context) {
 
 // Update 更新菜单
 func (s *SysMenuApi) Update(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -71,7 +75,7 @@ func (s *SysMenuApi) Update(ctx *gin.Context) {
 	if err := menuService.Update(req); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -80,11 +84,12 @@ func (s *SysMenuApi) Update(ctx *gin.Context) {
 
 // GetList 获取菜单详情
 func (s *SysMenuApi) Get(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -92,7 +97,7 @@ func (s *SysMenuApi) Get(ctx *gin.Context) {
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -101,11 +106,12 @@ func (s *SysMenuApi) Get(ctx *gin.Context) {
 
 // GetList 获取菜单树
 func (s *SysMenuApi) GetTree(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	tree, err := menuService.GetTree()
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 	}
 	response.Success(ctx, tree)

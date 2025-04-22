@@ -2,7 +2,6 @@ package system
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
@@ -24,14 +23,14 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 	var menus []system.SysMenu
 	// 检查菜单是否存在
 	if err := tx.Where("id IN ?", menuIds).Find(&menus).Error; err != nil {
-		return nil, err
+		return nil, errors.New("allMenusNotFound")
 	}
 	if len(menus) != len(menuIds) {
-		return nil, errors.New("菜单不存在")
+		return nil, errors.New("menuNotFound")
 	}
 	// 建立角色菜单关联
 	if err := tx.Model(role).Association("Menus").Replace(menus); err != nil {
-		return nil, err
+		return nil, errors.New("menuAssignFailed")
 	}
 
 	// 获取菜单下绑定的api
@@ -42,7 +41,7 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 		})).
 		Find(&menus).
 		Error; err != nil {
-		return nil, err
+		return nil, errors.New("menuAssignFailed")
 	}
 	// 将菜单下的APIs合并
 	apis := lo.FlatMap(menus, func(menu system.SysMenu, _ int) []system.SysApi {
@@ -50,13 +49,13 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 	})
 
 	if len(apis) == 0 {
-		return menus, nil
+		return menus, errors.New("menuAssignFailed")
 	}
 
 	enforcer := global.Enforcer
 
 	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
-		return nil, errors.New(fmt.Sprintf("清除策略失败: %v", err))
+		return nil, errors.New("menuAssignFailed")
 	}
 
 	// 使用casbin批量添加策略
@@ -71,23 +70,58 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 	// 添加策略并检查结果
 	success, err := enforcer.AddPolicies(policies)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("添加策略失败: %v", err))
+		return nil, errors.New("menuAssignFailed")
 	}
 	if !success {
-		return nil, errors.New("部分策略添加失败")
+		return nil, errors.New("menuAssignFailed")
 	}
 	return menus, nil
 }
 
+// checkRoleExist 检查角色是否存在
+func (s *SysRoleService) checkRoleExist(db *gorm.DB, roleId uint) (*system.SysRole, error) {
+	var role system.SysRole
+	result := db.
+		Unscoped().
+		First(&role, roleId)
+	if result.Error != nil {
+		return nil, errors.New("allRolesNotFound")
+	}
+
+	if !role.DeletedAt.Time.IsZero() {
+		return nil, errors.New("roleDeleted")
+	}
+
+	return &role, nil
+}
+
+// checkCodeDuplicate 检查角色编码是否重复
+func (s *SysRoleService) checkCodeDuplicate(code string) error {
+	var count int64
+	err := global.DB.Model(&system.SysRole{}).
+		Where("code = ?", code).
+		Count(&count).
+		Error
+	if err != nil || count > 0 {
+		return errors.New("roleCodeDuplicated")
+	}
+	return nil
+}
+
 // Create 创建角色
 func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRoleResp, error) {
+	db := global.DB
+	if err := s.checkCodeDuplicate(req.Code); err != nil {
+		return nil, err
+	}
+
 	role := &system.SysRole{
 		Name: req.Name,
 		Code: req.Code,
 	}
 
 	// 开启事务
-	tx := global.DB.Begin()
+	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -97,7 +131,7 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 	err := tx.Create(role).Error
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("createRoleFailed")
 	}
 
 	menus, err := s.assignMenus(tx, role, req.MenuIds)
@@ -109,7 +143,7 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("createRoleFailed")
 	}
 
 	return &response.SysRoleResp{
@@ -130,23 +164,21 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 func (s *SysRoleService) Delete(id uint) error {
 	db := global.DB
 	// 先检查角色是否存在
-	existRole := &system.SysRole{}
-	err := db.Where("id = ?", id).
-		First(existRole).
-		Error
-	if err != nil {
-		return err
-	}
-	err = db.
-		Delete(&system.SysRole{}, id).
-		Error
+	existRole, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return err
 	}
 
+	err = db.
+		Delete(&system.SysRole{}, id).
+		Error
+	if err != nil {
+		return errors.New("deleteRoleFailed")
+	}
+
 	enforcer := global.Enforcer
 	if _, err := enforcer.RemoveFilteredPolicy(0, existRole.Code); err != nil {
-		return errors.New(fmt.Sprintf("清除策略失败: %v", err))
+		return errors.New("deleteRoleFailed")
 	}
 
 	return nil
@@ -155,15 +187,9 @@ func (s *SysRoleService) Delete(id uint) error {
 // Update 更新角色
 func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
 	db := global.DB
-	// 先检查角色是否存在
-	var role system.SysRole
-	result := db.
-		First(&role, req.Id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return errors.New("菜单不存在")
-		}
-		return result.Error
+	role, err := s.checkRoleExist(db, req.Id)
+	if err != nil {
+		return err
 	}
 	role.Name = req.Name
 
@@ -182,10 +208,10 @@ func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
 		Omit("id", "created_at", "created_by").
 		Error; err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("updateRoleFailed")
 	}
 
-	if _, err := s.assignMenus(tx, &role, req.MenuIds); err != nil {
+	if _, err := s.assignMenus(tx, role, req.MenuIds); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -193,21 +219,29 @@ func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("updateRoleFailed")
 	}
 	return nil
 }
 
 // Get 查询单个角色
 func (s *SysRoleService) Get(id uint) (*response.SysRoleResp, error) {
-	role := &system.SysRole{}
-	err := global.DB.Where("id =?", id).
-		Preload("Menus").
-		First(role).
-		Error
+	db := global.DB
+
+	_, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return nil, err
 	}
+
+	var role system.SysRole
+	err = db.
+		Preload("Menus").
+		First(&role, id).
+		Error
+	if err != nil {
+		return nil, errors.New("getRoleFailed")
+	}
+
 	menus := make([]response.SysMenuShortResp, len(role.Menus))
 	for i, menu := range role.Menus {
 		menus[i] = response.SysMenuShortResp{
@@ -252,7 +286,7 @@ func (s *SysRoleService) GetList(req request.QuerySysRoleReq) (common.PageResult
 	// 添加预加载菜单数据
 	err := db.Preload("Menus").Find(&roles).Error
 	if err != nil {
-		return common.PageResult[response.SysRoleResp]{}, err
+		return common.PageResult[response.SysRoleResp]{}, errors.New("getRoleListFailed")
 	}
 	data := make([]response.SysRoleResp, len(roles))
 	for i, role := range roles {

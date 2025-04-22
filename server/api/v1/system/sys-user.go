@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
@@ -13,6 +14,7 @@ type SysUserApi struct{}
 
 // Create 创建用户
 func (s *SysUserApi) Create(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	var req request.CreateSysUserReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(err)
@@ -20,10 +22,9 @@ func (s *SysUserApi) Create(ctx *gin.Context) {
 	}
 	_, err := userService.Create(req)
 	if err != nil {
-		// TODO: 处理具体错误
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -32,11 +33,12 @@ func (s *SysUserApi) Create(ctx *gin.Context) {
 
 // Delete 删除用户
 func (s *SysUserApi) Delete(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToInt64(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -44,7 +46,7 @@ func (s *SysUserApi) Delete(ctx *gin.Context) {
 	if err := userService.Delete(id); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -53,11 +55,12 @@ func (s *SysUserApi) Delete(ctx *gin.Context) {
 
 // Update 更新用户
 func (s *SysUserApi) Update(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToInt64(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -77,7 +80,7 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 	if err := userService.Update(user); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -86,11 +89,12 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 
 // Get 获取用户详情
 func (s *SysUserApi) Get(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToInt64(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -98,7 +102,7 @@ func (s *SysUserApi) Get(ctx *gin.Context) {
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -107,6 +111,7 @@ func (s *SysUserApi) Get(ctx *gin.Context) {
 
 // GetList 获取用户列表
 func (s *SysUserApi) GetList(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	var req common.Pagination
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.Error(err)
@@ -116,7 +121,7 @@ func (s *SysUserApi) GetList(ctx *gin.Context) {
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 	}
 	response.Success(ctx, data)

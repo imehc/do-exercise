@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -12,6 +13,8 @@ type SysRoleApi struct{}
 
 // Create 创建角色
 func (s *SysRoleApi) Create(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+
 	var req request.CreateSysRoleReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(err)
@@ -19,10 +22,9 @@ func (s *SysRoleApi) Create(ctx *gin.Context) {
 	}
 	_, err := roleService.Create(req)
 	if err != nil {
-		// TODO: 处理具体错误
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -31,11 +33,12 @@ func (s *SysRoleApi) Create(ctx *gin.Context) {
 
 // Delete 删除角色
 func (s *SysRoleApi) Delete(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -43,7 +46,7 @@ func (s *SysRoleApi) Delete(ctx *gin.Context) {
 	if err := roleService.Delete(id); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -52,11 +55,12 @@ func (s *SysRoleApi) Delete(ctx *gin.Context) {
 
 // Update 更新角色
 func (s *SysRoleApi) Update(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -70,7 +74,7 @@ func (s *SysRoleApi) Update(ctx *gin.Context) {
 	if err := roleService.Update(req); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -79,11 +83,12 @@ func (s *SysRoleApi) Update(ctx *gin.Context) {
 
 // Get 获取角色详情
 func (s *SysRoleApi) Get(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: "id is required",
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
 		})
 		return
 	}
@@ -91,7 +96,7 @@ func (s *SysRoleApi) Get(ctx *gin.Context) {
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 		return
 	}
@@ -100,6 +105,7 @@ func (s *SysRoleApi) Get(ctx *gin.Context) {
 
 // GetList 获取角色列表
 func (s *SysRoleApi) GetList(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
 	var req request.QuerySysRoleReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.Error(err)
@@ -109,7 +115,7 @@ func (s *SysRoleApi) GetList(ctx *gin.Context) {
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
-			Message: err.Error(),
+			Message: global.I18.Translate(err.Error(), lang),
 		})
 	}
 	response.Success(ctx, data)

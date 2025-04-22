@@ -22,40 +22,38 @@ func (s *SysMenuService) assignApis(tx *gorm.DB, menu *system.SysMenu, apiIds []
 	var apis []system.SysApi
 	// 检查菜单是否存在
 	if err := tx.Where("id IN ?", apiIds).Find(&apis).Error; err != nil {
-		return nil, err
+		return nil, errors.New("allApisNotFound")
 	}
 	if len(apis) != len(apiIds) {
-		return nil, errors.New("部分Api不存在")
+		return nil, errors.New("apiNotFound")
 	}
-	// 建立角色菜单关联
+	// 建立api菜单关联
 	if err := tx.Model(menu).Association("Apis").Replace(apis); err != nil {
-		return nil, err
+		return nil, errors.New("apiAssignFailed")
 	}
 	return apis, nil
 }
 
-// 检查菜单是否存在
+// checkMenuExist 检查菜单是否存在
 func (s *SysMenuService) checkMenuExist(db *gorm.DB, menuId uint, isParent bool) (*system.SysMenu, error) {
 	var menu system.SysMenu
 	result := db.
 		Unscoped().
 		First(&menu, menuId)
 	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			if isParent {
-				return nil, errors.New("父菜单不存在")
-			}
-			return nil, errors.New("菜单不存在")
+		if isParent {
+			return nil, errors.New("parentMenuNotFound")
 		}
-		return nil, result.Error
+		return nil, errors.New("allMenusNotFound")
 	}
 	if !menu.DeletedAt.Time.IsZero() {
-		return nil, errors.New("菜单已删除")
+		return nil, errors.New("menuDeleted")
 	}
 
 	return &menu, nil
 }
 
+// Create 创建菜单
 func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
 	db := global.DB
 	_, err := s.checkMenuExist(db, *req.ParentId, false)
@@ -86,7 +84,7 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 	err = tx.Create(menu).Error
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("createMenuFailed")
 	}
 
 	apis, err := s.assignApis(tx, menu, req.ApiIds)
@@ -98,7 +96,7 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("createMenuFailed")
 	}
 
 	return &response.SysMenuResp{
@@ -127,6 +125,7 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 	}, nil
 }
 
+// Delete 删除菜单
 func (s *SysMenuService) Delete(id uint) error {
 	db := global.DB
 	var menu system.SysMenu
@@ -135,13 +134,18 @@ func (s *SysMenuService) Delete(id uint) error {
 		return err
 	}
 
-	return db.
+	err = db.
 		Model(&system.SysMenu{}).
 		Where("id = ?", id).
 		Delete(&menu).
 		Error
+	if err != nil {
+		return errors.New("deleteMenuFailed")
+	}
+	return nil
 }
 
+// Update 更新菜单
 func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 	db := global.DB
 
@@ -182,7 +186,7 @@ func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 		Omit("id", "created_at", "created_by").
 		Error; err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("updateMenuFailed")
 	}
 
 	if _, err := s.assignApis(tx, menu, req.ApiIds); err != nil {
@@ -193,17 +197,25 @@ func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("updateMenuFailed")
 	}
 	return nil
 }
 
+// Get 查询单个菜单
 func (s *SysMenuService) Get(id uint) (*response.SysMenuResp, error) {
 	db := global.DB
-	var menu *system.SysMenu
-	menu, err := s.checkMenuExist(db, id, false)
+	_, err := s.checkMenuExist(db, id, false)
 	if err != nil {
 		return nil, err
+	}
+
+	var menu *system.SysMenu
+	if err := db.
+		Preload("Apis").
+		First(&menu, id).
+		Error; err != nil {
+		return nil, errors.New("getMenuFailed")
 	}
 
 	return &response.SysMenuResp{
@@ -221,13 +233,25 @@ func (s *SysMenuService) Get(id uint) (*response.SysMenuResp, error) {
 		CreatedBy:  menu.CreatedBy,
 		UpdatedAt:  menu.UpdatedAt,
 		UpdatedBy:  menu.UpdatedBy,
+		Apis: lo.Map(menu.Apis, func(item system.SysApi, index int) response.SysApiResp {
+			return response.SysApiResp{
+				Id:          item.Id,
+				Path:        item.Path,
+				Method:      item.Method,
+				Description: item.Description,
+				Group:       item.Group,
+				Disabled:    item.Disabled,
+				Sort:        item.Sort,
+			}
+		}),
 	}, nil
 }
 
+// GetTree 获取菜单树
 func (s *SysMenuService) GetTree() ([]response.SysMenuTreeResp, error) {
 	var menus []system.SysMenu
 	if err := global.DB.Find(&menus).Error; err != nil {
-		return nil, err
+		return nil, errors.New("getMenuListFailed")
 	}
 
 	// 构建ID到菜单的映射
@@ -272,7 +296,7 @@ func (s *SysMenuService) GetTree() ([]response.SysMenuTreeResp, error) {
 	return rootMenus, nil
 }
 
-// 按Sort字段排序菜单
+// sortMenus 按Sort字段排序菜单
 func sortMenus(menus []response.SysMenuTreeResp) {
 	slices.SortFunc(menus, func(a, b response.SysMenuTreeResp) int {
 		if a.Sort < b.Sort {

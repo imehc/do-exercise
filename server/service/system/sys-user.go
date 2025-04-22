@@ -24,14 +24,14 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 	var roles []system.SysRole
 	// 检查角色是否存在
 	if err := tx.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
-		return nil, err
+		return nil, errors.New("allRolesNotFound")
 	}
 	if len(roles) != len(roleIds) {
-		return nil, errors.New("部分角色不存在")
+		return nil, errors.New("roleNotFound")
 	}
 	// 建立用户角色关联
 	if err := tx.Model(user).Association("Roles").Replace(roles); err != nil {
-		return nil, err
+		return nil, errors.New("roleAssignFailed")
 	}
 
 	// 添加用户角色到Casbin
@@ -39,28 +39,73 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 	// 先清除用户现有的所有角色权限
 	_, err := enforcer.DeleteRolesForUser(cast.ToString(user.Id))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("roleAssignFailed")
 	}
 
 	_, err = enforcer.AddRolesForUser(cast.ToString(user.Id), lo.Map(roles, func(item system.SysRole, index int) string {
 		return item.Code
 	}))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("roleAssignFailed")
 	}
 
 	err = util.UpdateUserRoleInCache(user.Id, lo.Map(roles, func(item system.SysRole, index int) uint {
 		return item.Id
 	}))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("roleAssignFailed")
 	}
 
 	return roles, nil
 }
 
+// checkUserExist 检查用户是否存在
+func (s *SysUserService) checkUserExist(db *gorm.DB, userId int64) error {
+	var user system.SysUser
+	result := db.
+		Unscoped().
+		First(&user, userId)
+	if result.Error != nil {
+		return errors.New("userNotFound")
+	}
+
+	if !user.DeletedAt.Time.IsZero() {
+		return errors.New("userDeleted")
+	}
+
+	return nil
+}
+
+// checkUserNameDuplication 检查用户名是否重复
+func (s *SysUserService) checkUserNameDuplication(db *gorm.DB, username string) error {
+	var count int64
+	if err := db.Model(&system.SysUser{}).Where("username = ?", username).Count(&count).Error; err != nil || count > 0 {
+		return errors.New("usernameExists")
+	}
+	return nil
+}
+
+// checkEmailDuplication 检查邮箱是否重复
+func (s *SysUserService) checkEmailDuplication(db *gorm.DB, email string) error {
+	var count int64
+	if err := db.Model(&system.SysUser{}).Where("email =?", email).Count(&count).Error; err != nil || count > 0 {
+		return errors.New("emailExists")
+	}
+	return nil
+}
+
 // Create 创建用户
 func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUserResp, error) {
+	db := global.DB
+	err := s.checkUserNameDuplication(db, req.Username)
+	if err != nil {
+		return nil, err
+	}
+	err = s.checkEmailDuplication(db, req.Email)
+	if err != nil {
+		return nil, err
+	}
+
 	user := &system.SysUser{
 		Username: req.Username,
 		Nickname: req.Nickname,
@@ -71,7 +116,7 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 	user.Id = util.NextID()
 
 	// 开启事务
-	tx := global.DB.Begin()
+	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -79,9 +124,9 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 	}()
 
 	// 创建用户
-	if err := tx.Create(user).Error; err != nil {
+	if err = tx.Create(user).Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("createUserFailed")
 	}
 
 	roles, err := s.assignRoles(tx, user, req.RoleIds)
@@ -93,7 +138,7 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.New("createUserFailed")
 	}
 	return &response.SysUserResp{
 		Id:        user.Id,
@@ -117,30 +162,34 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 func (s *SysUserService) Delete(id int64) error {
 	db := global.DB
 	// 先检查用户是否存在
-	existUser := &system.SysUser{}
-	err := db.
-		Where("id = ?", id).
-		First(existUser).
-		Error
+	err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}
-	return db.
+	err = db.
 		Delete(&system.SysUser{}, id).
 		Error
+	if err != nil {
+		return errors.New("deleteUserFailed")
+	}
+	return nil
 }
 
 // Update 更新用户
 func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	db := global.DB
 	// 先检查用户是否存在
-	existUser := &system.SysUser{}
-	err := db.
-		Where("id = ?", req.Id).
-		First(existUser).
-		Error
+	err := s.checkUserExist(db, req.Id)
 	if err != nil {
 		return err
+	}
+
+	var existUser system.SysUser
+	if err := db.
+		Preload("Roles").
+		Where("id =?", req.Id).
+		First(&existUser).Error; err != nil {
+		return errors.New("userNotFound")
 	}
 	existUser.Avatar = req.Avatar
 	existUser.Email = req.Email
@@ -160,10 +209,10 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 		Where("id = ?", req.Id).
 		Updates(existUser).Error; err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("updateUserFailed")
 	}
 
-	if _, err := s.assignRoles(tx, existUser, req.RoleIds); err != nil {
+	if _, err := s.assignRoles(tx, &existUser, req.RoleIds); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -171,7 +220,7 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("updateUserFailed")
 	}
 	return nil
 }
@@ -179,15 +228,21 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 // Get 查询单个用户
 func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
 	db := global.DB
-	user := &system.SysUser{}
-	err := db.
-		Preload("Roles").
-		Where("id = ?", id).
-		First(user).
-		Error
+	// 先检查用户是否存在
+	err := s.checkUserExist(db, id)
 	if err != nil {
 		return nil, err
 	}
+
+	var user system.SysUser
+	err = db.
+		Preload("Roles").
+		Where("id =?", id).
+		First(&user).Error
+	if err != nil {
+		return nil, errors.New("getUserFailed")
+	}
+
 	return &response.SysUserResp{
 		Id:        user.Id,
 		Username:  user.Username,
@@ -227,7 +282,7 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 		Find(&users).
 		Error
 	if err != nil {
-		return common.PageResult[response.SysUserResp]{}, err
+		return common.PageResult[response.SysUserResp]{}, errors.New("getUserListFailed")
 	}
 	data := make([]response.SysUserResp, len(users))
 	for i, user := range users {

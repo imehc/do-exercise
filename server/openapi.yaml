@@ -14,7 +14,7 @@ components:
       type: apiKey
       in: header
       name: Authorization
-      description: "通过请求头Authorization传递token进行认证"
+      description: 通过请求头Authorization传递token进行认证
 
   schemas:
     ValidationDetail:
@@ -22,12 +22,12 @@ components:
       properties:
         field:
           type: string
-          description: "错误字段名称"
+          description: 错误字段名称
         messages:
           type: array
           items:
             type: string
-          description: "错误信息列表"
+          description: 错误信息列表
       required:
         - field
         - messages
@@ -37,15 +37,15 @@ components:
       properties:
         type:
           type: string
-          description: "错误类型"
+          description: 错误类型
         message:
           type: string
-          description: "错误信息"
+          description: 错误信息
         details:
           type: array
           items:
             $ref: "#/components/schemas/ValidationDetail"
-          description: "详细错误信息"
+          description: 详细错误信息
       required:
         - type
         - message
@@ -55,7 +55,7 @@ components:
       properties:
         public_key:
           type: string
-          description: "RSA公钥"
+          description: RSA公钥
       required:
         - public_key
 
@@ -64,20 +64,24 @@ components:
       properties:
         access_token:
           type: string
+          description: 访问令牌
         expire_time:
           type: integer
           format: int64
+          description: 访问令牌过期时间
         refresh_token:
           type: string
+          description: 刷新令牌
         refresh_expire_time:
           type: integer
           format: int64
+          description: 刷新令牌过期时间
       required:
         - access_token
         - expire_time
         - refresh_token
         - refresh_expire_time
-    
+
     Captcha:
       type: object
       properties:
@@ -120,6 +124,474 @@ components:
         - captcha
         - public_key
 
+    MenuType:
+      type: integer
+      description: 菜单类型
+      enum:
+        - 1
+        - 2
+        - 3
+      x-enum-descriptions:
+        - 目录
+        - 菜单
+        - 页面元素
+      x-enum-varnames:
+        - directory
+        - menu
+        - button
+
+    Control:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        created_by:
+          type: string
+          format: int64
+          description: 创建人ID
+        updated_by:
+          type: string
+          format: int64
+          description: 更新人ID
+      required:
+        - created_at
+        - updated_at
+        - created_by
+        - updated_by
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: "当前页码"
+        page_size:
+          type: integer
+          description: "每页数量"
+        total:
+          type: integer
+          description: "总数量"
+      required:
+        - page
+        - page_size
+        - total
+
+    UpdateSysApi:
+      type: object
+      properties:
+        description:
+          type: string
+          description: 描述
+        group:
+          type: string
+          description: 分组
+        disabled:
+          type: boolean
+          description: 是否禁用
+        sort:
+          type: integer
+          description: 排序
+
+    SysApi:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        path:
+          type: string
+          description: 路径
+        description:
+          type: string
+          description: 描述
+        method:
+          type: string
+          description: 方法
+        group:
+          type: string
+          description: 分组
+        disabled:
+          type: boolean
+          description: 是否禁用
+        sort:
+          type: integer
+          description: 排序
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+      required:
+        - id
+        - path
+        - description
+        - method
+        - disabled
+        - sort
+        - created_at
+        - updated_at
+
+    CreateSysMenuWithDirectory:
+      type: object
+      properties:
+        parent_id:
+          type: integer
+          description: 父菜单ID
+        type:
+          $ref: "#/components/schemas/MenuType"
+          description: 菜单类型
+        name:
+          type: string
+          description: 菜单名称
+        icon:
+          type: string
+          description: 图标
+        route:
+          type: string
+          description: 路由
+        sort:
+          type: integer
+          description: 排序
+      required:
+        - parent_id
+        - type
+        - name
+        - route
+
+    CreateSysMenuWithMenu:
+      allOf:
+        - $ref: "#/components/schemas/CreateSysMenuWithDirectory"
+        - type: object
+          properties:
+            component:
+              type: string
+              description: 组件
+            visible:
+              type: boolean
+              description: 是否可见
+      required:
+        - component
+
+    CreateSysMenuWithButton:
+      type: object
+      properties:
+        parent_id:
+          type: integer
+          description: 父菜单ID
+        type:
+          $ref: "#/components/schemas/MenuType"
+          description: 菜单类型
+        name:
+          type: string
+          description: 菜单名称
+        permission:
+          type: string
+          description: 权限标识
+        api_ids:
+          type: array
+          items:
+            type: integer
+          description: API ID列表
+      required:
+        - parent_id
+        - type
+        - name
+        - permission
+        - api_ids
+
+    CreateSysMenu:
+      oneOf:
+        - $ref: "#/components/schemas/CreateSysMenuWithDirectory"
+        - $ref: "#/components/schemas/CreateSysMenuWithMenu"
+        - $ref: "#/components/schemas/CreateSysMenuWithButton"
+      discriminator:
+        propertyName: type
+        mapping:
+          1: "#/components/schemas/CreateSysMenuWithDirectory"
+          2: "#/components/schemas/CreateSysMenuWithMenu"
+          3: "#/components/schemas/CreateSysMenuWithButton"
+
+    SysMenuWithDirectory:
+      allOf:
+        - $ref: "#/components/schemas/Control"
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: ID
+            parent_id:
+              type: integer
+              description: 父菜单ID
+            type:
+              $ref: "#/components/schemas/MenuType"
+              description: 菜单类型
+            name:
+              type: string
+              description: 菜单名称
+            icon:
+              type: string
+              description: 图标
+            route:
+              type: string
+              description: 路由
+            sort:
+              type: integer
+              description: 排序
+      required:
+        - id
+        - parent_id
+        - type
+        - name
+        - route
+
+    SysMenuWithMenu:
+      allOf:
+        - $ref: "#/components/schemas/SysMenuWithDirectory"
+        - type: object
+          properties:
+            component:
+              type: string
+              description: 组件
+            visible:
+              type: boolean
+              description: 是否可见
+      required:
+        - component
+        - apis
+
+    SysMenuWithButton:
+      allOf:
+        - $ref: "#/components/schemas/SysMenuWithDirectory"
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: ID
+            parent_id:
+              type: integer
+              description: 父菜单ID
+            type:
+              $ref: "#/components/schemas/MenuType"
+              description: 菜单类型
+            name:
+              type: string
+              description: 菜单名称
+            permission:
+              type: string
+              description: 权限标识
+            apis:
+              type: array
+              items:
+                $ref: "#/components/schemas/SysApi"
+              description: API列表
+          required:
+            - id
+            - parent_id
+            - type
+            - name
+            - permission
+            - apis
+
+    SysMenu:
+      oneOf:
+        - $ref: "#/components/schemas/SysMenuWithDirectory"
+        - $ref: "#/components/schemas/SysMenuWithMenu"
+        - $ref: "#/components/schemas/SysMenuWithButton"
+      discriminator:
+        propertyName: type
+        mapping:
+          1: "#/components/schemas/SysMenuWithDirectory"
+          2: "#/components/schemas/SysMenuWithMenu"
+          3: "#/components/schemas/SysMenuWithButton"
+
+    SysMenuTree:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: 菜单名称
+        parent_id:
+          type: integer
+          description: 父菜单ID
+        permission:
+          type: string
+          description: 权限标识
+        icon:
+          type: string
+          description: 图标
+        type:
+          $ref: "#/components/schemas/MenuType"
+          description: 菜单类型
+        route:
+          type: string
+          description: 路由
+        component:
+          type: string
+          description: 组件
+        sort:
+          type: integer
+          description: 排序
+        visible:
+          type: boolean
+          description: 是否可见
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/SysMenuTree"
+          description: 子菜单列表
+      required:
+        - id
+        - name
+        - type
+        - children
+
+    CreateSysRole:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 角色名称
+        code:
+          type: string
+          description: 角色编码
+        menu_ids:
+          type: array
+          items:
+            type: integer
+          description: 菜单ID列表
+      required:
+        - name
+        - code
+        - menu_ids
+
+    UpdateSysRole:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 角色名称
+        menu_ids:
+          type: array
+          items:
+            type: integer
+          description: 菜单ID列表
+      required:
+        - name
+        - menu_ids
+
+    SysRole:
+      allOf:
+        - $ref: "#/components/schemas/Control"
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: ID
+            name:
+              type: string
+              description: 角色名称
+            code:
+              type: string
+              description: 角色编码
+            menus:
+              type: array
+              items:
+                $ref: "#/components/schemas/SysMenu"
+              description: 菜单列表
+      required:
+        - id
+        - name
+        - code
+        - menus
+
+    CreateSysUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 用户名
+        password:
+          type: string
+          description: 密码
+        nickname:
+          type: string
+          description: 昵称
+        email:
+          type: string
+          description: 邮箱
+          format: email
+        avatar:
+          type: string
+          description: 头像
+        role_ids:
+          type: array
+          description: 角色ID列表
+          items:
+            type: integer
+            format: uint
+      required:
+        - username
+        - password
+        - role_ids
+
+    UpdateSysUser:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: 昵称
+        email:
+          type: string
+          description: 邮箱
+          format: email
+        avatar:
+          type: string
+          description: 头像
+        role_ids:
+          type: array
+          description: 角色ID列表
+          items:
+            type: integer
+            format: uint
+
+    SysUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 用户名
+        nickname:
+          type: string
+          description: 昵称
+        email:
+          type: string
+          description: 邮箱
+          format: email
+        avatar:
+          type: string
+          description: 头像
+        roles:
+          type: array
+          description: 角色ID列表
+          items:
+            $ref: "#/components/schemas/SysRole"
+      required:
+        - username
+        - nickname
+        - roles
+
 paths:
   /public_key:
     get:
@@ -134,12 +606,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PublicKey"
           description: "获取成功"
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-          description: "获取失败"
+
   /captcha:
     get:
       summary: 获取验证码
@@ -153,12 +620,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Captcha"
           description: "获取成功"
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-          description: "获取失败"
+
   /login:
     post:
       summary: 登录
@@ -178,12 +640,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Token"
           description: "登录成功"
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-          description: "登录失败"
+
   /refresh_token:
     get:
       summary: 刷新令牌
@@ -203,9 +660,403 @@ paths:
               schema:
                 $ref: "#/components/schemas/Token"
           description: 刷新令牌成功
-        "400":
+
+  /system/apis/{id}:
+    get:
+      summary: 获取API信息
+      operationId: findApi
+      tags:
+        - system-api
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ValidationError"
-          description: 刷新令牌失败
+                $ref: "#/components/schemas/SysApi"
+          description: "获取成功"
+    put:
+      summary: 更新API信息
+      operationId: updateApi
+      tags:
+        - system-api
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSysApi"
+      responses:
+        "204":
+          description: "更新成功"
+
+  /system/apis:
+    get:
+      summary: 获取API列表
+      operationId: findApis
+      tags:
+        - system-api
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: "#/components/schemas/Pagination"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SysApi"
+                required:
+                  - meta
+                  - data
+          description: "获取成功"
+
+  /system/apis/all:
+    get:
+      summary: 获取所有API列表
+      operationId: findAllApis
+      tags:
+        - system-api
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SysApi"
+          description: "获取成功"
+
+  /system/apis/group-type:
+    get:
+      summary: 获取API分组类型
+      operationId: findApiGroupType
+      tags:
+        - system-api
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+          description: "获取成功"
+
+  /system/menus/{id}:
+    get:
+      summary: 获取菜单信息
+      operationId: findMenu
+      tags:
+        - system-menu
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SysMenu"
+          description: "获取成功"
+    put:
+      summary: 更新菜单信息
+      operationId: updateMenu
+      tags:
+        - system-menu
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSysMenu"
+      responses:
+        "204":
+          description: "更新成功"
+    delete:
+      summary: 删除菜单信息
+      operationId: deleteMenu
+      tags:
+        - system-menu
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: "删除成功"
+  /system/menus:
+    post:
+      summary: 创建菜单信息
+      operationId: createMenu
+      tags:
+        - system-menu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSysMenu"
+      responses:
+        "201":
+          description: "创建成功"
+  /system/menus/tree:
+    get:
+      summary: 获取菜单树
+      operationId: findMenuTree
+      tags:
+        - system-menu
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SysMenuTree"
+          description: "获取成功"
+
+  /system/roles/{id}:
+    get:
+      summary: 获取角色信息
+      operationId: findRole
+      tags:
+        - system-role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SysRole"
+          description: "获取成功"
+    put:
+      summary: 更新角色信息
+      operationId: updateRole
+      tags:
+        - system-role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSysRole"
+      responses:
+        "204":
+          description: "更新成功"
+    delete:
+      summary: 删除角色信息
+      operationId: deleteRole
+      tags:
+        - system-role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: "删除成功"
+  /system/roles:
+    post:
+      summary: 创建角色信息
+      operationId: createRole
+      tags:
+        - system-role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSysRole"
+      responses:
+        "201":
+          description: "创建成功"
+    get:
+      summary: 获取角色列表
+      operationId: findRoles
+      tags:
+        - system-role
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: code
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: "#/components/schemas/Pagination"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SysRole"
+                required:
+                  - meta
+                  - data
+          description: "获取成功"
+
+  /system/users/{id}:
+    get:
+      summary: 获取用户信息
+      operationId: findUser
+      tags:
+        - system-user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SysUser"
+          description: "获取成功"
+    put:
+      summary: 更新用户信息
+      operationId: updateUser
+      tags:
+        - system-user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSysUser"
+      responses:
+        "204":
+          description: "更新成功"
+    delete:
+      summary: 删除用户信息
+      operationId: deleteUser
+      tags:
+        - system-user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: "删除成功"
+  /system/users:
+    post:
+      summary: 创建用户信息
+      operationId: createUser
+      tags:
+        - system-user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSysUser"
+      responses:
+        "201":
+          description: "创建成功"
+    get:
+      summary: 获取用户列表
+      operationId: findUsers
+      tags:
+        - system-user
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: "#/components/schemas/Pagination"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SysUser"
+                required:
+                  - meta
+                  - data
+          description: "获取成功"
+      

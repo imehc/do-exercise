@@ -128,8 +128,7 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 		}
 	}()
 
-	err := tx.Create(role).Error
-	if err != nil {
+	if err := tx.Create(role).Error; err != nil {
 		tx.Rollback()
 		return nil, errors.New("createRoleFailed")
 	}
@@ -170,7 +169,7 @@ func (s *SysRoleService) Delete(id uint) error {
 	}
 
 	err = db.
-		Delete(&system.SysRole{}, id).
+		Delete(existRole, id).
 		Error
 	if err != nil {
 		return errors.New("deleteRoleFailed")
@@ -202,10 +201,9 @@ func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
 	}()
 
 	if err := tx.
-		Model(system.SysRole{}).
-		Where("id = ?", req.Id).
-		Updates(&role).
+		Model(role).
 		Omit("id", "created_at", "created_by").
+		Updates(&role).
 		Error; err != nil {
 		tx.Rollback()
 		return errors.New("updateRoleFailed")

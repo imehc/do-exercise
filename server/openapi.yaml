@@ -552,10 +552,6 @@ components:
         nickname:
           type: string
           description: 昵称
-        email:
-          type: string
-          description: 邮箱
-          format: email
         avatar:
           type: string
           description: 头像

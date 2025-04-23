@@ -28,5 +28,46 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 		return err
 	}
 	u.Password = password
+
+	ctx := tx.Statement.Context
+	userId := ctx.Value("userId").(int64)
+	u.CreatedBy = userId
+	u.UpdatedBy = userId
+
+	return nil
+}
+
+func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
+	userId := tx.Statement.Context.Value("userId").(int64)
+
+	if u.UpdatedBy != userId && u.Id != 0 {
+		u.UpdatedBy = userId
+		err = tx.
+			Model(u).
+			Select("UpdatedBy").
+			Updates(u).
+			Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *SysUser) BeforeDelete(tx *gorm.DB) (err error) {
+	if u.Id != 0 {
+		userId := tx.Statement.Context.Value("userId").(int64)
+		u.DeletedBy = userId
+		err = tx.
+			Model(u).
+			Select("DeletedBy").
+			Updates(u).
+			Error
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

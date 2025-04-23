@@ -60,20 +60,20 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 }
 
 // checkUserExist 检查用户是否存在
-func (s *SysUserService) checkUserExist(db *gorm.DB, userId int64) error {
-	var user system.SysUser
+func (s *SysUserService) checkUserExist(db *gorm.DB, userId int64) (*system.SysUser, error) {
+	var user *system.SysUser
 	result := db.
 		Unscoped().
 		First(&user, userId)
 	if result.Error != nil {
-		return errors.New("userNotFound")
+		return nil, errors.New("userNotFound")
 	}
 
 	if !user.DeletedAt.Time.IsZero() {
-		return errors.New("userDeleted")
+		return nil, errors.New("userDeleted")
 	}
 
-	return nil
+	return user, nil
 }
 
 // checkUserNameDuplication 检查用户名是否重复
@@ -162,12 +162,12 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 func (s *SysUserService) Delete(id int64) error {
 	db := global.DB
 	// 先检查用户是否存在
-	err := s.checkUserExist(db, id)
+	user, err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}
 	err = db.
-		Delete(&system.SysUser{}, id).
+		Delete(user, id).
 		Error
 	if err != nil {
 		return errors.New("deleteUserFailed")
@@ -178,21 +178,12 @@ func (s *SysUserService) Delete(id int64) error {
 // Update 更新用户
 func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	db := global.DB
-	// 先检查用户是否存在
-	err := s.checkUserExist(db, req.Id)
+	var existUser *system.SysUser
+	existUser, err := s.checkUserExist(db, req.Id)
 	if err != nil {
 		return err
 	}
-
-	var existUser system.SysUser
-	if err := db.
-		Preload("Roles").
-		Where("id =?", req.Id).
-		First(&existUser).Error; err != nil {
-		return errors.New("userNotFound")
-	}
 	existUser.Avatar = req.Avatar
-	existUser.Email = req.Email
 	existUser.Nickname = req.Nickname
 
 	// 开启事务
@@ -204,15 +195,16 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 	}()
 
 	// 更新用户信息
-	if err := tx.Model(existUser).
-		Select("Avatar", "Email", "Nickname").
-		Where("id = ?", req.Id).
-		Updates(existUser).Error; err != nil {
+	if err := tx.
+		Model(existUser).
+		Select("Avatar", "Nickname").
+		Updates(existUser).
+		Error; err != nil {
 		tx.Rollback()
 		return errors.New("updateUserFailed")
 	}
 
-	if _, err := s.assignRoles(tx, &existUser, req.RoleIds); err != nil {
+	if _, err := s.assignRoles(tx, existUser, req.RoleIds); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -229,7 +221,7 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
 	db := global.DB
 	// 先检查用户是否存在
-	err := s.checkUserExist(db, id)
+	_, err := s.checkUserExist(db, id)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +229,7 @@ func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
 	var user system.SysUser
 	err = db.
 		Preload("Roles").
-		Where("id =?", id).
+		Where("id = ?", id).
 		First(&user).Error
 	if err != nil {
 		return nil, errors.New("getUserFailed")

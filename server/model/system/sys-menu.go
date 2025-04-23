@@ -1,6 +1,9 @@
 package system
 
-import "github.com/imehc/do-exercise/server/model"
+import (
+	"github.com/imehc/do-exercise/server/model"
+	"gorm.io/gorm"
+)
 
 type SysMenu struct {
 	model.IdWrapper
@@ -17,4 +20,47 @@ type SysMenu struct {
 	Apis       []SysApi `json:"apis" gorm:"many2many:sys_menu_apis;"`
 
 	model.ControlWrapper
+}
+
+func (m *SysMenu) BeforeCreate(tx *gorm.DB) (err error) {
+	userId := tx.Statement.Context.Value("userId").(int64)
+	m.CreatedBy = userId
+	m.UpdatedBy = userId
+
+	return nil
+}
+
+func (m *SysMenu) BeforeUpdate(tx *gorm.DB) (err error) {
+	userId := tx.Statement.Context.Value("userId").(int64)
+
+	if m.UpdatedBy != userId && m.Id != 0 {
+		m.UpdatedBy = userId
+		err = tx.
+			Model(m).
+			Select("UpdatedBy").
+			Updates(m).
+			Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *SysMenu) BeforeDelete(tx *gorm.DB) (err error) {
+	if m.Id == 0 {
+		userId := tx.Statement.Context.Value("userId").(int64)
+		m.DeletedBy = userId
+		err = tx.
+			Model(m).
+			Select("DeletedBy").
+			Updates(m).
+			Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

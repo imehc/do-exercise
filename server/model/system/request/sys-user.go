@@ -12,7 +12,6 @@ type CreateSysUserReq struct {
 type UpdateSysUserReq struct {
 	Id       int64  `json:"id"`
 	Nickname string `json:"nickname"`
-	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`
 	RoleIds  []uint `json:"role_ids"`
 }

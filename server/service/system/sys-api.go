@@ -34,7 +34,6 @@ func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
 	err = db.
 		Model(existApi).
 		Select("Description", "Group", "Disabled", "Sort").
-		Where("id = ?", req.Id).
 		Updates(existApi).
 		Error
 	if err != nil {

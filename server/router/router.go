@@ -17,8 +17,12 @@ func Run() *gin.Engine {
 	common := RouterGroupApp.Common
 
 	protected := r.Group("/system")
-	protected.Use(middleware.AuthMiddleware(), middleware.CasbinHandler())
-	basic := r.Group("/")
+	protected.Use(
+		middleware.AuthMiddleware(),
+		middleware.ContextHandler(),
+		middleware.CasbinHandler(),
+	)
+	auth := r.Group("/")
 	public := r.Group("/")
 	{
 		// 健康监测
@@ -31,7 +35,7 @@ func Run() *gin.Engine {
 		system.InitSysUserRouter(protected)
 		system.InitSysMenuRouter(protected)
 		system.InitSysRoleRouter(protected)
-		common.InitAuthRouter(basic)
+		common.InitAuthRouter(auth)
 	}
 
 	return r

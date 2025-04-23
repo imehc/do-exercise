@@ -71,7 +71,6 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 	}
 	user := request.UpdateSysUserReq{
 		Id:       id,
-		Email:    req.Email,
 		Avatar:   req.Avatar,
 		Nickname: req.Nickname,
 		RoleIds:  req.RoleIds,

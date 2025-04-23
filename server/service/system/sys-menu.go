@@ -128,16 +128,14 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 // Delete 删除菜单
 func (s *SysMenuService) Delete(id uint) error {
 	db := global.DB
-	var menu system.SysMenu
-	_, err := s.checkMenuExist(db, id, false)
+	var menu *system.SysMenu
+	menu, err := s.checkMenuExist(db, id, false)
 	if err != nil {
 		return err
 	}
 
 	err = db.
-		Model(&system.SysMenu{}).
-		Where("id = ?", id).
-		Delete(&menu).
+		Delete(menu, id).
 		Error
 	if err != nil {
 		return errors.New("deleteMenuFailed")
@@ -181,9 +179,8 @@ func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 
 	if err := tx.
 		Model(system.SysMenu{}).
-		Where("id = ?", req.Id).
-		Updates(&menu).
 		Omit("id", "created_at", "created_by").
+		Updates(&menu).
 		Error; err != nil {
 		tx.Rollback()
 		return errors.New("updateMenuFailed")

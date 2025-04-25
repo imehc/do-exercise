@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
@@ -23,19 +24,19 @@ func InitI18n() {
 	// 加载所有yaml文件
 	err := filepath.Walk(i18nDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			panic(err)
+			util.Exit("", err)
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".yaml" {
 			_, err = bundle.LoadMessageFile(path)
 			if err != nil {
-				panic(fmt.Errorf("加载国际化文件失败 %s: %v", path, err))
+				util.Exit(fmt.Sprintf("加载国际化文件失败 %s:", path), err)
 			}
 		}
 		return nil
 	})
 
 	if err != nil {
-		panic(fmt.Errorf("遍历国际化目录失败: %v", err))
+		util.Exit("遍历国际化目录失败:", err)
 	}
 
 	// 初始化 global.I18n

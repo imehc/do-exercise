@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -25,7 +24,7 @@ func initSnowflake() {
 		}
 	}
 	if err := util.InitSnowflake(nodeID); err != nil {
-		panic(fmt.Sprintf("初始化雪花算法失败: %v", err))
+		util.Exit("初始化雪花算法失败: ", err)
 	}
 }
 

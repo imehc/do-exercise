@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/util"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -18,7 +19,7 @@ func InitLogger() {
 	// 创建日志目录
 	logConfig := global.Config.Logger
 	if err := os.MkdirAll(logConfig.Directory, 0755); err != nil {
-		panic(fmt.Errorf("创建日志目录失败: %v", err))
+		util.Exit("创建日志目录失败: ", err)
 	}
 
 	// 设置日志级别

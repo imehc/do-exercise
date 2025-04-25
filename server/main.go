@@ -1,23 +1,9 @@
 package main
 
 import (
-	"github.com/imehc/do-exercise/server/core"
-	"github.com/imehc/do-exercise/server/global/shared"
-	"github.com/imehc/do-exercise/server/internal"
+	"github.com/imehc/do-exercise/server/cmd"
 )
 
-func init() {
-	internal.InitConfig()
-	internal.InitLogger()
-	internal.InitGorm()
-	internal.InitRedis()
-	internal.InitI18n()
-	internal.InitCasbin()
-	internal.InitOther()
-}
-
 func main() {
-	defer shared.RSACrypto.Stop()
-
-	core.RunServer()
+	cmd.Execute()
 }

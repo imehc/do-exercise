@@ -6,6 +6,7 @@ import (
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/system"
+	"github.com/imehc/do-exercise/server/util"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -32,7 +33,7 @@ func InitGorm() {
 	// 连接数据库
 	db, err := gorm.Open(postgres.Open(dsn), config)
 	if err != nil {
-		panic(fmt.Errorf("连接数据库失败: %v", err))
+		util.Exit("连接数据库失败: ", err)
 	}
 
 	// 自动迁移数据库表
@@ -44,13 +45,13 @@ func InitGorm() {
 		system.SysApi{},
 	)
 	if err != nil {
-		panic(fmt.Errorf("自动迁移数据库表失败: %v", err))
+		util.Exit("自动迁移数据库表失败: ", err)
 	}
 
 	// 配置连接池
 	sqlDB, err := db.DB()
 	if err != nil {
-		panic(fmt.Errorf("获取数据库实例失败: %v", err))
+		util.Exit("获取数据库实例失败: ", err)
 	}
 
 	// 设置连接池参数

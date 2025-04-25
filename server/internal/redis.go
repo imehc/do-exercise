@@ -37,7 +37,7 @@ func InitRedis() {
 	ctx := context.Background()
 	_, err := client.Ping(ctx).Result()
 	if err != nil {
-		panic(fmt.Errorf("连接Redis失败: %v", err))
+		util.Exit("连接Redis失败: ", err)
 	}
 
 	// 将Redis客户端设置为全局变量

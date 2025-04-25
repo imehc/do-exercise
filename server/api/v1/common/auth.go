@@ -1,10 +1,13 @@
 package common
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/model/common"
+	"github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/common/status"
 	"github.com/imehc/do-exercise/server/model/system"
@@ -33,7 +36,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	Password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
+	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -44,7 +47,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 
 	user, err := authService.Login(common.Login{
 		Username: req.Username,
-		Password: Password,
+		Password: password,
 	})
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
@@ -134,5 +137,87 @@ func (s *AuthApi) GetCaptcha(ctx *gin.Context) {
 	response.Success(ctx, common.Captcha{
 		CaptchaId: id,
 		PicPath:   b64s,
+	})
+}
+
+// ResetPassword 忘记密码
+func (s *AuthApi) ResetPassword(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+	iRedis := global.Redis
+	context := context.Background()
+	userId := ctx.MustGet("userId").(int64)
+
+	req := &request.UserResetPasswordReq{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	user, err := userService.FindUserByEmail(req.Email)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("emailNotBound", lang),
+		})
+		return
+	}
+	if user.Id != userId {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("emailBound", lang),
+		})
+	}
+
+	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
+	var userApi UserApi
+	cache, err := userApi.getEmailCache(context, iRedis, ForgotPasswordPrefix, req.Email)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
+	defer func() {
+		_ = userApi.clearEmailCache(context, iRedis, ForgotPasswordPrefix, req.Email)
+	}()
+
+	if cache.Code != req.Code || cache.UserId != userId {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("captchaError", lang),
+		})
+		return
+	}
+
+	if err := authService.ResetPassword(request.UserResetPasswordReq{
+		Id:       userId,
+		Password: password,
+	}); err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+	response.NoContent(ctx)
+}
+
+// SendResetPasswordCode 发送忘记密码邮箱验证码
+func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
+	var userApi UserApi
+	userApi.sendEmailCode(ctx, ForgotPasswordPrefix, &util.EmailData{
+		EmailTitle:       "验证码",
+		VerificationType: "重置密码",
+		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成密码重置：",
 	})
 }

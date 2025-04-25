@@ -305,3 +305,38 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 	}
 	return result, nil
 }
+
+// ResetPassword 重置密码
+func (s *SysUserService) ResetPassword(req request.UpdateSysUserPasswordReq, oldPassword *string) error {
+	db := global.DB
+	var existUser *system.SysUser
+	existUser, err := s.checkUserExist(db, req.Id)
+	if err != nil {
+		return err
+	}
+
+	if *oldPassword != "" {
+		hash := util.Hash{Value: existUser.Password}
+		if !hash.Compare(req.Password) {
+			return errors.New("passwordError")
+		}
+	}
+
+	hash := util.Hash{Value: req.Password}
+	password, err := hash.Hash()
+	if err != nil {
+		return err
+	}
+	existUser.Password = password
+
+	// 更新密码
+	if err := db.
+		Model(existUser).
+		Select("Password").
+		Updates(existUser).
+		Error; err != nil {
+		return errors.New("resetPasswordFailed")
+	}
+
+	return nil
+}

@@ -124,6 +124,27 @@ components:
         - captcha
         - public_key
 
+    ForgetPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 邮箱
+        code:
+          type: string
+          description: 验证码
+        password:
+          type: string
+          description: 密码
+        public_key:
+          type: string
+          description: 公钥
+      required:
+        - email
+        - code
+        - password
+        - public_key
+
     MenuType:
       type: integer
       description: 菜单类型
@@ -515,7 +536,15 @@ components:
         - name
         - code
         - menus
-
+    ResetSysUserPassword:
+      type: object
+      properties:
+        password:
+          type: string
+          description: 密码
+      required:
+        - password
+    
     CreateSysUser:
       type: object
       properties:
@@ -565,6 +594,10 @@ components:
     SysUser:
       type: object
       properties:
+        id:
+          type: string
+          format: int64
+          description: ID
         username:
           type: string
           description: 用户名
@@ -584,9 +617,126 @@ components:
           items:
             $ref: "#/components/schemas/SysRole"
       required:
+        - id
         - username
         - nickname
         - roles
+
+    BindEmail:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 邮箱
+          format: email
+        code:
+          type: string
+          description: 验证码
+      required:
+        - email
+        - code
+
+    ModifyPassword:
+      type: object
+      properties:
+        old_password:
+          type: string
+          description: 旧密码
+        password:
+          type: string
+          description: 新密码
+        public_key:
+          type: string
+          description: 公钥
+      required:
+        - old_password
+        - password
+        - public_key
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 角色ID
+        name:
+          type: string
+          description: 角色名称
+      required:
+        - id
+        - name
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: int64
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        nickname:
+          type: string
+          description: 昵称
+        email:
+          type: string
+          description: 邮箱
+          format: email
+        avatar:
+          type: string
+          description: 头像
+        roles:
+          type: array
+          description: 角色信息
+          items:
+            $ref: "#/components/schemas/Role"
+      required:
+        - id
+        - username
+        - roles
+
+    UpdateUserProfile:
+      type: object
+      properties:
+        nickname:
+          type: string
+          description: 昵称
+        avatar:
+          type: string
+          description: 头像
+
+    Menu:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 菜单ID
+        name:
+          type: string
+          description: 菜单名称
+        parent_id:
+          type: integer
+          description: 父菜单ID
+        permission:
+          type: string
+          description: 权限标识
+        icon:
+          type: string
+          description: 图标
+        type:
+          $ref: "#/components/schemas/MenuType"
+          description: 菜单类型
+        route:
+          type: string
+          description: 路由
+        component:
+          type: string
+          description: 组件
+      required:
+        - id
+        - name
+        - parent_id
 
 paths:
   /public_key:
@@ -657,12 +807,47 @@ paths:
                 $ref: "#/components/schemas/Token"
           description: 刷新令牌成功
 
+  /forget_password:
+    patch:
+      summary: 忘记密码
+      operationId: forgetPassword
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgetPassword"
+      responses:
+        "204":
+          description: 重置密码成功
+
+  /forget_password_code:
+    get:
+      summary: 获取忘记密码验证码
+      operationId: getForgetPasswordCode
+      tags:
+        - auth
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        "204":
+          description: 获取成功
+
   /system/apis/{id}:
     get:
       summary: 获取API信息
       operationId: findApi
       tags:
         - system-api
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -681,6 +866,8 @@ paths:
       operationId: updateApi
       tags:
         - system-api
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -703,6 +890,8 @@ paths:
       operationId: findApis
       tags:
         - system-api
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: page
           in: query
@@ -738,6 +927,8 @@ paths:
       operationId: findAllApis
       tags:
         - system-api
+      security:
+        - apiKeyAuth: []
       responses:
         "200":
           content:
@@ -748,12 +939,14 @@ paths:
                   $ref: "#/components/schemas/SysApi"
           description: "获取成功"
 
-  /system/apis/group-type:
+  /system/apis/group_type:
     get:
       summary: 获取API分组类型
       operationId: findApiGroupType
       tags:
         - system-api
+      security:
+        - apiKeyAuth: []
       responses:
         "200":
           content:
@@ -770,6 +963,8 @@ paths:
       operationId: findMenu
       tags:
         - system-menu
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -788,6 +983,8 @@ paths:
       operationId: updateMenu
       tags:
         - system-menu
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -808,6 +1005,8 @@ paths:
       operationId: deleteMenu
       tags:
         - system-menu
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -823,6 +1022,8 @@ paths:
       operationId: createMenu
       tags:
         - system-menu
+      security:
+        - apiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -838,6 +1039,8 @@ paths:
       operationId: findMenuTree
       tags:
         - system-menu
+      security:
+        - apiKeyAuth: []
       responses:
         "200":
           content:
@@ -854,6 +1057,8 @@ paths:
       operationId: findRole
       tags:
         - system-role
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -872,6 +1077,8 @@ paths:
       operationId: updateRole
       tags:
         - system-role
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -892,6 +1099,8 @@ paths:
       operationId: deleteRole
       tags:
         - system-role
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -907,6 +1116,8 @@ paths:
       operationId: createRole
       tags:
         - system-role
+      security:
+        - apiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -921,6 +1132,8 @@ paths:
       operationId: findRoles
       tags:
         - system-role
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: page
           in: query
@@ -960,6 +1173,8 @@ paths:
       operationId: findUser
       tags:
         - system-user
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -978,6 +1193,8 @@ paths:
       operationId: updateUser
       tags:
         - system-user
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -998,6 +1215,8 @@ paths:
       operationId: deleteUser
       tags:
         - system-user
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -1013,6 +1232,8 @@ paths:
       operationId: createUser
       tags:
         - system-user
+      security:
+        - apiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -1027,6 +1248,8 @@ paths:
       operationId: findUsers
       tags:
         - system-user
+      security:
+        - apiKeyAuth: []
       parameters:
         - name: page
           in: query
@@ -1056,3 +1279,153 @@ paths:
                   - data
           description: "获取成功"
       
+
+  /system/users/{id}/reset_password:
+    put:
+      summary: 重置用户密码
+      operationId: resetUserPassword
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetSysUserPassword"
+      responses:
+        "204":
+          description: "重置成功"
+
+  /user/bind_email_code:
+    get:
+      summary: 获取绑定邮箱验证码
+      operationId: getBindEmailCode
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      responses:
+        "204":
+          description: "获取成功"
+  /user/bind_email:
+    patch:
+      summary: 绑定邮箱
+      operationId: bindEmail
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BindEmail"
+      responses:
+        "204":
+          description: "绑定成功"
+
+  /user/rebind_email_code:
+    get:
+      summary: 获取更换邮箱验证码
+      operationId: getRebindEmailCode
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      responses:
+        "204":
+          description: "获取成功"
+  /user/rebind_email:
+    patch:
+      summary: 更换邮箱
+      operationId: rebindEmail
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BindEmail"
+      responses:
+        "204":
+          description: "更换成功"
+
+  /user/modify_password:
+    patch:
+      summary: 修改密码
+      operationId: modifyPassword
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModifyPassword"
+      responses:
+        "204":
+          description: "修改成功"
+
+  /user/profile:
+    get:
+      summary: 获取用户信息
+      operationId: getUserProfile
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+          description: "获取成功"
+    put:
+      summary: 更新用户信息
+      operationId: updateUserProfile
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfile"
+      responses:
+        "204":
+          description: "更新成功"
+
+  /user/menu:
+    get:
+      summary: 获取用户菜单
+      operationId: getUserMenu
+      tags:
+        - user
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Menu"
+          description: "获取成功"

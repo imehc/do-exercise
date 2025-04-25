@@ -15,3 +15,8 @@ type UpdateSysUserReq struct {
 	Avatar   string `json:"avatar"`
 	RoleIds  []uint `json:"role_ids"`
 }
+
+type UpdateSysUserPasswordReq struct {
+	Id       int64  `json:"id"`
+	Password string `json:"password" binding:"required,min=6,max=16,complexPassword"`
+}

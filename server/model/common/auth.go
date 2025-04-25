@@ -16,3 +16,9 @@ type LoginReq struct {
 	CaptchaId string `json:"captcha_id" binding:"required"`
 	PublicKey string `json:"public_key"`
 }
+
+type ResetPasswordReq struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+	Code     string `json:"code" binding:"required"`
+}

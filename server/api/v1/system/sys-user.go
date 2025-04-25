@@ -125,3 +125,30 @@ func (s *SysUserApi) GetList(ctx *gin.Context) {
 	}
 	response.Success(ctx, data)
 }
+
+// ResetPassword 重置密码
+func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+	id := cast.ToInt64(ctx.Param("id"))
+	if id == 0 {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("idCannotBeEmpty", lang),
+		})
+		return
+	}
+	var req request.UpdateSysUserPasswordReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.Error(err)
+		return
+	}
+	err := userService.ResetPassword(req, nil)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+	response.NoContent(ctx)
+}

@@ -11,7 +11,7 @@ func (s *SysApiRouter) InitSysApiRouter(r *gin.RouterGroup) gin.IRoutes {
 		router.GET(":id", sysApiApi.Get)                 // 获取单个api
 		router.GET("", sysApiApi.GetList)                // 获取api列表
 		router.GET("all", sysApiApi.GetAll)              // 获取所有api
-		router.GET("group-type", sysApiApi.GetGroupType) // 获取分组类型
+		router.GET("group_type", sysApiApi.GetGroupType) // 获取分组类型
 
 	}
 	return router

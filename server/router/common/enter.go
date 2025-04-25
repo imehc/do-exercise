@@ -8,4 +8,5 @@ type RouterGroup struct {
 
 var (
 	authApi = api.ApiGroupApp.CommonApiGroup.AuthApi
+	userApi = api.ApiGroupApp.CommonApiGroup.UserApi
 )

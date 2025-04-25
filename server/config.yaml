@@ -24,9 +24,9 @@ logger:
 database:
   host: 127.0.0.1
   port: 5432
-  database: echo-admin
-  username: admin
-  password: admin2025
+  database: xxxx-db
+  username: xxxx
+  password: xxxxxxxx
   pool:
     max_connections: 100
     min_connections: 10
@@ -54,3 +54,18 @@ captcha:
   img_width: 240
   img_height: 80
   captcha_timeout: 60 # open-captcha大于0时才生效
+
+minio:
+  host: localhost
+  port: 9000
+  access_key: xxxxxxxx
+  secret_key: xxxxxxxx
+  bucket_name: do-exercise
+  expires: 3600
+
+# email
+email:
+  host: smtp.qq.com
+  port: 587
+  user: xxxxxx@foxmail.com
+  pass: xxxxxxxx

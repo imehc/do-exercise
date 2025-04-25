@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮箱验证码</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #4a6bff;
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .verification-type {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #e8f0fe;
+            color: #4a6bff;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .verification-code {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            margin: 25px 0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #4a6bff;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #999;
+            background-color: #f9f9f9;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .expire-info {
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{.EmailTitle}}</h1>
+        </div>
+
+        <div class="content">
+            <div class="verification-type">
+                <!-- 验证类型将在这里显示 -->
+                {{.VerificationType}}
+            </div>
+
+            <p>您好，</p>
+            <p>{{.GreetingText}}</p>
+
+            <div class="verification-code">
+                <!-- 验证码将在这里显示 -->
+                {{.VerificationCode}}
+            </div>
+
+            <p>请在<span class="expire-info">{{.Minute }}分钟</span>内使用此验证码完成验证。</p>
+            <p>如果您没有请求此验证码，请忽略此邮件。</p>
+
+            <div class="note">
+                <p>此邮件由系统自动发送，请勿直接回复。如有任何问题，请联系我们的客服团队。</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2023 您的公司名称. 保留所有权利</p>
+            <p>地址：您的公司地址</p>
+        </div>
+    </div>
+</body>
+
+</html>

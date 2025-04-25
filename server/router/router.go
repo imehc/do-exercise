@@ -22,7 +22,15 @@ func Run() *gin.Engine {
 		middleware.ContextHandler(),
 		middleware.CasbinHandler(),
 	)
+
+	noAuth := r.Group("/")
+
 	auth := r.Group("/")
+	auth.Use(
+		middleware.AuthMiddleware(),
+		middleware.ContextHandler(),
+	)
+
 	public := r.Group("/")
 	{
 		// 健康监测
@@ -35,7 +43,8 @@ func Run() *gin.Engine {
 		system.InitSysUserRouter(protected)
 		system.InitSysMenuRouter(protected)
 		system.InitSysRoleRouter(protected)
-		common.InitAuthRouter(auth)
+		common.InitAuthRouter(noAuth)
+		common.InitUserRouter(auth)
 	}
 
 	return r

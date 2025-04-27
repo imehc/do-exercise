@@ -1,3 +1,4 @@
+tooManyRequests: "Too many requests"
 badRequest: "Failed to process request"
 serverError: "Failed to process server operation"
 notFound: "Failed to find resource"

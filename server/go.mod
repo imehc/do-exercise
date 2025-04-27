@@ -71,6 +71,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-playground/validator/v10 v10.25.0
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/juju/ratelimit v1.0.2
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mojocn/base64Captcha v1.3.8

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/global"
 )
 
 // Response 响应处理
@@ -35,6 +36,13 @@ func NoContent(c *gin.Context) {
 // BadRequest 请求错误响应
 func BadRequest(c *gin.Context, value ValidationError) {
 	Response(c, http.StatusBadRequest, value)
+}
+
+// StatusTooManyRequests 访问过于频繁
+func StatusTooManyRequests(c *gin.Context) {
+	lang := c.GetString("lang")
+	text := global.I18.Translate("tooManyRequests", lang)
+	Response(c, http.StatusTooManyRequests, text)
 }
 
 // Unauthorized 未授权响应

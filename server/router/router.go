@@ -12,6 +12,7 @@ func Run() *gin.Engine {
 
 	r.Use(gin.Recovery())
 	r.Use(middleware.ValidaterMiddleware())
+	r.Use(middleware.IpLimitHandler)
 
 	system := RouterGroupApp.System
 	common := RouterGroupApp.Common

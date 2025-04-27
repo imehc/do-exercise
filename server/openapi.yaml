@@ -739,7 +739,7 @@ components:
         - parent_id
 
 paths:
-  /public_key:
+  /auth/public_key:
     get:
       summary: 获取公钥
       operationId: getPublicKey
@@ -753,7 +753,7 @@ paths:
                 $ref: "#/components/schemas/PublicKey"
           description: "获取成功"
 
-  /captcha:
+  /auth/captcha:
     get:
       summary: 获取验证码
       operationId: getCaptcha
@@ -767,7 +767,7 @@ paths:
                 $ref: "#/components/schemas/Captcha"
           description: "获取成功"
 
-  /login:
+  /auth/login:
     post:
       summary: 登录
       operationId: login
@@ -787,7 +787,7 @@ paths:
                 $ref: "#/components/schemas/Token"
           description: "登录成功"
 
-  /refresh_token:
+  /auth/refresh_token:
     get:
       summary: 刷新令牌
       operationId: refreshToken
@@ -807,7 +807,7 @@ paths:
                 $ref: "#/components/schemas/Token"
           description: 刷新令牌成功
 
-  /forget_password:
+  /auth/forget_password:
     patch:
       summary: 忘记密码
       operationId: forgetPassword
@@ -823,7 +823,7 @@ paths:
         "204":
           description: 重置密码成功
 
-  /forget_password_code:
+  /auth/forget_password_code:
     get:
       summary: 获取忘记密码验证码
       operationId: getForgetPasswordCode

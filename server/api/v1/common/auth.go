@@ -65,7 +65,8 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		response.ServerError(ctx)
 	}
 	baseConf := util.Token{
-		UserId: user.Id,
+		UserId:   user.Id,
+		Username: user.Username,
 		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
 			return item.Id
 		}),

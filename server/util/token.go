@@ -21,14 +21,16 @@ const (
 
 type Token struct {
 	UserId            int64
+	Username          string
 	RoleIds           []uint
 	ExpireTime        time.Duration
 	RefreshExpireTime time.Duration
 }
 
 type refreshInfo struct {
-	UserId  int64  `json:"user_id"`
-	RoleIds []uint `json:"role_ids"`
+	UserId   int64  `json:"user_id"`
+	Username string `json:"username"`
+	RoleIds  []uint `json:"role_ids"`
 }
 
 func (t *Token) GenerateToken() (common.Token, error) {
@@ -44,6 +46,7 @@ func (t *Token) GenerateToken() (common.Token, error) {
 	ctx := context.Background()
 	tokenInfoJson, err := json.Marshal(model.Auth{
 		UserID:       t.UserId,
+		Username:     t.Username,
 		RoleIds:      t.RoleIds,
 		RefreshToken: refreshToken,
 	})
@@ -51,8 +54,9 @@ func (t *Token) GenerateToken() (common.Token, error) {
 		return common.Token{}, err
 	}
 	refreshTokenJson, err := json.Marshal(refreshInfo{
-		UserId:  t.UserId,
-		RoleIds: t.RoleIds,
+		UserId:   t.UserId,
+		Username: t.Username,
+		RoleIds:  t.RoleIds,
 	})
 
 	pipe := global.Redis.Pipeline()
@@ -105,6 +109,7 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 
 	tokenInfoJson, err := json.Marshal(model.Auth{
 		UserID:       refreshTokenInfo.UserId,
+		Username:     refreshTokenInfo.Username,
 		RoleIds:      refreshTokenInfo.RoleIds,
 		RefreshToken: refreshToken,
 	})

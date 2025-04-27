@@ -8,7 +8,7 @@ import (
 
 type SysUser struct {
 	Id       int64     `json:"id" gorm:"primarykey;comment:主键"`
-	Username string    `json:"username" gorm:"not null;unique;comment:用户名"`
+	Username string    `json:"username" gorm:"not null;unique;size:16;comment:用户名"`
 	Nickname string    `json:"nickname" gorm:"comment:昵称"`
 	Email    string    `json:"email" gorm:"unique;comment:邮箱"`
 	Avatar   string    `json:"avatar" gorm:"comment:头像"`

@@ -271,24 +271,31 @@ func (s *SysMenuService) GetTree() ([]response.SysMenuTreeResp, error) {
 
 	// 构建树结构
 	var rootMenus []response.SysMenuTreeResp
-	for _, m := range menus {
-		node := menuMap[m.Id]
-		if *m.ParentId == 0 {
-			// parentId为0的是根节点
-			rootMenus = append(rootMenus, *node)
-		} else if parent, ok := menuMap[*m.ParentId]; ok {
-			// 将子节点添加到父节点的children中
-			parent.Children = append(parent.Children, *node)
+	// 使用map记录已处理的节点，避免重复处理
+	processed := make(map[uint]bool)
+
+	// 递归构建子树的函数
+	var buildSubTree func(uint) []response.SysMenuTreeResp
+	buildSubTree = func(parentId uint) []response.SysMenuTreeResp {
+		children := make([]response.SysMenuTreeResp, 0)
+		for _, m := range menus {
+			if *m.ParentId == parentId && !processed[m.Id] {
+				node := *menuMap[m.Id]
+				// 递归获取子节点
+				node.Children = buildSubTree(m.Id) // 递归调用buildSubTree获取子节点
+				// 对子节点排序
+				sortMenus(node.Children)
+				children = append(children, node)
+				processed[m.Id] = true
+			}
 		}
+		// 对当前层级排序
+		sortMenus(children)
+		return children
 	}
 
-	// 对根菜单按Sort排序
-	sortMenus(rootMenus)
-
-	// 对每个节点的子菜单进行排序
-	for _, menu := range menuMap {
-		sortMenus(menu.Children)
-	}
+	// 从根节点开始构建树
+	rootMenus = buildSubTree(0)
 
 	return rootMenus, nil
 }

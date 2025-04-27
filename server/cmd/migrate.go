@@ -36,6 +36,7 @@ var migrateCmd = &cobra.Command{
 		internal.InitConfig(configFile)
 		// 获取数据库连接
 		internal.InitGorm()
+		internal.InitCasbin()
 		db := global.DB
 		// 执行SQL
 		fmt.Printf("正在执行SQL文件: %s\n", filepath.Base(sqlFile))

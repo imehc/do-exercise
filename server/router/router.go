@@ -12,7 +12,7 @@ func Run() *gin.Engine {
 
 	r.Use(gin.Recovery())
 	r.Use(middleware.ValidaterMiddleware())
-	r.Use(middleware.IpLimitHandler)
+	r.Use(middleware.IpLimitMiddleware)
 
 	system := RouterGroupApp.System
 	common := RouterGroupApp.Common
@@ -20,8 +20,8 @@ func Run() *gin.Engine {
 	protected := r.Group("/system")
 	protected.Use(
 		middleware.AuthMiddleware(),
-		middleware.ContextHandler(),
-		middleware.CasbinHandler(),
+		middleware.ContextMiddleware(),
+		middleware.CasbinMiddleware(),
 	)
 
 	noAuth := r.Group("/")
@@ -29,7 +29,7 @@ func Run() *gin.Engine {
 	auth := r.Group("/")
 	auth.Use(
 		middleware.AuthMiddleware(),
-		middleware.ContextHandler(),
+		middleware.ContextMiddleware(),
 	)
 
 	public := r.Group("/")

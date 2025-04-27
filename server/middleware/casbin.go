@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cast"
 )
 
-// CasbinHandler 基于Casbin的权限验证中间件
-func CasbinHandler() gin.HandlerFunc {
+// CasbinMiddleware 基于Casbin的权限验证中间件
+func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		obj := c.Request.URL.Path
 		act := c.Request.Method

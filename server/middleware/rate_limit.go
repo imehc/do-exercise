@@ -21,8 +21,8 @@ var (
 	timeWindow     = 1 * time.Second               // 时间窗口
 )
 
-// IP限流器
-func IpLimitHandler(c *gin.Context) {
+// IpLimitMiddleware IP限流器
+func IpLimitMiddleware(c *gin.Context) {
 	ip := c.ClientIP()
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -52,8 +52,8 @@ func IpLimitHandler(c *gin.Context) {
 	c.Next()
 }
 
-// RateLimitHandler 限流中间件
-func RateLimitHandler(time time.Duration, originNum, pushNum int64) gin.HandlerFunc {
+// RateLimitMiddleware 限流中间件
+func RateLimitMiddleware(time time.Duration, originNum, pushNum int64) gin.HandlerFunc {
 	bucket := ratelimit.NewBucketWithQuantum(time, originNum, pushNum)
 	return func(c *gin.Context) {
 		if bucket.TakeAvailable(1) < 1 {

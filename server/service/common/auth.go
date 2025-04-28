@@ -8,6 +8,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/util"
+	"go.uber.org/zap"
 )
 
 type AuthService struct{}
@@ -20,6 +21,7 @@ func (s *AuthService) Login(req common.Login) (system.SysUser, error) {
 		First(existUser).
 		Error
 	if err != nil {
+		global.Log.Error("登录失败", zap.Error(err))
 		return system.SysUser{}, errors.New("userNotFound")
 	}
 	hash := util.Hash{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/util"
@@ -16,8 +17,30 @@ func InitCasbin() {
 	if err != nil {
 		util.Exit("初始化casbin适配器失败: ", err)
 	}
+
+	m := model.NewModel()
+
+	casbinModelText := `
+	[request_definition]
+	r = sub, obj, act
+
+	[policy_definition]
+	p = sub, obj, act
+
+	[role_definition]
+	g = _, _
+
+	[policy_effect]
+	e = some(where (p.eft == allow))
+
+	[matchers]
+	m = g(r.sub, p.sub) && keyMatch2(r.obj, p.obj) && regexMatch(r.act, p.act)
+	`
+
+	m.LoadModelFromText(casbinModelText) // 加载上面的模型
 	// 从文件加载casbin模型
-	enforcer, err := casbin.NewEnforcer("config/rbac_model.conf", adapter)
+	// enforcer, err := casbin.NewEnforcer("config/rbac_model.conf", adapter)
+	enforcer, err := casbin.NewEnforcer(m, adapter)
 	if err != nil {
 		util.Exit("初始化casbin失败: ", err)
 	}

@@ -22,14 +22,19 @@ func Run() *gin.Engine {
 		middleware.AuthMiddleware(),
 		middleware.ContextMiddleware(),
 		middleware.CasbinMiddleware(),
+		middleware.OperationLogMiddleware(),
 	)
 
 	noAuth := r.Group("/")
+	noAuth.Use(
+		middleware.OperationLogMiddleware(),
+	)
 
 	auth := r.Group("/")
 	auth.Use(
 		middleware.AuthMiddleware(),
 		middleware.ContextMiddleware(),
+		middleware.OperationLogMiddleware(),
 	)
 
 	public := r.Group("/")
@@ -44,6 +49,7 @@ func Run() *gin.Engine {
 		system.InitSysUserRouter(protected)
 		system.InitSysMenuRouter(protected)
 		system.InitSysRoleRouter(protected)
+		system.InitSysOperationLogRouter(protected)
 		common.InitAuthRouter(noAuth)
 		common.InitUserRouter(auth)
 	}

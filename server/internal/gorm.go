@@ -43,6 +43,7 @@ func InitGorm() {
 		system.SysMenu{},
 		system.SysRole{},
 		system.SysApi{},
+		system.SysOperationLog{},
 	)
 	if err != nil {
 		util.Exit("自动迁移数据库表失败: ", err)

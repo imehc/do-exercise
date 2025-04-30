@@ -5,4 +5,5 @@ type ServiceGroup struct {
 	SysMenuService
 	SysRoleService
 	SysApiService
+	SysOperationLogService
 }

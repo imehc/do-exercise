@@ -7,11 +7,13 @@ type RouterGroup struct {
 	SysMenuRouter
 	SysRoleRouter
 	SysApiRouter
+	SysOperationLogRouter
 }
 
 var (
-	sysUserApi = api.ApiGroupApp.SystemApiGroup.SysUserApi
-	sysMenuApi = api.ApiGroupApp.SystemApiGroup.SysMenuApi
-	sysRoleApi = api.ApiGroupApp.SystemApiGroup.SysRoleApi
-	sysApiApi  = api.ApiGroupApp.SystemApiGroup.SysApiApi
+	sysUserApi         = api.ApiGroupApp.SystemApiGroup.SysUserApi
+	sysMenuApi         = api.ApiGroupApp.SystemApiGroup.SysMenuApi
+	sysRoleApi         = api.ApiGroupApp.SystemApiGroup.SysRoleApi
+	sysApiApi          = api.ApiGroupApp.SystemApiGroup.SysApiApi
+	sysOperationLogApi = api.ApiGroupApp.SystemApiGroup.SysOperationLogApi
 )

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/imehc/do-exercise/server/core"
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/internal"
 	"github.com/spf13/cobra"
@@ -19,6 +20,11 @@ var serverCmd = &cobra.Command{
 
 		// 启动服务器
 		defer shared.RSACrypto.Stop()
+		search := global.Searcher
+		if search != nil {
+			defer search.Close()
+		}
+
 		core.RunServer()
 	},
 }

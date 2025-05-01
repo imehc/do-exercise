@@ -203,6 +203,23 @@ components:
         - page_size
         - total
 
+    Oss:
+      type: object
+      properties:
+        put_object_url:
+          type: string
+          description: 上传对象URL
+        get_object_url:
+          type: string
+          description: 预签名URL
+        expires:
+          type: integer
+          format: int64
+          description: 过期时间戳(秒)
+      required:
+        - url
+        - expires
+
     UpdateSysApi:
       type: object
       properties:
@@ -839,6 +856,29 @@ paths:
       responses:
         "204":
           description: 获取成功
+  
+  /get_presigned_url:
+    get:
+      summary: 获取预签名上传URL
+      operationId: getPresignedUrl
+      tags:
+        - oss
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: file_name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 文件名
+      responses:
+        "200":
+          description: "获取成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Oss"
 
   /system/apis/{id}:
     get:

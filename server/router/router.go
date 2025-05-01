@@ -11,6 +11,7 @@ func Run() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(gin.Recovery())
+	r.Use(middleware.OperationLogMiddleware())
 	r.Use(middleware.ValidaterMiddleware())
 	r.Use(middleware.IpLimitMiddleware)
 
@@ -22,19 +23,14 @@ func Run() *gin.Engine {
 		middleware.AuthMiddleware(),
 		middleware.ContextMiddleware(),
 		middleware.CasbinMiddleware(),
-		middleware.OperationLogMiddleware(),
 	)
 
 	noAuth := r.Group("/")
-	noAuth.Use(
-		middleware.OperationLogMiddleware(),
-	)
 
 	auth := r.Group("/")
 	auth.Use(
 		middleware.AuthMiddleware(),
 		middleware.ContextMiddleware(),
-		middleware.OperationLogMiddleware(),
 	)
 
 	public := r.Group("/")
@@ -52,6 +48,7 @@ func Run() *gin.Engine {
 		system.InitSysOperationLogRouter(protected)
 		common.InitAuthRouter(noAuth)
 		common.InitUserRouter(auth)
+		common.InitOssRouter(auth)
 	}
 
 	return r

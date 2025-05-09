@@ -15,7 +15,6 @@ var serverCmd = &cobra.Command{
 	Short: "启动服务器",
 	Long:  `启动do-exercise后端服务器。`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// 初始化所有组件
 		initComponents()
 
 		// 启动服务器
@@ -37,7 +36,7 @@ func init() {
 	rootCmd.AddCommand(serverCmd)
 }
 
-// initComponents 初始化所有组件
+// initComponents 初始化所有服务
 func initComponents() {
 	internal.InitConfig(configFile)
 	internal.InitLogger()
@@ -45,6 +44,6 @@ func initComponents() {
 	internal.InitRedis()
 	internal.InitI18n()
 	internal.InitCasbin()
-	internal.InitMinio()
+	// internal.InitMinio()
 	internal.InitOther()
 }

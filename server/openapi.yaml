@@ -220,6 +220,19 @@ components:
         - url
         - expires
 
+    SSEMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 消息类型
+        content:
+          type: string
+          description: 消息内容
+      required:
+        - type
+        - content
+
     UpdateSysApi:
       type: object
       properties:
@@ -879,6 +892,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Oss"
+
+  /sse:
+    get:
+      summary: 建立SSE连接
+      operationId: establishSSEConnection
+      tags:
+        - sse
+      responses:
+        "200":
+          description: SSE连接建立成功
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/SSEMessage"
 
   /system/apis/{id}:
     get:

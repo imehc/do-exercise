@@ -37,7 +37,10 @@ INSERT INTO sys_api VALUES(33, '/auth/refresh_token', '刷新令牌', 'COMMON', 
 INSERT INTO sys_api VALUES(34, '/auth/forget_password_code', '发送忘记密码验证码', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(35, '/auth/forget_password', '忘记密码', 'COMMON', 'PATCH', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
-INSERT INTO sys_api VALUES(36, '/health', '获取服务器状态', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(36, '/get_presigned_url', '获取预上传文件地址', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(37, '/sse', 'SSE消息通知', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+
+INSERT INTO sys_api VALUES(38, '/health', '获取服务器状态', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 -- 菜单数据;
 INSERT INTO sys_menu VALUES(1, '系统管理', 0, NULL, NULL, 1, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
 INSERT INTO sys_menu VALUES(2, 'API管理', 1, NULL, NULL, 2, '/api', '/api/page.tsx', 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);

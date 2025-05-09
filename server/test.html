@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Client</title>
+</head>
+<body>
+<script>
+// 使用 EventSource 连接
+const es = new EventSource('http://localhost:6020/sse?user_id=123');
+
+// 监听特定事件
+es.addEventListener('notification', (e) => {
+  console.log('Notification:', e.data);
+});
+
+// 监听所有消息
+es.onmessage = (e) => {
+  console.log('Message:', e.data);
+};
+
+// 错误处理
+es.onerror = (e) => {
+  console.error('SSE Error:', e);
+  // 自动重连
+};
+</script>
+</body>
+</html>
+  

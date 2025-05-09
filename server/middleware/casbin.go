@@ -16,7 +16,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 		userIdString, exists := c.Get("userId")
 		sub := cast.ToString(userIdString)
 		if !exists || sub == "" {
-			response.Forbidden(c)
+			response.Unauthorized(c)
 			c.Abort()
 			return
 		}

@@ -387,6 +387,108 @@ components:
         - created_at
         - updated_at
 
+    SysInfoWithOs:
+      type: object
+      properties:
+        goos:
+          type: string
+          description: 操作系统
+        num_cpu:
+          type: integer
+          description: CPU数量
+        compiler:
+          type: string
+          description: 编译器
+        go_version:
+          type: string
+          description: Go版本
+        num_goroutine:
+          type: integer
+          description: 协程数量
+      required:
+        - goos
+        - num_cpu
+        - compiler
+        - go_version
+        - num_goroutine
+
+    SysInfoWithCpu:
+      type: object
+      properties:
+        cpus:
+          type: array
+          description: cpu信息
+          items: 
+            type: integer
+            description: cpu信息
+        cores:
+          type: integer
+          description: cpu核数
+      required:
+        - cpus
+        - cores
+
+    SysInfoWithRam:
+      type: object
+      properties:
+        used:
+          type: integer
+          description: 已使用内存(MB)
+        total:
+          type: integer
+          description: 总内存(MB)
+        used_percent:
+          type: integer
+          description: 已使用百分比
+      required:
+        - used
+        - total
+        - used_percent
+
+    SysInfoWithDisk:
+      type: object
+      properties:
+        mount_point:
+          type: string
+          description: 磁盘路径
+        used:
+          type: integer
+          description: 已使用内存(MB)
+        total:
+          type: integer
+          description: 总内存(MB)
+        use_dpercent:
+          type: integer
+          description: 已使用内存百分比
+      required:
+        - mount_point
+        - used
+        - total
+        - use_dpercent
+
+    SysInfo:
+      type: object
+      properties:
+        os:
+          $ref: '#/components/schemas/SysInfoWithOs'
+          description: 系统信息
+        cpu:
+          $ref: '#/components/schemas/SysInfoWithCpu'
+          description: CPU信息
+        ram:
+          $ref: '#/components/schemas/SysInfoWithRam'
+          description: 内存信息
+        disks:
+          type: array
+          description: 磁盘信息
+          items: 
+            $ref: '#/components/schemas/SysInfoWithDisk'
+      required:
+        - os
+        - cpu
+        - ram
+        - disks
+
     UpdateSysApi:
       type: object
       properties:
@@ -1111,6 +1213,22 @@ paths:
       responses:
         "204":
           description: 删除成功
+
+  /system/info:
+    get:
+      summary: 获取系统信息
+      operationId: getSystemInfo
+      tags:
+        - system-info
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/SysInfo"
 
   /system/logs:
     get:

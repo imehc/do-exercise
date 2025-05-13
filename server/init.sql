@@ -24,6 +24,7 @@ INSERT INTO sys_api VALUES(22, '/system/logs', '获取操作日志', 'SYSTEM', '
 INSERT INTO sys_api VALUES(23, '/system/token/all', '获取所有令牌', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(24, '/system/token', '删除指定令牌', 'SYSTEM', 'DELETE', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(25, '/system/token', '更新指定令牌状态', 'SYSTEM', 'PATCH', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(26, '/system/info', '获取系统运行信息', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
 INSERT INTO sys_api VALUES(101, '/user/profile', '用户获取基本信息', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(102, '/user/profile', '用户更新基本信息', 'COMMON', 'PUT', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
@@ -45,6 +46,9 @@ INSERT INTO sys_api VALUES(115, '/get_presigned_url', '获取预上传文件地�
 INSERT INTO sys_api VALUES(116, '/sse', 'SSE消息通知', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
 INSERT INTO sys_api VALUES(119, '/health', '获取服务器状态', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+
+SELECT setval(pg_get_serial_sequence('sys_api', 'id'), (SELECT MAX(id) FROM sys_api)); -- 重置自增序列;
+
 -- 菜单数据;
 INSERT INTO sys_menu VALUES(1, '系统管理', 0, NULL, NULL, 1, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
 INSERT INTO sys_menu VALUES(2, 'API管理', 1, NULL, NULL, 2, '/api', '/api/page.tsx', 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
@@ -71,6 +75,11 @@ INSERT INTO sys_menu VALUES(7, '令牌管理', 1, NULL, NULL, 2, '/token', '/tok
 INSERT INTO sys_menu VALUES(151, '查询', 7, 'token:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
 INSERT INTO sys_menu VALUES(152, '删除', 7, 'token:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
 INSERT INTO sys_menu VALUES(153, '更新', 7, 'token:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
+INSERT INTO sys_menu VALUES(8, '系统信息', 1, NULL, NULL, 2, '/system-info', '/system-info/page.tsx', 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
+INSERT INTO sys_menu VALUES(161, '查询', 8, 'system-info:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
+
+SELECT setval(pg_get_serial_sequence('sys_menu', 'id'), (SELECT MAX(id) FROM sys_menu)); -- 重置自增序列;
+
 -- 菜单关联api数据;
 INSERT INTO sys_menu_apis VALUES(101, 1);
 INSERT INTO sys_menu_apis VALUES(102, 2);
@@ -97,9 +106,14 @@ INSERT INTO sys_menu_apis VALUES(151, 22);
 INSERT INTO sys_menu_apis VALUES(152, 23);
 INSERT INTO sys_menu_apis VALUES(153, 24);
 INSERT INTO sys_menu_apis VALUES(153, 25);
+INSERT INTO sys_menu_apis VALUES(161, 26);
+
 -- 角色数据;
 INSERT INTO sys_role VALUES(1, '管理员', 'system', '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
 INSERT INTO sys_role VALUES(2, '普通用户', 'normal', '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
+
+SELECT setval(pg_get_serial_sequence('sys_role', 'id'), (SELECT MAX(id) FROM sys_role)); -- 重置自增序列;
+
 -- 角色关联菜单数据;
 INSERT INTO sys_role_menu VALUES(1, 1);
 INSERT INTO sys_role_menu VALUES(1, 2);
@@ -126,8 +140,13 @@ INSERT INTO sys_role_menu VALUES(1, 7);
 INSERT INTO sys_role_menu VALUES(1, 151);
 INSERT INTO sys_role_menu VALUES(1, 152);
 INSERT INTO sys_role_menu VALUES(1, 153);
+INSERT INTO sys_role_menu VALUES(1, 8);
+INSERT INTO sys_role_menu VALUES(1, 161);
 -- 用户数据;
 INSERT INTO sys_user VALUES(12345678910, 'admin', '我是管理员', NULL, NULL, '$2a$10$gI7PJi4gyTc.sG2m5ZgbcO/I0E8nLkW2AHhWFxGMaCogU2H/E3YzC', '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
+
+SELECT setval(pg_get_serial_sequence('sys_user', 'id'), (SELECT MAX(id) FROM sys_user)); -- 重置自增序列;
+
 -- 用户关联角色数据;
 INSERT INTO sys_user_role VALUES(12345678910, 1);
 -- casbin数据;
@@ -155,5 +174,8 @@ INSERT INTO casbin_rule VALUES(121, 'p', 'system', '/system/logs', 'GET', NULL, 
 INSERT INTO casbin_rule VALUES(122, 'p', 'system', '/system/token/all', 'GET', NULL, NULL, NULL);
 INSERT INTO casbin_rule VALUES(123, 'p', 'system', '/system/token', 'DELETE', NULL, NULL, NULL);
 INSERT INTO casbin_rule VALUES(124, 'p', 'system', '/system/token', 'PATCH', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(125, 'p', 'system', '/system/info', 'GET', NULL, NULL, NULL);
 
 INSERT INTO casbin_rule VALUES(1, 'g', '12345678910', 'system', NULL, NULL, NULL, NULL);
+
+SELECT setval(pg_get_serial_sequence('casbin_rule', 'id'), (SELECT MAX(id) FROM casbin_rule)); -- 重置自增序列;

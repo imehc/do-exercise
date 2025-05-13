@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/util"
 	"gorm.io/gorm"
@@ -30,7 +31,7 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Password = password
 
 	ctx := tx.Statement.Context
-	userId := ctx.Value("userId").(int64)
+	userId := ctx.Value(global.ContextUserIDKey).(int64)
 	u.CreatedBy = userId
 	u.UpdatedBy = userId
 
@@ -38,7 +39,7 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value("userId").(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
 
 	if u.UpdatedBy != userId && u.Id != 0 {
 		u.UpdatedBy = userId
@@ -57,7 +58,7 @@ func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
 
 func (u *SysUser) BeforeDelete(tx *gorm.DB) (err error) {
 	if u.Id != 0 {
-		userId := tx.Statement.Context.Value("userId").(int64)
+		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
 		u.DeletedBy = userId
 		err = tx.
 			Model(u).

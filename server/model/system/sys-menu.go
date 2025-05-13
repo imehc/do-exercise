@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"gorm.io/gorm"
 )
@@ -23,7 +24,7 @@ type SysMenu struct {
 }
 
 func (m *SysMenu) BeforeCreate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value("userId").(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
 	m.CreatedBy = userId
 	m.UpdatedBy = userId
 
@@ -31,7 +32,7 @@ func (m *SysMenu) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (m *SysMenu) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value("userId").(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
 
 	if m.UpdatedBy != userId && m.Id != 0 {
 		m.UpdatedBy = userId
@@ -50,7 +51,7 @@ func (m *SysMenu) BeforeUpdate(tx *gorm.DB) (err error) {
 
 func (m *SysMenu) BeforeDelete(tx *gorm.DB) (err error) {
 	if m.Id == 0 {
-		userId := tx.Statement.Context.Value("userId").(int64)
+		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
 		m.DeletedBy = userId
 		err = tx.
 			Model(m).

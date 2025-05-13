@@ -56,6 +56,7 @@ func (s *SysMenuService) checkMenuExist(db *gorm.DB, menuId uint, isParent bool)
 // Create 创建菜单
 func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
 	db := global.DB
+	log := global.Log
 	_, err := s.checkMenuExist(db, *req.ParentId, false)
 	if err != nil {
 		return nil, err
@@ -77,6 +78,7 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
+			log.Error("Failed to create menu: %v")
 			tx.Rollback()
 		}
 	}()

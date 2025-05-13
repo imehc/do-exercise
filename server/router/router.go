@@ -53,6 +53,7 @@ func Run() *gin.Engine {
 		system.InitSysRoleRouter(protected)
 		system.InitSysOperationLogRouter(protected)
 		system.InitSysTokenRouter(protected)
+		system.InitSysInfoRouter(protected)
 
 		common.InitAuthRouter(noAuth)
 

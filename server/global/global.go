@@ -20,5 +20,5 @@ var (
 	Captcha  *base64Captcha.Captcha // Captcha 验证码
 	Enforcer *casbin.Enforcer       // Enforcer 权限控制器
 	Searcher *xdb.Searcher          // Searcher IP2Region查询器
-	Oss      *minio.Client
+	Oss      *minio.Client          // Oss OSS对象存储
 )

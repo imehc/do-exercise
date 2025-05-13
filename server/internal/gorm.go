@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/util"
@@ -13,7 +14,7 @@ import (
 )
 
 // InitGorm 初始化PostgreSQL数据库连接
-func InitGorm() {
+func InitGorm(isAutoMigrate bool) {
 	// 构建DSN连接字符串
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		global.Config.Database.Host,
@@ -37,16 +38,18 @@ func InitGorm() {
 	}
 
 	// 自动迁移数据库表
-	// TODO: 待迁移的表
-	err = db.AutoMigrate(
-		system.SysUser{},
-		system.SysMenu{},
-		system.SysRole{},
-		system.SysApi{},
-		system.SysOperationLog{},
-	)
-	if err != nil {
-		util.Exit("自动迁移数据库表失败: ", err)
+	if isAutoMigrate {
+		err = db.AutoMigrate(
+			system.SysUser{},
+			system.SysMenu{},
+			system.SysRole{},
+			system.SysApi{},
+			system.SysOperationLog{},
+			gormadapter.CasbinRule{},
+		)
+		if err != nil {
+			util.Exit("自动迁移数据库表失败: ", err)
+		}
 	}
 
 	// 配置连接池

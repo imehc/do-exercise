@@ -35,9 +35,20 @@ var migrateCmd = &cobra.Command{
 		// 初始化配置和数据库连接
 		internal.InitConfig(configFile)
 		// 获取数据库连接
-		internal.InitGorm()
-		internal.InitCasbin()
+		internal.InitGorm(true)
 		db := global.DB
+
+		// 检查表是否已有数据
+		var count int64
+		err = db.Raw("SELECT COUNT(*) FROM sys_user").Count(&count).Error
+		if err != nil {
+			// 如果表不存在，继续执行初始化
+			fmt.Println("表不存在，开始执行初始化...")
+		} else if count > 0 {
+			fmt.Println("数据库已有数据，跳过初始化")
+			return
+		}
+
 		// 执行SQL
 		fmt.Printf("正在执行SQL文件: %s\n", filepath.Base(sqlFile))
 		err = db.Session(&gorm.Session{}).Exec(string(sqlContent)).Error

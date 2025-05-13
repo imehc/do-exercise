@@ -40,7 +40,7 @@ func init() {
 func initComponents() {
 	internal.InitConfig(configFile)
 	internal.InitLogger()
-	internal.InitGorm()
+	internal.InitGorm(false)
 	internal.InitRedis()
 	internal.InitI18n()
 	internal.InitCasbin()

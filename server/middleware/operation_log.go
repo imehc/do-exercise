@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"io"
 	"net"
@@ -93,8 +94,10 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		}
 
 		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
 			var logService sysSevice.SysOperationLogService
-			logService.Create(operationLog)
+			logService.WithContext(ctx).Create(operationLog)
 		}()
 	}
 }

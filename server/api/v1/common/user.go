@@ -141,7 +141,6 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 		return
 	}
 	response.NoContent(ctx)
-	return
 }
 
 // bindEmail 绑定邮箱

@@ -44,6 +44,6 @@ func initComponents() {
 	internal.InitRedis()
 	internal.InitI18n()
 	internal.InitCasbin()
-	// internal.InitMinio()
+	internal.InitMinio()
 	internal.InitOther()
 }

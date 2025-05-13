@@ -8,6 +8,7 @@ type ApiGroup struct {
 	SysRoleApi
 	SysApiApi
 	SysOperationLogApi
+	SysTokenApi
 }
 
 var (
@@ -16,4 +17,5 @@ var (
 	roleService            = service.ServiceGroupApp.SystemServiceGroup.SysRoleService         // 系统角色服务
 	apiService             = service.ServiceGroupApp.SystemServiceGroup.SysApiService          // 系统api服务
 	sysOperationLogService = service.ServiceGroupApp.SystemServiceGroup.SysOperationLogService // 系统操作日志服务
+	sysTokenService        = service.ServiceGroupApp.SystemServiceGroup.SysTokenService        // 令牌服务
 )

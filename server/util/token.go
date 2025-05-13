@@ -13,67 +13,72 @@ import (
 )
 
 const (
-	PrefixAccessToken    = "accessToken:"
-	PrefixRefreshToken   = "refreshToken:"
-	PrefixUserAcessToken = "userAccessToken_"
-	PrefixUserRefresh    = "userRefreshToken_"
+	PrefixAccessToken      = "accessToken:"
+	PrefixRefreshToken     = "refreshToken:"
+	PrefixUserAcessToken   = "userAccessToken_"
+	PrefixUserRefreshToken = "userRefreshToken_"
 )
 
 type Token struct {
 	UserId            int64
 	Username          string
 	RoleIds           []uint
-	ExpireTime        time.Duration
+	ExpireTime        time.Duration // 有效时间
 	RefreshExpireTime time.Duration
+	Disabled          bool
+	CreatedTime       time.Time
 }
 
-type refreshInfo struct {
-	UserId   int64  `json:"user_id"`
-	Username string `json:"username"`
-	RoleIds  []uint `json:"role_ids"`
-}
-
-func (t *Token) GenerateToken() (common.Token, error) {
+func (t *Token) GenerateToken() (*common.Token, error) {
 	accessToken, err := Uuid()
 	if err != nil {
-		return common.Token{}, err
+		return nil, err
 	}
 	refreshToken, err := Uuid()
 	if err != nil {
-		return common.Token{}, err
+		return nil, err
 	}
 
 	ctx := context.Background()
-	tokenInfoJson, err := json.Marshal(model.Auth{
-		UserID:       t.UserId,
+	tokenInfoJson, err := json.Marshal(model.TokenInfo{
+		UserId:       t.UserId,
 		Username:     t.Username,
 		RoleIds:      t.RoleIds,
 		RefreshToken: refreshToken,
+		Disabled:     t.Disabled,
+		CreatedTime:  t.CreatedTime,
+		ExpiredTime:  t.CreatedTime.Add(t.ExpireTime),
 	})
 	if err != nil {
-		return common.Token{}, err
+		return nil, err
 	}
-	refreshTokenJson, err := json.Marshal(refreshInfo{
-		UserId:   t.UserId,
-		Username: t.Username,
-		RoleIds:  t.RoleIds,
+	refreshTokenInfoJson, err := json.Marshal(model.RefreshTokenInfo{
+		UserId:      t.UserId,
+		Username:    t.Username,
+		RoleIds:     t.RoleIds,
+		Disabled:    t.Disabled,
+		CreatedTime: t.CreatedTime,
+		ExpiredTime: t.CreatedTime.Add(t.RefreshExpireTime),
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	pipe := global.Redis.Pipeline()
 	// 保存token相关信息
 	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixAccessToken, accessToken), tokenInfoJson, t.ExpireTime)
-	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken), refreshTokenJson, t.RefreshExpireTime)
+	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken), refreshTokenInfoJson, t.RefreshExpireTime)
 
 	// 将token和refreshToken添加到用户的token集合中
 	pipe.SAdd(ctx, fmt.Sprintf("%s%d", PrefixUserAcessToken, t.UserId), accessToken)
-	pipe.SAdd(ctx, fmt.Sprintf("%s%d", PrefixRefreshToken, t.UserId), refreshToken)
+	pipe.SAdd(ctx, fmt.Sprintf("%s%d", PrefixUserRefreshToken, t.UserId), refreshToken)
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return common.Token{}, err
+		return nil, err
 	}
 
-	return common.Token{
+	return &common.Token{
 		AccessToken:       accessToken,
 		ExpireTime:        int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
 		RefreshToken:      refreshToken,
@@ -81,40 +86,43 @@ func (t *Token) GenerateToken() (common.Token, error) {
 	}, nil
 }
 
-func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
+func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	ctx := context.Background()
 
 	// 获取refreshToken对应的userId
 	refreshTokenString, err := global.Redis.Get(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken)).Result()
 	if err != nil {
-		return common.Token{}, errors.New("refreshTokenNotExist")
+		return nil, errors.New("refreshTokenNotExist")
 	}
-	var refreshTokenInfo refreshInfo
+	var refreshTokenInfo model.RefreshTokenInfo
 	err = json.Unmarshal([]byte(refreshTokenString), &refreshTokenInfo)
 	if err != nil {
-		return common.Token{}, errors.New("refreshTokenNotExist")
+		return nil, errors.New("refreshTokenNotExist")
 	}
 
 	// 生成新的accessToken
 	newAccessToken, err := Uuid()
 	if err != nil {
-		return common.Token{}, errors.New("refreshFailed")
+		return nil, errors.New("refreshFailed")
 	}
 
 	// 获取refreshToken的剩余过期时间
 	refreshExpire, err := global.Redis.TTL(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken)).Result()
 	if err != nil || refreshExpire <= 0 {
-		return common.Token{}, errors.New("refreshTokenExpired")
+		return nil, errors.New("refreshTokenExpired")
 	}
 
-	tokenInfoJson, err := json.Marshal(model.Auth{
-		UserID:       refreshTokenInfo.UserId,
+	tokenInfoJson, err := json.Marshal(model.TokenInfo{
+		UserId:       refreshTokenInfo.UserId,
 		Username:     refreshTokenInfo.Username,
 		RoleIds:      refreshTokenInfo.RoleIds,
 		RefreshToken: refreshToken,
+		Disabled:     refreshTokenInfo.Disabled,
+		CreatedTime:  refreshTokenInfo.CreatedTime,
+		ExpiredTime:  refreshTokenInfo.ExpiredTime.Add(t.ExpireTime),
 	})
 	if err != nil {
-		return common.Token{}, errors.New("refreshFailed")
+		return nil, errors.New("refreshFailed")
 	}
 	// 保存新的token信息
 	pipe := global.Redis.Pipeline()
@@ -123,10 +131,10 @@ func (t *Token) RefreshToken(refreshToken string) (common.Token, error) {
 	// 执行管道操作
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return common.Token{}, errors.New("refreshFailed")
+		return nil, errors.New("refreshFailed")
 	}
 
-	return common.Token{
+	return &common.Token{
 		AccessToken:       newAccessToken,
 		ExpireTime:        int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
 		RefreshToken:      refreshToken,
@@ -150,9 +158,9 @@ func updateTokenRoles(ctx context.Context, userId int64, roleIds []uint, tokenTy
 
 		var tokenData interface{}
 		if prefix == PrefixAccessToken {
-			tokenData = &model.Auth{}
+			tokenData = &model.TokenInfo{}
 		} else {
-			tokenData = &refreshInfo{}
+			tokenData = &model.RefreshTokenInfo{}
 		}
 
 		if err = json.Unmarshal([]byte(tokenInfo), tokenData); err != nil {
@@ -161,9 +169,9 @@ func updateTokenRoles(ctx context.Context, userId int64, roleIds []uint, tokenTy
 
 		// 更新角色ID
 		switch v := tokenData.(type) {
-		case *model.Auth:
+		case *model.TokenInfo:
 			v.RoleIds = roleIds
-		case *refreshInfo:
+		case *model.RefreshTokenInfo:
 			v.RoleIds = roleIds
 		}
 
@@ -196,7 +204,7 @@ func UpdateUserRoleInCache(userId int64, roleIds []uint) error {
 	}
 
 	// 更新刷新令牌的角色信息
-	if err := updateTokenRoles(ctx, userId, roleIds, PrefixUserRefresh, PrefixRefreshToken); err != nil {
+	if err := updateTokenRoles(ctx, userId, roleIds, PrefixUserRefreshToken, PrefixRefreshToken); err != nil {
 		return err
 	}
 

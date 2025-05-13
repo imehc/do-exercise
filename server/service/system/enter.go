@@ -6,4 +6,5 @@ type ServiceGroup struct {
 	SysRoleService
 	SysApiService
 	SysOperationLogService
+	SysTokenService
 }

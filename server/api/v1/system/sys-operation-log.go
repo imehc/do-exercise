@@ -10,6 +10,7 @@ import (
 
 type SysOperationLogApi struct{}
 
+// GetList 获取操作日志列表
 func (s *SysOperationLogApi) GetList(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
 	var req common.Pagination

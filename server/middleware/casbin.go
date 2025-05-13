@@ -22,12 +22,11 @@ func CasbinMiddleware() gin.HandlerFunc {
 		}
 
 		if ok, err := global.Enforcer.Enforce(sub, obj, act); err != nil || !ok {
-			response.Forbidden(c)
+			response.Forbidden(c, "")
 			c.Abort()
 			return
 		}
 
 		c.Next()
-		return
 	}
 }

@@ -32,15 +32,21 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// 解析token信息
-		var tokenData model.Auth
+		var tokenData model.TokenInfo
 		if err := json.Unmarshal([]byte(tokenInfo), &tokenData); err != nil {
 			response.ServerError(c)
 			c.Abort()
 			return
 		}
 
+		if tokenData.Disabled {
+			response.Forbidden(c, global.I18.Translate("accessTokenIsDisabled", c.GetString("lang")))
+			c.Abort()
+			return
+		}
+
 		// 将用户ID存储在上下文中
-		c.Set("userId", tokenData.UserID)
+		c.Set("userId", tokenData.UserId)
 		c.Set("roles", tokenData.RoleIds)
 		c.Next()
 	}

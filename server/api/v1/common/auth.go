@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
@@ -72,6 +73,8 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		}),
 		ExpireTime:        accessExpire,
 		RefreshExpireTime: refreshExpire,
+		Disabled:          false, // TODO: 在数据库中添加字段获取禁用状态
+		CreatedTime:       time.Now(),
 	}
 	token, err := baseConf.GenerateToken()
 	if err != nil {

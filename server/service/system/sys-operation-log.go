@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"errors"
 
 	"github.com/imehc/do-exercise/server/global"
@@ -10,11 +11,23 @@ import (
 	"go.uber.org/zap"
 )
 
-type SysOperationLogService struct{}
+type SysOperationLogService struct {
+	context *context.Context
+}
+
+func (s *SysOperationLogService) WithContext(ctx context.Context) *SysOperationLogService {
+	return &SysOperationLogService{
+		context: &ctx,
+	}
+}
 
 // Create 创建操作日志
 func (s *SysOperationLogService) Create(req system.SysOperationLog) error {
 	db := global.DB
+	if s.context != nil {
+		db = db.WithContext(*s.context)
+	}
+
 	err := db.Create(&req).Error
 	if err != nil {
 		global.Log.Error("创建操作日志失败", zap.Error(err))

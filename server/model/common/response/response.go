@@ -51,7 +51,11 @@ func Unauthorized(c *gin.Context) {
 }
 
 // Forbidden 禁止访问响应
-func Forbidden(c *gin.Context) {
+func Forbidden(c *gin.Context, message string) {
+	if message != "" {
+		Response(c, http.StatusForbidden, message)
+		return
+	}
 	Response(c, http.StatusForbidden, "Forbidden")
 }
 

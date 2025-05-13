@@ -8,5 +8,4 @@ import (
 func Exit(message string, err error) {
 	fmt.Printf(message, err)
 	os.Exit(1)
-	return
 }

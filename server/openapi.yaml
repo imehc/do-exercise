@@ -233,6 +233,160 @@ components:
         - type
         - content
 
+    TokenInfo:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 用户名
+        user_id:
+          type: string
+          format: int64
+        disabled:
+          type: boolean
+          description: 是否禁用
+        access_token:
+          type: string
+          description: 访问令牌
+        refresh_token:
+          type: string
+          description: 刷新令牌
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        expired_at:
+          type: string
+          format: date-time
+          description: 到期时间
+      required:
+        - username
+        - user_id
+        - disabled
+        - access_token
+        - refresh_token
+        - created_at
+        - expired_at
+
+    DeleteToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: 令牌
+      required:
+        - access_token
+
+    ModityTokenStatus:
+      allOf:
+      - $ref: "#/components/schemas/DeleteToken"
+      properties:
+        disabled:
+          type: boolean
+          description: 是否禁用
+      required:
+        - disabled
+
+    SysOperationLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键ID
+        username:
+          type: string
+          description: 请求用户
+        ip:
+          type: string
+          description: IP地址
+        is_internal_ip:
+          type: boolean
+          description: 是否是内网IP
+        address:
+          type: string
+          description: 地址
+        user_agent:
+          type: string
+          description: UA信息
+        browser:
+          type: string
+          description: 浏览器
+        browser_version:
+          type: string
+          description: 浏览器版本
+        is_mobile:
+          type: boolean
+          description: 是否是手机
+        is_bot:
+          type: boolean
+          description: 是否是机器人
+        os:
+          type: string
+          description: 操作系统
+        path:
+          type: string
+          description: 请求路径
+        method:
+          type: string
+          description: 请求方法
+        success:
+          type: boolean
+          description: 是否成功
+        code:
+          type: integer
+          description: 错误码
+        message:
+          type: string
+          description: 错误信息
+        params:
+          type: string
+          description: 请求参数
+        body:
+          type: string
+          description: 请求体
+        result:
+          type: string
+          description: 响应结果
+        start_time:
+          type: string
+          format: date-time
+          description: 请求开始时间
+        end_time:
+          type: string
+          format: date-time
+          description: 请求结束时间
+        latency:
+          type: integer
+          format: int64
+          description: 耗时(毫秒)
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+      required:
+        - id
+        - ip
+        - is_internal_ip
+        - user_agent
+        - browser
+        - browser_version
+        - is_mobile
+        - is_bot
+        - os
+        - path
+        - method
+        - success
+        - code
+        - start_time
+        - end_time
+        - latency
+        - created_at
+        - updated_at
+
     UpdateSysApi:
       type: object
       properties:
@@ -906,6 +1060,94 @@ paths:
             text/event-stream:
               schema:
                 $ref: "#/components/schemas/SSEMessage"
+
+  /system/token/all:
+    get:
+      summary: 获取所有令牌
+      operationId: findAllToken
+      tags:
+        - system-token
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: "获取成功"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TokenInfo"
+  /system/token:
+    delete:
+      summary: 删除令牌
+      operationId: deleteToken
+      tags:
+        - system-token
+      security:
+        -  apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteToken"
+      responses:
+        "204":
+          description: 删除成功
+    patch:
+      summary: 更新令牌状态
+      operationId: updateTokenStatus
+      tags:
+        - system-token
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModityTokenStatus"
+      responses:
+        "204":
+          description: 删除成功
+
+  /system/logs:
+    get:
+      summary: 获取日志列表
+      operationId: findLogs
+      tags:
+        - system-log
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: "#/components/schemas/Pagination"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SysOperationLog"
+                required:
+                  - meta
+                  - data
+          description: "获取成功"
 
   /system/apis/{id}:
     get:

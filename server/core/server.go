@@ -5,8 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/router"
+	"github.com/samber/lo"
 )
 
 type server interface {
@@ -54,7 +56,25 @@ func syncApi(routes gin.RoutesInfo) {
 	}
 	// 5. 插入新记录
 	if len(insertApis) > 0 {
-		if err := global.DB.Create(&insertApis).Error; err != nil {
+		db := global.DB
+		var maxID int64
+		db.Table("sys_api").Select("COALESCE(MAX(id), 0)").Row().Scan(&maxID)
+		apis := lo.Map(insertApis, func(item system.SysApi, index int) *system.SysApi {
+			return &system.SysApi{
+				IdWrapper: model.IdWrapper{
+					Id: uint(maxID) + uint(index) + 1,
+				},
+				Path:   item.Path,
+				Method: item.Method,
+			}
+		})
+
+		tx := db.Begin()
+		defer tx.Commit()
+
+		if err := tx.
+			Create(apis).
+			Error; err != nil {
 			global.Log.Error(fmt.Sprintf("同步api失败: %s", err.Error()))
 		}
 	}

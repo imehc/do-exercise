@@ -10,6 +10,7 @@ auth:
 system:
   host: 127.0.0.1
   port: 6020
+  info_interval: 10
 
 # 日志
 logger:

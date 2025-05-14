@@ -1,5 +1,16 @@
 ## 注意事项
 
+### 配置文件准备
+在执行 docker-compose 之前，请确保完成以下配置文件的准备：
+
+1. 环境变量配置
+   - 将 `deploy/docker/.env.example` 重命名为 `.env`
+   - 根据实际需求填写 `.env` 文件中的配置项
+
+2. 服务配置
+   - 将 `server/config.example.yaml` 重命名为 `config.yaml`
+   - 根据实际需求修改 `config.yaml` 中的配置项
+
 ### MinIO 配置相关
 如果执行 docker-compose 后容器无法正常启动，请检查以下事项：
 

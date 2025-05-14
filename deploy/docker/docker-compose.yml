@@ -1,0 +1,72 @@
+version: '3.8'
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  server_data:
+
+services:
+  postgres_data:
+    container_name: postgres_data
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    restart: on-failure:3
+    networks:
+      network:
+        ipv4_address: 166.6.0.21
+  redis_data:
+    container_name: redis_data
+    image: redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - '6379:6379'
+    restart: always
+    networks:
+      network:
+        ipv4_address: 166.6.0.22
+  minio_data:
+    container_name: minio_data
+    image: bitnami/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    volumes:
+      - minio_data:/bitnami/minio/data
+    restart: always
+    networks:
+      network:
+        ipv4_address: 166.6.0.23
+  server_data:
+    container_name: server_data
+    volumes:
+      - server_data:/app/logs
+    build:
+      context: ../../server
+      dockerfile: ./Dockerfile
+    depends_on:
+      - postgres_data
+      - redis_data
+      - minio_data
+    ports:
+      - 6020:6020
+    restart: on-failure:3
+    networks:
+      network:
+        ipv4_address: 166.6.0.24
+
+networks:
+  network:
+    ipam:
+      driver: default
+      config:
+        - subnet: '166.6.0.0/16'
+    

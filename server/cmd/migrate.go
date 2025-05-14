@@ -37,6 +37,9 @@ var migrateCmd = &cobra.Command{
 		// 获取数据库连接
 		internal.InitGorm(true)
 		db := global.DB
+		if db == nil {
+			util.Exit("获取数据库连接失败", nil)
+		}
 
 		// 检查表是否已有数据
 		var count int64
@@ -55,7 +58,6 @@ var migrateCmd = &cobra.Command{
 		if err != nil {
 			util.Exit("执行SQL失败: ", err)
 		}
-
 		fmt.Println("数据库初始化完成")
 	},
 }

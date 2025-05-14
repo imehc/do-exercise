@@ -53,4 +53,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:6020/health || exit 1
 
 # 启动命令
-CMD ["sh", "-c", "./server migrate --sql ./init.sql && ./server"]
+CMD ["sh", "-c", "./server migrate --sql ./init.sql && ./server server"]

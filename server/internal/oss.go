@@ -14,7 +14,7 @@ import (
 func InitMinio() {
 	cfg := global.Config.Minio
 	client, err := minio.New(
-		fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		&minio.Options{
 			Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 			Secure: false, // 是否使用https进行通信

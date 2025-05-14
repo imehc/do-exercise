@@ -1,6 +1,6 @@
 # 授权
 auth:
-  domain: http://localhost:6020
+  domain: 127.0.0.1:6020
   access_secret: access_secret
   access_expire_time: 2h
   refresh_secret: refresh_secret
@@ -72,4 +72,4 @@ email:
 
 # 磁盘路径
 disk_list:
-  - mount-point: "/"
+  - mount_point: "/"

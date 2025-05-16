@@ -89,6 +89,7 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 		Data: lo.Map(apis, func(api system.SysApi, index int) response.SysApiResp {
 			return response.SysApiResp{
 				Id:          api.Id,
+				Path:        api.Path,
 				Method:      api.Method,
 				Description: api.Description,
 				Group:       api.Group,

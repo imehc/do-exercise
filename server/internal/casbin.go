@@ -49,7 +49,9 @@ func InitCasbin() {
 	enforcer.EnableAutoSave(true)
 
 	// 启用日志
-	enforcer.EnableLog(true)
+	if !util.IsRelease {
+		enforcer.EnableLog(true)
+	}
 
 	// 加载策略
 	err = enforcer.LoadPolicy()

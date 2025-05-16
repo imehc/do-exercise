@@ -7,9 +7,14 @@ import (
 	"github.com/imehc/do-exercise/server/middleware"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	sse "github.com/imehc/do-exercise/server/router/common"
+	"github.com/imehc/do-exercise/server/util"
 )
 
 func Run() *gin.Engine {
+	if util.IsRelease {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	internal.InitCaptcha()
 	r := gin.Default()
 

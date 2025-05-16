@@ -2,14 +2,18 @@ version: '3.8'
 
 volumes:
   postgres_data:
+    name: postgres_data
   redis_data:
+    name: redis_data
   minio_data:
+    name: minio_data
   server_data:
+    name: server_data
 
 services:
   postgres_data:
     container_name: postgres_data
-    image: postgres:15-alpine
+    image: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
@@ -27,7 +31,7 @@ services:
       - redis_data:/data
     ports:
       - '6379:6379'
-    restart: always
+    restart: on-failure:3
     networks:
       network:
         ipv4_address: 166.6.0.22
@@ -41,7 +45,7 @@ services:
       - .env
     volumes:
       - minio_data:/bitnami/minio/data
-    restart: always
+    restart: on-failure:3
     networks:
       network:
         ipv4_address: 166.6.0.23

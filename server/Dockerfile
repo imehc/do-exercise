@@ -5,7 +5,7 @@ FROM golang:1.24-alpine AS builder
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
-    GOARCH=amd64
+    GOARCH=amd64 
 
 WORKDIR /build
 
@@ -25,8 +25,9 @@ RUN go build -ldflags="-s -w" -o server
 # 2. 运行阶段
 FROM alpine:latest
 
-# 设置时区
-ENV TZ=Asia/Shanghai
+# 设置必要的环境变量
+ENV GIN_MODE=release \
+    TZ=Asia/Shanghai 
 
 # 创建非 root 用户
 RUN adduser -D -g '' appuser && \

@@ -48,6 +48,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 将用户ID存储在上下文中
 		c.Set("userId", tokenData.UserId)
 		c.Set("roles", tokenData.RoleIds)
+		c.Set("username", tokenData.Username)
 		c.Next()
 	}
 }

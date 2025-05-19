@@ -50,12 +50,6 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		// 结束时间
 		endTime := time.Now()
 
-		// 获取用户信息（从上下文中获取，如果没有则设置为"-"）
-		username := c.GetString("username")
-		if username == "" {
-			username = "-"
-		}
-
 		// 获取客户端信息
 		uaRaw := c.GetHeader("User-Agent")
 		ua := user_agent.New(uaRaw)
@@ -67,7 +61,7 @@ func OperationLogMiddleware() gin.HandlerFunc {
 
 		// 创建操作日志
 		operationLog := system.SysOperationLog{
-			Username:       username,
+			Username:       c.GetString("username"),
 			Ip:             clientIP,
 			IsInternalIP:   isInternal,
 			UserAgent:      uaRaw,

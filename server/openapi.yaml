@@ -146,7 +146,8 @@ components:
         - public_key
 
     MenuType:
-      type: integer
+      type: string
+      format: int64
       description: 菜单类型
       enum:
         - 1
@@ -559,12 +560,6 @@ components:
         name:
           type: string
           description: 菜单名称
-        icon:
-          type: string
-          description: 图标
-        route:
-          type: string
-          description: 路由
         sort:
           type: integer
           description: 排序
@@ -572,21 +567,28 @@ components:
         - parent_id
         - type
         - name
-        - route
 
     CreateSysMenuWithMenu:
       allOf:
         - $ref: "#/components/schemas/CreateSysMenuWithDirectory"
         - type: object
           properties:
+            icon:
+              type: string
+              description: 图标
+            route:
+              type: string
+              description: 路由
             component:
               type: string
               description: 组件
             visible:
               type: boolean
               description: 是否可见
-      required:
-        - component
+          required:
+            - icon
+            - route
+            - component
 
     CreateSysMenuWithButton:
       type: object
@@ -623,9 +625,9 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          1: "#/components/schemas/CreateSysMenuWithDirectory"
-          2: "#/components/schemas/CreateSysMenuWithMenu"
-          3: "#/components/schemas/CreateSysMenuWithButton"
+          "1": "#/components/schemas/CreateSysMenuWithDirectory"
+          "2": "#/components/schemas/CreateSysMenuWithMenu"
+          "3": "#/components/schemas/CreateSysMenuWithButton"
 
     SysMenuWithDirectory:
       allOf:
@@ -716,9 +718,9 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          1: "#/components/schemas/SysMenuWithDirectory"
-          2: "#/components/schemas/SysMenuWithMenu"
-          3: "#/components/schemas/SysMenuWithButton"
+          "1": "#/components/schemas/SysMenuWithDirectory"
+          "2": "#/components/schemas/SysMenuWithMenu"
+          "3": "#/components/schemas/SysMenuWithButton"
 
     SysMenuTree:
       type: object

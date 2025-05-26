@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo } from 'react'
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { SwitchThumb } from '@radix-ui/react-switch'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,17 +28,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
-
-const formSchema = z.object({
-  path: z.string(),
-  method: z.string(),
-  description: z.string().optional(),
-  group: z.string().optional(),
-  disabled: z.boolean().optional(),
-  sort: z.coerce.number().optional(),
-})
-
-type ApiForm = z.infer<typeof formSchema>
+import { ApiActionFormValues, apiActionSchema } from '../schemas/action-schema'
 
 interface Props {
   currentRow?: SysApi
@@ -49,8 +38,8 @@ interface Props {
 
 export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
   const isEdit = useMemo(() => !!currentRow, [currentRow])
-  const form = useForm<ApiForm>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<ApiActionFormValues>({
+    resolver: zodResolver(apiActionSchema),
     defaultValues: isEdit
       ? currentRow
       : {
@@ -71,7 +60,7 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
     },
   })
 
-  const onSubmit = (values: ApiForm) => {
+  const onSubmit = (values: ApiActionFormValues) => {
     if (isEdit) {
       saveChange({ id: currentRow!.id, updateSysApi: values })
     }
@@ -89,7 +78,7 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
         <DialogHeader className='text-left'>
           <DialogTitle>{isEdit ? '修改Api' : '创建Api'}</DialogTitle>
           <DialogDescription>
-            {isEdit ? '更新api相关信息。' : '创建api相关信息。'}
+            {isEdit ? '更新api相关数据。' : '创建api相关数据。'}
             完成后点击保存。
           </DialogDescription>
         </DialogHeader>

@@ -94,7 +94,7 @@ export const columns: ColumnDef<SysApi>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='序号' />
     ),
-    cell: ({ row }) => <div>{row.original.sort}</div>,
+    cell: ({ row }) => <div>{row.original.sort ?? 0}</div>,
     enableSorting: false,
   },
   {

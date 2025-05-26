@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { UseNavigateResult } from '@tanstack/react-router'
 import {
   ColumnDef,
@@ -7,6 +7,7 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
@@ -33,7 +34,7 @@ interface DataTableProps<T> {
   columns: ColumnDef<T>[]
   data: T[]
   meta?: Pagination
-  navigate: UseNavigateResult<'/api'>
+  navigate?: UseNavigateResult<'/api'>
 }
 
 export function DataTable<T>({
@@ -46,6 +47,19 @@ export function DataTable<T>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
+  const [expanded, setExpanded] = useState({})
+
+  // 默认展开展开一级菜单
+  useEffect(() => {
+    const defaultExpanded: Record<string, boolean> = {}
+
+    data.forEach((_, index) => {
+      const rowId = String(index)
+      defaultExpanded[rowId] = true // 展开一级菜单
+    })
+
+    setExpanded(defaultExpanded)
+  }, [data])
 
   const page = meta?.page || 1
   const pageSize = meta?.pageSize || 10
@@ -63,7 +77,11 @@ export function DataTable<T>({
         pageIndex: page - 1,
         pageSize: pageSize,
       },
+      expanded,
     },
+    enableExpanding: true,
+    onExpandedChange: setExpanded,
+    getSubRows: (row) => (row as { children?: T[] })?.children,
     manualPagination: true,
     pageCount: Math.ceil(total / pageSize),
     enableRowSelection: true,
@@ -77,6 +95,7 @@ export function DataTable<T>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getExpandedRowModel: getExpandedRowModel(),
   })
 
   return (
@@ -140,7 +159,9 @@ export function DataTable<T>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} navigate={navigate} />
+      {!!meta && !!navigate && (
+        <DataTablePagination table={table} navigate={navigate} />
+      )}
     </div>
   )
 }

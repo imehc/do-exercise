@@ -52,7 +52,7 @@ export const Route = createFileRoute('/_authenticated')({
 function RouteComponent() {
   const { data: menusData = [] } = useQuery(findMenuTree())
   const navGroups = useMemo(() => {
-    const { directory } = handleMenuTree(menusData)
+    const { directory = [] } = handleMenuTree(menusData)
     return directory.map(
       (item) =>
         ({

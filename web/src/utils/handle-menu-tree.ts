@@ -24,7 +24,7 @@ export function handleMenuTree(menuTree: SysMenuTree[]) {
   >(
     (acc, [key, value]) => {
       const label = Object.keys(MenuType).find(
-        (k) => MenuType[k as keyof typeof MenuType] === Number(key)
+        (k) => MenuType[k as keyof typeof MenuType].toString() === key
       )
       if (label) {
         acc[label as MenuTypeKey] = value

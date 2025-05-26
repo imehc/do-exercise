@@ -37,7 +37,7 @@ export default function Api() {
           <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
             <div>
               <h2 className='text-2xl font-bold tracking-tight'>Api 列表</h2>
-              <p className='text-muted-foreground'>用于查看并编辑api信息</p>
+              <p className='text-muted-foreground'>用于查看并编辑api</p>
             </div>
           </div>
           <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>

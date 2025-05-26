@@ -1,6 +1,6 @@
 import { SysApi } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
-import { ApiActionDialog } from './api-action-dialog'
+import { ApiActionDialog } from './api-action'
 
 interface Props {
   refetch(): void

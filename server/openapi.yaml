@@ -146,8 +146,7 @@ components:
         - public_key
 
     MenuType:
-      type: string
-      format: int64
+      type: integer
       description: 菜单类型
       enum:
         - 1
@@ -618,16 +617,10 @@ components:
         - api_ids
 
     CreateSysMenu:
-      oneOf:
+      anyOf:
         - $ref: "#/components/schemas/CreateSysMenuWithDirectory"
         - $ref: "#/components/schemas/CreateSysMenuWithMenu"
         - $ref: "#/components/schemas/CreateSysMenuWithButton"
-      discriminator:
-        propertyName: type
-        mapping:
-          "1": "#/components/schemas/CreateSysMenuWithDirectory"
-          "2": "#/components/schemas/CreateSysMenuWithMenu"
-          "3": "#/components/schemas/CreateSysMenuWithButton"
 
     SysMenuWithDirectory:
       allOf:
@@ -711,16 +704,10 @@ components:
             - apis
 
     SysMenu:
-      oneOf:
+      anyOf:
         - $ref: "#/components/schemas/SysMenuWithDirectory"
         - $ref: "#/components/schemas/SysMenuWithMenu"
         - $ref: "#/components/schemas/SysMenuWithButton"
-      discriminator:
-        propertyName: type
-        mapping:
-          "1": "#/components/schemas/SysMenuWithDirectory"
-          "2": "#/components/schemas/SysMenuWithMenu"
-          "3": "#/components/schemas/SysMenuWithButton"
 
     SysMenuTree:
       type: object

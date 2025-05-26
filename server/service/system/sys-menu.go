@@ -180,7 +180,6 @@ func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 	}()
 
 	if err := tx.
-		Model(system.SysMenu{}).
 		Omit("id", "created_at", "created_by").
 		Updates(&menu).
 		Error; err != nil {

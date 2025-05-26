@@ -1,4 +1,4 @@
-export const callDisabledTypes = new Map<true | false, string>([
+export const callDisabledTypes = new Map<boolean, string>([
   [
     true,
     'bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-primary border-destructive/10',

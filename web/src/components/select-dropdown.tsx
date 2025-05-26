@@ -36,7 +36,10 @@ export function SelectDropdown({
   return (
     <Select {...defaultState}>
       <FormControl>
-        <SelectTrigger disabled={disabled} className={cn(className)}>
+        <SelectTrigger
+          disabled={disabled}
+          className={cn(className, 'text-base md:text-sm')}
+        >
           <SelectValue placeholder={placeholder ?? 'Select'} />
         </SelectTrigger>
       </FormControl>
@@ -45,16 +48,21 @@ export function SelectDropdown({
           <SelectItem disabled value='loading' className='h-14'>
             <div className='flex items-center justify-center gap-2'>
               <IconLoader className='h-5 w-5 animate-spin' />
-              {'  '}
               Loading...
             </div>
           </SelectItem>
-        ) : (
-          items?.map(({ label, value }) => (
+        ) : items?.length ? (
+          items.map(({ label, value }) => (
             <SelectItem key={value} value={value}>
               {label}
             </SelectItem>
           ))
+        ) : (
+          <SelectItem value='none' disabled>
+            <div className='flex items-center justify-center gap-2'>
+              No options
+            </div>
+          </SelectItem>
         )}
       </SelectContent>
     </Select>

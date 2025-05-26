@@ -105,7 +105,7 @@ export function DataTableRowActions<T>({
               >
                 {editOptions.title}
                 <DropdownMenuShortcut>
-                  <IconTrash size={16} />
+                  <IconTrash size={16} className='text-red-500!' />
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
             </>

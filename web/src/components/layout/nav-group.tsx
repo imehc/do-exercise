@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
+import * as icons from '@tabler/icons-react'
+import { Icon } from '@tabler/icons-react'
 import { ChevronRight } from 'lucide-react'
-import { iconsMapping } from '~/utils/icon-mapping'
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,6 +19,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '~/components/ui/sidebar'
+import { iconPrefix } from '../other'
 import { Badge } from '../ui/badge'
 import {
   DropdownMenu,
@@ -60,6 +62,10 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 
 const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
   const { setOpenMobile } = useSidebar()
+  const SelectedIcon = item.icon
+    ? (icons[(iconPrefix + item.icon) as keyof typeof icons] as Icon)
+    : null
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -68,7 +74,7 @@ const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
         tooltip={item.title}
       >
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
-          {iconsMapping.find((option) => option.name === item.icon)?.icon}
+          {SelectedIcon && <SelectedIcon />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
         </Link>
@@ -85,6 +91,9 @@ const SidebarMenuCollapsible = ({
   href: string
 }) => {
   const { setOpenMobile } = useSidebar()
+  const SelectedIcon = item.icon
+    ? (icons[(iconPrefix + item.icon) as keyof typeof icons] as Icon)
+    : null
   return (
     <Collapsible
       asChild
@@ -94,7 +103,7 @@ const SidebarMenuCollapsible = ({
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton tooltip={item.title}>
-            {iconsMapping.find((option) => option.name === item.icon)?.icon}
+            {SelectedIcon && <SelectedIcon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
@@ -130,6 +139,9 @@ const SidebarMenuCollapsedDropdown = ({
   item: NavCollapsible
   href: string
 }) => {
+  const SelectedIcon = item.icon
+    ? (icons[(iconPrefix + item.icon) as keyof typeof icons] as Icon)
+    : null
   return (
     <SidebarMenuItem>
       <DropdownMenu>
@@ -138,7 +150,7 @@ const SidebarMenuCollapsedDropdown = ({
             tooltip={item.title}
             isActive={checkIsActive(href, item)}
           >
-            {iconsMapping.find((option) => option.name === item.icon)?.icon}
+            {SelectedIcon && <SelectedIcon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />

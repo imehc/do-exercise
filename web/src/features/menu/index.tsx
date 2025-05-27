@@ -47,7 +47,7 @@ export default function Menu() {
           </div>
         </Main>
 
-        <MenuDialogs refetch={refetch} />
+        <MenuDialogs treeData={data} refetch={refetch} />
       </StatusRenderer>
     </FormDialogProvider>
   )

@@ -1,10 +1,16 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { ColumnDef } from '@tanstack/react-table'
-import { SysMenuTree } from '~/do-exercise-api'
+import * as icons from '@tabler/icons-react'
+import { Icon } from '@tabler/icons-react'
+import { MenuType, SysMenuTree } from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { DataTableColumnHeader, DataTableRowActions } from '~/components/other'
+import {
+  DataTableColumnHeader,
+  DataTableRowActions,
+  iconPrefix,
+} from '~/components/other'
 import { callMenuMapping, callMenuTypes, callVisibleTypes } from '../data/data'
 
 export const columns: ColumnDef<SysMenuTree>[] = [
@@ -62,9 +68,18 @@ export const columns: ColumnDef<SysMenuTree>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='图标' />
     ),
-    cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.original.icon || '-'}</div>
-    ),
+    cell: ({ row }) => {
+      const SelectedIcon =
+        row.original.icon && row.original.type === MenuType.menu
+          ? (icons[
+              (iconPrefix + row.original.icon) as keyof typeof icons
+            ] as Icon)
+          : null
+      if (!SelectedIcon) {
+        return <div className='w-fit text-nowrap'>-</div>
+      }
+      return <SelectedIcon />
+    },
     enableSorting: false,
   },
   {

@@ -16,7 +16,10 @@ import {
   SystemMenuApi,
   UpdateMenuRequest,
 } from '~/do-exercise-api'
+import { useFormDialog } from '~/provider'
+import { cn } from '~/lib/utils'
 import { useApi } from '~/hooks/use-api'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
@@ -45,6 +48,7 @@ import {
   TreeSelect,
 } from '~/components/other'
 import { SelectDropdown } from '~/components/select-dropdown'
+import { callMethodTypes } from '~/features/api/data/data'
 import { callMenuMapping } from '../data/data'
 import {
   ActionSysMenuFormValues,
@@ -54,9 +58,9 @@ import {
   ActionSysMenuWithMenu,
 } from '../schemas/action-schema'
 
-function toCamelCase(str: string) {
+function toCamelCase(str?: string) {
   return str
-    .split('-')
+    ?.split('-')
     .map((word, index) => {
       if (index === 0) return word.charAt(0).toUpperCase() + word.slice(1)
       return word.charAt(0).toUpperCase() + word.slice(1)
@@ -65,6 +69,7 @@ function toCamelCase(str: string) {
 }
 
 interface Props {
+  treeData: SysMenuTree[]
   currentRow?: SysMenuTree
   open: boolean
   onOpenChange: (open: boolean, hasRefresh: boolean) => void
@@ -74,7 +79,13 @@ const modules = Object.keys(import.meta.glob('~/features/**/index.tsx')).map(
   (item) => item.replace('/src/features', '')
 )
 
-export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
+export function MenuActionDialog({
+  treeData,
+  currentRow,
+  open,
+  onOpenChange,
+}: Props) {
+  const { open: openType } = useFormDialog()
   const sysMenuApi = useApi(SystemMenuApi)
   const sysApi = useApi(SystemApiApi)
 
@@ -83,19 +94,21 @@ export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
     resolver: zodResolver(actionSysMenuSchema),
   })
 
-  const { data = [], isLoading } = useQuery({
-    queryKey: ['findMenuTree'],
-    queryFn: () => sysMenuApi.findMenuTree(),
-  })
   const { data: apis = [], isLoading: isLoadingApis } = useQuery({
     queryKey: ['findAllApis'],
     queryFn: () => sysApi.findAllApis(),
-    enabled: form.watch('type') === MenuType.button,
+    enabled:
+      form.watch('type') === MenuType.button &&
+      (openType === 'add' || openType === 'edit'),
   })
+
   const { data: menu, isLoading: isLoadingMenu } = useQuery({
     queryKey: ['findMenu', currentRow?.id],
     queryFn: () => sysMenuApi.findMenu({ id: currentRow?.id as number }),
-    enabled: form.watch('type') === MenuType.button && isEdit,
+    enabled:
+      form.watch('type') === MenuType.button &&
+      isEdit &&
+      (openType === 'add' || openType === 'edit'),
   })
 
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
@@ -117,6 +130,7 @@ export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
   })
 
   useEffect(() => {
+    if (isLoadingMenu) return
     if (isEdit) {
       switch (currentRow?.type) {
         case MenuType.directory:
@@ -146,7 +160,7 @@ export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
             type: MenuType.button,
             permission: currentRow.permission,
             apiIds:
-              (menu as SysMenuWithButton).apis?.map((api) => api.id) ?? [],
+              (menu as SysMenuWithButton)?.apis?.map((api) => api.id) ?? [],
           })
       }
       return
@@ -167,6 +181,7 @@ export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
     currentRow?.visible,
     form,
     isEdit,
+    isLoadingMenu,
     menu,
   ])
 
@@ -232,79 +247,103 @@ export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
             完成后点击保存。
           </DialogDescription>
         </DialogHeader>
-        <StatusRenderer isLoading={isLoading}>
-          <Form {...form}>
-            <form
-              id='menu-form'
-              onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 p-0.5'
+        <Form {...form}>
+          <form
+            id='menu-form'
+            onSubmit={form.handleSubmit(onSubmit)}
+            className='space-y-4 p-0.5'
+          >
+            <Tabs
+              value={form.watch('type')?.toString()}
+              onValueChange={(value) =>
+                form.setValue('type', +value as MenuType)
+              }
             >
-              <Tabs
-                value={form.watch('type')?.toString()}
-                onValueChange={(value) =>
-                  form.setValue('type', +value as MenuType)
-                }
+              <TabsList className='grid w-full grid-cols-3'>
+                {Array.from(callMenuMapping.entries())
+                  .map(([key, value]) => ({
+                    key,
+                    value,
+                  }))
+                  .map((item) => (
+                    <TabsTrigger key={item.key} value={item.key.toString()}>
+                      {item.value}
+                    </TabsTrigger>
+                  ))}
+              </TabsList>
+              <FormField
+                control={form.control}
+                name='parentId'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-right'>
+                      父级菜单
+                    </FormLabel>
+                    <FormControl>
+                      <TreeSelect
+                        className='col-span-8'
+                        placeholder='请选择父级菜单'
+                        data={[
+                          {
+                            name: '根节点',
+                            value: '0',
+                            children: transformData(
+                              treeData,
+                              (item) => item.name,
+                              (item) => item.id.toString()
+                            ),
+                          },
+                        ]}
+                        value={
+                          typeof field.value === 'number'
+                            ? [field.value.toString()]
+                            : []
+                        }
+                        onChange={(value) =>
+                          field.onChange(value[0] ? Number(value[0]) : '')
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-right'>
+                      菜单名称
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='请输入菜单名称'
+                        className='col-span-8'
+                        autoComplete='off'
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
+              <TabsContent
+                value={MenuType.menu.toString()}
+                className='flex flex-col gap-2'
               >
-                <TabsList className='grid w-full grid-cols-3'>
-                  {Array.from(callMenuMapping.entries())
-                    .map(([key, value]) => ({
-                      key,
-                      value,
-                    }))
-                    .map((item) => (
-                      <TabsTrigger key={item.key} value={item.key.toString()}>
-                        {item.value}
-                      </TabsTrigger>
-                    ))}
-                </TabsList>
                 <FormField
                   control={form.control}
-                  name='parentId'
+                  name='route'
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        父级菜单
-                      </FormLabel>
-                      <FormControl>
-                        <TreeSelect
-                          className='col-span-8'
-                          placeholder='请选择父级菜单'
-                          data={[
-                            {
-                              name: '根节点',
-                              value: '0',
-                              children: transformData(
-                                data,
-                                (item) => item.name,
-                                (item) => item.id.toString()
-                              ),
-                            },
-                          ]}
-                          value={
-                            typeof field.value === 'number'
-                              ? [field.value.toString()]
-                              : []
-                          }
-                          onChange={(value) =>
-                            field.onChange(value[0] ? Number(value[0]) : '')
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage className='col-span-8 col-start-3' />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='name'
-                  render={({ field }) => (
-                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                      <FormLabel className='col-span-2 text-right'>
-                        菜单名称
+                        路由
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder='请输入菜单名称'
+                          placeholder='请输入路由地址'
                           className='col-span-8'
                           autoComplete='off'
                           {...field}
@@ -315,192 +354,177 @@ export function MenuActionDialog({ currentRow, open, onOpenChange }: Props) {
                     </FormItem>
                   )}
                 />
-                <TabsContent
-                  value={MenuType.menu.toString()}
-                  className='flex flex-col gap-2'
-                >
-                  <FormField
-                    control={form.control}
-                    name='route'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          路由
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='请输入路由地址'
+                <FormField
+                  control={form.control}
+                  name='component'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-right'>
+                        组件
+                      </FormLabel>
+                      <FormControl>
+                        <SelectDropdown
+                          defaultValue={field.value ?? ''}
+                          onValueChange={field.onChange}
+                          placeholder='请选择组件路径'
+                          className='col-span-8 w-full'
+                          items={[
+                            ...modules.map((item) => ({
+                              label: item,
+                              value: item,
+                            })),
+                            modules.some(
+                              (item) => item === currentRow?.component
+                            )
+                              ? []
+                              : {
+                                  label: currentRow?.component as string,
+                                  value: currentRow?.component as string,
+                                },
+                          ]
+                            .flat()
+                            .sort((a, b) => a.label?.localeCompare(b.label))}
+                        />
+                      </FormControl>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='icon'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-right'>
+                        图标
+                      </FormLabel>
+                      <FormControl>
+                        <IconSelect
+                          className='col-span-8 w-full'
+                          placeholder='请选择图标'
+                          value={toCamelCase(field.value)}
+                          onChange={(value) => field.onChange(value)}
+                        />
+                      </FormControl>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='visible'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-right'>
+                        是否可见
+                      </FormLabel>
+                      <FormControl>
+                        <Switch
+                          disabled={isPending}
+                          checked={field.value || false}
+                          onCheckedChange={field.onChange}
+                        >
+                          <SwitchThumb />
+                        </Switch>
+                      </FormControl>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              <TabsContent
+                value={MenuType.button.toString()}
+                className='flex flex-col gap-2'
+              >
+                <FormField
+                  control={form.control}
+                  name='permission'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-right'>
+                        权限标识
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder='请输入权限标识'
+                          className='col-span-8'
+                          autoComplete='off'
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='apiIds'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-right'>
+                        关联API
+                      </FormLabel>
+                      <FormControl>
+                        <StatusRenderer
+                          className='col-span-8 h-50'
+                          isLoading={isLoadingApis || isLoadingMenu}
+                        >
+                          <TransferList
                             className='col-span-8'
-                            autoComplete='off'
-                            {...field}
-                            value={field.value ?? ''}
+                            value={field.value || []}
+                            onChange={field.onChange}
+                            renderLabel={(item) => (
+                              <Badge
+                                variant='outline'
+                                className={cn(callMethodTypes.get(item.method))}
+                              >
+                                <span>{item.method}</span>
+                                <span className='mx-1'>|</span>
+                                <span>{item.description}</span>
+                              </Badge>
+                            )}
+                            data={apis.map((item) => ({
+                              ...item,
+                              key: item.id,
+                              label: item.description || item.path,
+                              selected: field.value?.includes(item.id),
+                            }))}
                           />
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='component'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          组件
-                        </FormLabel>
-                        <FormControl>
-                          <SelectDropdown
-                            defaultValue={field.value ?? ''}
-                            onValueChange={field.onChange}
-                            placeholder='请选择组件路径'
-                            className='col-span-8 w-full'
-                            items={[
-                              ...modules.map((item) => ({
-                                label: item,
-                                value: item,
-                              })),
-                              modules.some(
-                                (item) => item === currentRow?.component
-                              )
-                                ? []
-                                : {
-                                    label: currentRow?.component as string,
-                                    value: currentRow?.component as string,
-                                  },
-                            ]
-                              .flat()
-                              .sort((a, b) => a.label.localeCompare(b.label))}
-                          />
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='icon'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          图标
-                        </FormLabel>
-                        <FormControl>
-                          <IconSelect
-                            className='col-span-8 w-full'
-                            placeholder='请选择图标'
-                            value={toCamelCase(field.value)}
-                            onChange={(value) => field.onChange(value)}
-                          />
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='visible'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          是否隐藏
-                        </FormLabel>
-                        <FormControl>
-                          <Switch
-                            disabled={isPending}
-                            checked={field.value || false}
-                            onCheckedChange={field.onChange}
-                          >
-                            <SwitchThumb />
-                          </Switch>
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                <TabsContent
-                  value={MenuType.button.toString()}
-                  className='flex flex-col gap-2'
-                >
-                  <FormField
-                    control={form.control}
-                    name='permission'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          权限标识
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='请输入权限标识'
-                            className='col-span-8'
-                            autoComplete='off'
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='apiIds'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          关联API
-                        </FormLabel>
-                        <FormControl>
-                          <StatusRenderer
-                            className='col-span-8 h-50'
-                            isLoading={isLoadingApis || isLoadingMenu}
-                          >
-                            <TransferList
-                              className='col-span-8'
-                              value={field.value || []}
-                              onChange={field.onChange}
-                              data={apis.map((item) => ({
-                                key: item.id,
-                                label: item.description || item.path,
-                                selected: field.value?.includes(item.id),
-                              }))}
-                            />
-                          </StatusRenderer>
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                {form.getValues('type') !== MenuType.button && (
-                  <FormField
-                    control={form.control}
-                    name='sort'
-                    render={({ field }) => (
-                      <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                        <FormLabel className='col-span-2 text-right'>
-                          排序
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            disabled={isPending}
-                            placeholder='请输入排序值'
-                            className='col-span-8'
-                            type='number'
-                            min={0}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className='col-span-8 col-start-3' />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </Tabs>
-            </form>
-          </Form>
-        </StatusRenderer>
+                        </StatusRenderer>
+                      </FormControl>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              {form.getValues('type') !== MenuType.button && (
+                <FormField
+                  control={form.control}
+                  name='sort'
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                      <FormLabel className='col-span-2 text-right'>
+                        排序
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={isPending}
+                          placeholder='请输入排序值'
+                          className='col-span-8'
+                          type='number'
+                          min={0}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </Tabs>
+          </form>
+        </Form>
         <DialogFooter>
           <Button type='submit' form='menu-form' disabled={isPending}>
             {isPending ? (

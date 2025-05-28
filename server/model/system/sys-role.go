@@ -43,17 +43,15 @@ func (r *SysRole) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (r *SysRole) BeforeDelete(tx *gorm.DB) (err error) {
-	if r.Id == 0 {
-		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
-		r.DeletedBy = userId
-		err = tx.
-			Model(r).
-			Select("DeletedBy").
-			Updates(r).
-			Error
-		if err != nil {
-			return err
-		}
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	r.DeletedBy = userId
+	err = tx.
+		Model(r).
+		Select("DeletedBy").
+		Updates(r).
+		Error
+	if err != nil {
+		return err
 	}
 
 	return nil

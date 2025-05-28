@@ -57,9 +57,11 @@ func (s *SysMenuService) checkMenuExist(db *gorm.DB, menuId uint, isParent bool)
 func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
 	db := global.DB
 	log := global.Log
-	_, err := s.checkMenuExist(db, *req.ParentId, false)
-	if err != nil {
-		return nil, err
+	if *req.ParentId != 0 {
+		_, err := s.checkMenuExist(db, *req.ParentId, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	menu := &system.SysMenu{
@@ -83,7 +85,7 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 		}
 	}()
 
-	err = tx.Create(menu).Error
+	err := tx.Create(menu).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, errors.New("createMenuFailed")
@@ -310,6 +312,13 @@ func sortMenus(menus []response.SysMenuTreeResp) {
 		if a.Sort > b.Sort {
 			return 1
 		}
+
+		if a.Id < b.Id {
+			return -1
+		} else if a.Id > b.Id {
+			return 1
+		}
+
 		return 0
 	})
 }

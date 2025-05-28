@@ -48,8 +48,8 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 		return menu.Apis
 	})
 
-	if len(apis) == 0 {
-		return menus, errors.New("menuAssignFailed")
+	if len(apis) == 0 { // 说明没有分配API
+		return []system.SysMenu{}, nil
 	}
 
 	enforcer := global.Enforcer

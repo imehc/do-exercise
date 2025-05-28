@@ -9,7 +9,7 @@ import type { TreeNodeData, TreeNodeDataState } from './types'
  */
 export const makeTreeNodeDataState = (
   data: Array<TreeNodeData>,
-  values: Array<string> = [],
+  values: Array<string | number> = [],
   searchValue?: string
 ): Array<TreeNodeDataState> => {
   const dataClone = structuredClone(data)
@@ -107,7 +107,7 @@ export const toggleAllChildren = (
 
 const findNodeOrChild = (
   nodes: Array<TreeNodeDataState>,
-  value: string
+  value: string | number
 ): TreeNodeDataState | undefined => {
   for (const node of nodes) {
     if (node.value === value) {
@@ -148,12 +148,33 @@ export const handleNodeCheck = (
  * @param data - The array of TreeNodeDataState objects.
  * @returns An array of string values.
  */
-export const getValuesFromState = (data: Array<TreeNodeDataState>) => {
-  const values: Array<string> = []
+export const getValuesFromState = (
+  data: Array<TreeNodeDataState>,
+  valueMode: 'all' | 'parent-only' = 'all'
+) => {
+  const values: Array<string | number> = []
+
+  const isAllChildrenChecked = (node: TreeNodeDataState): boolean => {
+    if (!node.children || node.children.length === 0) return false
+    return node.children.every(
+      (child) => child.checked || isAllChildrenChecked(child)
+    )
+  }
+
   const getNodeValue = (node: TreeNodeDataState) => {
+    if (valueMode === 'parent-only' && isAllChildrenChecked(node)) {
+      // 如果是 parent-only 模式且所有子节点都被选中，只添加父节点
+      values.push(node.value)
+      return // 直接返回，不再处理子节点
+    }
+
+    // all 模式下，或 parent-only 模式但不是所有子节点都选中时
     if (node.checked) {
       values.push(node.value)
-    } else if (node.children) {
+    }
+
+    // 继续处理子节点
+    if (node.children) {
       node.children.forEach((child) => {
         getNodeValue(child)
       })
@@ -168,7 +189,7 @@ export const getValuesFromState = (data: Array<TreeNodeDataState>) => {
 }
 
 export const getTreeValueLabelMap = (data: Array<TreeNodeData>) => {
-  const labelsMap = new Map<string, string>()
+  const labelsMap = new Map<string | number, string>()
 
   const findLabels = (node: TreeNodeDataState) => {
     labelsMap.set(node.value, node.name)

@@ -145,7 +145,7 @@ export const columns: ColumnDef<SysMenuTree>[] = [
   {
     id: 'actions',
     cell: ({ row }) => (
-      <DataTableRowActions row={row} showEdit showDelete showInfo />
+      <DataTableRowActions row={row} showEdit showDelete showInfo showAdd />
     ),
   },
 ]

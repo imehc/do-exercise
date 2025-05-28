@@ -3,7 +3,7 @@ import { TreeNodeData } from './types'
 export function transformData<T extends { children?: T[] }>(
   data: T[],
   getName: (item: T) => string,
-  getValue: (item: T) => string
+  getValue: (item: T) => string | number
 ): TreeNodeData[] {
   return data.map((item) => {
     const name = getName(item)

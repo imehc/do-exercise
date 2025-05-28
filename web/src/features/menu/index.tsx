@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { SystemMenuApi } from '~/do-exercise-api'
 import { FormDialogProvider } from '~/provider'
-import { useApi } from '~/hooks/use-api'
 import { Header } from '~/components/layout/header'
 import { Main } from '~/components/layout/main'
 import { DataTable, StatusRenderer } from '~/components/other'
@@ -11,17 +9,10 @@ import { ThemeSwitch } from '~/components/theme-switch'
 import { columns } from './components/menu-columns'
 import { MenuDialogs } from './components/menu-dialogs'
 import { MenuPrimaryButtons } from './components/menu-primary-buttons'
+import { findMenuTree } from './data/api'
 
 export default function Menu() {
-  const sysApi = useApi(SystemMenuApi)
-  const {
-    data = [],
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ['findMenuTree'],
-    queryFn: () => sysApi.findMenuTree(),
-  })
+  const { data = [], isLoading, refetch } = useQuery(findMenuTree())
 
   return (
     <FormDialogProvider>

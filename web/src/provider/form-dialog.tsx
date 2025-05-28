@@ -6,6 +6,7 @@ export type DialogType =
   | 'add'
   | 'edit'
   | 'delete'
+  | 'add-child'
   | 'view-msg'
   | 'view-params'
   | 'view-body'

@@ -1,6 +1,6 @@
 export interface TreeNodeData {
   name: string
-  value: string
+  value: string | number
   children?: Array<TreeNodeData>
 }
 
@@ -13,9 +13,11 @@ export interface TreeNodeDataState extends TreeNodeData {
 }
 
 export type TreeSelectProps = {
-  value: Array<string>
-  onChange: (value: Array<string>) => void
+  value: Array<string | number>
+  onChange: (value: Array<string | number>) => void
   data: Array<TreeNodeData>
   multiple?: boolean
   placeholder?: string
+  /** @default all */
+  valueMode?: 'all' | 'parent-only'
 }

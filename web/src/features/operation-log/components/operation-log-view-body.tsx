@@ -40,7 +40,7 @@ export function OperationLogViewBodyDialog({ open, onOpenChange }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <CodeBlock language='json' content={currentRow?.result ?? ''} />
+        <CodeBlock language='json' content={currentRow?.body ?? ''} />
 
         <DialogFooter className='gap-y-2'>
           <DialogClose asChild>

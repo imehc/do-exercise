@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const apiActionSchema = z.object({
   path: z.string(),
   method: z.string(),
-  description: z.string().optional(),
+  description: z.string().min(1, { message: '请输入菜单' }),
   group: z.string().optional(),
   disabled: z.boolean().optional(),
   sort: z.coerce.number().optional(),

@@ -53,8 +53,8 @@ export default function OperationLog() {
             />
           </div>
         </Main>
+        <OperationLogDialogs />
       </StatusRenderer>
-      <OperationLogDialogs />
     </FormDialogProvider>
   )
 }

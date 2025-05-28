@@ -9,6 +9,7 @@ const basicSchema = z.object({
     })
     .nonnegative({ message: '请选择父级菜单' }),
   name: z.string({ required_error: '请输入菜单名称' }).min(1, '请输入菜单名称'),
+  visible: z.boolean().optional(),
 })
 
 export const ActionSysMenuWithDirectory = basicSchema.extend({
@@ -26,7 +27,6 @@ export const ActionSysMenuWithMenu = basicSchema.extend({
   component: z
     .string({ required_error: '请选择组件路径' })
     .min(1, '请选择组件路径'),
-  visible: z.boolean().optional(),
 })
 
 export const ActionSysMenuWithButton = basicSchema.extend({

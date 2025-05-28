@@ -25,6 +25,7 @@ export type TreeSelectComponentProps = TreeSelectProps &
   AriaInvalidProps & {
     className?: string
     loading?: boolean
+    mode?: 'popup' | 'inline'
   }
 
 export const TreeSelect = ({
@@ -33,6 +34,7 @@ export const TreeSelect = ({
   data,
   className,
   loading,
+  mode = 'popup',
   multiple = false,
   placeholder = '',
   'aria-invalid': invalid,
@@ -44,6 +46,28 @@ export const TreeSelect = ({
   const valueLabelMap = useMemo(() => {
     return getTreeValueLabelMap(data)
   }, [data])
+
+  if (mode === 'inline') {
+    return (
+      <div
+        className={cn(
+          'border-input w-[var(--radix-popover-trigger-width)] rounded-md border p-0 shadow-xs transition-[color,box-shadow]',
+          className
+        )}
+      >
+        <TreeSelectPanel
+          loading={loading}
+          data={data}
+          value={value}
+          onChange={onChange}
+          multiple={multiple}
+          search={search}
+          deferredSearch={deferredSearch}
+          setSearch={setSearch}
+        />
+      </div>
+    )
+  }
 
   return (
     <Popover modal>
@@ -125,36 +149,72 @@ export const TreeSelect = ({
         className='w-[var(--radix-popover-trigger-width)] p-0'
         align='start'
       >
-        <div className='flex items-center border-b px-3' cmdk-input-wrapper=''>
-          <Search className='mr-2 size-4 shrink-0 opacity-50' />
-          <input
-            value={search ?? ''}
-            onChange={(e) => {
-              setSearch(e.target.value)
-            }}
-            className='placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
-          />
-        </div>
-        <div className='max-h-56 overflow-y-auto p-2'>
-          {loading && (
-            <div className='p-8 text-center text-sm text-gray-400'>
-              <LoadingSpinner />
-            </div>
-          )}
-          {!loading && data.length === 0 && (
-            <div className='p-8 text-center text-sm'>No results</div>
-          )}
-          {!loading && data.length > 0 && (
-            <TreeView
-              value={value}
-              onChange={onChange}
-              data={data}
-              searchValue={deferredSearch}
-              multiple={multiple}
-            />
-          )}
-        </div>
+        <TreeSelectPanel
+          loading={loading}
+          data={data}
+          value={value}
+          onChange={onChange}
+          multiple={multiple}
+          search={search}
+          deferredSearch={deferredSearch}
+          setSearch={setSearch}
+        />
       </PopoverContent>
     </Popover>
+  )
+}
+
+interface TreeSelectPanelProps
+  extends Pick<
+    TreeSelectComponentProps,
+    'loading' | 'data' | 'onChange' | 'multiple' | 'value'
+  > {
+  search?: string
+  setSearch: React.Dispatch<React.SetStateAction<string | undefined>>
+  deferredSearch?: string
+}
+
+function TreeSelectPanel({
+  search,
+  setSearch,
+  loading,
+  data,
+  value,
+  onChange,
+  multiple,
+  deferredSearch,
+}: TreeSelectPanelProps) {
+  return (
+    <>
+      <div className='flex items-center border-b px-3' cmdk-input-wrapper=''>
+        <Search className='mr-2 size-4 shrink-0 opacity-50' />
+        <input
+          value={search ?? ''}
+          onChange={(e) => {
+            setSearch(e.target.value)
+          }}
+          className='placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
+        />
+      </div>
+      <div className='max-h-56 overflow-y-auto p-2'>
+        {loading && (
+          <div className='p-8 text-center text-sm text-gray-400'>
+            <LoadingSpinner />
+          </div>
+        )}
+        {!loading && data.length === 0 && (
+          <div className='p-8 text-center text-sm'>No results</div>
+        )}
+        {!loading && data.length > 0 && (
+          <TreeView
+            value={value}
+            onChange={onChange}
+            data={data}
+            searchValue={deferredSearch}
+            multiple={multiple}
+          />
+        )}
+      </div>
+    </>
   )
 }

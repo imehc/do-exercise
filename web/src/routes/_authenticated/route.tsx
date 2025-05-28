@@ -1,29 +1,20 @@
 import { useMemo } from 'react'
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import {
   createFileRoute,
   LinkProps,
   Outlet,
   redirect,
 } from '@tanstack/react-router'
-import { SystemMenuApi } from '~/do-exercise-api'
 import { SearchProvider } from '~/provider/search'
 import { cn } from '~/lib/utils'
 import { handleMenuTree } from '~/utils/handle-menu-tree'
-import { apiInstance } from '~/hooks/use-api'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
 import { LoadingSpinner } from '~/components/other'
 import SkipToMain from '~/components/skip-to-main'
-
-const findMenuTree = () => {
-  const sysMenuApi = apiInstance(SystemMenuApi)
-  return queryOptions({
-    queryKey: ['findMenuTree'],
-    queryFn: () => sysMenuApi.findMenuTree(),
-  })
-}
+import { findMenuTree } from '~/features/menu/data/api'
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context: { queryClient }, location }) => {

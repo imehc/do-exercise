@@ -1,6 +1,11 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
-import { IconEdit, IconInfoHexagon, IconTrash } from '@tabler/icons-react'
+import {
+  IconEdit,
+  IconInfoHexagon,
+  IconTrash,
+  IconPlaylistAdd,
+} from '@tabler/icons-react'
 import { useFormDialog } from '~/provider'
 import { Button } from '~/components/ui/button'
 import {
@@ -25,6 +30,8 @@ interface DataTableRowActionsProps<T> {
   deleteOptions?: MenuOption
   showInfo?: boolean
   infoOptions?: MenuOption
+  showAdd?: boolean
+  addOptions?: MenuOption
 }
 
 export function DataTableRowActions<T>({
@@ -42,6 +49,11 @@ export function DataTableRowActions<T>({
   showInfo = false,
   infoOptions = {
     title: 'Info',
+    disable: false,
+  },
+  showAdd = false,
+  addOptions = {
+    title: 'Add',
     disable: false,
   },
 }: DataTableRowActionsProps<T>) {
@@ -64,52 +76,60 @@ export function DataTableRowActions<T>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[160px]'>
-          {showInfo && (
-            <DropdownMenuItem
-              disabled={infoOptions.disable}
-              onClick={() => {
-                setCurrentRow(row.original)
-                setOpen('view-info')
-              }}
-            >
-              {infoOptions.title}
-              <DropdownMenuShortcut>
-                <IconInfoHexagon size={16} />
-              </DropdownMenuShortcut>
-            </DropdownMenuItem>
-          )}
-          {showEdit && (
-            <DropdownMenuItem
-              disabled={editOptions.disable}
-              onClick={() => {
-                setCurrentRow(row.original)
-                setOpen('edit')
-              }}
-            >
-              {editOptions.title}
-              <DropdownMenuShortcut>
-                <IconEdit size={16} />
-              </DropdownMenuShortcut>
-            </DropdownMenuItem>
-          )}
-          {showDelete && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={deleteOptions.disable}
-                onClick={() => {
-                  setCurrentRow(row.original)
-                  setOpen('delete')
-                }}
-                className='text-red-500!'
-              >
-                {editOptions.title}
-                <DropdownMenuShortcut>
-                  <IconTrash size={16} className='text-red-500!' />
-                </DropdownMenuShortcut>
-              </DropdownMenuItem>
-            </>
-          )}
+          <DropdownMenuItem
+            hidden={!showInfo}
+            disabled={infoOptions.disable}
+            onClick={() => {
+              setCurrentRow(row.original)
+              setOpen('view-info')
+            }}
+          >
+            {infoOptions.title}
+            <DropdownMenuShortcut>
+              <IconInfoHexagon size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            hidden={!showAdd}
+            disabled={addOptions.disable}
+            onClick={() => {
+              setCurrentRow(row.original)
+              setOpen('add-child')
+            }}
+          >
+            {addOptions.title}
+            <DropdownMenuShortcut>
+              <IconPlaylistAdd size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            hidden={!showEdit}
+            disabled={editOptions.disable}
+            onClick={() => {
+              setCurrentRow(row.original)
+              setOpen('edit')
+            }}
+          >
+            {editOptions.title}
+            <DropdownMenuShortcut>
+              <IconEdit size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator hidden={!showDelete} />
+          <DropdownMenuItem
+            hidden={!showDelete}
+            disabled={deleteOptions.disable}
+            onClick={() => {
+              setCurrentRow(row.original)
+              setOpen('delete')
+            }}
+            className='text-red-500!'
+          >
+            {deleteOptions.title}
+            <DropdownMenuShortcut>
+              <IconTrash size={16} className='text-red-500!' />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

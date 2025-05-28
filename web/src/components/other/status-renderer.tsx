@@ -7,7 +7,7 @@ interface Props<T> {
   className?: string
   isScreen?: boolean
   data?: T
-  children: ((data: T) => React.ReactNode) | React.ReactNode
+  children: ((data: NonNullable<T>) => React.ReactNode) | React.ReactNode
 }
 
 export function StatusRenderer<T>({

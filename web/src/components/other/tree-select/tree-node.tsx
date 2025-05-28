@@ -47,7 +47,7 @@ export const TreeNode = ({ data }: TreeNodeProps) => {
           </button>
         )}
         <Checkbox
-          id={data.value}
+          id={data.value.toString()}
           checked={checked}
           onCheckedChange={() => {
             onCheck(data)
@@ -55,7 +55,7 @@ export const TreeNode = ({ data }: TreeNodeProps) => {
         />
         <label
           className='cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-          htmlFor={data.value}
+          htmlFor={data.value.toString()}
         >
           {data.name}
         </label>

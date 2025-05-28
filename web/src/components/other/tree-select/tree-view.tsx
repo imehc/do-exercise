@@ -17,16 +17,23 @@ export const TreeView = ({
   data,
   searchValue,
   multiple,
+  valueMode = 'all',
 }: TreeViewProps) => {
   const dataState = makeTreeNodeDataState(data, value, searchValue)
-
   const handleCheck = (node: TreeNodeDataState) => {
     const updatedState = handleNodeCheck(dataState, node)
-    const values = getValuesFromState(updatedState)
     if (!multiple) {
-      onChange([node.value])
+      // 在单选模式下，根据当前点击的动作（选中/取消选中）来决定返回值
+      if (!node.checked) {
+        // 如果当前是未选中状态，说明这次操作是选中操作
+        onChange([node.value])
+      } else {
+        // 如果当前是选中状态，说明这次操作是取消选中操作
+        onChange([])
+      }
       return
     }
+    const values = getValuesFromState(updatedState, valueMode)
     onChange(values)
   }
 

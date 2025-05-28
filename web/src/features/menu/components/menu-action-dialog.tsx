@@ -16,6 +16,7 @@ import {
   SystemMenuApi,
   UpdateMenuRequest,
 } from '~/do-exercise-api'
+import { router } from '~/main'
 import { useFormDialog } from '~/provider'
 import { cn } from '~/lib/utils'
 import { useApi } from '~/hooks/use-api'
@@ -86,10 +87,18 @@ export function MenuActionDialog({
   onOpenChange,
 }: Props) {
   const { open: openType } = useFormDialog()
+  const routes = useMemo<Array<string>>(
+    () =>
+      router.flatRoutes
+        .map((item) => item.fullPath.trim())
+        .map((item) => (item.length > 1 ? item.replace(/\/+$/, '') : item)),
+    []
+  )
+
   const sysMenuApi = useApi(SystemMenuApi)
   const sysApi = useApi(SystemApiApi)
 
-  const isEdit = useMemo(() => !!currentRow, [currentRow])
+  const isEdit = useMemo(() => !!currentRow?.id, [currentRow])
   const form = useForm<ActionSysMenuFormValues>({
     resolver: zodResolver(actionSysMenuSchema),
   })
@@ -99,7 +108,7 @@ export function MenuActionDialog({
     queryFn: () => sysApi.findAllApis(),
     enabled:
       form.watch('type') === MenuType.button &&
-      (openType === 'add' || openType === 'edit'),
+      (openType === 'add' || openType === 'edit' || openType === 'add-child'),
   })
 
   const { data: menu, isLoading: isLoadingMenu } = useQuery({
@@ -108,7 +117,7 @@ export function MenuActionDialog({
     enabled:
       form.watch('type') === MenuType.button &&
       isEdit &&
-      (openType === 'add' || openType === 'edit'),
+      (openType === 'add' || openType === 'edit' || openType === 'add-child'),
   })
 
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
@@ -139,6 +148,7 @@ export function MenuActionDialog({
             sort: currentRow.sort,
             parentId: currentRow.parentId,
             name: currentRow.name,
+            visible: currentRow.visible,
           })
           break
         case MenuType.menu:
@@ -161,8 +171,16 @@ export function MenuActionDialog({
             permission: currentRow.permission,
             apiIds:
               (menu as SysMenuWithButton)?.apis?.map((api) => api.id) ?? [],
+            visible: currentRow.visible,
           })
       }
+      return
+    }
+    if (openType === 'add-child') {
+      form.reset({
+        parentId: currentRow?.parentId,
+        type: currentRow?.type,
+      } as ActionSysMenuFormValues)
       return
     }
     form.reset({
@@ -183,6 +201,7 @@ export function MenuActionDialog({
     isEdit,
     isLoadingMenu,
     menu,
+    openType,
   ])
 
   const handleFormat = (values: ActionSysMenuFormValues) => {
@@ -193,6 +212,7 @@ export function MenuActionDialog({
           parentId: values.parentId,
           name: values.name,
           sort: values.sort,
+          visible: Boolean(values.visible),
         } satisfies z.infer<typeof ActionSysMenuWithDirectory>
       case MenuType.menu:
         return {
@@ -202,8 +222,8 @@ export function MenuActionDialog({
           icon: values.icon,
           route: values.route,
           component: values.component,
-          visible: Boolean(values.visible),
           sort: values.sort,
+          visible: Boolean(values.visible),
         } satisfies z.infer<typeof ActionSysMenuWithMenu>
       case MenuType.button:
         return {
@@ -212,6 +232,7 @@ export function MenuActionDialog({
           name: values.name,
           permission: values.permission,
           apiIds: values.apiIds,
+          visible: Boolean(values.visible),
         } satisfies z.infer<typeof ActionSysMenuWithButton>
     }
   }
@@ -283,24 +304,25 @@ export function MenuActionDialog({
                       <TreeSelect
                         className='col-span-8'
                         placeholder='请选择父级菜单'
+                        valueMode='parent-only'
                         data={[
                           {
                             name: '根节点',
-                            value: '0',
+                            value: 0,
                             children: transformData(
                               treeData,
                               (item) => item.name,
-                              (item) => item.id.toString()
+                              (item) => item.id
                             ),
                           },
                         ]}
-                        value={
-                          typeof field.value === 'number'
-                            ? [field.value.toString()]
-                            : []
-                        }
+                        value={[field.value].filter(
+                          (item) => typeof item === 'number'
+                        )}
                         onChange={(value) =>
-                          field.onChange(value[0] ? Number(value[0]) : '')
+                          field.onChange(
+                            typeof value[0] === 'number' ? value[0] : undefined
+                          )
                         }
                       />
                     </FormControl>
@@ -342,12 +364,27 @@ export function MenuActionDialog({
                         路由
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder='请输入路由地址'
-                          className='col-span-8'
-                          autoComplete='off'
-                          {...field}
-                          value={field.value ?? ''}
+                        <SelectDropdown
+                          defaultValue={field.value ?? '/'}
+                          onValueChange={field.onChange}
+                          placeholder='请选择路由'
+                          className='col-span-8 w-full'
+                          items={[
+                            ...Array.from(new Set(routes), (route) => ({
+                              label: route,
+                              value: route,
+                            })),
+                            ...(routes.includes(currentRow?.route ?? '')
+                              ? []
+                              : [
+                                  {
+                                    label: currentRow?.route as string,
+                                    value: currentRow?.route as string,
+                                  },
+                                ]),
+                          ]
+                            .flat()
+                            .sort((a, b) => a.label.localeCompare(b.label))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />
@@ -405,27 +442,6 @@ export function MenuActionDialog({
                           value={toCamelCase(field.value)}
                           onChange={(value) => field.onChange(value)}
                         />
-                      </FormControl>
-                      <FormMessage className='col-span-8 col-start-3' />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='visible'
-                  render={({ field }) => (
-                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                      <FormLabel className='col-span-2 text-right'>
-                        是否可见
-                      </FormLabel>
-                      <FormControl>
-                        <Switch
-                          disabled={isPending}
-                          checked={field.value || false}
-                          onCheckedChange={field.onChange}
-                        >
-                          <SwitchThumb />
-                        </Switch>
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />
                     </FormItem>
@@ -498,6 +514,27 @@ export function MenuActionDialog({
                   )}
                 />
               </TabsContent>
+              <FormField
+                control={form.control}
+                name='visible'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-right'>
+                      是否可见
+                    </FormLabel>
+                    <FormControl>
+                      <Switch
+                        disabled={isPending}
+                        checked={field.value || false}
+                        onCheckedChange={field.onChange}
+                      >
+                        <SwitchThumb />
+                      </Switch>
+                    </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
               {form.getValues('type') !== MenuType.button && (
                 <FormField
                   control={form.control}

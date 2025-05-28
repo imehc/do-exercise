@@ -804,7 +804,16 @@ components:
             menus:
               type: array
               items:
-                $ref: "#/components/schemas/SysMenu"
+                properties:
+                  id:
+                    type: integer
+                    description: ID
+                  name:
+                    type: string
+                    description: 菜单名称
+                required:
+                  - id
+                  - name
               description: 菜单列表
       required:
         - id

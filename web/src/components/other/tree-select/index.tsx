@@ -25,7 +25,8 @@ export type TreeSelectComponentProps = TreeSelectProps &
   AriaInvalidProps & {
     className?: string
     loading?: boolean
-    mode?: 'popup' | 'inline'
+    mode?: 'popup' | 'inline' | 'view'
+    readonly?: boolean
   }
 
 export const TreeSelect = ({
@@ -38,6 +39,7 @@ export const TreeSelect = ({
   multiple = false,
   placeholder = '',
   'aria-invalid': invalid,
+  readonly = false,
 }: TreeSelectComponentProps) => {
   const ref = useRef<HTMLButtonElement>(null)
   const [search, setSearch] = useState<string | undefined>('')
@@ -47,7 +49,7 @@ export const TreeSelect = ({
     return getTreeValueLabelMap(data)
   }, [data])
 
-  if (mode === 'inline') {
+  if (mode === 'inline' || mode === 'view') {
     return (
       <div
         className={cn(
@@ -64,6 +66,8 @@ export const TreeSelect = ({
           search={search}
           deferredSearch={deferredSearch}
           setSearch={setSearch}
+          readonly={readonly}
+          mode={mode}
         />
       </div>
     )
@@ -95,11 +99,11 @@ export const TreeSelect = ({
                   <div
                     onClick={(e) => {
                       e.preventDefault()
-                      onChange(value.filter((value) => value !== v))
+                      onChange?.(value.filter((value) => value !== v))
                     }}
                     onKeyDown={(e) => {
                       if (e.key === ' ' || e.key === 'Enter') {
-                        onChange(value.filter((value) => value !== v))
+                        onChange?.(value.filter((value) => value !== v))
                         ref.current?.focus()
                       }
                     }}
@@ -125,11 +129,11 @@ export const TreeSelect = ({
               )}
               onClick={(e) => {
                 e.preventDefault()
-                onChange([])
+                onChange?.([])
               }}
               onKeyDown={(e) => {
                 if (e.key === ' ' || e.key === 'Enter') {
-                  onChange([])
+                  onChange?.([])
                   ref.current?.focus()
                 }
               }}
@@ -158,6 +162,8 @@ export const TreeSelect = ({
           search={search}
           deferredSearch={deferredSearch}
           setSearch={setSearch}
+          readonly={readonly}
+          mode={mode}
         />
       </PopoverContent>
     </Popover>
@@ -167,7 +173,7 @@ export const TreeSelect = ({
 interface TreeSelectPanelProps
   extends Pick<
     TreeSelectComponentProps,
-    'loading' | 'data' | 'onChange' | 'multiple' | 'value'
+    'loading' | 'data' | 'onChange' | 'multiple' | 'value' | 'readonly' | 'mode'
   > {
   search?: string
   setSearch: React.Dispatch<React.SetStateAction<string | undefined>>
@@ -183,20 +189,30 @@ function TreeSelectPanel({
   onChange,
   multiple,
   deferredSearch,
+  readonly,
+  mode,
 }: TreeSelectPanelProps) {
   return (
     <>
-      <div className='flex items-center border-b px-3' cmdk-input-wrapper=''>
-        <Search className='mr-2 size-4 shrink-0 opacity-50' />
-        <input
-          value={search ?? ''}
-          onChange={(e) => {
-            setSearch(e.target.value)
-          }}
-          className='placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
-        />
-      </div>
-      <div className='max-h-56 overflow-y-auto p-2'>
+      {mode !== 'view' && (
+        <div className='flex items-center border-b px-3' cmdk-input-wrapper=''>
+          <Search className='mr-2 size-4 shrink-0 opacity-50' />
+          <input
+            value={search ?? ''}
+            onChange={(e) => {
+              setSearch(e.target.value)
+            }}
+            readOnly={readonly}
+            className='placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
+          />
+        </div>
+      )}
+      <div
+        className={cn(
+          'max-h-56 overflow-y-auto p-2',
+          mode === 'view' && 'max-h-full'
+        )}
+      >
         {loading && (
           <div className='p-8 text-center text-sm text-gray-400'>
             <LoadingSpinner />
@@ -212,6 +228,7 @@ function TreeSelectPanel({
             data={data}
             searchValue={deferredSearch}
             multiple={multiple}
+            readonly={readonly}
           />
         )}
       </div>

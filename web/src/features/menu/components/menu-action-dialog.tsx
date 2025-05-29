@@ -384,7 +384,7 @@ export function MenuActionDialog({
                                 ]),
                           ]
                             .flat()
-                            .sort((a, b) => a.label.localeCompare(b.label))}
+                            .sort((a, b) => a.label?.localeCompare(b.label))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />

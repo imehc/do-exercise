@@ -14,6 +14,7 @@ func (s *SysUserRouter) InitSysRoleRouter(r *gin.RouterGroup) gin.IRoutes {
 		router.PUT(":id", sysRoleApi.Update)    // 更新角色
 		router.GET(":id", sysRoleApi.Get)       // 获取单个角色
 		router.GET("", sysRoleApi.GetList)      // 获取角色列表
+		router.GET("all", sysRoleApi.GetAll)    // 获取所有角色
 	}
 	return router
 }

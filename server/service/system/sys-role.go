@@ -318,3 +318,21 @@ func (s *SysRoleService) GetList(req request.QuerySysRoleReq) (common.PageResult
 	}
 	return result, nil
 }
+
+// GetAll 获取所有角色
+func (s *SysRoleService) GetAll() ([]response.SysRoleShortResp, error) {
+	var roles []system.SysRole
+	db := global.DB.Model(&system.SysRole{})
+	err := db.Find(&roles).Error
+	if err != nil {
+		return nil, errors.New("getRoleFailed")
+	}
+
+	return lo.Map(roles, func(role system.SysRole, _ int) response.SysRoleShortResp {
+		return response.SysRoleShortResp{
+			Id:   role.Id,
+			Code: role.Code,
+			Name: role.Name,
+		}
+	}), nil
+}

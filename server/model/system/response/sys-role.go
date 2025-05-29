@@ -12,3 +12,9 @@ type SysRoleResp struct {
 	UpdatedAt time.Time          `json:"updated_at,omitzero"`
 	UpdatedBy int64              `json:"updated_by,omitzero"`
 }
+
+type SysRoleShortResp struct {
+	Id   uint   `json:"id"`
+	Name string `json:"name"`
+	Code string `json:"code"`
+}

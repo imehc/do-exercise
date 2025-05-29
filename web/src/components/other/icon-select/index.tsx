@@ -161,7 +161,7 @@ function IconSelectContent({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className='placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
+          className='placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50'
           placeholder='Search icons...'
         />
       </div>

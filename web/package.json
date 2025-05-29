@@ -11,7 +11,9 @@
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "knip": "knip",
-    "gen:apis": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./src/do-exercise-api -i ../server/openapi.yaml && node ./scripts/fix-generated-files.cjs"
+    "gen:apis": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./src/do-exercise-api -i ../server/openapi.yaml && node ./scripts/fix-generated-files.cjs",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -84,6 +86,7 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.32.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4"
   }
 }

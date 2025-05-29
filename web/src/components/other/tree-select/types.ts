@@ -14,7 +14,7 @@ export interface TreeNodeDataState extends TreeNodeData {
 
 export type TreeSelectProps = {
   value: Array<string | number>
-  onChange: (value: Array<string | number>) => void
+  onChange?: (value: Array<string | number>) => void
   data: Array<TreeNodeData>
   multiple?: boolean
   placeholder?: string

@@ -3,14 +3,15 @@ import clsx from 'clsx'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { Checkbox } from '~/components/ui/checkbox'
+import { TreeSelectComponentProps } from '.'
 import { TreeSelectContext } from './context'
 import { TreeNodeDataState } from './types'
 
-interface TreeNodeProps {
+interface TreeNodeProps extends Pick<TreeSelectComponentProps, 'readonly'> {
   data: TreeNodeDataState
 }
 
-export const TreeNode = ({ data }: TreeNodeProps) => {
+export const TreeNode = ({ data, readonly }: TreeNodeProps) => {
   const hasSelectedChildren = data.hasSelectedChildren === true
   let checked: boolean | 'indeterminate' = data.checked === true
   if (!checked && hasSelectedChildren) {
@@ -42,6 +43,7 @@ export const TreeNode = ({ data }: TreeNodeProps) => {
             aria-hidden={!hasChildren}
             className={clsx(!hasChildren && 'pointer-events-none opacity-0')}
             onClick={hasChildren ? () => setIsOpen(!isOpen) : undefined}
+            disabled={readonly}
           >
             <Icon className='expand-icon' size={16} />
           </button>
@@ -49,6 +51,7 @@ export const TreeNode = ({ data }: TreeNodeProps) => {
         <Checkbox
           id={data.value.toString()}
           checked={checked}
+          disabled={readonly}
           onCheckedChange={() => {
             onCheck(data)
           }}
@@ -63,7 +66,7 @@ export const TreeNode = ({ data }: TreeNodeProps) => {
       {isOpen && hasChildren && (
         <div className={cn('flex flex-col gap-2 pl-12')}>
           {data.children?.map((child) => (
-            <TreeNode key={child.value} data={child} />
+            <TreeNode key={child.value} data={child} readonly={readonly} />
           ))}
         </div>
       )}

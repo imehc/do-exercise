@@ -120,3 +120,16 @@ func (s *SysRoleApi) GetList(ctx *gin.Context) {
 	}
 	response.Success(ctx, data)
 }
+
+// GetAll 获取所有角色
+func (s *SysRoleApi) GetAll(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+	data, err := roleService.GetAll()
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+	}
+	response.Success(ctx, data)
+}

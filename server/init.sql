@@ -25,6 +25,7 @@ INSERT INTO sys_api VALUES(23, '/system/token/all', '获取所有令牌', 'SYSTE
 INSERT INTO sys_api VALUES(24, '/system/token', '删除指定令牌', 'SYSTEM', 'DELETE', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(25, '/system/token', '更新指定令牌状态', 'SYSTEM', 'PATCH', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(26, '/system/info', '获取系统运行信息', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(27, '/system/role/all', '获取所有角色', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
 INSERT INTO sys_api VALUES(101, '/user/profile', '用户获取基本信息', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(102, '/user/profile', '用户更新基本信息', 'COMMON', 'PUT', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
@@ -107,6 +108,8 @@ INSERT INTO sys_menu_apis VALUES(152, 23);
 INSERT INTO sys_menu_apis VALUES(153, 24);
 INSERT INTO sys_menu_apis VALUES(153, 25);
 INSERT INTO sys_menu_apis VALUES(161, 26);
+INSERT INTO sys_menu_apis VALUES(132, 27);
+INSERT INTO sys_menu_apis VALUES(133, 27);
 
 -- 角色数据;
 INSERT INTO sys_role VALUES(1, '管理员', 'system', '2025-03-06 08:19:00.621', 0, '2025-03-06 08:19:00.621', 0, NULL, 0);
@@ -175,6 +178,7 @@ INSERT INTO casbin_rule VALUES(122, 'p', 'system', '/system/token/all', 'GET', N
 INSERT INTO casbin_rule VALUES(123, 'p', 'system', '/system/token', 'DELETE', NULL, NULL, NULL);
 INSERT INTO casbin_rule VALUES(124, 'p', 'system', '/system/token', 'PATCH', NULL, NULL, NULL);
 INSERT INTO casbin_rule VALUES(125, 'p', 'system', '/system/info', 'GET', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(126, 'p', 'system', '/system/roles/all', 'GET', NULL, NULL, NULL);
 
 INSERT INTO casbin_rule VALUES(1, 'g', '12345678910', 'system', NULL, NULL, NULL, NULL);
 

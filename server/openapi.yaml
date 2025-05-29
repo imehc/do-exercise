@@ -804,6 +804,7 @@ components:
             menus:
               type: array
               items:
+                title: SystemMenuBrief
                 properties:
                   id:
                     type: integer
@@ -876,30 +877,46 @@ components:
             format: uint
 
     SysUser:
-      type: object
-      properties:
-        id:
-          type: string
-          format: int64
-          description: ID
-        username:
-          type: string
-          description: 用户名
-        nickname:
-          type: string
-          description: 昵称
-        email:
-          type: string
-          description: 邮箱
-          format: email
-        avatar:
-          type: string
-          description: 头像
-        roles:
-          type: array
-          description: 角色ID列表
-          items:
-            $ref: "#/components/schemas/SysRole"
+      allOf:
+         - $ref: "#/components/schemas/Control"
+         - type: object
+           properties:
+             id:
+               type: integer
+               description: ID
+             username:
+               type: string
+               description: 用户名
+             nickname:
+               type: string
+               description: 昵称
+             email:
+               type: string
+               description: 邮箱
+               format: email
+             avatar:
+               type: string
+               description: 头像
+             roles:
+               type: array
+               description: 角色ID列表
+               items:
+                 title: SystemRoleBrief
+                 properties:
+                   id:
+                     type: integer
+                     description: 角色ID
+                   code:
+                     type: string
+                     description: 角色编码
+                   name:
+                     type: string
+                     description: 角色名称
+                 required:
+                   - id
+                   - code
+                   - name
+
       required:
         - id
         - username
@@ -1574,6 +1591,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: name
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -1590,6 +1611,37 @@ paths:
                 required:
                   - meta
                   - data
+          description: "获取成功"
+  /system/roles/all:
+    get:
+      summary: 获取所有角色
+      operationId: findAllRoles
+      tags:
+        - system-role
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  title: SystemRoleBrief
+                  properties:
+                    id:
+                      type: integer
+                      description: "角色ID"
+                    name:
+                      type: string
+                      description: "角色名称"
+                    code:
+                      type: string
+                      description: "角色编码"
+                  required:
+                    - id
+                    - name
+                    - code
           description: "获取成功"
 
   /system/users/{id}:

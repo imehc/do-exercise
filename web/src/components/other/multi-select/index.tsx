@@ -1,6 +1,12 @@
 import * as React from 'react'
+import {
+  IconCheck,
+  IconChevronDown,
+  IconCircleX,
+  IconSearch,
+  IconX,
+} from '@tabler/icons-react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { CheckIcon, XCircle, ChevronDown, XIcon, Search } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -205,7 +211,7 @@ export const MultiSelect = React.forwardRef<
                             toggleOption(value)
                           }}
                         >
-                          <XCircle className='ml-2 h-4 w-4 cursor-pointer' />
+                          <IconCircleX className='ml-2 h-4 w-4 cursor-pointer' />
                         </span>
                       </Badge>
                     )
@@ -218,7 +224,7 @@ export const MultiSelect = React.forwardRef<
                       )}
                     >
                       {`+ ${selectedValues.length - maxCount} more`}
-                      <XCircle
+                      <IconCircleX
                         className='ml-2 h-4 w-4 cursor-pointer'
                         onClick={(event) => {
                           event.stopPropagation()
@@ -229,7 +235,7 @@ export const MultiSelect = React.forwardRef<
                   )}
                 </div>
                 <div className='flex items-center justify-between'>
-                  <XIcon
+                  <IconX
                     className='text-muted-foreground mx-2 h-4 cursor-pointer'
                     onClick={(event) => {
                       event.stopPropagation()
@@ -240,7 +246,7 @@ export const MultiSelect = React.forwardRef<
                     orientation='vertical'
                     className='flex h-full min-h-6'
                   />
-                  <ChevronDown className='text-muted-foreground mx-2 h-4 cursor-pointer' />
+                  <IconChevronDown className='text-muted-foreground mx-2 h-4 cursor-pointer' />
                 </div>
               </div>
             ) : (
@@ -248,7 +254,7 @@ export const MultiSelect = React.forwardRef<
                 <span className='text-muted-foreground mx-2 text-base font-normal md:text-sm'>
                   {placeholder}
                 </span>
-                <ChevronDown className='text-muted-foreground mx-2 h-4 cursor-pointer' />
+                <IconChevronDown className='text-muted-foreground mx-2 h-4 cursor-pointer' />
               </div>
             )}
           </Button>
@@ -259,7 +265,7 @@ export const MultiSelect = React.forwardRef<
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
           <div className='flex items-center border-b px-3'>
-            <Search className='mr-2 size-4 shrink-0 opacity-50' />
+            <IconSearch className='mr-2 size-4 shrink-0 opacity-50' />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -281,7 +287,7 @@ export const MultiSelect = React.forwardRef<
                     : 'opacity-50 [&_svg]:invisible'
                 )}
               >
-                <CheckIcon className='h-4 w-4' />
+                <IconCheck className='h-4 w-4' />
               </div>
               (Select All)
             </div>
@@ -306,7 +312,7 @@ export const MultiSelect = React.forwardRef<
                           : 'opacity-50 [&_svg]:invisible'
                       )}
                     >
-                      <CheckIcon className='h-4 w-4' />
+                      <IconCheck className='h-4 w-4' />
                     </div>
                     {IconComponent && (
                       <IconComponent className='text-muted-foreground mr-2 h-4 w-4' />

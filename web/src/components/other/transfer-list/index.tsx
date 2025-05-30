@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -114,7 +114,7 @@ function TransferPanel<T extends Item>({
           </>
         )}
       </div>
-      <div className='flex items-center gap-2 border-t px-4 py-2'>
+      <div className='flex items-center gap-2 border-t px-3 py-2'>
         <Checkbox
           id={checkboxId}
           checked={getCheckboxState(filteredItems)}
@@ -141,13 +141,22 @@ function TransferPanel<T extends Item>({
             )}
           >
             <Checkbox
+              id={`transfer-list-checkbox-${item.key}`}
               checked={item.selected}
               disabled={item.disabled}
               onCheckedChange={() => !item.disabled && onToggleItem(item.key)}
             />
-            {renderLabel?.(item) ?? (
-              <span className='text-sm'>{item.label}</span>
-            )}
+            <label
+              htmlFor={`transfer-list-checkbox-${item.key}`}
+              className={cn(
+                'select-none',
+                item.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+              )}
+            >
+              {renderLabel?.(item) ?? (
+                <span className='text-sm'>{item.label}</span>
+              )}
+            </label>
           </li>
         ))}
       </ul>
@@ -243,7 +252,7 @@ export function TransferList<T extends Item>({
         onSelectAll={(checked) => selectAll(leftList, setLeftList, checked)}
         onToggleItem={(key) => toggleSelection(leftList, setLeftList, key)}
         onMoveClick={moveToRight}
-        moveIcon={<ChevronRightIcon className='h-4 w-4' />}
+        moveIcon={<IconChevronRight className='h-4 w-4' />}
         inputFirst
         invalid={invalid}
         checkboxId='select-all-left'
@@ -256,7 +265,7 @@ export function TransferList<T extends Item>({
         onSelectAll={(checked) => selectAll(rightList, setRightList, checked)}
         onToggleItem={(key) => toggleSelection(rightList, setRightList, key)}
         onMoveClick={moveToLeft}
-        moveIcon={<ChevronLeftIcon className='h-4 w-4' />}
+        moveIcon={<IconChevronLeft className='h-4 w-4' />}
         inputFirst={false}
         invalid={invalid}
         checkboxId='select-all-right'

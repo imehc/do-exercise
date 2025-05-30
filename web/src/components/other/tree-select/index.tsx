@@ -1,5 +1,5 @@
 import { useRef, useState, useDeferredValue, useMemo } from 'react'
-import { ChevronDown, Search, X } from 'lucide-react'
+import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
 import { Button, buttonVariants } from '~/components/ui/button'
@@ -110,7 +110,7 @@ export const TreeSelect = ({
                     role='button'
                     tabIndex={0}
                   >
-                    <X size={14} />
+                    <IconX size={14} />
                   </div>
                 </Badge>
               ))
@@ -140,12 +140,12 @@ export const TreeSelect = ({
               role='button'
               tabIndex={0}
             >
-              <X className='size-4' />
+              <IconX className='size-4' />
             </div>
           )}
           <span className='bg-border w-px self-stretch' />
           <div className='text-muted-foreground mr-1.25 flex items-center px-2 opacity-50'>
-            <ChevronDown size={16} />
+            <IconChevronDown size={16} />
           </div>
         </Button>
       </PopoverTrigger>
@@ -196,7 +196,7 @@ function TreeSelectPanel({
     <>
       {mode !== 'view' && (
         <div className='flex items-center border-b px-3' cmdk-input-wrapper=''>
-          <Search className='mr-2 size-4 shrink-0 opacity-50' />
+          <IconSearch className='mr-2 size-4 shrink-0 opacity-50' />
           <input
             value={search ?? ''}
             onChange={(e) => {

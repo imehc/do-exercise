@@ -1,7 +1,6 @@
 import { useRef, useState, useDeferredValue, useMemo, useEffect } from 'react'
 import * as icons from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ChevronDown, Search, X } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { useGridColumnCount } from '~/hooks/use-grid-column-count'
 import { Button } from '~/components/ui/button'
@@ -82,12 +81,12 @@ export const IconSelect = ({
               role='button'
               tabIndex={0}
             >
-              <X className='size-4' />
+              <icons.IconX className='size-4' />
             </div>
           )}
           <span className='bg-border w-px self-stretch' />
           <div className='text-muted-foreground mr-1.25 flex items-center px-2 opacity-50'>
-            <ChevronDown size={16} />
+            <icons.IconChevronDown size={16} />
           </div>
         </Button>
       </PopoverTrigger>
@@ -157,7 +156,7 @@ function IconSelectContent({
   return (
     <>
       <div className='flex items-center border-b px-3'>
-        <Search className='mr-2 size-4 shrink-0 opacity-50' />
+        <icons.IconSearch className='mr-2 size-4 shrink-0 opacity-50' />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}

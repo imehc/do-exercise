@@ -91,4 +91,26 @@ export const schema = baseSchema
     }
   })
 
+export const resetPasswordSchema = z
+  .object({
+    password: passwordRule,
+    confirmPassword: passwordRule,
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.password &&
+      data.confirmPassword &&
+      data.password !== data.confirmPassword
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confirmPassword'],
+        message: '两次输入的密码不一致',
+      })
+    }
+  })
+
 export type ActionSysUserFormValues = z.infer<typeof schema>
+export type ActionResetPasswordSysUserFormValues = z.infer<
+  typeof resetPasswordSchema
+>

@@ -1,6 +1,6 @@
 import * as React from 'react'
+import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 import clsx from 'clsx'
-import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { Checkbox } from '~/components/ui/checkbox'
 import { TreeSelectComponentProps } from '.'
@@ -26,7 +26,7 @@ export const TreeNode = ({ data, readonly }: TreeNodeProps) => {
   const isRoot = data.parent === undefined
   const expandable = data.children !== undefined
 
-  const Icon = isOpen ? ChevronDown : ChevronRight
+  const Icon = isOpen ? IconChevronDown : IconChevronRight
   const hasChildren = data.children && data.children.length > 0
 
   return (

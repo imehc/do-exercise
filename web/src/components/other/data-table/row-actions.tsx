@@ -1,10 +1,10 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
 import {
   IconEdit,
   IconInfoHexagon,
   IconTrash,
-  IconPlaylistAdd,
+  IconTablePlus,
+  IconDots,
 } from '@tabler/icons-react'
 import { useFormDialog } from '~/provider'
 import { Button } from '~/components/ui/button'
@@ -32,6 +32,7 @@ interface DataTableRowActionsProps<T> {
   infoOptions?: MenuOption
   showAdd?: boolean
   addOptions?: MenuOption
+  children?: ((data: T) => React.ReactNode) | React.ReactNode
 }
 
 export function DataTableRowActions<T>({
@@ -56,6 +57,7 @@ export function DataTableRowActions<T>({
     title: 'Add',
     disable: false,
   },
+  children,
 }: DataTableRowActionsProps<T>) {
   const { setOpen, setCurrentRow } = useFormDialog<T>()
 
@@ -64,14 +66,30 @@ export function DataTableRowActions<T>({
   }
 
   return (
-    <>
+    <div className='flex items-center gap-x-2'>
+      {typeof children === 'function' ? children?.(row.original) : children}
+      {showAdd && (
+        <Button
+          variant='outline'
+          size='icon'
+          hidden={!showAdd}
+          disabled={addOptions.disable}
+          onClick={() => {
+            setCurrentRow(row.original)
+            setOpen('add-child')
+          }}
+        >
+          <IconTablePlus />
+          <span className='sr-only'>Add child</span>
+        </Button>
+      )}
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             variant='ghost'
             className='data-[state=open]:bg-muted flex h-8 w-8 p-0'
           >
-            <DotsHorizontalIcon className='h-4 w-4' />
+            <IconDots className='h-4 w-4' />
             <span className='sr-only'>Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -87,19 +105,6 @@ export function DataTableRowActions<T>({
             {infoOptions.title}
             <DropdownMenuShortcut>
               <IconInfoHexagon size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            hidden={!showAdd}
-            disabled={addOptions.disable}
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('add-child')
-            }}
-          >
-            {addOptions.title}
-            <DropdownMenuShortcut>
-              <IconPlaylistAdd size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -132,6 +137,6 @@ export function DataTableRowActions<T>({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
+    </div>
   )
 }

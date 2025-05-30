@@ -1,3 +1,4 @@
+import { format } from 'date-fns'
 import { useQuery } from '@tanstack/react-query'
 import { Icon, IconMessage } from '@tabler/icons-react'
 import * as icons from '@tabler/icons-react'
@@ -145,6 +146,18 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                         </div>
                       </>
                     )}
+                    <div className='grid grid-cols-3 items-center gap-4'>
+                      <div className='font-medium'>创建时间</div>
+                      <div className='col-span-2'>
+                        {format(menu.createdAt, 'yyyy-MM-dd HH:mm:ss')}
+                      </div>
+                    </div>
+                    <div className='grid grid-cols-3 items-center gap-4'>
+                      <div className='font-medium'>更新时间</div>
+                      <div className='col-span-2'>
+                        {format(menu.updatedAt, 'yyyy-MM-dd HH:mm:ss')}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

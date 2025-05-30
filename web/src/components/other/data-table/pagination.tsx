@@ -1,11 +1,12 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DoubleArrowLeftIcon,
-  DoubleArrowRightIcon,
-} from '@radix-ui/react-icons'
 import { UseNavigateResult } from '@tanstack/react-router'
 import { Table } from '@tanstack/react-table'
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
+} from '@tabler/icons-react'
+import { Pagination } from '~/do-exercise-api'
 import { Button } from '~/components/ui/button'
 import {
   Select,
@@ -15,15 +16,25 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 
-interface DataTablePaginationProps<TData> {
-  navigate: UseNavigateResult<'/api'>
+export interface DataTablePaginationProps<TData> {
+  navigate?: UseNavigateResult<'/api'>
   table: Table<TData>
+  enableClientPagination?: boolean
+  meta?: Pagination
 }
-
 export function DataTablePagination<TData>({
   table,
+  enableClientPagination = false,
   navigate,
+  meta,
 }: DataTablePaginationProps<TData>) {
+  const pageIndex = table.getState().pagination.pageIndex
+  const pageSize = table.getState().pagination.pageSize
+  const pageCount = table.getPageCount()
+  const total = enableClientPagination
+    ? table.getPrePaginationRowModel().rows.length
+    : (meta?.total ?? 0)
+
   return (
     <div
       className='flex items-center justify-between overflow-clip px-2'
@@ -34,19 +45,23 @@ export function DataTablePagination<TData>({
         {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
       <div className='flex items-center sm:space-x-6 lg:space-x-8'>
+        <div className='text-muted-foreground text-sm'>Total: {total}</div>
         <div className='flex items-center space-x-2'>
           <p className='hidden text-sm font-medium sm:block'>Rows per page</p>
           <Select
-            value={`${table.getState().pagination.pageSize}`}
+            value={pageSize + ''}
             onValueChange={(value) => {
-              table.setPageSize(Number(value))
-              table.setPageIndex(1)
-              navigate({
-                search: {
-                  page: 1,
-                  pageSize: Number(value),
-                },
-              })
+              const newSize = Number(value)
+              table.setPageSize(newSize)
+              table.setPageIndex(0)
+              if (!enableClientPagination) {
+                navigate?.({
+                  search: {
+                    page: 1,
+                    pageSize: newSize,
+                  },
+                })
+              }
             }}
           >
             <SelectTrigger className='h-8 w-[70px]'>
@@ -70,69 +85,67 @@ export function DataTablePagination<TData>({
             variant='outline'
             className='hidden h-8 w-8 p-0 lg:flex'
             onClick={() => {
-              table.setPageIndex(1)
-              navigate({
-                search: (pagination) => ({
-                  ...pagination,
-                  page: 1,
-                }),
-              })
+              table.setPageIndex(0)
+              if (!enableClientPagination) {
+                navigate?.({ search: (s) => ({ ...s, page: 1 }) })
+              }
             }}
             disabled={!table.getCanPreviousPage()}
           >
             <span className='sr-only'>Go to first page</span>
-            <DoubleArrowLeftIcon className='h-4 w-4' />
+            <IconChevronsLeft className='h-4 w-4' />
           </Button>
           <Button
             variant='outline'
             className='h-8 w-8 p-0'
             onClick={() => {
               table.previousPage()
-              navigate({
-                search: (pagination) => ({
-                  ...pagination,
-                  page: pagination.page - 1,
-                }),
-              })
+              if (!enableClientPagination) {
+                navigate?.({ search: (s) => ({ ...s, page: s.page - 1 }) })
+              }
             }}
             disabled={!table.getCanPreviousPage()}
           >
             <span className='sr-only'>Go to previous page</span>
-            <ChevronLeftIcon className='h-4 w-4' />
+            <IconChevronLeft className='h-4 w-4' />
           </Button>
           <Button
             variant='outline'
             className='h-8 w-8 p-0'
             onClick={() => {
               table.nextPage()
-              navigate({
-                search: (pagination) => ({
-                  ...pagination,
-                  page: table.getState().pagination.pageIndex + 2, // +2 是因为 pageIndex 从 0 开始，且要移到下一页
-                }),
-              })
+              if (!enableClientPagination) {
+                navigate?.({
+                  search: (s) => ({
+                    ...s,
+                    page: pageIndex + 2,
+                  }),
+                })
+              }
             }}
             disabled={!table.getCanNextPage()}
           >
             <span className='sr-only'>Go to next page</span>
-            <ChevronRightIcon className='h-4 w-4' />
+            <IconChevronRight className='h-4 w-4' />
           </Button>
           <Button
             variant='outline'
             className='hidden h-8 w-8 p-0 lg:flex'
             onClick={() => {
-              table.setPageIndex(table.getPageCount())
-              navigate({
-                search: (pagination) => ({
-                  ...pagination,
-                  page: table.getPageCount(),
-                }),
-              })
+              table.setPageIndex(pageCount - 1)
+              if (!enableClientPagination) {
+                navigate?.({
+                  search: (s) => ({
+                    ...s,
+                    page: pageCount,
+                  }),
+                })
+              }
             }}
             disabled={!table.getCanNextPage()}
           >
             <span className='sr-only'>Go to last page</span>
-            <DoubleArrowRightIcon className='h-4 w-4' />
+            <IconChevronsRight className='h-4 w-4' />
           </Button>
         </div>
       </div>

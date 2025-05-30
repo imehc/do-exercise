@@ -62,6 +62,13 @@ const middleware = {
           requestQueue.push({ url, init, resolve, reject })
           handleRefreshToken()
         })
+      } else if (response.status === 403) {
+        const text = await response.text()
+        toast.error(text || 'Forbidden')
+        // redirectToForbidden()
+      } else if (response.status === 429) {
+        const text = await response.text()
+        toast.error(text || 'Too many requests, please try again later.')
       }
     }
 
@@ -120,8 +127,16 @@ const handleRefreshToken = async () => {
   }
 }
 
+// TODO: 使用router跳转，而不是window.location.href
 const redirectToLogin = () => {
   requestQueue = [] // 清空队列
   refreshTokenFlag = false
   window.location.href = '/sign-in' // 跳转到登录页
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const redirectToForbidden = () => {
+  requestQueue = [] // 清空队列
+  refreshTokenFlag = false
+  window.location.href = '/403' // 跳转到forbidden页
 }

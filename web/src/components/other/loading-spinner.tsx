@@ -1,7 +1,7 @@
-import { LoaderIcon, LucideProps } from 'lucide-react'
+import { IconLoader3, IconProps } from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 
-interface Props extends LucideProps {
+interface Props extends IconProps {
   isScreen?: boolean
   className?: string
 }
@@ -19,7 +19,7 @@ export const LoadingSpinner = ({
         className
       )}
     >
-      <LoaderIcon className='animate-spin' {...props} />
+      <IconLoader3 className='animate-spin' {...props} />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { IconLoader3 } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import {
   CreateRoleRequest,
@@ -190,7 +190,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
           <Button type='submit' form='menu-form' disabled={isPending}>
             {isPending ? (
               <>
-                <Loader2 className='animate-spin' />
+                <IconLoader3 className='animate-spin' />
                 <span>保存中...</span>
               </>
             ) : (

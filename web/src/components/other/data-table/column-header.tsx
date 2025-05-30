@@ -1,10 +1,10 @@
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CaretSortIcon,
-  EyeNoneIcon,
-} from '@radix-ui/react-icons'
 import { Column } from '@tanstack/react-table'
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconSelector,
+  IconEyeOff,
+} from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import {
@@ -41,28 +41,28 @@ export function DataTableColumnHeader<TData, TValue>({
           >
             <span>{title}</span>
             {column.getIsSorted() === 'desc' ? (
-              <ArrowDownIcon className='ml-2 h-4 w-4' />
+              <IconArrowDown className='ml-2 h-4 w-4' />
             ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUpIcon className='ml-2 h-4 w-4' />
+              <IconArrowUp className='ml-2 h-4 w-4' />
             ) : (
-              <CaretSortIcon className='ml-2 h-4 w-4' />
+              <IconSelector className='ml-2 h-4 w-4' />
             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='start'>
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-            <ArrowUpIcon className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
+            <IconArrowUp className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
             Asc
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-            <ArrowDownIcon className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
+            <IconArrowDown className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
             Desc
           </DropdownMenuItem>
           {column.getCanHide() && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-                <EyeNoneIcon className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
+                <IconEyeOff className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
                 Hide
               </DropdownMenuItem>
             </>

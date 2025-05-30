@@ -280,7 +280,9 @@ func (s *SysRoleService) GetList(req request.QuerySysRoleReq) (common.PageResult
 	if req.PageSize < 1 {
 		req.PageSize = 10
 	}
-	db = db.Scopes(util.Paginate(req.PageSize, req.Page))
+	db = db.
+		Scopes(util.Paginate(req.PageSize, req.Page)).
+		Order("id ASC")
 	// 添加预加载菜单数据
 	err := db.Preload("Menus").Find(&roles).Error
 	if err != nil {
@@ -323,7 +325,10 @@ func (s *SysRoleService) GetList(req request.QuerySysRoleReq) (common.PageResult
 func (s *SysRoleService) GetAll() ([]response.SysRoleShortResp, error) {
 	var roles []system.SysRole
 	db := global.DB.Model(&system.SysRole{})
-	err := db.Find(&roles).Error
+	err := db.
+		Order("id ASC").
+		Find(&roles).
+		Error
 	if err != nil {
 		return nil, errors.New("getRoleFailed")
 	}

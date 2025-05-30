@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/spf13/cast"
 )
 
 var (
@@ -31,10 +32,10 @@ func InitSnowflake(nodeID int64) error {
 	return err
 }
 
-// NextID 生成全局唯一ID
-func NextID() int64 {
+// NextID 生成全局唯一ID（限制在16位以内）
+func NextID() string {
 	if node == nil {
 		panic("Snowflake 节点未初始化，请先调用 InitSnowflake")
 	}
-	return node.Generate().Int64()
+	return cast.ToString(node.Generate().Int64())
 }

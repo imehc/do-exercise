@@ -20,7 +20,7 @@ const (
 )
 
 type Token struct {
-	UserId            int64
+	UserId            string
 	Username          string
 	RoleIds           []uint
 	ExpireTime        time.Duration // 有效时间
@@ -70,8 +70,8 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken), refreshTokenInfoJson, t.RefreshExpireTime)
 
 	// 将token和refreshToken添加到用户的token集合中
-	pipe.SAdd(ctx, fmt.Sprintf("%s%d", PrefixUserAcessToken, t.UserId), accessToken)
-	pipe.SAdd(ctx, fmt.Sprintf("%s%d", PrefixUserRefreshToken, t.UserId), refreshToken)
+	pipe.SAdd(ctx, fmt.Sprintf("%s%s", PrefixUserAcessToken, t.UserId), accessToken)
+	pipe.SAdd(ctx, fmt.Sprintf("%s%s", PrefixUserRefreshToken, t.UserId), refreshToken)
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
@@ -143,8 +143,8 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 }
 
 // updateTokenRoles 更新指定类型token的角色信息
-func updateTokenRoles(ctx context.Context, userId int64, roleIds []uint, tokenType string, prefix string) error {
-	tokens, err := global.Redis.SMembers(ctx, fmt.Sprintf("%s%d", tokenType, userId)).Result()
+func updateTokenRoles(ctx context.Context, userId string, roleIds []uint, tokenType string, prefix string) error {
+	tokens, err := global.Redis.SMembers(ctx, fmt.Sprintf("%s%s", tokenType, userId)).Result()
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func updateTokenRoles(ctx context.Context, userId int64, roleIds []uint, tokenTy
 }
 
 // UpdateUserRoleInCache 更新用户角色缓存信息
-func UpdateUserRoleInCache(userId int64, roleIds []uint) error {
+func UpdateUserRoleInCache(userId string, roleIds []uint) error {
 	ctx := context.Background()
 
 	// 更新访问令牌的角色信息

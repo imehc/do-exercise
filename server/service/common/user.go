@@ -80,7 +80,7 @@ func (u *UserService) UpdateProfile(req request.UserModifyProfileReq) error {
 }
 
 // GetProfile 获取用户基本信息
-func (u *UserService) GetProfile(id int64) (*response.UserProfile, error) {
+func (u *UserService) GetProfile(id string) (*response.UserProfile, error) {
 	db := global.DB
 	var user *system.SysUser
 	error := db.
@@ -92,7 +92,7 @@ func (u *UserService) GetProfile(id int64) (*response.UserProfile, error) {
 	}
 
 	return &response.UserProfile{
-		Id:       user.Id,
+		Id:       user.UserId,
 		Username: user.Username,
 		Nickname: user.Nickname,
 		Email:    user.Email,
@@ -107,7 +107,7 @@ func (u *UserService) GetProfile(id int64) (*response.UserProfile, error) {
 }
 
 // GetMenu 获取用户菜单
-func (u *UserService) GetMenu(id int64) (*[]response.UserMenu, error) {
+func (u *UserService) GetMenu(id string) (*[]response.UserMenu, error) {
 	db := global.DB
 	var user *system.SysUser
 	error := db.

@@ -8,7 +8,7 @@ import (
 )
 
 type SysUser struct {
-	Id       int64     `json:"id" gorm:"primarykey;comment:主键"`
+	UserId   string    `json:"id" gorm:"primarykey;column:id;type:varchar(32);comment:主键"`
 	Username string    `json:"username" gorm:"not null;unique;size:16;comment:用户名"`
 	Nickname string    `json:"nickname" gorm:"comment:昵称"`
 	Email    string    `json:"email" gorm:"unique;comment:邮箱"`
@@ -31,7 +31,7 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Password = password
 
 	ctx := tx.Statement.Context
-	userId := ctx.Value(global.ContextUserIDKey).(int64)
+	userId := ctx.Value(global.ContextUserIDKey).(string)
 	u.CreatedBy = userId
 	u.UpdatedBy = userId
 
@@ -39,9 +39,9 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 
-	if u.UpdatedBy != userId && u.Id != 0 {
+	if u.UpdatedBy != userId && u.UserId != "" {
 		u.UpdatedBy = userId
 		err = tx.
 			Model(u).
@@ -57,8 +57,8 @@ func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (u *SysUser) BeforeDelete(tx *gorm.DB) (err error) {
-	if u.Id != 0 {
-		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	if u.UserId != "" {
+		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 		u.DeletedBy = userId
 		err = tx.
 			Model(u).

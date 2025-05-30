@@ -66,7 +66,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		response.ServerError(ctx)
 	}
 	baseConf := util.Token{
-		UserId:   user.Id,
+		UserId:   user.UserId,
 		Username: user.Username,
 		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
 			return item.Id
@@ -149,7 +149,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	req := &request.UserResetPasswordReq{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -165,7 +165,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		})
 		return
 	}
-	if user.Id != userId {
+	if user.UserId != userId {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("emailBound", lang),

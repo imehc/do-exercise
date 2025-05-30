@@ -17,7 +17,7 @@ type SysRole struct {
 }
 
 func (r *SysRole) BeforeCreate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 	r.CreatedBy = userId
 	r.UpdatedBy = userId
 
@@ -25,7 +25,7 @@ func (r *SysRole) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (r *SysRole) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 
 	if r.UpdatedBy != userId && r.Id != 0 {
 		r.UpdatedBy = userId
@@ -43,7 +43,7 @@ func (r *SysRole) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (r *SysRole) BeforeDelete(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 	r.DeletedBy = userId
 	err = tx.
 		Model(r).

@@ -3,7 +3,7 @@ package response
 import "time"
 
 type SysTokenLogRsp struct {
-	UserId       int64     `json:"user_id"`
+	UserId       string    `json:"user_id"`
 	Username     string    `json:"username"`
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`

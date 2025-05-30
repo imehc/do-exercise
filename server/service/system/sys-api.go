@@ -79,7 +79,11 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 	if req.PageSize < 1 {
 		req.PageSize = 10
 	}
-	db = db.Scopes(util.Paginate(req.PageSize, req.Page))
+	db = db.
+		Scopes(util.Paginate(req.PageSize, req.Page)).
+		Order("disabled ASC").
+		Order("sort DESC").
+		Order("id ASC")
 	err := db.Find(&apis).Error
 	if err != nil {
 		return nil, errors.New("getApiListFailed")
@@ -111,7 +115,12 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 // GetAll 查询所有api
 func (s *SysApiService) GetAll() ([]response.SysApiResp, error) {
 	var apis []system.SysApi
-	err := global.DB.Find(&apis).Error
+	err := global.DB.
+		Order("disabled ASC").
+		Order("sort DESC").
+		Order("id ASC").
+		Find(&apis).
+		Error
 	if err != nil {
 		return nil, errors.New("getAllApiListFailed")
 	}

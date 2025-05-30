@@ -27,7 +27,7 @@ const (
 )
 
 // checkEmail 检查邮箱是否是本人或者已发送验证码
-func (s *UserApi) checkEmail(ctx *gin.Context, context context.Context, iRedis *redis.Client, userId int64, emailType string) (*string, *string, error) {
+func (s *UserApi) checkEmail(ctx *gin.Context, context context.Context, iRedis *redis.Client, userId string, emailType string) (*string, *string, error) {
 	req := &request.Email{}
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		return nil, nil, errors.New("invalidParameter")
@@ -72,7 +72,7 @@ func (s *UserApi) getEmailCache(ctx context.Context, iRedis *redis.Client, email
 }
 
 // setEmailCache 将验证码存入redis
-func (s *UserApi) setEmailCache(ctx context.Context, iRedis *redis.Client, emailType, email, code string, userId int64, minutes time.Duration) error {
+func (s *UserApi) setEmailCache(ctx context.Context, iRedis *redis.Client, emailType, email, code string, userId string, minutes time.Duration) error {
 	emailCache := request.EmailCache{
 		UserId: userId,
 		Code:   code,
@@ -101,7 +101,7 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	to, _, err := s.checkEmail(ctx, context, iRedis, userId, emailType)
 	if err != nil {
@@ -148,7 +148,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	req := &request.BindEmailReq{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -230,7 +230,7 @@ func (s *UserApi) RebindEmail(ctx *gin.Context) {
 // UpdatePassword 修改密码
 func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	req := &request.UserModifyPasswordReq{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -271,7 +271,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 // UpdateProfile 修改用户基本信息
 func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	var req request.UserModifyProfileReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -295,7 +295,7 @@ func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 // GetProfile 获取用户基本信息
 func (s *UserApi) GetProfile(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	user, err := userService.GetProfile(userId)
 	if err != nil {
@@ -311,7 +311,7 @@ func (s *UserApi) GetProfile(ctx *gin.Context) {
 // GetMenu 获取用户菜单
 func (s *UserApi) GetMenu(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	userId := ctx.MustGet("userId").(int64)
+	userId := ctx.MustGet("userId").(string)
 
 	menu, err := userService.GetMenu(userId)
 	if err != nil {

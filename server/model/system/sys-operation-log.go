@@ -24,7 +24,7 @@ type SysOperationLog struct {
 	Method         string         `json:"method" gorm:"size:16;comment:请求方法"`
 	Success        bool           `json:"success" gorm:"default:false;comment:是否成功"`
 	Code           int            `json:"code" gorm:"comment:错误码"`
-	Message        string         `json:"message" gorm:"size:255;comment:错误信息"`
+	Message        string         `json:"message" gorm:"type:text;comment:错误信息"`
 	Params         string         `json:"params" gorm:"type:text;comment:请求参数"`
 	Body           string         `json:"body" gorm:"type:text;comment:请求体"`
 	Result         string         `json:"result" gorm:"type:text;comment:响应结果"`

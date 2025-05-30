@@ -26,25 +26,25 @@ func InitCaptcha() {
 	// 	80,
 	// )
 	// 文字
-	// driver := base64Captcha.NewDriverString(
-	// 	captcheConf.ImgHeight,
-	// 	captcheConf.ImgWidth,
-	// 	0,
-	// 	2|4,
-	// 	4,
-	// 	"1234567890qwertyuioplkjhgfdsazxcvbnm",
-	// 	&color.RGBA{R: 3, G: 102, B: 214, A: 125},
-	// 	base64Captcha.DefaultEmbeddedFonts,
-	// 	[]string{"wqy-microhei.ttc"},
-	// )
-	driver := base64Captcha.NewDriverMath(
+	driver := base64Captcha.NewDriverString(
 		captcheConf.ImgHeight,
 		captcheConf.ImgWidth,
 		0,
-		base64Captcha.OptionShowHollowLine, // 添加正弦线条增加辨识度
-		&color.RGBA{R: 145, G: 234, B: 145, A: 12}, // 深色背景
+		2|4,
+		4,
+		"1234567890qwertyuioplkjhgfdsazxcvbnm",
+		&color.RGBA{R: 3, G: 102, B: 214, A: 125},
 		base64Captcha.DefaultEmbeddedFonts,
-		[]string{},
+		[]string{"wqy-microhei.ttc"},
 	)
+	// driver := base64Captcha.NewDriverMath(
+	// 	captcheConf.ImgHeight,
+	// 	captcheConf.ImgWidth,
+	// 	0,
+	// 	base64Captcha.OptionShowHollowLine, // 添加正弦线条增加辨识度
+	// 	&color.RGBA{R: 145, G: 234, B: 145, A: 12}, // 深色背景
+	// 	base64Captcha.DefaultEmbeddedFonts,
+	// 	[]string{},
+	// )
 	global.Captcha = base64Captcha.NewCaptcha(driver, store)
 }

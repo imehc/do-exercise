@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { FormDialogProvider } from '~/provider'
 import { Header } from '~/components/layout/header'
 import { Main } from '~/components/layout/main'
-import { DataTable, StatusRenderer } from '~/components/other'
+import { DataTable } from '~/components/other'
 import { ProfileDropdown } from '~/components/profile-dropdown'
 import { Search } from '~/components/search'
 import { ThemeSwitch } from '~/components/theme-switch'
@@ -24,22 +24,20 @@ export default function Menu() {
         </div>
       </Header>
 
-      <StatusRenderer isLoading={isLoading}>
-        <Main>
-          <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
-            <div>
-              <h2 className='text-2xl font-bold tracking-tight'>菜单 列表</h2>
-              <p className='text-muted-foreground'>用于查看、创建、编辑菜单</p>
-            </div>
-            <MenuPrimaryButtons />
+      <Main>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
+          <div>
+            <h2 className='text-2xl font-bold tracking-tight'>菜单 列表</h2>
+            <p className='text-muted-foreground'>用于查看、创建、编辑菜单</p>
           </div>
-          <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
-            <DataTable data={data} columns={columns} />
-          </div>
-        </Main>
+          <MenuPrimaryButtons />
+        </div>
+        <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
+          <DataTable isLoading={isLoading} data={data} columns={columns} />
+        </div>
+      </Main>
 
-        <MenuDialogs treeData={data} refetch={refetch} />
-      </StatusRenderer>
+      <MenuDialogs treeData={data} refetch={refetch} />
     </FormDialogProvider>
   )
 }

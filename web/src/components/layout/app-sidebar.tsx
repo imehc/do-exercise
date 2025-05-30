@@ -1,6 +1,7 @@
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from '~/components/ui/sidebar'
@@ -8,6 +9,7 @@ import { NavGroup } from '~/components/layout/nav-group'
 import { TeamSwitcher } from '~/components/layout/team-switcher'
 import { NavGroup as NavGroupType } from '~/components/layout/types'
 import { sidebarData } from './data/sidebar-data'
+import { NavUser } from './nav-user'
 
 export function AppSidebar({
   navGroups,
@@ -23,9 +25,9 @@ export function AppSidebar({
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      {/* <SidebarFooter>
+      <SidebarFooter>
         <NavUser user={sidebarData.user} />
-      </SidebarFooter> */}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

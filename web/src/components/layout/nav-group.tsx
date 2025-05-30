@@ -2,7 +2,6 @@ import { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import * as icons from '@tabler/icons-react'
 import { Icon } from '@tabler/icons-react'
-import { ChevronRight } from 'lucide-react'
 import {
   Collapsible,
   CollapsibleContent,
@@ -106,7 +105,7 @@ const SidebarMenuCollapsible = ({
             {SelectedIcon && <SelectedIcon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <icons.IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent className='CollapsibleContent'>
@@ -153,7 +152,7 @@ const SidebarMenuCollapsedDropdown = ({
             {SelectedIcon && <SelectedIcon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <icons.IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent side='right' align='start' sideOffset={4}>

@@ -882,7 +882,7 @@ components:
          - type: object
            properties:
              id:
-               type: integer
+               type: string
                description: ID
              username:
                type: string
@@ -1657,7 +1657,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           content:
@@ -1677,7 +1677,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
@@ -1699,7 +1699,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "204":
           description: "删除成功"
@@ -1770,7 +1770,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:

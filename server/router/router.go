@@ -19,6 +19,7 @@ func Run() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(gin.Recovery())
+	r.Use(middleware.RequestContextMiddleware())
 	r.Use(middleware.OperationLogMiddleware())
 	r.Use(middleware.ValidaterMiddleware())
 	r.Use(middleware.IpLimitMiddleware)

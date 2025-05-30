@@ -59,7 +59,9 @@ func (s *SysOperationLogService) GetList(req common.Pagination) (*common.PageRes
 	if req.PageSize < 1 {
 		req.PageSize = 10
 	}
-	db = db.Scopes(util.Paginate(req.PageSize, req.Page))
+	db = db.
+		Scopes(util.Paginate(req.PageSize, req.Page)).
+		Order("id ASC")
 	err := db.Find(&logs).Error
 	if err != nil {
 		return nil, errors.New("getFailed")

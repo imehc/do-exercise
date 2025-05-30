@@ -1,5 +1,5 @@
 import React from 'react'
-import { PencilIcon, User2Icon } from 'lucide-react'
+import { IconPencil, IconUser } from '@tabler/icons-react'
 import { toBase64 } from '~/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
@@ -29,7 +29,7 @@ export function AvatarUpload({ value, onChange }: AvatarUploadProps) {
       <Avatar className='h-full w-full'>
         <AvatarImage src={value} className='object-cover' />
         <AvatarFallback className='bg-secondary'>
-          <User2Icon className='h-16 w-16' />
+          <IconUser className='h-16 w-16' />
         </AvatarFallback>
       </Avatar>
       <Button
@@ -41,7 +41,7 @@ export function AvatarUpload({ value, onChange }: AvatarUploadProps) {
           inputRef.current?.click()
         }}
       >
-        <PencilIcon className='h-4 w-4 text-white dark:text-black' />
+        <IconPencil className='h-4 w-4 text-white dark:text-black' />
       </Button>
       <Input
         ref={inputRef}

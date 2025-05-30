@@ -2,6 +2,7 @@ import { SysUser } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { UserActionDialog } from './user-action-dialog'
 import { UserDeleteDialog } from './user-delete-dialog'
+import { UserResetPasswordDialog } from './user-reset-password-dialog'
 import { UserViewInfoDialog } from './user-view-info'
 
 interface Props {
@@ -33,6 +34,20 @@ export function UserDialogs({ refetch }: Props) {
                 refetch()
               }
               setOpen('edit')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
+          />
+          <UserResetPasswordDialog
+            key='user-reset-password'
+            open={open === 'reset'}
+            onOpenChange={(_, hasRefresh) => {
+              if (hasRefresh) {
+                refetch()
+              }
+              setOpen('reset')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

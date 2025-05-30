@@ -5,7 +5,7 @@ import (
 )
 
 type SysUserResp struct {
-	Id        int64         `json:"id"`
+	Id        string        `json:"id"`
 	Username  string        `json:"username"`
 	Nickname  string        `json:"nickname"`
 	Email     string        `json:"email"`

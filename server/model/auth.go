@@ -3,7 +3,7 @@ package model
 import "time"
 
 type TokenInfo struct {
-	UserId       int64     `json:"user_id"`
+	UserId       string    `json:"user_id"`
 	Username     string    `json:"username"`
 	RoleIds      []uint    `json:"role_ids"`
 	RefreshToken string    `json:"refresh_token"`
@@ -13,7 +13,7 @@ type TokenInfo struct {
 }
 
 type RefreshTokenInfo struct {
-	UserId      int64     `json:"user_id"`
+	UserId      string    `json:"user_id"`
 	Username    string    `json:"username"`
 	RoleIds     []uint    `json:"role_ids"`
 	Disabled    bool      `json:"disabled"`

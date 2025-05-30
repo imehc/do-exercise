@@ -1,15 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Icon, IconMessage } from '@tabler/icons-react'
-import * as icons from '@tabler/icons-react'
-import {
-  MenuType,
-  SysMenuTree,
-  SystemMenuApi,
-  SystemUserApi,
-  SysUser,
-} from '~/do-exercise-api'
+import { IconMessage } from '@tabler/icons-react'
+import { SystemUserApi, SysUser } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
-import { cn } from '~/lib/utils'
 import { useApi } from '~/hooks/use-api'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
@@ -23,8 +15,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '~/components/ui/drawer'
-import { iconPrefix, StatusRenderer } from '~/components/other'
-import { callMethodTypes } from '~/features/api/data/data'
+import { StatusRenderer } from '~/components/other'
 
 interface Props {
   open: boolean
@@ -36,7 +27,7 @@ export function UserViewInfoDialog({ open, onOpenChange }: Props) {
   const systemUserApi = useApi(SystemUserApi)
   const { data, isLoading: isLoadingUser } = useQuery({
     queryKey: ['findUser', currentRow?.id],
-    queryFn: () => systemUserApi.findUser({ id: currentRow?.id as number }),
+    queryFn: () => systemUserApi.findUser({ id: currentRow?.id as string }),
     enabled: !!currentRow?.id,
   })
 

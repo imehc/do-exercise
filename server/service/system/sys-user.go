@@ -10,7 +10,6 @@ import (
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
-	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
@@ -37,19 +36,19 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 	// 添加用户角色到Casbin
 	enforcer := global.Enforcer
 	// 先清除用户现有的所有角色权限
-	_, err := enforcer.DeleteRolesForUser(cast.ToString(user.Id))
+	_, err := enforcer.DeleteRolesForUser(user.UserId)
 	if err != nil {
 		return nil, errors.New("roleAssignFailed")
 	}
 
-	_, err = enforcer.AddRolesForUser(cast.ToString(user.Id), lo.Map(roles, func(item system.SysRole, index int) string {
+	_, err = enforcer.AddRolesForUser(user.UserId, lo.Map(roles, func(item system.SysRole, index int) string {
 		return item.Code
 	}))
 	if err != nil {
 		return nil, errors.New("roleAssignFailed")
 	}
 
-	err = util.UpdateUserRoleInCache(user.Id, lo.Map(roles, func(item system.SysRole, index int) uint {
+	err = util.UpdateUserRoleInCache(user.UserId, lo.Map(roles, func(item system.SysRole, index int) uint {
 		return item.Id
 	}))
 	if err != nil {
@@ -60,13 +59,16 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 }
 
 // checkUserExist 检查用户是否存在
-func (s *SysUserService) checkUserExist(db *gorm.DB, userId int64) (*system.SysUser, error) {
+func (s *SysUserService) checkUserExist(db *gorm.DB, userId string) (*system.SysUser, error) {
+	if userId == "" {
+		return nil, errors.New("idCannotBeEmpty")
+	}
 	var user *system.SysUser
 	result := db.
 		Unscoped().
 		First(&user, userId)
 	if result.Error != nil {
-		return nil, errors.New("userNotFound")
+		return nil, errors.New(util.TranslateDBError(result.Error, "userNotFound"))
 	}
 
 	if !user.DeletedAt.Time.IsZero() {
@@ -113,7 +115,7 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 		Avatar:   req.Avatar,
 		Password: req.Password,
 	}
-	user.Id = util.NextID()
+	user.UserId = util.NextID()
 
 	// 开启事务
 	tx := db.Begin()
@@ -141,7 +143,7 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 		return nil, errors.New("createUserFailed")
 	}
 	return &response.SysUserResp{
-		Id:        user.Id,
+		Id:        user.UserId,
 		Username:  user.Username,
 		Nickname:  user.Nickname,
 		Email:     user.Email,
@@ -159,7 +161,7 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 }
 
 // Delete 删除用户
-func (s *SysUserService) Delete(id int64) error {
+func (s *SysUserService) Delete(id string) error {
 	db := global.DB
 	// 先检查用户是否存在
 	user, err := s.checkUserExist(db, id)
@@ -218,7 +220,7 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 }
 
 // Get 查询单个用户
-func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
+func (s *SysUserService) Get(id string) (*response.SysUserResp, error) {
 	db := global.DB
 	// 先检查用户是否存在
 	_, err := s.checkUserExist(db, id)
@@ -236,7 +238,7 @@ func (s *SysUserService) Get(id int64) (*response.SysUserResp, error) {
 	}
 
 	return &response.SysUserResp{
-		Id:        user.Id,
+		Id:        user.UserId,
 		Username:  user.Username,
 		Nickname:  user.Nickname,
 		Email:     user.Email,
@@ -269,7 +271,8 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 	}
 	db = db.
 		Preload("Roles").
-		Scopes(util.Paginate(req.PageSize, req.Page))
+		Scopes(util.Paginate(req.PageSize, req.Page)).
+		Order("id ASC")
 	err := db.
 		Find(&users).
 		Error
@@ -279,7 +282,7 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 	data := make([]response.SysUserResp, len(users))
 	for i, user := range users {
 		data[i] = response.SysUserResp{
-			Id:        user.Id,
+			Id:        user.UserId,
 			Username:  user.Username,
 			Nickname:  user.Nickname,
 			Email:     user.Email,
@@ -315,7 +318,7 @@ func (s *SysUserService) ResetPassword(req request.UpdateSysUserPasswordReq, old
 		return err
 	}
 
-	if *oldPassword != "" {
+	if oldPassword != nil {
 		hash := util.Hash{Value: existUser.Password}
 		if !hash.Compare(req.Password) {
 			return errors.New("passwordError")

@@ -5,7 +5,7 @@ import { Route } from '~/routes/_authenticated/role'
 import { useApi } from '~/hooks/use-api'
 import { Header } from '~/components/layout/header'
 import { Main } from '~/components/layout/main'
-import { DataTable, StatusRenderer } from '~/components/other'
+import { DataTable } from '~/components/other'
 import { ProfileDropdown } from '~/components/profile-dropdown'
 import { Search } from '~/components/search'
 import { ThemeSwitch } from '~/components/theme-switch'
@@ -31,26 +31,36 @@ export default function Role() {
           <ProfileDropdown />
         </div>
       </Header>
-      <StatusRenderer isLoading={isLoading}>
-        <Main>
-          <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
-            <div>
-              <h2 className='text-2xl font-bold tracking-tight'>角色 列表</h2>
-              <p className='text-muted-foreground'>用于查看并编辑角色</p>
-            </div>
-            <RolePrimaryButtons />
+      <Main>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
+          <div>
+            <h2 className='text-2xl font-bold tracking-tight'>角色 列表</h2>
+            <p className='text-muted-foreground'>用于查看并编辑角色</p>
           </div>
-          <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
-            <DataTable
-              meta={data?.meta}
-              data={data?.data || []}
-              columns={columns}
-              navigate={navigate}
-            />
-          </div>
-        </Main>
-        <RoleDialogs refetch={refetch} />
-      </StatusRenderer>
+          <RolePrimaryButtons />
+        </div>
+        <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
+          <DataTable
+            isLoading={isLoading}
+            meta={data?.meta}
+            data={data?.data || []}
+            columns={columns}
+            search={pagination}
+            navigate={navigate}
+            serchOptions={[
+              {
+                key: 'name',
+                placeholder: '角色名称',
+              },
+              {
+                key: 'code',
+                placeholder: '角色编码',
+              },
+            ]}
+          />
+        </div>
+      </Main>
+      <RoleDialogs refetch={refetch} />
     </FormDialogProvider>
   )
 }

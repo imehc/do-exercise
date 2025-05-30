@@ -1,4 +1,3 @@
-import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { ColumnDef } from '@tanstack/react-table'
 import * as icons from '@tabler/icons-react'
 import { Icon } from '@tabler/icons-react'
@@ -28,9 +27,9 @@ export const columns: ColumnDef<SysMenuTree>[] = [
           onClick={row.getToggleExpandedHandler()}
         >
           {row.getIsExpanded() ? (
-            <ChevronDownIcon className='h-4 w-4' />
+            <icons.IconChevronDown className='h-4 w-4' />
           ) : (
-            <ChevronRightIcon className='h-4 w-4' />
+            <icons.IconChevronRight className='h-4 w-4' />
           )}
         </Button>
       ) : null

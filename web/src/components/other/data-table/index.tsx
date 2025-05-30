@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { UseNavigateResult } from '@tanstack/react-router'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -24,17 +23,22 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
+import { LoadingSpinner } from '..'
 import { DataTablePagination } from './pagination'
-import { DataTableToolbar } from './toolbar'
+import { DataTableToolbar, DataTableToolbarProps } from './toolbar'
 
 export { DataTableColumnHeader } from './column-header'
 export { DataTableRowActions } from './row-actions'
 
-interface DataTableProps<T> {
+interface DataTableProps<T>
+  extends Pick<
+    DataTableToolbarProps<T>,
+    'serchOptions' | 'search' | 'enableClientPagination' | 'navigate'
+  > {
   columns: ColumnDef<T>[]
   data: T[]
   meta?: Pagination
-  navigate?: UseNavigateResult<'/api'>
+  isLoading?: boolean
 }
 
 export function DataTable<T>({
@@ -42,12 +46,20 @@ export function DataTable<T>({
   data,
   meta,
   navigate,
+  enableClientPagination = false,
+  search,
+  serchOptions,
+  isLoading = false,
 }: DataTableProps<T>) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
   const [expanded, setExpanded] = useState({})
+  const [clientPagination, setClientPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
 
   // 默认展开展开一级菜单
   useEffect(() => {
@@ -74,16 +86,20 @@ export function DataTable<T>({
       rowSelection,
       columnFilters,
       pagination: {
-        pageIndex: page - 1,
-        pageSize: pageSize,
+        pageIndex: enableClientPagination
+          ? clientPagination.pageIndex
+          : page - 1,
+        pageSize: enableClientPagination ? clientPagination.pageSize : pageSize,
       },
       expanded,
     },
     enableExpanding: true,
     onExpandedChange: setExpanded,
     getSubRows: (row) => (row as { children?: T[] })?.children,
-    manualPagination: true,
-    pageCount: Math.ceil(total / pageSize),
+    manualPagination: !enableClientPagination,
+    pageCount: enableClientPagination
+      ? Math.ceil(data.length / clientPagination.pageSize)
+      : Math.ceil(total / pageSize),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -96,11 +112,23 @@ export function DataTable<T>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getExpandedRowModel: getExpandedRowModel(),
+    onPaginationChange: enableClientPagination
+      ? (updater) =>
+          setClientPagination((old) =>
+            updater instanceof Function ? updater(old) : updater
+          )
+      : undefined,
   })
 
   return (
     <div className='space-y-4'>
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        serchOptions={serchOptions}
+        navigate={navigate}
+        search={search}
+        enableClientPagination={enableClientPagination}
+      />
       <div className='rounded-md border'>
         <Table>
           <TableHeader>
@@ -111,7 +139,10 @@ export function DataTable<T>({
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
-                      className={header.column.columnDef.meta?.className ?? ''}
+                      className={
+                        (header.column.columnDef.meta as { className?: string })
+                          ?.className ?? ''
+                      }
                     >
                       {header.isPlaceholder
                         ? null
@@ -126,7 +157,16 @@ export function DataTable<T>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='text-muted-foreground pointer-events-none h-64 text-center'
+                >
+                  <LoadingSpinner />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -136,7 +176,10 @@ export function DataTable<T>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={cell.column.columnDef.meta?.className ?? ''}
+                      className={
+                        (cell.column.columnDef.meta as { className?: string })
+                          ?.className ?? ''
+                      }
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -159,8 +202,13 @@ export function DataTable<T>({
           </TableBody>
         </Table>
       </div>
-      {!!meta && !!navigate && (
-        <DataTablePagination table={table} navigate={navigate} />
+      {((!!meta && !!navigate) || enableClientPagination) && (
+        <DataTablePagination
+          table={table}
+          meta={meta}
+          navigate={navigate}
+          enableClientPagination={enableClientPagination}
+        />
       )}
     </div>
   )

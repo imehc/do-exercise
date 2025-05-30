@@ -6,5 +6,5 @@ type SysTokenDeleteReq struct {
 
 type SysTokenModityStatusReq struct {
 	AccessToken string `json:"access_token" binding:"required"`
-	Disabled    bool   `json:"disabled" binding:"required"`
+	Disabled    *bool  `json:"disabled" binding:"required"`
 }

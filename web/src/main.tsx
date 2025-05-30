@@ -6,15 +6,12 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { handleServerError } from '~/utils/handle-server-error'
 import { ResponseError } from './do-exercise-api'
 import './index.css'
 import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
-import { useAuthStore } from './stores'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,35 +32,27 @@ const queryClient = new QueryClient({
       staleTime: 10 * 1000, // 10s
     },
     mutations: {
-      onError: (error) => {
-        handleServerError(error)
-
-        if (error instanceof ResponseError) {
-          if (error.response?.status === 304) {
-            toast.error('Content not modified!')
-          }
-        }
-      },
+      onError: () => {},
     },
   },
   queryCache: new QueryCache({
-    onError: async (error) => {
-      if (error instanceof ResponseError) {
-        if (error.response?.status === 401) {
-          toast.error('Session expired!')
-          useAuthStore.getState().clearAuth()
-          const redirect = `${router.history.location.href}`
-          router.navigate({ to: '/sign-in', search: { redirect } })
-        }
-        if (error.response?.status === 500) {
-          toast.error('Internal Server Error!')
-          router.navigate({ to: '/500' })
-        }
-        if (error.response?.status === 403) {
-          // router.navigate("/forbidden", { replace: true });
-        }
-      }
-    },
+    // onError: async (error) => {
+    // if (error instanceof ResponseError) {
+    // if (error.response?.status === 401) {
+    //   toast.error('Session expired!')
+    //   useAuthStore.getState().clearAuth()
+    //   const redirect = `${router.history.location.href}`
+    //   router.navigate({ to: '/sign-in', search: { redirect } })
+    // }
+    // if (error.response?.status === 500) {
+    //   toast.error('Internal Server Error!')
+    //   router.navigate({ to: '/500' })
+    // }
+    // if (error.response?.status === 403) {
+    //   // router.navigate("/forbidden", { replace: true });
+    // }
+    // }
+    // },
   }),
 })
 

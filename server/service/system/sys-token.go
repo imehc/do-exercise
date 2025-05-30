@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/imehc/do-exercise/server/global"
@@ -90,7 +91,7 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 		result[accessTokenKeys[i]] = info
 	}
 
-	return lo.Map(lo.Entries(result), func(entry lo.Entry[string, model.TokenInfo], _ int) response.SysTokenLogRsp {
+	tokens := lo.Map(lo.Entries(result), func(entry lo.Entry[string, model.TokenInfo], _ int) response.SysTokenLogRsp {
 		return response.SysTokenLogRsp{
 			UserId:       entry.Value.UserId,
 			Username:     entry.Value.Username,
@@ -100,7 +101,25 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 			CreatedAt:    entry.Value.CreatedTime,
 			ExpiredAt:    entry.Value.ExpiredTime,
 		}
-	}), nil
+	})
+
+	slices.SortFunc(tokens, func(a, b response.SysTokenLogRsp) int {
+		if a.Username < b.Username {
+			return -1
+		}
+		if a.Username > b.Username {
+			return 1
+		}
+		if a.CreatedAt.Before(b.CreatedAt) {
+			return -1
+		}
+		if a.CreatedAt.After(b.CreatedAt) {
+			return 1
+		}
+		return 0
+	})
+
+	return tokens, nil
 }
 
 // Delete 删除token
@@ -126,12 +145,12 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 	err = deleteWithTransaction(
 		ctx, rdb,
 		deleteParam{ // 删除令牌
-			key:   fmt.Sprintf("%s%d", util.PrefixUserAcessToken, tokenData.UserId),
+			key:   fmt.Sprintf("%s%s", util.PrefixUserAcessToken, tokenData.UserId),
 			token: req.AccessToken,
 			isSet: true,
 		},
 		deleteParam{ // 删除刷新令牌
-			key:   fmt.Sprintf("%s%d", util.PrefixUserRefreshToken, tokenData.UserId),
+			key:   fmt.Sprintf("%s%s", util.PrefixUserRefreshToken, tokenData.UserId),
 			token: tokenData.RefreshToken,
 			isSet: true,
 		},
@@ -184,13 +203,13 @@ func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) erro
 	})
 	if err != nil {
 		if err == redis.Nil {
-			return errors.New("acccessTokenNotExist")
+			return errors.New("refreshTokenNotExist")
 		}
 		return errors.New("getFailed")
 	}
 
-	tokenData.Disabled = req.Disabled
-	refreshTokenData.Disabled = req.Disabled
+	tokenData.Disabled = *req.Disabled
+	refreshTokenData.Disabled = *req.Disabled
 
 	pipe := rdb.TxPipeline()
 	err = updateWithTransaction(

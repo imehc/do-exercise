@@ -1,9 +1,9 @@
 import React from 'react'
-import { AlertCircle } from 'lucide-react'
+import { IconAlertCircle } from '@tabler/icons-react'
 import { LoadingSpinner } from './loading-spinner'
 
 interface Props<T> {
-  isLoading: boolean
+  isLoading?: boolean
   className?: string
   isScreen?: boolean
   data?: T
@@ -11,7 +11,7 @@ interface Props<T> {
 }
 
 export function StatusRenderer<T>({
-  isLoading,
+  isLoading = false,
   isScreen,
   data,
   children,
@@ -25,7 +25,7 @@ export function StatusRenderer<T>({
     if (!data) {
       return (
         <div className='text-muted-foreground flex h-24 items-center justify-center gap-2 text-sm'>
-          <AlertCircle className='h-4 w-4' />
+          <IconAlertCircle className='h-4 w-4' />
           暂无数据
         </div>
       )

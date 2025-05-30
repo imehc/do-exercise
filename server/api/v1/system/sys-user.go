@@ -34,8 +34,8 @@ func (s *SysUserApi) Create(ctx *gin.Context) {
 // Delete 删除用户
 func (s *SysUserApi) Delete(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	id := cast.ToInt64(ctx.Param("id"))
-	if id == 0 {
+	id := cast.ToString(ctx.Param("id"))
+	if id == "" {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("idCannotBeEmpty", lang),
@@ -56,8 +56,8 @@ func (s *SysUserApi) Delete(ctx *gin.Context) {
 // Update 更新用户
 func (s *SysUserApi) Update(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	id := cast.ToInt64(ctx.Param("id"))
-	if id == 0 {
+	id := cast.ToString(ctx.Param("id"))
+	if id == "" {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("idCannotBeEmpty", lang),
@@ -89,8 +89,8 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 // Get 获取用户详情
 func (s *SysUserApi) Get(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	id := cast.ToInt64(ctx.Param("id"))
-	if id == 0 {
+	id := cast.ToString(ctx.Param("id"))
+	if id == "" {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("idCannotBeEmpty", lang),
@@ -129,8 +129,8 @@ func (s *SysUserApi) GetList(ctx *gin.Context) {
 // ResetPassword 重置密码
 func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
-	id := cast.ToInt64(ctx.Param("id"))
-	if id == 0 {
+	id := cast.ToString(ctx.Param("id"))
+	if id == "" {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("idCannotBeEmpty", lang),
@@ -142,6 +142,8 @@ func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
+	req.Id = id
+
 	err := userService.ResetPassword(req, nil)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{

@@ -12,6 +12,7 @@ export type DialogType =
   | 'view-body'
   | 'view-result'
   | 'view-info'
+  | 'reset'
 
 type Object = Record<string, unknown>
 

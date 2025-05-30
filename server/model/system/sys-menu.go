@@ -24,7 +24,7 @@ type SysMenu struct {
 }
 
 func (m *SysMenu) BeforeCreate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 	m.CreatedBy = userId
 	m.UpdatedBy = userId
 
@@ -32,7 +32,7 @@ func (m *SysMenu) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (m *SysMenu) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 
 	if m.UpdatedBy != userId && m.Id != 0 {
 		m.UpdatedBy = userId
@@ -51,7 +51,7 @@ func (m *SysMenu) BeforeUpdate(tx *gorm.DB) (err error) {
 
 func (m *SysMenu) BeforeDelete(tx *gorm.DB) (err error) {
 	if m.Id == 0 {
-		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(int64)
+		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
 		m.DeletedBy = userId
 		err = tx.
 			Model(m).

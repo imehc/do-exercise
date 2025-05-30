@@ -1,4 +1,4 @@
-import { Eye } from 'lucide-react'
+import { IconEye } from '@tabler/icons-react'
 import { SysOperationLog } from '~/do-exercise-api'
 import { DialogType, useFormDialog } from '~/provider'
 import { Button } from '~/components/ui/button'
@@ -42,7 +42,7 @@ export function OperationLogViewDialog({ type, data }: Props) {
           setOpen(type)
         }}
       >
-        <Eye />
+        <IconEye />
       </Button>
     </div>
   )

@@ -31,7 +31,7 @@ export function UserDeleteDialog({ open, onOpenChange, currentRow }: Props) {
 
   const handleDelete = () => {
     if (value.trim() !== currentRow.username) return
-    handleDel({ id: currentRow.id as number })
+    handleDel({ id: currentRow.id  })
   }
 
   return (

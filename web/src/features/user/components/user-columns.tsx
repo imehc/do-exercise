@@ -3,6 +3,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { SysUser } from '~/do-exercise-api'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { DataTableColumnHeader, DataTableRowActions } from '~/components/other'
+import { ResetPassword } from './user-reset-password-dialog'
 
 export const columns: ColumnDef<SysUser>[] = [
   {
@@ -90,7 +91,9 @@ export const columns: ColumnDef<SysUser>[] = [
   {
     id: 'actions',
     cell: ({ row }) => (
-      <DataTableRowActions row={row} showEdit showDelete showInfo />
+      <DataTableRowActions row={row} showEdit showDelete showInfo>
+        {(user) => <ResetPassword currentRow={user} />}
+      </DataTableRowActions>
     ),
   },
 ]

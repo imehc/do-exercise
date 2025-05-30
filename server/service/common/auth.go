@@ -1,7 +1,9 @@
 package common
 
 import (
+	"context"
 	"errors"
+	"time"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
@@ -13,25 +15,28 @@ import (
 
 type AuthService struct{}
 
-func (s *AuthService) Login(req common.Login) (system.SysUser, error) {
+func (s *AuthService) Login(req common.Login) (*system.SysUser, error) {
 	existUser := &system.SysUser{}
-	err := global.DB.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := global.DB.WithContext(ctx).
 		Preload("Roles").
 		Where("username = ?", req.Username).
 		First(existUser).
 		Error
 	if err != nil {
-		global.Log.Error("登录失败", zap.Error(err))
-		return system.SysUser{}, errors.New("userNotFound")
+		global.Log.Error("登录失败", zap.Error(err), zap.String("username", req.Username))
+		errorKey := util.TranslateDBError(err, "userNotFound")
+		return nil, errors.New(errorKey)
 	}
 	hash := util.Hash{
 		Value: existUser.Password,
 	}
 	if !hash.Compare(req.Password) {
-		return system.SysUser{}, errors.New("passwordError")
+		return nil, errors.New("passwordError")
 	}
 
-	return *existUser, nil
+	return existUser, nil
 }
 
 func (s *AuthService) ResetPassword(req request.UserResetPasswordReq) error {

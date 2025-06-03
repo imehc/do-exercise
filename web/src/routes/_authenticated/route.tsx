@@ -1,33 +1,40 @@
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import {
   createFileRoute,
   LinkProps,
   Outlet,
   redirect,
 } from '@tanstack/react-router'
+import { MenuType, UserApi } from '~/do-exercise-api'
 import { SearchProvider } from '~/provider/search'
 import { cn } from '~/lib/utils'
-import { handleMenuTree } from '~/utils/handle-menu-tree'
+import { handleToMenuTree } from '~/utils/handle-menu-tree'
+import { apiInstance } from '~/hooks/use-api'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
 import { LoadingSpinner } from '~/components/other'
 import SkipToMain from '~/components/skip-to-main'
-import { findMenuTree } from '~/features/menu/data/api'
+
+const getUserMenu = () => {
+  const userApi = apiInstance(UserApi)
+  return queryOptions({
+    queryKey: ['getUserMenu'],
+    queryFn: () => userApi.getUserMenu(),
+  })
+}
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context: { queryClient }, location }) => {
     try {
-      const { menu } = handleMenuTree(
-        await queryClient.ensureQueryData(findMenuTree())
-      )
+      const menus = await queryClient.ensureQueryData(getUserMenu())
       if (location.pathname === '/') {
         return
       }
-      const hasPermission = menu.some(
-        (item) => item.route === location.pathname
-      )
+      const hasPermission = menus
+        .filter((item) => item.type === MenuType.menu)
+        .some((item) => item.route === location.pathname)
       if (!hasPermission) {
         return redirect({ to: '/403' })
       }
@@ -41,21 +48,30 @@ export const Route = createFileRoute('/_authenticated')({
 })
 
 function RouteComponent() {
-  const { data: menusData = [] } = useQuery(findMenuTree())
+  const { data: menus = [] } = useQuery(getUserMenu())
   const navGroups = useMemo(() => {
-    const { directory = [] } = handleMenuTree(menusData)
-    return directory.map(
+    const { directory = [], menu = [] } = handleToMenuTree(menus)
+    if (directory.length > 0) {
+      return directory.map(
+        (item) =>
+          ({
+            title: item.name,
+            items: item.children.map((child) => ({
+              title: child.name,
+              url: child.route as LinkProps['to'],
+              icon: child.icon,
+            })),
+          }) as NavGroup
+      )
+    }
+    return menu.map(
       (item) =>
         ({
           title: item.name,
-          items: item.children.map((child) => ({
-            title: child.name,
-            url: child.route as LinkProps['to'],
-            icon: child.icon,
-          })),
+          items: [],
         }) as NavGroup
     )
-  }, [menusData])
+  }, [menus])
 
   return (
     <SearchProvider navGroups={navGroups}>

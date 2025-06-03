@@ -1038,6 +1038,7 @@ components:
         - id
         - name
         - parent_id
+        - type
 
 paths:
   /auth/public_key:
@@ -1241,7 +1242,7 @@ paths:
         "200":
           description: 获取成功
           content:
-            text/event-stream:
+            application/json:
               schema:
                 $ref: "#/components/schemas/SysInfo"
 

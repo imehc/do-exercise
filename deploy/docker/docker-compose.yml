@@ -67,6 +67,22 @@ services:
       network:
         ipv4_address: 166.6.0.24
 
+    nginx:
+      container_name: nginx_proxy
+      image: nginx:stable
+      depends_on:
+        - server_data
+      ports:
+        - "443:443"
+      volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+        - ./nginx/certs:/etc/nginx/certs:ro
+      depends_on:
+        - server_data
+      networks:
+        network:
+          ipv4_address: 166.6.0.25
+
 networks:
   network:
     ipam:

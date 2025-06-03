@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common/request"
@@ -107,17 +108,21 @@ func (u *UserService) GetProfile(id string) (*response.UserProfile, error) {
 }
 
 // GetMenu 获取用户菜单
+
 func (u *UserService) GetMenu(id string) (*[]response.UserMenu, error) {
 	db := global.DB
 	var user *system.SysUser
-	error := db.
+
+	// 查询用户及角色菜单
+	err := db.
 		Preload("Roles.Menus").
 		First(&user, id).
 		Error
-	if error != nil {
+	if err != nil {
 		return nil, errors.New("userNotFound")
 	}
 
+	// 初始化菜单列表
 	var menus []system.SysMenu
 	for _, role := range user.Roles {
 		menus = append(menus, role.Menus...)
@@ -126,8 +131,39 @@ func (u *UserService) GetMenu(id string) (*[]response.UserMenu, error) {
 		return menu.Id
 	})
 
-	userMenus := make([]response.UserMenu, 0)
+	// 构建菜单map，避免重复查询
+	menuMap := make(map[uint]system.SysMenu)
 	for _, menu := range menus {
+		menuMap[menu.Id] = menu
+	}
+
+	// 递归向上查找父菜单
+	toCheck := menus
+	for len(toCheck) > 0 {
+		var nextToCheck []system.SysMenu
+		for _, menu := range toCheck {
+			if *menu.ParentId != 0 {
+				if _, exists := menuMap[*menu.ParentId]; !exists {
+					var parentMenu system.SysMenu
+					if err := db.First(&parentMenu, menu.ParentId).Error; err == nil {
+						menuMap[parentMenu.Id] = parentMenu
+						nextToCheck = append(nextToCheck, parentMenu)
+					}
+				}
+			}
+		}
+		toCheck = nextToCheck
+	}
+
+	// 将 map 转为切片
+	finalMenus := make([]system.SysMenu, 0, len(menuMap))
+	for _, menu := range menuMap {
+		finalMenus = append(finalMenus, menu)
+	}
+
+	// 转为响应结构
+	userMenus := make([]response.UserMenu, 0, len(finalMenus))
+	for _, menu := range finalMenus {
 		userMenus = append(userMenus, response.UserMenu{
 			Id:         menu.Id,
 			Name:       menu.Name,
@@ -139,6 +175,16 @@ func (u *UserService) GetMenu(id string) (*[]response.UserMenu, error) {
 			Component:  menu.Component,
 		})
 	}
+
+	// 按照 ID 升序排序
+	slices.SortFunc(userMenus, func(a, b response.UserMenu) int {
+		if a.Id < b.Id {
+			return -1
+		} else if a.Id > b.Id {
+			return 1
+		}
+		return 0
+	})
 
 	return &userMenus, nil
 }

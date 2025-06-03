@@ -33,7 +33,7 @@ func InitCaptcha() {
 		2|4,
 		4,
 		"1234567890qwertyuioplkjhgfdsazxcvbnm",
-		&color.RGBA{R: 3, G: 102, B: 214, A: 125},
+		&color.RGBA{R: 192, G: 192, B: 192, A: 0},
 		base64Captcha.DefaultEmbeddedFonts,
 		[]string{"wqy-microhei.ttc"},
 	)

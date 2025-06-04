@@ -17,7 +17,7 @@ type RequestInfo struct {
 var (
 	requestInfoMap = make(map[string]*RequestInfo) // IP到请求信息的映射
 	mutex          = &sync.Mutex{}                 // 用于保护requestInfoMap的互斥锁
-	maxRequests    = 2                             // 允许的最大请求数
+	maxRequests    = 10                            // 允许的最大请求数
 	timeWindow     = 1 * time.Second               // 时间窗口
 )
 

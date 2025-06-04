@@ -100,6 +100,10 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		return nil, errors.New("refreshTokenNotExist")
 	}
 
+	// 清理该用户的无效 access/refresh token
+	_ = CleanUserTokenSet(refreshTokenInfo.UserId, PrefixUserAcessToken, PrefixAccessToken)
+	_ = CleanUserTokenSet(refreshTokenInfo.UserId, PrefixUserRefreshToken, PrefixRefreshToken)
+
 	// 生成新的accessToken
 	newAccessToken, err := Uuid()
 	if err != nil {
@@ -127,6 +131,7 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	// 保存新的token信息
 	pipe := global.Redis.Pipeline()
 	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixAccessToken, newAccessToken), tokenInfoJson, t.ExpireTime)
+	pipe.SAdd(ctx, fmt.Sprintf("%s%s", PrefixUserAcessToken, refreshTokenInfo.UserId), newAccessToken) // 添加到用户token集合
 
 	// 执行管道操作
 	_, err = pipe.Exec(ctx)
@@ -209,4 +214,36 @@ func UpdateUserRoleInCache(userId string, roleIds []uint) error {
 	}
 
 	return nil
+}
+
+// CleanUserTokenSet 清理 userAccessToken 或 userRefreshToken Set 中的无效 token
+func CleanUserTokenSet(userId string, tokenType string, prefix string) error {
+	ctx := context.Background()
+
+	// 拼接用户的 token 集合 key，如 userAccessToken_<userId>
+	setKey := fmt.Sprintf("%s%s", tokenType, userId)
+
+	// 获取集合中的所有 token 字符串
+	tokens, err := global.Redis.SMembers(ctx, setKey).Result()
+	if err != nil {
+		return err
+	}
+
+	pipe := global.Redis.Pipeline()
+	for _, token := range tokens {
+		tokenKey := fmt.Sprintf("%s%s", prefix, token)
+
+		// 检查 token 对应的 Redis 键是否存在
+		exists, e := global.Redis.Exists(ctx, tokenKey).Result()
+		if e != nil {
+			continue
+		}
+
+		// 如果 token 已过期（Redis 中不存在），则从用户集合中移除
+		if exists == 0 {
+			pipe.SRem(ctx, setKey, token)
+		}
+	}
+	_, err = pipe.Exec(ctx)
+	return err
 }

@@ -1179,6 +1179,18 @@ paths:
               schema:
                 $ref: "#/components/schemas/SSEMessage"
 
+  /auth/logout:
+    get:
+      summary: 登出
+      operationId: logout
+      tags:
+        - auth
+      security:
+        - apiKeyAuth: []
+      responses:
+        "204":
+          description: 登出成功
+
   /system/token/all:
     get:
       summary: 获取所有令牌

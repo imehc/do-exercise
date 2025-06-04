@@ -25,7 +25,7 @@ INSERT INTO sys_api VALUES(23, '/system/token/all', '获取所有令牌', 'SYSTE
 INSERT INTO sys_api VALUES(24, '/system/token', '删除指定令牌', 'SYSTEM', 'DELETE', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(25, '/system/token', '更新指定令牌状态', 'SYSTEM', 'PATCH', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(26, '/system/info', '获取系统运行信息', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
-INSERT INTO sys_api VALUES(27, '/system/role/all', '获取所有角色', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(27, '/system/roles/all', '获取所有角色', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
 INSERT INTO sys_api VALUES(101, '/user/profile', '用户获取基本信息', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(102, '/user/profile', '用户更新基本信息', 'COMMON', 'PUT', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
@@ -42,11 +42,12 @@ INSERT INTO sys_api VALUES(111, '/auth/login', '登录', 'COMMON', 'POST', true,
 INSERT INTO sys_api VALUES(112, '/auth/refresh_token', '刷新令牌', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(113, '/auth/forget_password_code', '发送忘记密码验证码', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(114, '/auth/forget_password', '忘记密码', 'COMMON', 'PATCH', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(115, '/auth/logout', '退出登录', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
-INSERT INTO sys_api VALUES(115, '/get_presigned_url', '获取预上传文件地址', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
-INSERT INTO sys_api VALUES(116, '/sse', 'SSE消息通知', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(116, '/get_presigned_url', '获取预上传文件地址', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(117, '/sse', 'SSE消息通知', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
-INSERT INTO sys_api VALUES(119, '/health', '获取服务器状态', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(118, '/health', '获取服务器状态', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
 SELECT setval(pg_get_serial_sequence('sys_api', 'id'), (SELECT MAX(id) FROM sys_api)); -- 重置自增序列;
 

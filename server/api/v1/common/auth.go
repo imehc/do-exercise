@@ -225,3 +225,19 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成密码重置：",
 	})
 }
+
+// Logout 退出登录
+func (s *AuthApi) Logout(ctx *gin.Context) {
+	accessToken := ctx.GetHeader("Authorization")
+	userId := ctx.MustGet("userId").(string)
+
+	if err := authService.Logout(userId, accessToken); err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), ctx.GetString("lang")),
+		})
+		return
+	}
+
+	response.NoContent(ctx)
+}

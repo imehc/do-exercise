@@ -2,7 +2,8 @@ import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { IconLayoutSidebar } from '@tabler/icons-react'
 import { VariantProps, cva } from 'class-variance-authority'
-import { useSidebarStore } from '~/stores'
+import { useAtom } from 'jotai'
+import { sidbarAtom } from '~/atoms'
 import { cn } from '~/lib/utils'
 import { useIsMobile } from '~/hooks/use-mobile'
 import { Button } from '~/components/ui/button'
@@ -61,7 +62,7 @@ function SidebarProvider({
   onOpenChange?: (open: boolean) => void
 }) {
   const isMobile = useIsMobile()
-  const { collapsed, setToggled } = useSidebarStore()
+  const [collapsed, setToggled] = useAtom(sidbarAtom)
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.

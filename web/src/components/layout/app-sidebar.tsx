@@ -6,19 +6,27 @@ import {
   SidebarRail,
 } from '~/components/ui/sidebar'
 import { NavGroup } from '~/components/layout/nav-group'
-import { TeamSwitcher } from '~/components/layout/team-switcher'
+import {
+  TeamSwitcher,
+  TeamSwitcherProps,
+} from '~/components/layout/team-switcher'
 import { NavGroup as NavGroupType } from '~/components/layout/types'
-import { sidebarData } from './data/sidebar-data'
-import { NavUser } from './nav-user'
+import { NavUser, NavUserProps } from './nav-user'
 
 export function AppSidebar({
-  navGroups,
+  team,
+  navGroups = [],
+  user,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { navGroups: NavGroupType[] }) {
+}: React.ComponentProps<typeof Sidebar> & {
+  navGroups?: NavGroupType[]
+  team?: TeamSwitcherProps
+  user?: NavUserProps
+}) {
   return (
     <Sidebar collapsible='icon' variant='floating' {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={sidebarData.teams} />
+        <TeamSwitcher {...team} />
       </SidebarHeader>
       <SidebarContent>
         {navGroups.map((props) => (
@@ -26,7 +34,7 @@ export function AppSidebar({
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser {...user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

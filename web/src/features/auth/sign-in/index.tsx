@@ -1,4 +1,3 @@
-import ViteLogo from '~/assets/vite.svg'
 import { UserAuthForm } from './components/user-auth-form'
 
 export default function SignIn2() {
@@ -23,11 +22,11 @@ export default function SignIn2() {
         </div>
 
         <img
-          src={ViteLogo}
+          src='https://img.daisyui.com/images/daisyui/mark-rotating.svg'
           className='relative m-auto'
-          width={301}
-          height={60}
-          alt='Vite'
+          width={480}
+          height={480}
+          alt='daisyui'
         />
 
         <div className='relative z-20 mt-auto'>
@@ -46,7 +45,7 @@ export default function SignIn2() {
           <div className='flex flex-col space-y-2 text-left'>
             <h1 className='text-2xl font-semibold tracking-tight'>Login</h1>
             <p className='text-muted-foreground text-sm'>
-              Enter your email and password below <br />
+              Enter your username and password below <br />
               to log into your account
             </p>
           </div>

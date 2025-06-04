@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const passwordRule = z
+export const passwordRule = z
   .string()
   .min(6, { message: '密码至少为6个字符' })
   .max(16, { message: '密码最多为16个字符' })
@@ -11,6 +11,14 @@ const passwordRule = z
     message: '密码必须包含至少一个特殊字符',
   })
 
+export const usernameRule = z
+  .string({ required_error: '请输入用户名' })
+  .min(2, { message: '用户名长度不能小于2个字符' })
+  .max(10, { message: '用户名长度不能大于10个字符' })
+  .regex(/^[a-zA-Z0-9]+$/, { message: '用户名不能包含特殊字符' })
+  .regex(/^[a-zA-Z]/, { message: '用户名必须以字母开头' })
+  .regex(/[a-zA-Z]/, { message: '用户名必须包含字母' })
+
 export const baseSchema = z.object({
   password: z.string().optional(),
   confirmPassword: z.string().optional(),
@@ -18,13 +26,7 @@ export const baseSchema = z.object({
 
 export const schema = baseSchema
   .extend({
-    username: z
-      .string({ required_error: '请输入用户名' })
-      .min(2, { message: '用户名长度不能小于2个字符' })
-      .max(10, { message: '用户名长度不能大于10个字符' })
-      .regex(/^[a-zA-Z0-9]+$/, { message: '用户名不能包含特殊字符' })
-      .regex(/^[a-zA-Z]/, { message: '用户名必须以字母开头' })
-      .regex(/[a-zA-Z]/, { message: '用户名必须包含字母' }),
+    username: usernameRule,
     nickname: z
       .string()
       .max(10, { message: '昵称长度不能超过10个字符' })

@@ -6,6 +6,8 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { Provider } from 'jotai'
+import { store } from './atoms'
 import { ResponseError } from './do-exercise-api'
 import './index.css'
 import { FontProvider } from './provider/font'
@@ -77,13 +79,15 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
-          <FontProvider>
-            <RouterProvider router={router} />
-          </FontProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
+            <FontProvider>
+              <RouterProvider router={router} />
+            </FontProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </Provider>
     </StrictMode>
   )
 }

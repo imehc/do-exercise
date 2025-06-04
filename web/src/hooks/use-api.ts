@@ -1,4 +1,6 @@
+import { addSeconds } from 'date-fns'
 import { toast } from 'sonner'
+import { originTokenAtom, store } from '~/atoms'
 import {
   AuthApi,
   Configuration,
@@ -9,7 +11,7 @@ import {
   ResponseContext,
   ValidationError,
 } from '~/do-exercise-api'
-import { useAuthStore } from '~/stores'
+import { router } from '~/main'
 
 let refreshTokenFlag = false
 type RequestQueue = {
@@ -23,11 +25,11 @@ let requestQueue: RequestQueue[] = []
 export function apiInstance<
   T extends new (conf?: Configuration) => InstanceType<T>,
 >(Api: T, conf?: ConfigurationParameters) {
-  const auth = useAuthStore.getState().auth
+  const accessToken = store.get(originTokenAtom).accessToken
   const _conf = new Configuration({
     basePath: '/apis',
     // 注意如果是bearer token的话，这里则是accessToken
-    apiKey: auth?.accessToken || import.meta.env.VITE_APP_AUTH_KEY,
+    apiKey: accessToken, //|| import.meta.env.VITE_APP_AUTH_KEY,
     headers: conf?.headers,
     middleware: [middleware],
     ...conf,
@@ -84,21 +86,29 @@ const handleRefreshToken = async () => {
   if (refreshTokenFlag) return
   refreshTokenFlag = true
 
-  const { auth, setAuth } = useAuthStore.getState()
+  const refreshExpireTime = store.get(originTokenAtom).refreshExpireTime
+  const refreshToken = store.get(originTokenAtom).refreshToken
   // 没有 refresh token 时直接跳转登录
-  if (!auth?.refreshToken) {
+  if (!refreshToken || Date.now() > refreshExpireTime) {
     redirectToLogin()
     return
   }
 
   try {
-    const authApi = new AuthApi(new Configuration({ basePath: '/api' }))
+    const authApi = new AuthApi(new Configuration({ basePath: '/apis' }))
     const token = await authApi.refreshToken({
-      refreshToken: auth.refreshToken,
+      refreshToken: refreshToken,
     })
 
     // 更新 token 到 store
-    setAuth(token)
+    store.set(originTokenAtom, {
+      ...token,
+      expireTime: addSeconds(new Date(), token.expireTime).getTime(),
+      refreshExpireTime: addSeconds(
+        new Date(),
+        token.refreshExpireTime
+      ).getTime(),
+    })
 
     // 重试之前失败的请求
     for (const queued of requestQueue) {
@@ -127,11 +137,16 @@ const handleRefreshToken = async () => {
   }
 }
 
-// TODO: 使用router跳转，而不是window.location.href
 const redirectToLogin = () => {
   requestQueue = [] // 清空队列
   refreshTokenFlag = false
-  window.location.href = '/sign-in' // 跳转到登录页
+  store.set(originTokenAtom, {
+    accessToken: '',
+    expireTime: 0,
+    refreshToken: '',
+    refreshExpireTime: 0,
+  })
+  router.navigate({ to: '/sign-in', replace: true })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

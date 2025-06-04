@@ -1,13 +1,11 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IconChevronDown } from '@tabler/icons-react'
+import { toast } from 'sonner'
 import { fonts } from '~/config/fonts'
 import { useFont } from '~/provider/font'
 import { useTheme } from '~/provider/theme'
-import { cn } from '~/lib/utils'
-import { showSubmittedData } from '~/utils/show-submitted-data'
-import { Button, buttonVariants } from '~/components/ui/button'
+import { Button } from '~/components/ui/button'
 import {
   Form,
   FormControl,
@@ -18,6 +16,7 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+import { SelectDropdown } from '~/components/select-dropdown'
 
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], {
@@ -50,7 +49,8 @@ export function AppearanceForm() {
     if (data.font != font) setFont(data.font)
     if (data.theme != theme) setTheme(data.theme)
 
-    showSubmittedData(data)
+    toast.success('Successfully updated appearance settings.')
+    // showSubmittedData(data)
   }
 
   return (
@@ -62,24 +62,20 @@ export function AppearanceForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Font</FormLabel>
-              <div className='relative w-max'>
-                <FormControl>
-                  <select
-                    className={cn(
-                      buttonVariants({ variant: 'outline' }),
-                      'w-[200px] appearance-none font-normal capitalize'
-                    )}
-                    {...field}
-                  >
-                    {fonts.map((font) => (
-                      <option key={font} value={font}>
-                        {font}
-                      </option>
-                    ))}
-                  </select>
-                </FormControl>
-                <IconChevronDown className='absolute top-2.5 right-3 h-4 w-4 opacity-50' />
-              </div>
+              <FormControl>
+                <SelectDropdown
+                  defaultValue={field.value ?? ''}
+                  onValueChange={field.onChange}
+                  className='w-full'
+                  items={fonts
+                    .map((item) => ({
+                      label: item,
+                      value: item,
+                    }))
+                    .flat()
+                    .sort((a, b) => a.label?.localeCompare(b.label))}
+                />
+              </FormControl>
               <FormDescription className='font-manrope'>
                 Set the font you want to use in the dashboard.
               </FormDescription>

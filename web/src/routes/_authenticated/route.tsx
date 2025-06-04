@@ -11,6 +11,7 @@ import { SearchProvider } from '~/provider/search'
 import { cn } from '~/lib/utils'
 import { handleToMenuTree } from '~/utils/handle-menu-tree'
 import { apiInstance } from '~/hooks/use-api'
+import { useUserProfile } from '~/hooks/use-user'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
@@ -29,7 +30,10 @@ export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context: { queryClient }, location }) => {
     try {
       const menus = await queryClient.ensureQueryData(getUserMenu())
-      if (location.pathname === '/') {
+      if (
+        location.pathname === '/' ||
+        location.pathname.startsWith('/settings')
+      ) {
         return
       }
       const hasPermission = menus
@@ -48,7 +52,11 @@ export const Route = createFileRoute('/_authenticated')({
 })
 
 function RouteComponent() {
-  const { data: menus = [] } = useQuery(getUserMenu())
+  const { data: userProfile, isLoading: userProfileIsLoading } =
+    useUserProfile()
+
+  const { data: menus = [], isLoading: userMenuIsLoading } =
+    useQuery(getUserMenu())
   const navGroups = useMemo(() => {
     const { directory = [], menu = [] } = handleToMenuTree(menus)
     if (directory.length > 0) {
@@ -73,11 +81,17 @@ function RouteComponent() {
     )
   }, [menus])
 
+  const isLoading = userProfileIsLoading || userMenuIsLoading
+
+  if (isLoading) {
+    return <LoadingSpinner isScreen />
+  }
+
   return (
     <SearchProvider navGroups={navGroups}>
       <SidebarProvider>
         <SkipToMain />
-        <AppSidebar navGroups={navGroups} />
+        <AppSidebar navGroups={navGroups} user={userProfile} />
         <div
           id='content'
           className={cn(

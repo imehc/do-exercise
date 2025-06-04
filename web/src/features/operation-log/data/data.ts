@@ -36,6 +36,11 @@ export const callCodeTypes = new Map<number, string>([
     'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200', // 成功
   ],
   [
+    201,
+    'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200', // 创建成功
+  ],
+  [204, 'bg-cyan-100/30 text-cyan-900 dark:text-cyan-200 border-cyan-200'],
+  [
     400,
     'bg-yellow-100/30 text-yellow-900 dark:text-yellow-200 border-yellow-200', // 客户端错误（语义错误、请求无效）
   ],
@@ -51,6 +56,7 @@ export const callCodeTypes = new Map<number, string>([
     404,
     'bg-slate-100/30 text-slate-900 dark:text-slate-200 border-slate-200', // 找不到资源
   ],
+  [429, 'bg-red-100/30 text-red-900 dark:text-red-200 border-red-200'],
   [
     500,
     'bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-primary border-destructive/10', // 服务器错误

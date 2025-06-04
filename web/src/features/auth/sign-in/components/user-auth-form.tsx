@@ -1,10 +1,16 @@
-import { HTMLAttributes, useState } from 'react'
-import { z } from 'zod'
+import { HTMLAttributes, useEffect } from 'react'
+import { addSeconds } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from '@tanstack/react-router'
-import { IconBrandFacebook, IconBrandGithub } from '@tabler/icons-react'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { IconLoader3 } from '@tabler/icons-react'
+import { useSetAtom } from 'jotai'
+import { JSEncrypt } from 'jsencrypt'
+import { originTokenAtom } from '~/atoms'
+import { AuthApi, LoginRequest } from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
+import { useApi } from '~/hooks/use-api'
 import { Button } from '~/components/ui/button'
 import {
   Form,
@@ -16,44 +22,104 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { PasswordInput } from '~/components/password-input'
+import {
+  SignInActionFormValues,
+  signInActionSchema,
+} from '../schemas/action-schema'
 
 type UserAuthFormProps = HTMLAttributes<HTMLFormElement>
 
-const formSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: 'Please enter your email' })
-    .email({ message: 'Invalid email address' }),
-  password: z
-    .string()
-    .min(1, {
-      message: 'Please enter your password',
-    })
-    .min(7, {
-      message: 'Password must be at least 7 characters long',
-    }),
-})
-
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const authApi = useApi(AuthApi)
+  const setToken = useSetAtom(originTokenAtom)
+  const navigate = useNavigate()
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SignInActionFormValues>({
+    resolver: zodResolver(signInActionSchema),
     defaultValues: {
-      email: '',
+      username: '',
       password: '',
+      captchaId: '',
+      captcha: '',
+      publicKey: '',
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    // eslint-disable-next-line no-console
-    console.log(data)
+  const {
+    data: publicKeyData,
+    isLoading: publicKeyDataIsLoading,
+    refetch: refetchPublicKey,
+  } = useQuery({
+    queryKey: ['getPublicKey'],
+    queryFn: () => authApi.getPublicKey(),
+    retry: false,
+    placeholderData: keepPreviousData,
+    refetchInterval: 5 * 60 * 1000,
+  })
 
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+  const {
+    data: captchaData,
+    isLoading: captchaDataIsLoading,
+    refetch: refetchCaptcha,
+  } = useQuery({
+    queryKey: ['getCaptcha'],
+    queryFn: () => authApi.getCaptcha(),
+    retry: false,
+    refetchInterval: 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (publicKeyData) {
+      form.setValue('publicKey', publicKeyData.publicKey)
+    }
+    if (captchaData) {
+      form.setValue('captchaId', captchaData.captchaId)
+    }
+  }, [captchaData, form, publicKeyData])
+
+  const { mutate: login, isPending: loginIsPending } = useMutation({
+    mutationFn: (value: LoginRequest) => authApi.login(value),
+    onSuccess: (data) => {
+      setToken({
+        ...data,
+        expireTime: addSeconds(new Date(), data.expireTime).getTime(),
+        refreshExpireTime: addSeconds(
+          new Date(),
+          data.refreshExpireTime
+        ).getTime(),
+      })
+      navigate({
+        to: '/',
+      })
+    },
+    onError: () => {
+      refetchPublicKey()
+      refetchCaptcha()
+    },
+  })
+
+  function onSubmit(data: SignInActionFormValues) {
+    if (!publicKeyData) return
+    const encrypt = new JSEncrypt()
+    // 注意：Go 返回的可能是 PEM 格式的 base64，需要先解码
+    const publicKey = atob(publicKeyData.publicKey) // 浏览器环境用 atob，Node 用 Buffer
+    encrypt.setPublicKey(publicKey)
+    const password = encrypt.encrypt(data.password)
+    if (!password) {
+      return
+    }
+
+    login({
+      login: {
+        ...data,
+        password: password,
+        username: data.username,
+      },
+    })
   }
+
+  const isPending =
+    publicKeyDataIsLoading || captchaDataIsLoading || loginIsPending
 
   return (
     <Form {...form}>
@@ -64,12 +130,12 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
       >
         <FormField
           control={form.control}
-          name='email'
+          name='username'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>用户名</FormLabel>
               <FormControl>
-                <Input placeholder='name@example.com' {...field} />
+                <Input placeholder='用户名' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -80,7 +146,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           name='password'
           render={({ field }) => (
             <FormItem className='relative'>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>密码</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -89,15 +155,56 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                 to='/forgot-password'
                 className='text-muted-foreground absolute -top-0.5 right-0 text-sm font-medium hover:opacity-75'
               >
-                Forgot password?
+                忘记密码?
               </Link>
             </FormItem>
           )}
         />
-        <Button className='mt-2' disabled={isLoading}>
-          Login
+        <FormField
+          control={form.control}
+          name='captcha'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>验证码</FormLabel>
+              <FormControl>
+                <div className='flex w-full items-center justify-between gap-x-4'>
+                  <Input
+                    disabled={isPending}
+                    placeholder='Capthca'
+                    {...field}
+                  />
+                  <div className='relative aspect-[3/1] h-9 overflow-hidden rounded-md border border-solid border-[var(--input)]'>
+                    {!!captchaData && (
+                      <img
+                        className={cn(
+                          'box-border h-full w-full px-1',
+                          !isPending
+                            ? 'pointer-events-auto cursor-pointer'
+                            : 'pointer-events-none cursor-none'
+                        )}
+                        src={captchaData.picPath}
+                        alt='captcha'
+                        onClick={() => refetchCaptcha()}
+                      />
+                    )}
+                  </div>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button className='mt-2' disabled={isPending}>
+          {loginIsPending ? (
+            <>
+              <IconLoader3 className='animate-spin' />
+              <span>登录中...</span>
+            </>
+          ) : (
+            <span>登录</span>
+          )}
         </Button>
-
+        {/* 
         <div className='relative my-2'>
           <div className='absolute inset-0 flex items-center'>
             <span className='w-full border-t' />
@@ -116,7 +223,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           <Button variant='outline' type='button' disabled={isLoading}>
             <IconBrandFacebook className='h-4 w-4' /> Facebook
           </Button>
-        </div>
+        </div> */}
       </form>
     </Form>
   )

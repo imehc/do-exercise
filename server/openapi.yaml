@@ -1089,6 +1089,54 @@ paths:
                 $ref: "#/components/schemas/Token"
           description: "登录成功"
 
+  /auth/code_with_email:
+    get:
+      summary: 获取使用邮箱登录验证码
+      operationId: getCodeWithEmail
+      tags:
+        - auth
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        "204":
+          description: 获取成功
+
+  /auth/login_with_email:
+    post:
+      summary: 邮箱登录
+      operationId: loginWithEmail
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 邮箱
+                code:
+                  type: string
+                  description: 验证码
+              required:
+                - email
+                - code
+              title: LoginWithEmail
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+          description: "登录成功"
+
   /auth/refresh_token:
     get:
       summary: 刷新令牌
@@ -1802,6 +1850,12 @@ paths:
         - user
       security:
         - apiKeyAuth: []
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
         "204":
           description: "获取成功"
@@ -1831,6 +1885,12 @@ paths:
         - user
       security:
         - apiKeyAuth: []
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
         "204":
           description: "获取成功"

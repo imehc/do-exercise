@@ -39,9 +39,10 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
+	val := tx.Statement.Context.Value(global.ContextUserIDKey)
+	userId, ok := val.(string)
 
-	if u.UpdatedBy != userId && u.UserId != "" {
+	if ok && u.UpdatedBy != userId && u.UserId != "" {
 		u.UpdatedBy = userId
 		err = tx.
 			Model(u).

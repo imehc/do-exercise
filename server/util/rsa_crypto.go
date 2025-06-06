@@ -153,7 +153,7 @@ func (r *RSACrypto) generateKeysIfNeeded(tx *redis.Tx, currentCount int) error {
 }
 
 // DecryptWithKey 使用已标记的密钥对解密数据
-func (r *RSACrypto) DecryptWithKey(publicKeyStr, encryptedData string) (string, error) {
+func (r *RSACrypto) DecryptWithKey(publicKeyStr, encryptedData string, delete bool) (string, error) {
 	ctx := context.Background()
 
 	// 使用独立key获取私钥
@@ -163,10 +163,12 @@ func (r *RSACrypto) DecryptWithKey(publicKeyStr, encryptedData string) (string, 
 		return "", errors.New("operationTimeout")
 	}
 
-	// 删除已使用的密钥
-	err = r.Redis.Del(ctx, key).Err()
-	if err != nil {
-		return "", errors.New("operationTimeout")
+	if delete {
+		// 删除已使用的密钥
+		err = r.Redis.Del(ctx, key).Err()
+		if err != nil {
+			return "", errors.New("operationTimeout")
+		}
 	}
 
 	// 解码私钥

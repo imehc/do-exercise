@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/common/response"
 	sysReq "github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 
 	"github.com/imehc/do-exercise/server/model/system"
 	sysService "github.com/imehc/do-exercise/server/service/system"
@@ -27,18 +28,24 @@ func (u *UserService) FindUserByEmail(email string) (*system.SysUser, error) {
 	if error != nil {
 		return nil, errors.New("userNotFound")
 	}
+
+	if !user.DeletedAt.Time.IsZero() {
+		return nil, errors.New("userDeleted")
+	}
 	return user, nil
 }
 
 // BindEmail 绑定邮箱
 func (u *UserService) BindEmail(req request.BindEmailReq) error {
 	db := global.DB
+	log := global.Log
 
 	if err := db.
-		Model(system.SysUser{}).
+		Model(&system.SysUser{}).
 		Where("id = ?", req.Id).
-		Update("Email", req.Email).
+		Update("email", req.Email).
 		Error; err != nil {
+		log.Error("绑定邮箱失败", zap.String("id", req.Id), zap.String("email", req.Email), zap.Error(err))
 		return errors.New("bindEmailFailed")
 	}
 	return nil

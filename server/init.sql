@@ -39,6 +39,8 @@ INSERT INTO sys_api VALUES(108, '/user/modify_password', '用户更新密码', '
 INSERT INTO sys_api VALUES(109, '/auth/public_key', '获取加密公钥', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(110, '/auth/captcha', '获取图形验证码', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(111, '/auth/login', '登录', 'COMMON', 'POST', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(111, '/auth/login_with_email', '邮箱登录', 'COMMON', 'POST', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(111, '/auth/code_with_email', '发送邮箱登录验证码', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(112, '/auth/refresh_token', '刷新令牌', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(113, '/auth/forget_password_code', '发送忘记密码验证码', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(114, '/auth/forget_password', '忘记密码', 'COMMON', 'PATCH', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);

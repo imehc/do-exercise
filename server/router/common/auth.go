@@ -10,6 +10,9 @@ type AuthRouter struct{}
 func (s *AuthRouter) InitAuthRouter(r *gin.RouterGroup) gin.IRoutes {
 	router := r.Group("auth")
 	{
+
+		router.GET("code_with_email", authApi.SendLoginWithEmailCode)                                         // 获取使用邮箱登录验证码
+		router.POST("login_with_email", authApi.LoginWithEmail)                                               // 邮箱登录
 		router.POST("login", authApi.Login)                                                                   // 登录
 		router.GET("refresh_token", authApi.RefreshToken)                                                     // 刷新token
 		router.GET("captcha", authApi.GetCaptcha)                                                             // 获取验证码

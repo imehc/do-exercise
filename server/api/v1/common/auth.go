@@ -19,44 +19,7 @@ import (
 
 type AuthApi struct{}
 
-// Login 登录
-func (s *AuthApi) Login(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
-
-	var req common.LoginReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	if ok := global.Captcha.Verify(req.CaptchaId, req.Captcha, true); !ok {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("invalidCaptcha", lang),
-		})
-		return
-	}
-
-	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
-	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
-		return
-	}
-
-	user, err := authService.Login(common.Login{
-		Username: req.Username,
-		Password: password,
-	})
-	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
-		return
-	}
+func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
 	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
 	if err != nil {
 		response.ServerError(ctx)
@@ -81,6 +44,48 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		response.ServerError(ctx)
 	}
 	response.Success(ctx, token)
+}
+
+// Login 登录
+func (s *AuthApi) Login(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+
+	var req common.LoginReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	if ok := global.Captcha.Verify(req.CaptchaId, req.Captcha, true); !ok {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("invalidCaptcha", lang),
+		})
+		return
+	}
+
+	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password, true)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
+	user, err := authService.Login(common.Login{
+		Username: req.Username,
+		Password: password,
+	})
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
+	s.generateToken(ctx, user)
 }
 
 // RefreshToken 刷新token
@@ -149,7 +154,6 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
-	userId := ctx.MustGet("userId").(string)
 
 	req := &request.UserResetPasswordReq{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -165,14 +169,8 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		})
 		return
 	}
-	if user.UserId != userId {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("emailBound", lang),
-		})
-	}
 
-	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
+	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password, true)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -195,7 +193,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		_ = userApi.clearEmailCache(context, iRedis, ForgotPasswordPrefix, req.Email)
 	}()
 
-	if cache.Code != req.Code || cache.UserId != userId {
+	if cache.Code != req.Code || cache.UserId != user.UserId {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("captchaError", lang),
@@ -204,7 +202,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 	}
 
 	if err := authService.ResetPassword(request.UserResetPasswordReq{
-		Id:       userId,
+		Id:       user.UserId,
 		Password: password,
 	}); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
@@ -218,12 +216,30 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 
 // SendResetPasswordCode 发送忘记密码邮箱验证码
 func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+	req := &request.Email{}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+	}
+
+	user, err := userService.FindUserByEmail(req.Email)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
 	var userApi UserApi
 	userApi.sendEmailCode(ctx, ForgotPasswordPrefix, &util.EmailData{
 		EmailTitle:       "验证码",
 		VerificationType: "重置密码",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成密码重置：",
-	})
+	}, user.UserId)
 }
 
 // Logout 退出登录
@@ -240,4 +256,80 @@ func (s *AuthApi) Logout(ctx *gin.Context) {
 	}
 
 	response.NoContent(ctx)
+}
+
+// LoginWithEmail 使用邮件登录
+func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+	context := context.Background()
+	iRedis := global.Redis
+
+	var req common.LoginWithEmailReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+	}
+
+	var userApi UserApi
+	cache, err := userApi.getEmailCache(context, iRedis, LoginWithEmailPrefix, req.Email)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
+	defer func() {
+		_ = userApi.clearEmailCache(context, iRedis, LoginWithEmailPrefix, req.Email)
+	}()
+
+	user, err := userService.FindUserByEmail(req.Email)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("emailNotBound", lang),
+		})
+		return
+	}
+
+	if cache.Code != req.Code || cache.UserId != user.UserId {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate("captchaError", lang),
+		})
+		return
+	}
+
+	s.generateToken(ctx, user)
+}
+
+// SendLoginWithEmailCode 发送使用邮箱登录验证码
+func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
+	lang := ctx.GetString("lang")
+	req := &request.Email{}
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+	}
+
+	user, err := userService.FindUserByEmail(req.Email)
+	if err != nil {
+		response.BadRequest(ctx, response.ValidationError{
+			Type:    status.BAD_REQUEST_MSG,
+			Message: global.I18.Translate(err.Error(), lang),
+		})
+		return
+	}
+
+	var userApi UserApi
+	userApi.sendEmailCode(ctx, LoginWithEmailPrefix, &util.EmailData{
+		EmailTitle:       "验证码",
+		VerificationType: "邮箱登录",
+		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成登录：",
+	}, user.UserId)
 }

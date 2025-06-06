@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { IconLoader3 } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { fonts } from '~/config/fonts'
 import { useFont } from '~/provider/font'
@@ -33,6 +35,7 @@ type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 export function AppearanceForm() {
   const { font, setFont } = useFont()
   const { theme, setTheme } = useTheme()
+  const [loading, setLoading] = useState(false)
 
   // This can come from your database or API.
   const defaultValues: Partial<AppearanceFormValues> = {
@@ -46,9 +49,10 @@ export function AppearanceForm() {
   })
 
   function onSubmit(data: AppearanceFormValues) {
+    setLoading(true)
     if (data.font != font) setFont(data.font)
     if (data.theme != theme) setTheme(data.theme)
-
+    setLoading(false)
     toast.success('Successfully updated appearance settings.')
     // showSubmittedData(data)
   }
@@ -96,7 +100,7 @@ export function AppearanceForm() {
               <RadioGroup
                 onValueChange={field.onChange}
                 defaultValue={field.value}
-                className='grid max-w-md grid-cols-2 gap-8 pt-2'
+                className='grid max-w-md grid-cols-2 gap-8 pt-2 max-sm:flex max-sm:flex-col max-sm:space-y-1'
               >
                 <FormItem>
                   <FormLabel className='[&:has([data-state=checked])>div]:border-primary'>
@@ -155,7 +159,16 @@ export function AppearanceForm() {
           )}
         />
 
-        <Button type='submit'>Update preferences</Button>
+        <Button type='submit' className='max-sm:w-full'>
+          {loading ? (
+            <>
+              <IconLoader3 className='animate-spin' />
+              <span>保存中...</span>
+            </>
+          ) : (
+            <span>保存</span>
+          )}
+        </Button>
       </form>
     </Form>
   )

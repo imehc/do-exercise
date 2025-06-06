@@ -35,6 +35,7 @@ export function OperationLogViewInfoDialog({ open, onOpenChange }: Props) {
 
   return (
     <Drawer
+      shouldScaleBackground
       open={open}
       onOpenChange={(state) => {
         onOpenChange(state)

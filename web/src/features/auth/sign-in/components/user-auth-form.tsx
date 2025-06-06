@@ -2,15 +2,16 @@ import { HTMLAttributes, useEffect } from 'react'
 import { addSeconds } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { IconLoader3 } from '@tabler/icons-react'
+import { IconLoader3, IconMail } from '@tabler/icons-react'
 import { useSetAtom } from 'jotai'
-import { JSEncrypt } from 'jsencrypt'
 import { originTokenAtom } from '~/atoms'
 import { AuthApi, LoginRequest } from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
+import { encryptPassword } from '~/utils/encrypt'
 import { useApi } from '~/hooks/use-api'
+import { usePublicKey } from '~/hooks/use-public-key'
 import { Button } from '~/components/ui/button'
 import {
   Form,
@@ -49,13 +50,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     data: publicKeyData,
     isLoading: publicKeyDataIsLoading,
     refetch: refetchPublicKey,
-  } = useQuery({
-    queryKey: ['getPublicKey'],
-    queryFn: () => authApi.getPublicKey(),
-    retry: false,
-    placeholderData: keepPreviousData,
-    refetchInterval: 5 * 60 * 1000,
-  })
+  } = usePublicKey()
 
   const {
     data: captchaData,
@@ -100,11 +95,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
   function onSubmit(data: SignInActionFormValues) {
     if (!publicKeyData) return
-    const encrypt = new JSEncrypt()
-    // 注意：Go 返回的可能是 PEM 格式的 base64，需要先解码
-    const publicKey = atob(publicKeyData.publicKey) // 浏览器环境用 atob，Node 用 Buffer
-    encrypt.setPublicKey(publicKey)
-    const password = encrypt.encrypt(data.password)
+    const password = encryptPassword(data.password, publicKeyData.publicKey)
     if (!password) {
       return
     }
@@ -204,7 +195,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             <span>登录</span>
           )}
         </Button>
-        {/* 
+
         <div className='relative my-2'>
           <div className='absolute inset-0 flex items-center'>
             <span className='w-full border-t' />
@@ -216,14 +207,21 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           </div>
         </div>
 
-        <div className='grid grid-cols-2 gap-2'>
-          <Button variant='outline' type='button' disabled={isLoading}>
-            <IconBrandGithub className='h-4 w-4' /> GitHub
-          </Button>
-          <Button variant='outline' type='button' disabled={isLoading}>
+        <div className='grid grid-cols-1 gap-2'>
+          <Link to='/email-sign-in' disabled={isPending}>
+            <Button
+              variant='outline'
+              type='button'
+              disabled={isPending}
+              className='w-full'
+            >
+              <IconMail className='h-4 w-4' /> Email
+            </Button>
+          </Link>
+          {/* <Button variant='outline' type='button' disabled={isLoading}>
             <IconBrandFacebook className='h-4 w-4' /> Facebook
-          </Button>
-        </div> */}
+          </Button> */}
+        </div>
       </form>
     </Form>
   )

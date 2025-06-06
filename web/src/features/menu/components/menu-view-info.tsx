@@ -37,6 +37,7 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
 
   return (
     <Drawer
+      setBackgroundColorOnScale
       open={open}
       onOpenChange={(state) => {
         onOpenChange(state)

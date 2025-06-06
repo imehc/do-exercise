@@ -25,4 +25,12 @@
  * }
  * ```
  */
-export const fonts = ['inter', 'manrope', 'system'] as const
+export const fonts = [
+  'inter',
+  'manrope',
+  'smiley',
+  'pingfanggongziti',
+  'maokentangyuan',
+  'tsuipita',
+  'system',
+] as const

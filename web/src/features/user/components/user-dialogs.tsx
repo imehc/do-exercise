@@ -72,8 +72,10 @@ export function UserDialogs({ refetch }: Props) {
             key='user-view-info'
             open={open === 'view-info'}
             onOpenChange={() => {
-              setCurrentRow(null)
               setOpen('view-info')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
             }}
           />
         </>

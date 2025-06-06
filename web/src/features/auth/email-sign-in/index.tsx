@@ -8,35 +8,25 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import AuthLayout from '../auth-layout'
-import { OtpForm } from './components/otp-form'
+import { EmailSignInForm } from './components/email-sign-in-form'
 
-export default function Otp() {
+export default function EmailSignIn() {
   return (
     <AuthLayout>
       <Card className='gap-4'>
         <CardHeader>
-          <CardTitle className='text-base tracking-tight'>
-            Two-factor Authentication
+          <CardTitle className='text-lg tracking-tight'>
+            Sign in with Email
           </CardTitle>
           <CardDescription>
-            Please enter the authentication code. <br /> We have sent the
-            authentication code to your email.
+            Enter your email address and we’ll send you a login link to access
+            your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <OtpForm />
+          <EmailSignInForm />
         </CardContent>
         <CardFooter>
-          {/* <p className='text-muted-foreground px-8 text-center text-sm'>
-            Haven't received it?{' '}
-            <Link
-              to='/sign-in'
-              className='hover:text-primary underline underline-offset-4'
-            >
-              Resend a new code.
-            </Link>
-            .
-          </p> */}
           <p className='text-muted-foreground px-8 text-center text-sm'>
             Prefer using a password?{' '}
             <Link

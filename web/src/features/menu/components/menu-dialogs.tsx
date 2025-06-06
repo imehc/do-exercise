@@ -79,16 +79,18 @@ export function MenuDialogs({ treeData, refetch }: Props) {
             }}
             currentRow={currentRow}
           />
-          <MenuViewInfoDialog
-            key='menu-view-info'
-            open={open === 'view-info'}
-            onOpenChange={() => {
-              setCurrentRow(null)
-              setOpen('view-info')
-            }}
-          />
         </>
       )}
+      <MenuViewInfoDialog
+        key='menu-view-info'
+        open={open === 'view-info'}
+        onOpenChange={() => {
+          setOpen('view-info')
+          setTimeout(() => {
+            setCurrentRow(null)
+          }, 500)
+        }}
+      />
     </>
   )
 }

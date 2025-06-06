@@ -24,6 +24,7 @@ const (
 	RebindEmailPrefix    = "rebind_email_"
 	ModifyPasswordPrefix = "modify_password_"
 	ForgotPasswordPrefix = "forgot_password_"
+	LoginWithEmailPrefix = "login_with_email_"
 )
 
 // checkEmail 检查邮箱是否是本人或者已发送验证码
@@ -97,13 +98,17 @@ func (s *UserApi) clearEmailCache(ctx context.Context, iRedis *redis.Client, ema
 }
 
 // sendEmailCode 发送邮箱验证码
-func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.EmailData) {
+func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.EmailData, userId string) {
 	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
-	userId := ctx.MustGet("userId").(string)
 
-	to, _, err := s.checkEmail(ctx, context, iRedis, userId, emailType)
+	uId := userId
+	if userId == "" {
+		uId = ctx.MustGet("userId").(string)
+	}
+
+	to, _, err := s.checkEmail(ctx, context, iRedis, uId, emailType)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -114,7 +119,7 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 
 	minute := time.Duration(10) * time.Minute
 	code := util.GenerateRandomNumber(6)
-	if err := s.setEmailCache(context, iRedis, emailType, *to, code, userId, minute); err != nil {
+	if err := s.setEmailCache(context, iRedis, emailType, *to, code, uId, minute); err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate("emailSendFailed", lang),
@@ -196,7 +201,7 @@ func (s *UserApi) SendBindEmailCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "绑定邮箱",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成邮箱绑定：",
-	})
+	}, "")
 }
 
 // SendRebindEmailCode 发送换绑邮箱验证码
@@ -205,7 +210,7 @@ func (s *UserApi) SendRebindEmailCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "绑定新邮箱",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成新邮箱绑定：",
-	})
+	}, "")
 }
 
 // SendModifyPasswordCode 发送修改密码验证码
@@ -214,7 +219,7 @@ func (s *UserApi) SendModifyPasswordCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "重置密码",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成密码重置：",
-	})
+	}, "")
 }
 
 // BindEmail 绑定邮箱
@@ -238,7 +243,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 		return
 	}
 
-	oldPassword, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.OldPassword)
+	oldPassword, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.OldPassword, false)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,
@@ -246,7 +251,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 		})
 		return
 	}
-	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password)
+	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password, true)
 	if err != nil {
 		response.BadRequest(ctx, response.ValidationError{
 			Type:    status.BAD_REQUEST_MSG,

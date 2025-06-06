@@ -44,31 +44,19 @@ func (s *AuthService) Login(req common.Login) (*system.SysUser, error) {
 
 func (s *AuthService) ResetPassword(req request.UserResetPasswordReq) error {
 	db := global.DB
-	var user *system.SysUser
-	result := db.
-		Unscoped().
-		First(&user, req.Id)
-	if result.Error != nil {
-		return errors.New("userNotFound")
-	}
-
-	if !user.DeletedAt.Time.IsZero() {
-		return errors.New("userDeleted")
-	}
+	log := global.Log
 
 	hash := util.Hash{Value: req.Password}
 	password, err := hash.Hash()
 	if err != nil {
 		return err
 	}
-	user.Password = password
 
-	if err := db.
-		Model(user).
-		Select("Password").
-		Updates(user).
-		Error; err != nil {
-		return errors.New("resetPasswordFailed")
+	// user.Password=pa
+	err = db.Model(&system.SysUser{}).Where("id = ?", req.Id).Update("Password", password).Error
+	if err != nil {
+		log.Error("reset password failed", zap.String("userId", req.Id), zap.Error(err))
+		return err
 	}
 
 	return nil

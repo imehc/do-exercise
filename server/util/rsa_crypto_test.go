@@ -84,7 +84,7 @@ func TestRSACrypto(t *testing.T) {
 		encryptedData, err := mockEncryptData(keyPair.PublicKey, originalData)
 		assert.NoError(t, err)
 
-		decryptedData, err := rsaPool.DecryptWithKey(keyPair.PublicKey, encryptedData)
+		decryptedData, err := rsaPool.DecryptWithKey(keyPair.PublicKey, encryptedData, true)
 		assert.NoError(t, err)
 		assert.Equal(t, originalData, decryptedData)
 
@@ -114,7 +114,7 @@ func TestRSACrypto(t *testing.T) {
 		time.Sleep(5 * time.Millisecond)
 
 		// 验证过期的密钥无法使用
-		_, err = rsaPool.DecryptWithKey(keyPair.PublicKey, "some_data")
+		_, err = rsaPool.DecryptWithKey(keyPair.PublicKey, "some_data", true)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "operationTimeout")
 	})

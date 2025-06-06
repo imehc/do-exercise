@@ -15,7 +15,7 @@ import (
 func ValidaterMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 获取语言设置，默认为英语
-		lang := c.GetHeader("Accept-Language")
+		lang := getLanguage(c.GetHeader("Accept-Language"))
 		if lang == "" || (lang != "en" && lang != "zh") {
 			lang = "en"
 		}
@@ -56,4 +56,17 @@ func removeTopStruct(fileds map[string]string) map[string]string {
 		rsp[field[strings.Index(field, ".")+1:]] = err
 	}
 	return rsp
+}
+
+func getLanguage(originLang string) string {
+	lang := strings.ToLower(originLang)
+
+	switch {
+	case strings.HasPrefix(lang, "zh"):
+		return "zh"
+	case strings.HasPrefix(lang, "en"):
+		return "en"
+	default:
+		return "en" // default fallback
+	}
 }

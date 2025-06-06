@@ -320,7 +320,7 @@ func (s *SysUserService) ResetPassword(req request.UpdateSysUserPasswordReq, old
 
 	if oldPassword != nil {
 		hash := util.Hash{Value: existUser.Password}
-		if !hash.Compare(req.Password) {
+		if !hash.Compare(*oldPassword) {
 			return errors.New("passwordError")
 		}
 	}

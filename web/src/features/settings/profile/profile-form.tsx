@@ -80,7 +80,11 @@ export default function ProfileForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nickname</FormLabel>
-              <Input placeholder='nickname' {...field} />
+              <Input
+                placeholder='nickname'
+                {...field}
+                disabled={updateUserProfileIspending}
+              />
               <FormDescription>This is your nickname.</FormDescription>
               <FormMessage />
             </FormItem>
@@ -96,6 +100,7 @@ export default function ProfileForm() {
               <FormControl>
                 <AvatarUpload
                   // TODO: 根据前缀判断是否需要拼接完整的图片地址
+                  disabled={updateUserProfileIspending}
                   value={field.value}
                   onChange={field.onChange}
                 />
@@ -106,7 +111,7 @@ export default function ProfileForm() {
           )}
         />
 
-        <Button type='submit' disabled={isPending}>
+        <Button type='submit' disabled={isPending} className='max-sm:w-full'>
           {updateUserProfileIspending ? (
             <>
               <IconLoader3 className='animate-spin' />

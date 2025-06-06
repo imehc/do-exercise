@@ -56,8 +56,10 @@ export function RoleDialogs({ refetch }: Props) {
             key='role-view-info'
             open={open === 'view-info'}
             onOpenChange={() => {
-              setCurrentRow(null)
               setOpen('view-info')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
             }}
           />
         </>

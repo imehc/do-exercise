@@ -33,6 +33,7 @@ export function UserViewInfoDialog({ open, onOpenChange }: Props) {
 
   return (
     <Drawer
+      shouldScaleBackground
       open={open}
       onOpenChange={(state) => {
         onOpenChange(state)

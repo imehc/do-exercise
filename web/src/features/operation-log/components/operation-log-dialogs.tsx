@@ -14,8 +14,10 @@ export function OperationLogDialogs() {
         key='operation-log-view-msg'
         open={open === 'view-msg'}
         onOpenChange={() => {
-          setCurrentRow(null)
           setOpen('view-msg')
+          setTimeout(() => {
+            setCurrentRow(null)
+          }, 500)
         }}
       />
 
@@ -23,8 +25,10 @@ export function OperationLogDialogs() {
         key='operation-log-view-params'
         open={open === 'view-params'}
         onOpenChange={() => {
-          setCurrentRow(null)
           setOpen('view-params')
+          setTimeout(() => {
+            setCurrentRow(null)
+          }, 500)
         }}
       />
 
@@ -32,8 +36,10 @@ export function OperationLogDialogs() {
         key='operation-log-view-body'
         open={open === 'view-body'}
         onOpenChange={() => {
-          setCurrentRow(null)
           setOpen('view-body')
+          setTimeout(() => {
+            setCurrentRow(null)
+          }, 500)
         }}
       />
 
@@ -41,8 +47,10 @@ export function OperationLogDialogs() {
         key='operation-log-view-result'
         open={open === 'view-result'}
         onOpenChange={() => {
-          setCurrentRow(null)
           setOpen('view-result')
+          setTimeout(() => {
+            setCurrentRow(null)
+          }, 500)
         }}
       />
 
@@ -50,8 +58,10 @@ export function OperationLogDialogs() {
         key='operation-log-view-info'
         open={open === 'view-info'}
         onOpenChange={() => {
-          setCurrentRow(null)
           setOpen('view-info')
+          setTimeout(() => {
+            setCurrentRow(null)
+          }, 500)
         }}
       />
     </>

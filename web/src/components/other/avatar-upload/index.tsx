@@ -8,13 +8,18 @@ import { Input } from '~/components/ui/input'
 type AvatarUploadProps = {
   value?: string
   onChange?: (value?: string) => void
+  disabled?: boolean
 }
 
 /**
  * TODO: 如果是OSS则需要先上传再获取地址
  * @description https://github.com/shadcn-ui/ui/issues/250#issuecomment-1985951964
  */
-export function AvatarUpload({ value, onChange }: AvatarUploadProps) {
+export function AvatarUpload({
+  value,
+  onChange,
+  disabled = false,
+}: AvatarUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -33,6 +38,7 @@ export function AvatarUpload({ value, onChange }: AvatarUploadProps) {
         </AvatarFallback>
       </Avatar>
       <Button
+        disabled={disabled}
         variant='ghost'
         size='icon'
         className='bg-secondary-foreground/80 hover:bg-secondary-foreground dark:bg-primary/80 dark:hover:bg-primary absolute right-0 bottom-0 rounded-full p-1'

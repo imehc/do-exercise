@@ -38,14 +38,16 @@ export default function SidebarNav({
     <>
       <div className='p-1 md:hidden'>
         <Select value={val} onValueChange={handleSelect}>
-          <SelectTrigger className='h-12 sm:w-48'>
+          <SelectTrigger className='h-12 w-full px-1.5'>
             <SelectValue placeholder='Theme' />
           </SelectTrigger>
           <SelectContent>
             {items.map((item) => (
               <SelectItem key={item.href} value={item.href}>
-                <div className='flex gap-x-4 px-2 py-1'>
-                  <span className='scale-125'>{item.icon}</span>
+                <div className='flex gap-x-2 px-2 py-1'>
+                  <span className='flex scale-125 items-center justify-center'>
+                    {item.icon}
+                  </span>
                   <span className='text-md'>{item.title}</span>
                 </div>
               </SelectItem>

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
-import clsx from 'clsx'
 import { cn } from '~/lib/utils'
 import { Checkbox } from '~/components/ui/checkbox'
 import { TreeSelectComponentProps } from '.'
@@ -41,7 +40,9 @@ export const TreeNode = ({ data, readonly }: TreeNodeProps) => {
         {data.children && (
           <button
             aria-hidden={!hasChildren}
-            className={clsx(!hasChildren && 'pointer-events-none opacity-0')}
+            className={cn({
+              'pointer-events-none opacity-0': !hasChildren,
+            })}
             onClick={hasChildren ? () => setIsOpen(!isOpen) : undefined}
             disabled={readonly}
           >

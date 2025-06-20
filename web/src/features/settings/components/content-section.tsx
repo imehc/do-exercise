@@ -1,8 +1,9 @@
+import React from 'react'
 import { Separator } from '~/components/ui/separator'
 
 interface ContentSectionProps {
-  title: string
-  desc: string
+  title: React.ReactNode
+  desc: React.ReactNode
   children: React.JSX.Element
 }
 

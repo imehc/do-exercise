@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { IconCheck, IconCopy, IconSelector } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { useTheme } from 'next-themes'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import {
@@ -68,7 +69,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             onClick={() => setExpanded(!expanded)}
             className='bg-muted/50 hover:bg-muted h-auto gap-1 px-2 py-1 text-xs backdrop-blur'
           >
-            {expanded ? '折叠' : '展开'}
+            {expanded ? <Trans>折叠</Trans> : <Trans>展开</Trans>}
             <IconSelector className='h-4 w-4' />
           </Button>
         </div>

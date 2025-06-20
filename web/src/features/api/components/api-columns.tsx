@@ -1,124 +1,103 @@
-import { format } from 'date-fns'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, CellContext } from '@tanstack/react-table'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
+import { languageAtom } from '~/atoms'
 import { SysApi } from '~/do-exercise-api'
-import { cn } from '~/lib/utils'
-import { Badge } from '~/components/ui/badge'
-import { DataTableColumnHeader, DataTableRowActions } from '~/components/other'
+import { DataTableRowActions } from '~/components/other'
+import {
+  createColumn,
+  createActionColumn,
+  createDateColumn,
+  createBadgeColumn,
+} from '~/components/other/data-table/column-utils'
 import { callDisabledTypes, callMethodTypes } from '../data/data'
 
-export const columns: ColumnDef<SysApi>[] = [
-  {
-    accessorKey: 'id',
-    header: '序号',
-    cell: ({ row, table }) => {
-      const pagination = table.getState().pagination
-      return (
-        (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) + row.index + 1
-      )
+
+const columnTitleMap = {
+  id: (): string => t`序号`,
+  path: (): string => t`请求路径`,
+  description: (): string => t`描述`,
+  method: (): string => t`请求方法`,
+  group: (): string => t`分组`,
+  disabled: (): string => t`禁用状态`,
+  sort: (): string => t`排序`,
+  createdAt: (): string => t`创建时间`,
+  updatedAt: (): string => t`更新时间`,
+} as const
+
+export const getColumnTitle = (columnId: string): string =>
+  columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
+
+export const useColumns = (): ColumnDef<SysApi>[] => {
+  useAtomValue(languageAtom)
+
+  return [
+    {
+      accessorKey: 'id',
+      header: () => columnTitleMap.id(),
+      cell: ({ row, table }) => {
+        const pagination = table.getState().pagination
+        return (
+          (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
+          row.index +
+          1
+        )
+      },
     },
-  },
-  {
-    accessorKey: 'path',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='请求路径' />
+    createColumn<SysApi>({
+      key: 'path',
+      title: columnTitleMap.path,
+      cell: ({ row }: CellContext<SysApi, unknown>) => (
+        <div className='w-fit text-nowrap'>{row.original.path}</div>
+      ),
+    }),
+    createColumn<SysApi>({
+      key: 'description',
+      title: columnTitleMap.description,
+      cell: ({ row }: CellContext<SysApi, unknown>) => (
+        <div className='w-fit text-nowrap'>{row.original.description}</div>
+      ),
+    }),
+    createBadgeColumn<SysApi>(
+      'method',
+      columnTitleMap.method,
+      (value: unknown) => callMethodTypes.get(value as string),
+      (value: unknown) => value as string,
+      {
+        filterFn: (row: any, id: string, value: any) =>
+          value.includes(row.getValue(id)),
+        enableHiding: false,
+        enableSorting: true,
+      }
     ),
-    cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.original.path}</div>
+    createColumn<SysApi>({
+      key: 'group',
+      title: columnTitleMap.group,
+    }),
+    createBadgeColumn<SysApi>(
+      'disabled',
+      columnTitleMap.disabled,
+      (value: unknown) => callDisabledTypes.get(value as boolean),
+      (value: unknown) => (!value ? <Trans>正常</Trans> : <Trans>禁用</Trans>),
+      {
+        filterFn: (row: any, id: string, value: any) =>
+          value.includes(row.getValue(id)),
+        enableHiding: false,
+        enableSorting: false,
+      }
     ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'description',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='描述' />
-    ),
-    cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.original.description}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'method',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='请求方法' />
-    ),
-    cell: ({ row }) => {
-      const { method } = row.original
-      const badgeColor = callMethodTypes.get(method)
-      return (
-        <div className='flex space-x-2'>
-          <Badge variant='outline' className={cn('capitalize', badgeColor)}>
-            {row.getValue('method')}
-          </Badge>
-        </div>
-      )
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
-    },
-    enableHiding: false,
-    enableSorting: true,
-  },
-  {
-    accessorKey: 'group',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='分组' />
-    ),
-    cell: ({ row }) => <div>{row.original.group}</div>,
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'disabled',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='禁用状态' />
-    ),
-    cell: ({ row }) => {
-      const { disabled } = row.original
-      const badgeColor = callDisabledTypes.get(disabled)
-      return (
-        <div className='flex space-x-2'>
-          <Badge variant='outline' className={cn('capitalize', badgeColor)}>
-            {!row.getValue('disabled') ? '正常' : '已禁用'}
-          </Badge>
-        </div>
-      )
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
-    },
-    enableHiding: false,
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'sort',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='序号' />
-    ),
-    cell: ({ row }) => <div>{row.original.sort ?? 0}</div>,
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'createdAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='创建时间' />
-    ),
-    cell: ({ row }) => (
-      <div>{format(row.original.createdAt, 'yyyy-MM-dd HH:mm:ss')}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'updatedAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='更新时间' />
-    ),
-    cell: ({ row }) => (
-      <div>{format(row.original.updatedAt, 'yyyy-MM-dd HH:mm:ss')}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => <DataTableRowActions row={row} showEdit />,
-  },
-]
+    createColumn<SysApi>({
+      key: 'sort',
+      title: columnTitleMap.sort,
+      cell: ({ row }: CellContext<SysApi, unknown>) => (
+        <div>{row.original.sort ?? 0}</div>
+      ),
+    }),
+    createDateColumn<SysApi>('createdAt', columnTitleMap.createdAt),
+    createDateColumn<SysApi>('updatedAt', columnTitleMap.updatedAt),
+    createActionColumn<SysApi>(({ row }: CellContext<SysApi, unknown>) => (
+      <DataTableRowActions row={row} showEdit />
+    )),
+  ]
+}

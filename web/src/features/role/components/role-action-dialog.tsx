@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import {
   CreateRoleRequest,
@@ -11,14 +13,13 @@ import {
   UpdateRoleRequest,
 } from '~/do-exercise-api'
 import { useApi } from '~/hooks/use-api'
+import { useChan } from '~/hooks/use-chan'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from '~/components/ui/dialog'
 import {
   Form,
@@ -30,8 +31,9 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { StatusRenderer, transformData, TreeSelect } from '~/components/other'
+import { DialogHeaderContent } from '~/components/other/dialog-header-content'
 import { findMenuTree } from '~/features/menu/data/api'
-import { ActionSysRoleFormValues, schema } from '../schemas/action-schema'
+import { ActionSysRoleFormValues, getSchema } from '../schemas/action-schema'
 
 interface Props {
   currentRow?: SysRole
@@ -43,22 +45,24 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
   const sysRoleApi = useApi(SystemRoleApi)
 
   const isEdit = useMemo(() => !!currentRow, [currentRow])
-  const form = useForm<ActionSysRoleFormValues>({
-    defaultValues: isEdit
-      ? {
-          ...currentRow,
-          menuIds: currentRow?.menus?.map((item) => item.id) ?? [],
-        }
-      : { name: '', code: '' },
-    resolver: zodResolver(schema),
-  })
+  const form = useChan(
+    useForm<ActionSysRoleFormValues>({
+      defaultValues: isEdit
+        ? {
+            ...currentRow,
+            menuIds: currentRow?.menus?.map((item) => item.id) ?? [],
+          }
+        : { name: '', code: '' },
+      resolver: zodResolver(getSchema()),
+    })
+  )
 
   const { data = [], isLoading } = useQuery(findMenuTree())
 
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
     mutationFn: (values: CreateRoleRequest) => sysRoleApi.createRole(values),
     onSuccess: () => {
-      toast.success('创建成功')
+      toast.success(t`创建成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -67,7 +71,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
   const { isPending: isPendingUpdate, mutate: saveUpdate } = useMutation({
     mutationFn: (values: UpdateRoleRequest) => sysRoleApi.updateRole(values),
     onSuccess: () => {
-      toast.success('更新成功')
+      toast.success(t`更新成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -98,11 +102,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
     >
       <DialogContent className='sm:max-w-2xl'>
         <DialogHeader className='text-left'>
-          <DialogTitle>{isEdit ? '修改角色' : '创建角色'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? '更新角色相关信息。' : '创建角色相关信息。'}
-            完成后点击保存。
-          </DialogDescription>
+          <DialogHeaderContent isEdit={isEdit} text={<Trans>角色</Trans>} />
         </DialogHeader>
         <Form {...form}>
           <form
@@ -116,11 +116,11 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                   <FormLabel className='col-span-2 text-right'>
-                    角色名称
+                    <Trans>角色名称</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder='请输入角色名称'
+                      placeholder={t`请输入角色名称`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -137,13 +137,13 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                   <FormLabel className='col-span-2 text-right'>
-                    角色编码
+                    <Trans>角色编码</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       readOnly={isEdit}
                       disabled={isEdit}
-                      placeholder='请输入角色编码'
+                      placeholder={t`请输入角色编码`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -162,7 +162,7 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        关联菜单
+                        <Trans>关联菜单</Trans>
                       </FormLabel>
                       <FormControl>
                         <TreeSelect
@@ -191,10 +191,14 @@ export function RoleActionDialog({ currentRow, open, onOpenChange }: Props) {
             {isPending ? (
               <>
                 <IconLoader3 className='animate-spin' />
-                <span>保存中...</span>
+                <span>
+                  <Trans>保存中</Trans>...
+                </span>
               </>
             ) : (
-              <span>保存</span>
+              <span>
+                <Trans>保存</Trans>
+              </span>
             )}
           </Button>
         </DialogFooter>

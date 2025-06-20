@@ -3,9 +3,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver as resolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { UpdateUserProfileRequest, UserApi } from '~/do-exercise-api'
 import { useApi } from '~/hooks/use-api'
+import { useChan } from '~/hooks/use-chan'
 import { useUserProfile } from '~/hooks/use-user'
 import { Button } from '~/components/ui/button'
 import {
@@ -19,7 +22,10 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { AvatarUpload } from '~/components/other'
-import { profileSchema, ProfileSchemaFormValues } from './schemas/action-schema'
+import {
+  getProfileSchema,
+  ProfileSchemaFormValues,
+} from './schemas/action-schema'
 
 export default function ProfileForm() {
   const {
@@ -27,10 +33,12 @@ export default function ProfileForm() {
     isLoading: userProfileIsLoading,
     refetch,
   } = useUserProfile()
-  const form = useForm<ProfileSchemaFormValues>({
-    resolver: resolver(profileSchema),
-    mode: 'onChange',
-  })
+  const form = useChan(
+    useForm<ProfileSchemaFormValues>({
+      resolver: resolver(getProfileSchema()),
+      mode: 'onChange',
+    })
+  )
 
   useEffect(() => {
     form.reset({
@@ -45,7 +53,7 @@ export default function ProfileForm() {
       mutationFn: (value: UpdateUserProfileRequest) =>
         userApi.updateUserProfile(value),
       onSuccess: () => {
-        toast.success(`更新成功`)
+        toast.success(t`更新成功`)
         refetch()
       },
     })
@@ -61,16 +69,20 @@ export default function ProfileForm() {
         className='space-y-8'
       >
         <FormItem>
-          <FormLabel>Username</FormLabel>
+          <FormLabel>
+            <Trans>用户名</Trans>
+          </FormLabel>
           <FormControl>
             <Input
-              placeholder='username'
+              placeholder={t`请输入用户名`}
               defaultValue={userProfile?.username}
               readOnly
               disabled
             />
           </FormControl>
-          <FormDescription>This is your public display name.</FormDescription>
+          <FormDescription>
+            <Trans>这是您的公开显示名称。</Trans>
+          </FormDescription>
           <FormMessage />
         </FormItem>
 
@@ -79,13 +91,17 @@ export default function ProfileForm() {
           name='nickname'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nickname</FormLabel>
+              <FormLabel>
+                <Trans>昵称</Trans>
+              </FormLabel>
               <Input
-                placeholder='nickname'
+                placeholder={t`请输入昵称`}
                 {...field}
                 disabled={updateUserProfileIspending}
               />
-              <FormDescription>This is your nickname.</FormDescription>
+              <FormDescription>
+                <Trans>这是您的昵称。</Trans>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -96,7 +112,9 @@ export default function ProfileForm() {
           name='avatar'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Avatar</FormLabel>
+              <FormLabel>
+                <Trans>头像</Trans>
+              </FormLabel>
               <FormControl>
                 <AvatarUpload
                   // TODO: 根据前缀判断是否需要拼接完整的图片地址
@@ -105,7 +123,9 @@ export default function ProfileForm() {
                   onChange={field.onChange}
                 />
               </FormControl>
-              <FormDescription>This is your avatar.</FormDescription>
+              <FormDescription>
+                <Trans>这是您的头像。</Trans>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -115,10 +135,14 @@ export default function ProfileForm() {
           {updateUserProfileIspending ? (
             <>
               <IconLoader3 className='animate-spin' />
-              <span>保存中...</span>
+              <span>
+                <Trans>保存中</Trans>...
+              </span>
             </>
           ) : (
-            <span>保存</span>
+            <span>
+              <Trans>保存</Trans>
+            </span>
           )}
         </Button>
       </form>

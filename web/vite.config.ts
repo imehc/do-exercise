@@ -1,6 +1,7 @@
 import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import { lingui } from '@lingui/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
@@ -11,7 +12,10 @@ export default defineConfig({
       target: 'react',
       autoCodeSplitting: true,
     }),
-    react(),
+    react({
+      plugins: [['@lingui/swc-plugin', {}]],
+    }),
+    lingui(),
     tailwindcss(),
   ],
   server: {
@@ -27,6 +31,13 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    terserOptions: {
+      format: { comments: false },
+    },
+  },
+  esbuild: {
+    legalComments: 'none',
+    drop: ['console', 'debugger'],
   },
   resolve: {
     alias: {

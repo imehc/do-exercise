@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { schema } from './action-schema'
+import { getSchema } from './action-schema'
 
 describe('User Action Schema Validation', () => {
   // Helper to simplify validation
-  const validate = (input: unknown) => schema.safeParse(input)
+  const validate = (input: unknown) => getSchema().safeParse(input)
 
   it('should pass when isEdit is true and password fields are empty', () => {
     const result = validate({

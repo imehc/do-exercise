@@ -1,10 +1,11 @@
 import { useEffect, useMemo } from 'react'
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { SwitchThumb } from '@radix-ui/react-switch'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import {
   CreateMenuRequest,
@@ -25,10 +26,8 @@ import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from '~/components/ui/dialog'
 import {
   Form,
@@ -48,15 +47,16 @@ import {
   transformData,
   TreeSelect,
 } from '~/components/other'
+import { DialogHeaderContent } from '~/components/other/dialog-header-content'
 import { SelectDropdown } from '~/components/select-dropdown'
 import { callMethodTypes } from '~/features/api/data/data'
-import { callMenuMapping } from '../data/data'
+import { getCallMenuMapping } from '../data/data'
 import {
   ActionSysMenuFormValues,
-  actionSysMenuSchema,
-  ActionSysMenuWithButton,
-  ActionSysMenuWithDirectory,
-  ActionSysMenuWithMenu,
+  ActionSysMenuWithButtonFormValues,
+  ActionSysMenuWithDirectoryFormValues,
+  ActionSysMenuWithMenuFormValues,
+  getActionSysMenuSchema,
 } from '../schemas/action-schema'
 
 function toCamelCase(str?: string) {
@@ -100,7 +100,7 @@ export function MenuActionDialog({
 
   const isEdit = useMemo(() => !!currentRow?.id, [currentRow])
   const form = useForm<ActionSysMenuFormValues>({
-    resolver: zodResolver(actionSysMenuSchema),
+    resolver: zodResolver(getActionSysMenuSchema()),
   })
 
   const { data: apis = [], isLoading: isLoadingApis } = useQuery({
@@ -123,7 +123,7 @@ export function MenuActionDialog({
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
     mutationFn: (values: CreateMenuRequest) => sysMenuApi.createMenu(values),
     onSuccess: () => {
-      toast.success('创建成功')
+      toast.success(t`创建成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -132,7 +132,7 @@ export function MenuActionDialog({
   const { isPending: isPendingUpdate, mutate: saveUpdate } = useMutation({
     mutationFn: (values: UpdateMenuRequest) => sysMenuApi.updateMenu(values),
     onSuccess: () => {
-      toast.success('更新成功')
+      toast.success(t`更新成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -213,7 +213,7 @@ export function MenuActionDialog({
           name: values.name,
           sort: values.sort,
           visible: Boolean(values.visible),
-        } satisfies z.infer<typeof ActionSysMenuWithDirectory>
+        } satisfies ActionSysMenuWithDirectoryFormValues
       case MenuType.menu:
         return {
           type: values.type,
@@ -224,7 +224,7 @@ export function MenuActionDialog({
           component: values.component,
           sort: values.sort,
           visible: Boolean(values.visible),
-        } satisfies z.infer<typeof ActionSysMenuWithMenu>
+        } satisfies ActionSysMenuWithMenuFormValues
       case MenuType.button:
         return {
           type: values.type,
@@ -233,7 +233,7 @@ export function MenuActionDialog({
           permission: values.permission,
           apiIds: values.apiIds,
           visible: Boolean(values.visible),
-        } satisfies z.infer<typeof ActionSysMenuWithButton>
+        } satisfies ActionSysMenuWithButtonFormValues
     }
   }
 
@@ -262,11 +262,7 @@ export function MenuActionDialog({
     >
       <DialogContent className='sm:max-w-2xl'>
         <DialogHeader className='text-left'>
-          <DialogTitle>{isEdit ? '修改菜单' : '创建菜单'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? '更新菜单相关信息。' : '创建菜单相关信息。'}
-            完成后点击保存。
-          </DialogDescription>
+          <DialogHeaderContent isEdit={isEdit} text={<Trans>菜单</Trans>} />
         </DialogHeader>
         <Form {...form}>
           <form
@@ -281,7 +277,7 @@ export function MenuActionDialog({
               }
             >
               <TabsList className='grid w-full grid-cols-3'>
-                {Array.from(callMenuMapping.entries())
+                {Array.from(getCallMenuMapping().entries())
                   .map(([key, value]) => ({
                     key,
                     value,
@@ -298,16 +294,16 @@ export function MenuActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      父级菜单
+                      <Trans>父级菜单</Trans>
                     </FormLabel>
                     <FormControl>
                       <TreeSelect
                         className='col-span-8'
-                        placeholder='请选择父级菜单'
+                        placeholder={t`请选择父级菜单`}
                         valueMode='parent-only'
                         data={[
                           {
-                            name: '根节点',
+                            name: t`根节点`,
                             value: 0,
                             children: transformData(
                               treeData,
@@ -336,11 +332,11 @@ export function MenuActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      菜单名称
+                      <Trans>菜单名称</Trans>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='请输入菜单名称'
+                        placeholder={t`请输入菜单名称`}
                         className='col-span-8'
                         autoComplete='off'
                         {...field}
@@ -361,13 +357,13 @@ export function MenuActionDialog({
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        路由
+                        <Trans>路由</Trans>
                       </FormLabel>
                       <FormControl>
                         <SelectDropdown
                           defaultValue={field.value ?? '/'}
                           onValueChange={field.onChange}
-                          placeholder='请选择路由'
+                          placeholder={t`请选择路由`}
                           className='col-span-8 w-full'
                           items={[
                             ...Array.from(new Set(routes), (route) => ({
@@ -397,13 +393,13 @@ export function MenuActionDialog({
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        组件
+                        <Trans>组件</Trans>
                       </FormLabel>
                       <FormControl>
                         <SelectDropdown
                           defaultValue={field.value ?? ''}
                           onValueChange={field.onChange}
-                          placeholder='请选择组件路径'
+                          placeholder={t`请选择组件路径`}
                           className='col-span-8 w-full'
                           items={[
                             ...modules.map((item) => ({
@@ -433,12 +429,12 @@ export function MenuActionDialog({
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        图标
+                        <Trans>图标</Trans>
                       </FormLabel>
                       <FormControl>
                         <IconSelect
                           className='col-span-8 w-full'
-                          placeholder='请选择图标'
+                          placeholder={t`请选择图标`}
                           value={toCamelCase(field.value)}
                           onChange={(value) => field.onChange(value)}
                         />
@@ -458,11 +454,11 @@ export function MenuActionDialog({
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        权限标识
+                        <Trans>权限标识</Trans>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder='请输入权限标识'
+                          placeholder={t`请输入权限标识`}
                           className='col-span-8'
                           autoComplete='off'
                           {...field}
@@ -479,7 +475,7 @@ export function MenuActionDialog({
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        关联API
+                        <Trans>关联接口</Trans>
                       </FormLabel>
                       <FormControl>
                         <StatusRenderer
@@ -520,7 +516,7 @@ export function MenuActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      是否可见
+                      <Trans>是否可见</Trans>
                     </FormLabel>
                     <FormControl>
                       <Switch
@@ -542,12 +538,12 @@ export function MenuActionDialog({
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        排序
+                        <Trans>排序</Trans>
                       </FormLabel>
                       <FormControl>
                         <Input
                           disabled={isPending}
-                          placeholder='请输入排序值'
+                          placeholder={t`请输入排序值`}
                           className='col-span-8'
                           type='number'
                           min={0}
@@ -567,10 +563,14 @@ export function MenuActionDialog({
             {isPending ? (
               <>
                 <IconLoader3 className='animate-spin' />
-                <span>保存中...</span>
+                <span>
+                  <Trans>保存中</Trans>...
+                </span>
               </>
             ) : (
-              <span>保存</span>
+              <span>
+                <Trans>保存</Trans>
+              </span>
             )}
           </Button>
         </DialogFooter>

@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -75,7 +77,7 @@ function TransferPanel<T extends Item>({
         {inputFirst ? (
           <>
             <Input
-              placeholder='搜索'
+              placeholder={t`搜索`}
               className='w-full'
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -106,7 +108,7 @@ function TransferPanel<T extends Item>({
               </Button>
             )}
             <Input
-              placeholder='搜索'
+              placeholder={t`搜索`}
               className='w-full'
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -128,7 +130,7 @@ function TransferPanel<T extends Item>({
           htmlFor={checkboxId}
           className='text-muted-foreground text-sm font-medium'
         >
-          {countSelected(filteredItems)} 项已选
+          <Trans>{countSelected(filteredItems)} 项已选</Trans>
         </label>
       </div>
       <ul className='h-50 overflow-y-auto border-t p-1'>

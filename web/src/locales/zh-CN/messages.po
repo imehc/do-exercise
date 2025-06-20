@@ -1,0 +1,1386 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-06-19 10:41+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: zh-CN\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/components/other/multi-select/index.tsx:293
+msgid "(选择全部)"
+msgstr "(选择全部)"
+
+#. placeholder {0}: countSelected(filteredItems)
+#: src/components/other/transfer-list/index.tsx:133
+msgid "{0} 项已选"
+msgstr "{0} 项已选"
+
+#: src/components/other/confirm-tip.tsx:28
+msgid "{text}名称:"
+msgstr "{text}名称:"
+
+#: src/features/system-info/components/system-info-view.tsx:69
+msgid "CPU使用率"
+msgstr "CPU使用率"
+
+#: src/features/system-info/components/system-info-view.tsx:58
+msgid "CPU核心"
+msgstr "CPU核心"
+
+#: src/features/system-info/components/system-info-view.tsx:40
+msgid "Go版本"
+msgstr "Go版本"
+
+#: src/features/auth/forgot-password/index.tsx:40
+msgid "Imehc"
+msgstr "Imehc"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:74
+#: src/features/operation-log/components/operation-log-columns.tsx:20
+msgid "IP地址"
+msgstr "IP地址"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:100
+#: src/features/operation-log/components/operation-log-columns.tsx:21
+msgid "IP属地"
+msgstr "IP属地"
+
+#: src/components/other/data-table/pagination.tsx:123
+msgid "上一页"
+msgstr "上一页"
+
+#: src/components/other/data-table/pagination.tsx:144
+msgid "下一页"
+msgstr "下一页"
+
+#: src/features/operation-log/components/operation-log-view-result.tsx:38
+msgid "下面是请求返回的响应数据。"
+msgstr "下面是请求返回的响应数据。"
+
+#: src/features/operation-log/components/operation-log-view-body.tsx:38
+msgid "下面是随操作一起发送的详细请求正文。你可以检查中包含的参数、有效负载和其他数据请求。"
+msgstr "下面是随操作一起发送的详细请求正文。你可以检查中包含的参数、有效负载和其他数据请求。"
+
+#: src/features/operation-log/components/operation-log-view-params.tsx:38
+msgid "下面是随该请求发送的参数和查询数据。"
+msgstr "下面是随该请求发送的参数和查询数据。"
+
+#: src/features/user/schemas/action-schema.ts:96
+#: src/features/user/schemas/action-schema.ts:115
+msgid "两次输入的密码不一致"
+msgstr "两次输入的密码不一致"
+
+#: src/features/settings/profile/index.tsx:8
+msgid "个人资料"
+msgstr "个人资料"
+
+#: src/components/command-menu.tsx:82
+#: src/features/settings/appearance/appearance-form.tsx:104
+msgid "主题"
+msgstr "主题"
+
+#: src/features/errors/maintenance-error.tsx:16
+msgid "了解更多信息"
+msgstr "了解更多信息"
+
+#: src/components/theme-switch.tsx:23
+msgid "亮色模式"
+msgstr "亮色模式"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:112
+msgid "代理"
+msgstr "代理"
+
+#: src/features/token/index.tsx:40
+#: src/features/token/components/token-view-info.tsx:70
+#: src/features/token/components/token-delete-dialog.tsx:64
+#: src/features/token/components/token-columns.tsx:18
+msgid "令牌"
+msgstr "令牌"
+
+#: src/features/token/index.tsx:28
+msgid "令牌列表"
+msgstr "令牌列表"
+
+#: src/features/token/components/token-toggle-disabled-switch.tsx:55
+msgid "令牌已启用"
+msgstr "令牌已启用"
+
+#: src/features/token/components/token-toggle-disabled-switch.tsx:55
+msgid "令牌已禁用"
+msgstr "令牌已禁用"
+
+#: src/features/token/components/token-view-info.tsx:41
+msgid "令牌详情"
+msgstr "令牌详情"
+
+#: src/features/auth/email-sign-in/index.tsx:38
+msgid "使用密码登录"
+msgstr "使用密码登录"
+
+#: src/features/system-info/components/system-info-view.tsx:112
+#: src/features/system-info/components/system-info-view.tsx:156
+msgid "使用率"
+msgstr "使用率"
+
+#: src/features/auth/email-sign-in/index.tsx:20
+msgid "使用邮箱登录"
+msgstr "使用邮箱登录"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:188
+#: src/features/user/components/user-action-dialog.tsx:312
+#: src/features/settings/profile/profile-form.tsx:144
+#: src/features/settings/appearance/appearance-form.tsx:182
+#: src/features/role/components/role-action-dialog.tsx:200
+#: src/features/menu/components/menu-action-dialog.tsx:572
+#: src/features/api/components/api-action.tsx:237
+msgid "保存"
+msgstr "保存"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:183
+#: src/features/user/components/user-action-dialog.tsx:307
+#: src/features/settings/profile/profile-form.tsx:139
+#: src/features/settings/appearance/appearance-form.tsx:177
+#: src/features/role/components/role-action-dialog.tsx:195
+#: src/features/menu/components/menu-action-dialog.tsx:567
+#: src/features/api/components/api-action.tsx:232
+msgid "保存中"
+msgstr "保存中"
+
+#: src/components/other/dialog-header-content.tsx:13
+msgid "修改{text}"
+msgstr "修改{text}"
+
+#: src/features/auth/sign-in/schemas/action-schema.ts:16
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:48
+msgid "公钥不能为空"
+msgstr "公钥不能为空"
+
+#: src/features/menu/components/menu-view-info.tsx:157
+#: src/features/menu/components/menu-action-dialog.tsx:478
+msgid "关联接口"
+msgstr "关联接口"
+
+#: src/features/role/components/role-view-info.tsx:70
+#: src/features/role/components/role-action-dialog.tsx:165
+msgid "关联菜单"
+msgstr "关联菜单"
+
+#: src/features/user/components/user-view-info.tsx:105
+#: src/features/user/components/user-action-dialog.tsx:228
+msgid "关联角色"
+msgstr "关联角色"
+
+#: src/features/user/components/user-view-info.tsx:124
+#: src/features/token/components/token-view-info.tsx:135
+#: src/features/role/components/role-view-info.tsx:97
+#: src/features/operation-log/components/operation-log-view-result.tsx:47
+#: src/features/operation-log/components/operation-log-view-params.tsx:47
+#: src/features/operation-log/components/operation-log-view-message.tsx:47
+#: src/features/operation-log/components/operation-log-view-info.tsx:318
+#: src/features/operation-log/components/operation-log-view-body.tsx:49
+#: src/features/menu/components/menu-view-info.tsx:207
+msgid "关闭"
+msgstr "关闭"
+
+#: src/features/system-info/components/system-info-view.tsx:93
+msgid "内存使用情况"
+msgstr "内存使用情况"
+
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:214
+msgid "再次输入您的新密码。"
+msgstr "再次输入您的新密码。"
+
+#: src/components/other/data-table/pagination.tsx:165
+msgid "最后一页"
+msgstr "最后一页"
+
+#: src/features/api/components/api-columns.tsx:22
+#: src/features/api/components/api-action.tsx:166
+msgid "分组"
+msgstr "分组"
+
+#: src/components/theme-switch.tsx:55
+#: src/components/other/data-table/view-options.tsx:37
+msgid "切换主题"
+msgstr "切换主题"
+
+#: src/components/language-switch.tsx:23
+msgid "切换语言"
+msgstr "切换语言"
+
+#: src/components/other/dialog-header-content.tsx:13
+msgid "创建{text}"
+msgstr "创建{text}"
+
+#: src/components/other/dialog-header-content.tsx:19
+msgid "创建{text}相关信息。"
+msgstr "创建{text}相关信息。"
+
+#: src/features/user/components/user-action-dialog.tsx:82
+#: src/features/role/components/role-action-dialog.tsx:65
+#: src/features/menu/components/menu-action-dialog.tsx:126
+msgid "创建成功"
+msgstr "创建成功"
+
+#: src/features/api/components/api-action.tsx:88
+#~ msgid "创建接口"
+#~ msgstr "创建接口"
+
+#: src/features/api/components/api-action.tsx:91
+#~ msgid "创建接口信息"
+#~ msgstr "创建接口信息"
+
+#: src/features/user/components/user-columns.tsx:21
+#: src/features/token/components/token-view-info.tsx:92
+#: src/features/token/components/token-columns.tsx:20
+#: src/features/role/components/role-columns.tsx:17
+#: src/features/operation-log/components/operation-log-view-info.tsx:302
+#: src/features/menu/components/menu-view-info.tsx:177
+#: src/features/api/components/api-columns.tsx:25
+msgid "创建时间"
+msgstr "创建时间"
+
+#: src/components/other/data-table/row-actions.tsx:46
+#: src/features/token/components/token-delete-dialog.tsx:70
+#: src/features/menu/components/menu-delete-dialog.tsx:65
+msgid "删除"
+msgstr "删除"
+
+#: src/features/token/components/token-delete-dialog.tsx:59
+msgid "删除令牌"
+msgstr "删除令牌"
+
+#: src/features/user/components/user-delete-dialog.tsx:25
+#: src/features/token/components/token-delete-dialog.tsx:30
+#: src/features/role/components/role-delete-dialog.tsx:25
+#: src/features/menu/components/menu-delete-dialog.tsx:29
+msgid "删除成功"
+msgstr "删除成功"
+
+#: src/features/user/components/user-delete-dialog.tsx:50
+msgid "删除用户"
+msgstr "删除用户"
+
+#: src/features/menu/components/menu-delete-dialog.tsx:54
+msgid "删除菜单"
+msgstr "删除菜单"
+
+#: src/features/role/components/role-delete-dialog.tsx:50
+msgid "删除角色"
+msgstr "删除角色"
+
+#: src/features/token/components/token-view-info.tsx:100
+#: src/features/token/components/token-columns.tsx:21
+msgid "到期时间"
+msgstr "到期时间"
+
+#: src/features/token/components/token-view-info.tsx:81
+msgid "刷新令牌"
+msgstr "刷新令牌"
+
+#: src/components/other/data-table/column-header.tsx:56
+msgid "升序"
+msgstr "升序"
+
+#: src/features/system-info/components/system-info-view.tsx:46
+msgid "协程数"
+msgstr "协程数"
+
+#: src/features/auth/otp/index.tsx:20
+msgid "双因素认证"
+msgstr "双因素认证"
+
+#: src/features/settings/email/email-form.tsx:88
+#: src/features/settings/email/email-form.tsx:98
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:82
+msgid "发送成功"
+msgstr "发送成功"
+
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:148
+msgid "发送验证码"
+msgstr "发送验证码"
+
+#: src/components/confirm-dialog.tsx:56
+msgid "取消"
+msgstr "取消"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:93
+#: src/features/operation-log/components/operation-log-view-info.tsx:145
+#: src/features/operation-log/components/operation-log-view-info.tsx:162
+#: src/features/menu/components/menu-view-info.tsx:132
+#: src/features/menu/components/menu-columns.tsx:27
+msgid "否"
+msgstr "否"
+
+#: src/features/operation-log/components/operation-log-view-result.tsx:35
+msgid "响应数据"
+msgstr "响应数据"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:259
+#: src/features/operation-log/components/operation-log-columns.tsx:31
+msgid "响应结果"
+msgstr "响应结果"
+
+#: src/features/menu/components/menu-view-info.tsx:111
+#: src/features/menu/components/menu-columns.tsx:20
+#: src/features/menu/components/menu-action-dialog.tsx:432
+msgid "图标"
+msgstr "图标"
+
+#: src/features/settings/password/index.tsx:9
+msgid "在此管理您的密码设置。"
+msgstr "在此管理您的密码设置。"
+
+#: src/features/settings/email/index.tsx:9
+msgid "在此管理您的电子邮件设置。"
+msgstr "在此管理您的电子邮件设置。"
+
+#: src/features/user/components/user-view-info.tsx:59
+#: src/features/token/components/token-view-info.tsx:53
+#: src/features/role/components/role-view-info.tsx:53
+#: src/features/operation-log/components/operation-log-view-info.tsx:63
+#: src/features/menu/components/menu-view-info.tsx:70
+msgid "基本信息"
+msgstr "基本信息"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:195
+#: src/features/operation-log/components/operation-log-columns.tsx:36
+msgid "失败"
+msgstr "失败"
+
+#: src/features/user/components/user-view-info.tsx:70
+#: src/features/user/components/user-columns.tsx:20
+#: src/features/user/components/user-action-dialog.tsx:209
+#: src/features/settings/profile/profile-form.tsx:116
+msgid "头像"
+msgstr "头像"
+
+#: src/features/settings/appearance/appearance-form.tsx:75
+msgid "字体"
+msgstr "字体"
+
+#: src/components/other/dialog-header-content.tsx:21
+msgid "完成后点击保存。"
+msgstr "完成后点击保存。"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:104
+#: src/features/user/components/user-reset-password-dialog.tsx:139
+#: src/features/user/components/user-action-dialog.tsx:261
+#: src/features/auth/sign-in/components/user-auth-form.tsx:148
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:181
+msgid "密码"
+msgstr "密码"
+
+#: src/features/user/schemas/action-schema.ts:6
+msgid "密码不能为空"
+msgstr "密码不能为空"
+
+#: src/features/user/schemas/action-schema.ts:8
+msgid "密码最多为16个字符"
+msgstr "密码最多为16个字符"
+
+#: src/features/user/schemas/action-schema.ts:9
+msgid "密码必须包含至少一个字母"
+msgstr "密码必须包含至少一个字母"
+
+#: src/features/user/schemas/action-schema.ts:10
+msgid "密码必须包含至少一个数字"
+msgstr "密码必须包含至少一个数字"
+
+#: src/features/user/schemas/action-schema.ts:13
+msgid "密码必须包含至少一个特殊字符"
+msgstr "密码必须包含至少一个特殊字符"
+
+#: src/features/auth/otp/index.tsx:50
+msgid "密码登录"
+msgstr "密码登录"
+
+#: src/features/user/schemas/action-schema.ts:7
+msgid "密码至少为6个字符"
+msgstr "密码至少为6个字符"
+
+#: src/features/settings/password/index.tsx:8
+msgid "密码设置"
+msgstr "密码设置"
+
+#: src/components/other/code-block.tsx:72
+msgid "展开"
+msgstr "展开"
+
+#: src/features/system-info/components/system-info-view.tsx:106
+#: src/features/system-info/components/system-info-view.tsx:150
+msgid "已使用"
+msgstr "已使用"
+
+#: src/features/settings/appearance/appearance-form.tsx:62
+msgid "已成功更新外观设置"
+msgstr "已成功更新外观设置"
+
+#: src/features/token/components/token-view-info.tsx:121
+msgid "已禁用"
+msgstr "已禁用"
+
+#. placeholder {0}: table.getFilteredSelectedRowModel().rows.length
+#. placeholder {1}: table.getFilteredRowModel().rows.length
+#: src/components/other/data-table/pagination.tsx:45
+msgid "已选{0}条,共{1} 条"
+msgstr "已选{0}条,共{1} 条"
+
+#: src/features/user/components/user-columns.tsx:16
+#: src/features/token/components/token-columns.tsx:15
+#: src/features/role/components/role-columns.tsx:14
+#: src/features/operation-log/components/operation-log-columns.tsx:18
+#: src/features/menu/components/menu-view-info.tsx:142
+#: src/features/api/components/api-columns.tsx:18
+msgid "序号"
+msgstr "序号"
+
+#: src/features/auth/forgot-password/index.tsx:49
+msgid "忘记密码"
+msgstr "忘记密码"
+
+#: src/features/auth/sign-in/components/user-auth-form.tsx:158
+msgid "忘记密码?"
+msgstr "忘记密码?"
+
+#: src/components/other/data-table/pagination.tsx:51
+msgid "总共 {total} 条"
+msgstr "总共 {total} 条"
+
+#: src/features/system-info/components/system-info-view.tsx:100
+msgid "总内存"
+msgstr "总内存"
+
+#: src/features/system-info/components/system-info-view.tsx:144
+msgid "总容量"
+msgstr "总容量"
+
+#: src/components/other/confirm-tip.tsx:18
+msgid "您确定要删除这个{text}吗?"
+msgstr "您确定要删除这个{text}吗?"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:195
+#: src/features/operation-log/components/operation-log-columns.tsx:35
+msgid "成功"
+msgstr "成功"
+
+#: src/components/other/data-table/row-actions.tsx:141
+msgid "打开菜单"
+msgstr "打开菜单"
+
+#: src/components/other/code-block.tsx:72
+msgid "折叠"
+msgstr "折叠"
+
+#: src/features/system-info/components/system-info-view.tsx:138
+msgid "挂载点"
+msgstr "挂载点"
+
+#: src/features/settings/email/email-form.tsx:238
+msgid "换绑"
+msgstr "换绑"
+
+#: src/features/settings/email/email-form.tsx:232
+msgid "换绑中"
+msgstr "换绑中"
+
+#: src/features/settings/email/email-form.tsx:162
+msgid "换绑邮箱"
+msgstr "换绑邮箱"
+
+#: src/features/menu/components/menu-columns.tsx:24
+#: src/features/menu/components/menu-action-dialog.tsx:541
+#: src/features/api/components/api-columns.tsx:24
+#: src/features/api/components/api-action.tsx:208
+msgid "排序"
+msgstr "排序"
+
+#: src/features/menu/schemas/action-schema.ts:24
+#: src/features/menu/schemas/action-schema.ts:33
+msgid "排序值必须大于等于0"
+msgstr "排序值必须大于等于0"
+
+#: src/features/api/components/api-action.tsx:86
+msgid "接口"
+msgstr "接口"
+
+#: src/features/api/index.tsx:27
+msgid "接口列表"
+msgstr "接口列表"
+
+#: src/features/api/components/api-columns.tsx:20
+#: src/features/api/components/api-action.tsx:145
+msgid "描述"
+msgstr "描述"
+
+#: src/components/search.tsx:29
+#: src/components/other/transfer-list/index.tsx:80
+#: src/components/other/transfer-list/index.tsx:111
+msgid "搜索"
+msgstr "搜索"
+
+#: src/features/operation-log/index.tsx:27
+msgid "操作日志列表"
+msgstr "操作日志列表"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:51
+msgid "操作日志详情"
+msgstr "操作日志详情"
+
+#: src/features/system-info/components/system-info-view.tsx:34
+msgid "操作系统"
+msgstr "操作系统"
+
+#: src/features/auth/auth-layout.tsx:25
+#: src/features/auth/sign-in/index.tsx:22
+#: src/features/auth/forgot-password/index.tsx:23
+msgid "敷了管理系统"
+msgstr "敷了管理系统"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:91
+#: src/features/operation-log/components/operation-log-view-info.tsx:143
+#: src/features/operation-log/components/operation-log-view-info.tsx:162
+#: src/features/menu/components/menu-view-info.tsx:130
+#: src/features/menu/components/menu-columns.tsx:26
+msgid "是"
+msgstr "是"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:80
+msgid "是否内网IP"
+msgstr "是否内网IP"
+
+#: src/features/menu/components/menu-view-info.tsx:119
+#: src/features/menu/components/menu-columns.tsx:25
+#: src/features/menu/components/menu-action-dialog.tsx:519
+msgid "是否可见"
+msgstr "是否可见"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:190
+#: src/features/operation-log/components/operation-log-columns.tsx:26
+msgid "是否成功"
+msgstr "是否成功"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:152
+msgid "是否是机器人"
+msgstr "是否是机器人"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:132
+msgid "是否是移动端"
+msgstr "是否是移动端"
+
+#: src/features/user/components/user-view-info.tsx:93
+#: src/features/user/components/user-columns.tsx:18
+#: src/features/user/components/user-action-dialog.tsx:167
+#: src/features/settings/profile/profile-form.tsx:95
+msgid "昵称"
+msgstr "昵称"
+
+#: src/features/user/schemas/action-schema.ts:37
+#: src/features/settings/profile/schemas/action-schema.ts:8
+msgid "昵称长度不能超过10个字符"
+msgstr "昵称长度不能超过10个字符"
+
+#: src/components/theme-switch.tsx:28
+msgid "暗色模式"
+msgstr "暗色模式"
+
+#: src/features/auth/otp/index.tsx:45
+#: src/features/auth/email-sign-in/index.tsx:33
+msgid "更喜欢使用密码？"
+msgstr "更喜欢使用密码？"
+
+#: src/features/settings/email/email-form.tsx:74
+msgid "更换成功"
+msgstr "更换成功"
+
+#: src/components/other/dialog-header-content.tsx:17
+msgid "更新{text}相关信息。"
+msgstr "更新{text}相关信息。"
+
+#: src/features/user/components/user-action-dialog.tsx:91
+#: src/features/settings/profile/profile-form.tsx:56
+#: src/features/role/components/role-action-dialog.tsx:74
+#: src/features/menu/components/menu-action-dialog.tsx:135
+#: src/features/api/components/api-action.tsx:64
+msgid "更新成功"
+msgstr "更新成功"
+
+#: src/features/api/components/api-action.tsx:88
+#~ msgid "更新接口"
+#~ msgstr "更新接口"
+
+#: src/features/api/components/api-action.tsx:91
+#~ msgid "更新接口信息"
+#~ msgstr "更新接口信息"
+
+#: src/features/user/components/user-columns.tsx:22
+#: src/features/role/components/role-columns.tsx:18
+#: src/features/menu/components/menu-view-info.tsx:188
+#: src/features/api/components/api-columns.tsx:26
+msgid "更新时间"
+msgstr "更新时间"
+
+#: src/features/menu/components/menu-view-info.tsx:151
+#: src/features/menu/components/menu-columns.tsx:19
+#: src/features/menu/components/menu-action-dialog.tsx:457
+msgid "权限标识"
+msgstr "权限标识"
+
+#: src/components/other/data-table/view-options.tsx:32
+msgid "查看"
+msgstr "查看"
+
+#: src/features/token/components/token-view-info.tsx:44
+msgid "查看令牌详细信息。"
+msgstr "查看令牌详细信息。"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:54
+msgid "查看操作详细信息和相关信息。这包括 请求参数、时间戳和执行状态。"
+msgstr "查看操作详细信息和相关信息。这包括 请求参数、时间戳和执行状态。"
+
+#: src/features/user/components/user-view-info.tsx:50
+msgid "查看用户详细信息。"
+msgstr "查看用户详细信息。"
+
+#: src/features/system-info/index.tsx:21
+msgid "查看系统、磁盘、CPU、内存等信息"
+msgstr "查看系统、磁盘、CPU、内存等信息"
+
+#: src/features/menu/components/menu-view-info.tsx:54
+msgid "查看菜单详细信息。"
+msgstr "查看菜单详细信息。"
+
+#: src/features/role/components/role-view-info.tsx:43
+msgid "查看角色详细信息。"
+msgstr "查看角色详细信息。"
+
+#. placeholder {0}: core.index
+#: src/features/system-info/components/system-info-view.tsx:77
+msgid "核心 {0}"
+msgstr "核心 {0}"
+
+#: src/features/menu/components/menu-action-dialog.tsx:306
+msgid "根节点"
+msgstr "根节点"
+
+#: src/features/token/components/token-view-info.tsx:119
+#: src/features/api/components/api-columns.tsx:82
+msgid "正常"
+msgstr "正常"
+
+#: src/components/other/confirm-tip.tsx:21
+msgid "此操作将永久删除{text}及其相关的系统中的项目，这是无法撤消的。"
+msgstr "此操作将永久删除{text}及其相关的系统中的项目，这是无法撤消的。"
+
+#: src/components/other/data-table/pagination.tsx:58
+msgid "每页条数"
+msgstr "每页条数"
+
+#: src/components/command-menu.tsx:43
+#: src/components/other/data-table/index.tsx:202
+msgid "没有内容."
+msgstr "没有内容."
+
+#: src/features/settings/appearance/appearance-form.tsx:137
+msgid "浅色模式"
+msgstr "浅色模式"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:120
+#: src/features/operation-log/components/operation-log-columns.tsx:23
+msgid "浏览器"
+msgstr "浏览器"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:126
+msgid "浏览器版本"
+msgstr "浏览器版本"
+
+#: src/features/settings/appearance/appearance-form.tsx:163
+msgid "深色模式"
+msgstr "深色模式"
+
+#: src/features/user/components/user-primary-buttons.tsx:12
+#: src/features/role/components/role-primary-buttons.tsx:12
+#: src/features/menu/components/menu-primary-buttons.tsx:12
+msgid "添加"
+msgstr "添加"
+
+#: src/components/other/data-table/row-actions.tsx:129
+msgid "添加子元素"
+msgstr "添加子元素"
+
+#: src/features/menu/components/menu-action-dialog.tsx:297
+msgid "父级菜单"
+msgstr "父级菜单"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:201
+#: src/features/operation-log/components/operation-log-columns.tsx:27
+msgid "状态码"
+msgstr "状态码"
+
+#: src/features/menu/index.tsx:19
+msgid "用于创建、更新、以及查看菜单信息。"
+msgstr "用于创建、更新、以及查看菜单信息。"
+
+#: src/features/role/index.tsx:29
+msgid "用于创建、更新、以及查看角色信息。"
+msgstr "用于创建、更新、以及查看角色信息。"
+
+#: src/features/auth/sign-in/index.tsx:36
+#: src/features/auth/forgot-password/index.tsx:37
+msgid "用于学习基本的权限管理系统及流程"
+msgstr "用于学习基本的权限管理系统及流程"
+
+#: src/features/token/index.tsx:29
+msgid "用于查看并操作令牌。"
+msgstr "用于查看并操作令牌。"
+
+#: src/features/user/index.tsx:28
+msgid "用于查看并操作用户信息。"
+msgstr "用于查看并操作用户信息。"
+
+#: src/features/operation-log/index.tsx:29
+msgid "用于查看所有操作日志，包括请求信息、响应结果和操作人等。"
+msgstr "用于查看所有操作日志，包括请求信息、响应结果和操作人等。"
+
+#: src/features/api/index.tsx:28
+msgid "用于查看接口详情和更新接口信息。"
+msgstr "用于查看接口详情和更新接口信息。"
+
+#: src/features/api/index.tsx:47
+#~ msgid "用于查看接口详情和编辑接口信息"
+#~ msgstr "用于查看接口详情和编辑接口信息"
+
+#: src/features/user/components/user-delete-dialog.tsx:55
+#: src/features/user/components/user-action-dialog.tsx:131
+msgid "用户"
+msgstr "用户"
+
+#: src/features/token/components/token-view-info.tsx:58
+#: src/features/token/components/token-columns.tsx:16
+msgid "用户ID"
+msgstr "用户ID"
+
+#: src/features/user/index.tsx:27
+msgid "用户列表"
+msgstr "用户列表"
+
+#: src/features/user/components/user-view-info.tsx:64
+#: src/features/user/components/user-reset-password-dialog.tsx:119
+#: src/features/user/components/user-columns.tsx:17
+#: src/features/user/components/user-action-dialog.tsx:145
+#: src/features/token/index.tsx:39
+#: src/features/token/components/token-view-info.tsx:64
+#: src/features/token/components/token-columns.tsx:17
+#: src/features/settings/profile/profile-form.tsx:73
+#: src/features/settings/email/email-form.tsx:120
+#: src/features/auth/sign-in/components/user-auth-form.tsx:133
+msgid "用户名"
+msgstr "用户名"
+
+#: src/features/user/schemas/action-schema.ts:21
+msgid "用户名不能包含特殊字符"
+msgstr "用户名不能包含特殊字符"
+
+#: src/features/user/schemas/action-schema.ts:22
+msgid "用户名必须以字母开头"
+msgstr "用户名必须以字母开头"
+
+#: src/features/user/schemas/action-schema.ts:23
+msgid "用户名必须包含字母"
+msgstr "用户名必须包含字母"
+
+#: src/features/user/schemas/action-schema.ts:20
+msgid "用户名长度不能大于10个字符"
+msgstr "用户名长度不能大于10个字符"
+
+#: src/features/user/schemas/action-schema.ts:19
+msgid "用户名长度不能小于2个字符"
+msgstr "用户名长度不能小于2个字符"
+
+#: src/features/user/components/user-view-info.tsx:47
+msgid "用户详情"
+msgstr "用户详情"
+
+#: src/features/auth/sign-in/index.tsx:46
+#: src/features/auth/sign-in/components/user-auth-form.tsx:204
+#: src/features/auth/sign-in/components/user-auth-form.tsx:209
+#: src/features/auth/sign-in/components/user-auth-form.tsx:233
+#: src/features/auth/forgot-password/index.tsx:61
+msgid "登录"
+msgstr "登录"
+
+#: src/features/menu/data/data.ts:6
+msgid "目录"
+msgstr "目录"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:160
+#: src/features/user/components/user-action-dialog.tsx:282
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:204
+msgid "确认密码"
+msgstr "确认密码"
+
+#: src/features/system-info/components/system-info-view.tsx:127
+msgid "磁盘使用情况"
+msgstr "磁盘使用情况"
+
+#: src/features/api/components/api-columns.tsx:82
+msgid "禁用"
+msgstr "禁用"
+
+#: src/features/token/components/token-view-info.tsx:108
+#: src/features/token/components/token-columns.tsx:19
+#: src/features/api/components/api-columns.tsx:23
+#: src/features/api/components/api-action.tsx:187
+msgid "禁用状态"
+msgstr "禁用状态"
+
+#. placeholder {0}: table.getState().pagination.pageIndex + 1
+#. placeholder {1}: table.getPageCount()
+#: src/components/other/data-table/pagination.tsx:89
+msgid "第 {0} 页，共{1}页"
+msgstr "第 {0} 页，共{1}页"
+
+#: src/components/other/data-table/pagination.tsx:107
+msgid "第一页"
+msgstr "第一页"
+
+#. placeholder {0}: option.key
+#: src/components/other/data-table/toolbar.tsx:88
+msgid "筛选 {0}..."
+msgstr "筛选 {0}..."
+
+#: src/features/settings/profile/index.tsx:9
+msgid "管理您的个人资料"
+msgstr "管理您的个人资料"
+
+#: src/features/settings/index.tsx:30
+msgid "管理您的帐户设置。"
+msgstr "管理您的帐户设置。"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:106
+#: src/features/operation-log/components/operation-log-columns.tsx:22
+msgid "系统"
+msgstr "系统"
+
+#: src/features/system-info/index.tsx:20
+msgid "系统信息"
+msgstr "系统信息"
+
+#: src/features/system-info/components/system-info-view.tsx:28
+msgid "系统概览"
+msgstr "系统概览"
+
+#: src/features/menu/components/menu-view-info.tsx:105
+#: src/features/menu/components/menu-columns.tsx:23
+#: src/features/menu/components/menu-action-dialog.tsx:396
+msgid "组件"
+msgstr "组件"
+
+#: src/features/settings/email/email-form.tsx:238
+msgid "绑定"
+msgstr "绑定"
+
+#: src/features/settings/email/email-form.tsx:228
+msgid "绑定中"
+msgstr "绑定中"
+
+#: src/features/settings/email/email-form.tsx:62
+msgid "绑定成功"
+msgstr "绑定成功"
+
+#: src/features/settings/email/email-form.tsx:162
+msgid "绑定邮箱"
+msgstr "绑定邮箱"
+
+#: src/components/confirm-dialog.tsx:64
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:222
+#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:87
+msgid "继续"
+msgstr "继续"
+
+#: src/features/system-info/components/system-info-view.tsx:52
+msgid "编译器"
+msgstr "编译器"
+
+#: src/components/other/data-table/row-actions.tsx:36
+msgid "编辑"
+msgstr "编辑"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:296
+#: src/features/operation-log/components/operation-log-columns.tsx:34
+msgid "耗时"
+msgstr "耗时"
+
+#: src/features/settings/appearance/index.tsx:9
+msgid "自定义应用程序的外观。自动切换日期 和夜晚主题"
+msgstr "自定义应用程序的外观。自动切换日期 和夜晚主题"
+
+#: src/features/settings/email/email-form.tsx:187
+msgid "获取验证码"
+msgstr "获取验证码"
+
+#: src/features/menu/data/data.ts:7
+#: src/features/menu/components/menu-delete-dialog.tsx:59
+#: src/features/menu/components/menu-action-dialog.tsx:265
+msgid "菜单"
+msgstr "菜单"
+
+#: src/features/menu/index.tsx:18
+msgid "菜单列表"
+msgstr "菜单列表"
+
+#: src/features/menu/components/menu-view-info.tsx:75
+#: src/features/menu/components/menu-columns.tsx:18
+#: src/features/menu/components/menu-action-dialog.tsx:335
+msgid "菜单名称"
+msgstr "菜单名称"
+
+#: src/features/menu/components/menu-view-info.tsx:81
+#: src/features/menu/components/menu-columns.tsx:21
+msgid "菜单类型"
+msgstr "菜单类型"
+
+#: src/features/menu/components/menu-view-info.tsx:51
+msgid "菜单详情"
+msgstr "菜单详情"
+
+#: src/features/auth/sign-in/index.tsx:49
+msgid "要登录您的账户<0/>请输入您的用户名和密码"
+msgstr "要登录您的账户<0/>请输入您的用户名和密码"
+
+#: src/features/role/components/role-delete-dialog.tsx:55
+#: src/features/role/components/role-action-dialog.tsx:105
+msgid "角色"
+msgstr "角色"
+
+#: src/features/role/index.tsx:28
+msgid "角色列表"
+msgstr "角色列表"
+
+#: src/features/role/index.tsx:43
+#: src/features/role/components/role-view-info.tsx:58
+#: src/features/role/components/role-columns.tsx:15
+#: src/features/role/components/role-action-dialog.tsx:119
+msgid "角色名称"
+msgstr "角色名称"
+
+#: src/features/role/index.tsx:47
+#: src/features/role/components/role-view-info.tsx:64
+#: src/features/role/components/role-columns.tsx:16
+#: src/features/role/components/role-action-dialog.tsx:140
+msgid "角色编码"
+msgstr "角色编码"
+
+#: src/features/role/components/role-view-info.tsx:40
+msgid "角色详情"
+msgstr "角色详情"
+
+#: src/components/other/confirm-tip.tsx:39
+msgid "警告！"
+msgstr "警告！"
+
+#: src/features/settings/appearance/appearance-form.tsx:92
+msgid "设定您想要在系统中使用的字体。"
+msgstr "设定您想要在系统中使用的字体。"
+
+#: src/components/profile-dropdown.tsx:52
+#: src/features/settings/index.tsx:27
+msgid "设置"
+msgstr "设置"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:108
+msgid "设置新密码完成后点击保存。"
+msgstr "设置新密码完成后点击保存。"
+
+#: src/components/other/data-table/row-actions.tsx:31
+msgid "详情"
+msgstr "详情"
+
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:208
+msgid "请再次输入密码"
+msgstr "请再次输入密码"
+
+#: src/features/api/components/api-action.tsx:171
+msgid "请填写分组名称"
+msgstr "请填写分组名称"
+
+#: src/components/other/confirm-tip.tsx:42
+msgid "请小心，此操作无法撤消。"
+msgstr "请小心，此操作无法撤消。"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:233
+#: src/features/operation-log/components/operation-log-view-body.tsx:35
+#: src/features/operation-log/components/operation-log-columns.tsx:30
+msgid "请求体"
+msgstr "请求体"
+
+#: src/features/operation-log/components/operation-log-view-params.tsx:35
+#: src/features/operation-log/components/operation-log-view-info.tsx:246
+#: src/features/operation-log/components/operation-log-columns.tsx:29
+msgid "请求参数"
+msgstr "请求参数"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:274
+#: src/features/operation-log/components/operation-log-columns.tsx:32
+msgid "请求开始时间"
+msgstr "请求开始时间"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:174
+#: src/features/operation-log/components/operation-log-columns.tsx:25
+#: src/features/api/components/api-columns.tsx:21
+#: src/features/api/components/api-action.tsx:123
+msgid "请求方法"
+msgstr "请求方法"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:68
+#: src/features/operation-log/components/operation-log-columns.tsx:19
+msgid "请求用户"
+msgstr "请求用户"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:285
+#: src/features/operation-log/components/operation-log-columns.tsx:33
+msgid "请求结束时间"
+msgstr "请求结束时间"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:168
+#: src/features/operation-log/components/operation-log-columns.tsx:24
+#: src/features/api/components/api-columns.tsx:19
+#: src/features/api/components/api-action.tsx:101
+msgid "请求路径"
+msgstr "请求路径"
+
+#: src/features/operation-log/components/operation-log-view-message.tsx:38
+msgid "请求返回了一个错误，响应详细信息如下。"
+msgstr "请求返回了一个错误，响应详细信息如下。"
+
+#: src/features/user/schemas/action-schema.ts:63
+#: src/features/user/components/user-reset-password-dialog.tsx:143
+#: src/features/user/components/user-action-dialog.tsx:265
+#: src/features/auth/sign-in/components/user-auth-form.tsx:151
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:185
+msgid "请输入密码"
+msgstr "请输入密码"
+
+#: src/features/settings/email/email-form.tsx:214
+msgid "请输入您在电子邮件中收到的验证码。"
+msgstr "请输入您在电子邮件中收到的验证码。"
+
+#: src/features/settings/email/email-form.tsx:143
+#: src/features/settings/email/email-form.tsx:165
+#: src/features/settings/email/schemas/action-schema.ts:7
+#: src/features/settings/email/schemas/action-schema.ts:8
+#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:31
+msgid "请输入您的邮箱"
+msgstr "请输入您的邮箱"
+
+#: src/features/auth/email-sign-in/index.tsx:23
+msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
+msgstr "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
+
+#: src/features/menu/components/menu-action-dialog.tsx:546
+#: src/features/api/components/api-action.tsx:213
+msgid "请输入排序值"
+msgstr "请输入排序值"
+
+#: src/features/api/components/api-action.tsx:150
+msgid "请输入描述"
+msgstr "请输入描述"
+
+#: src/features/user/components/user-action-dialog.tsx:171
+#: src/features/settings/profile/profile-form.tsx:98
+msgid "请输入昵称"
+msgstr "请输入昵称"
+
+#: src/features/menu/schemas/action-schema.ts:48
+#: src/features/menu/schemas/action-schema.ts:49
+#: src/features/menu/components/menu-action-dialog.tsx:461
+msgid "请输入权限标识"
+msgstr "请输入权限标识"
+
+#: src/features/user/schemas/action-schema.ts:41
+msgid "请输入正确的邮箱地址"
+msgstr "请输入正确的邮箱地址"
+
+#: src/features/user/schemas/action-schema.ts:18
+#: src/features/user/components/user-reset-password-dialog.tsx:123
+#: src/features/user/components/user-action-dialog.tsx:149
+#: src/features/settings/profile/profile-form.tsx:77
+#: src/features/auth/sign-in/components/user-auth-form.tsx:136
+msgid "请输入用户名"
+msgstr "请输入用户名"
+
+#: src/features/user/schemas/action-schema.ts:83
+#: src/features/user/components/user-reset-password-dialog.tsx:164
+#: src/features/user/components/user-action-dialog.tsx:286
+msgid "请输入确认密码"
+msgstr "请输入确认密码"
+
+#: src/features/api/schemas/action-schema.ts:8
+msgid "请输入菜单"
+msgstr "请输入菜单"
+
+#: src/features/menu/schemas/action-schema.ts:14
+#: src/features/menu/schemas/action-schema.ts:15
+#: src/features/menu/components/menu-action-dialog.tsx:339
+msgid "请输入菜单名称"
+msgstr "请输入菜单名称"
+
+#: src/features/role/schemas/action-schema.ts:7
+#: src/features/role/schemas/action-schema.ts:8
+#: src/features/role/components/role-action-dialog.tsx:123
+msgid "请输入角色名称"
+msgstr "请输入角色名称"
+
+#: src/features/role/schemas/action-schema.ts:10
+#: src/features/role/schemas/action-schema.ts:11
+#: src/features/role/components/role-action-dialog.tsx:146
+msgid "请输入角色编码"
+msgstr "请输入角色编码"
+
+#: src/features/api/components/api-action.tsx:129
+msgid "请输入请求方法"
+msgstr "请输入请求方法"
+
+#: src/features/api/components/api-action.tsx:107
+msgid "请输入请求路径"
+msgstr "请输入请求路径"
+
+#: src/features/menu/schemas/action-schema.ts:37
+#: src/features/menu/schemas/action-schema.ts:38
+msgid "请输入路由地址"
+msgstr "请输入路由地址"
+
+#: src/features/auth/otp/index.tsx:23
+msgid "请输入身份验证代码。<0/>我们已经发送了 验证码到您的电子邮件。"
+msgstr "请输入身份验证代码。<0/>我们已经发送了 验证码到您的电子邮件。"
+
+#: src/features/user/components/user-action-dialog.tsx:192
+#: src/features/auth/otp/components/otp-form.tsx:40
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:41
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:130
+#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:80
+msgid "请输入邮箱"
+msgstr "请输入邮箱"
+
+#: src/features/settings/email/email-form.tsx:208
+#: src/features/settings/email/schemas/action-schema.ts:11
+#: src/features/settings/email/schemas/action-schema.ts:12
+#: src/features/auth/otp/components/otp-form.tsx:37
+msgid "请输入邮箱验证码"
+msgstr "请输入邮箱验证码"
+
+#: src/features/auth/sign-in/schemas/action-schema.ts:14
+#: src/features/auth/sign-in/schemas/action-schema.ts:15
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:46
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:47
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:165
+msgid "请输入验证码"
+msgstr "请输入验证码"
+
+#: src/features/settings/appearance/appearance-form.tsx:29
+msgid "请选择一个主题"
+msgstr "请选择一个主题"
+
+#: src/features/settings/appearance/appearance-form.tsx:33
+msgid "请选择一种字体"
+msgstr "请选择一种字体"
+
+#: src/features/menu/schemas/action-schema.ts:52
+#: src/features/menu/schemas/action-schema.ts:54
+msgid "请选择关联的API"
+msgstr "请选择关联的API"
+
+#: src/features/role/schemas/action-schema.ts:14
+#: src/features/role/schemas/action-schema.ts:16
+msgid "请选择关联的菜单"
+msgstr "请选择关联的菜单"
+
+#: src/features/user/schemas/action-schema.ts:47
+#: src/features/user/components/user-action-dialog.tsx:244
+msgid "请选择关联角色"
+msgstr "请选择关联角色"
+
+#: src/features/menu/schemas/action-schema.ts:35
+#: src/features/menu/schemas/action-schema.ts:35
+#: src/features/menu/components/menu-action-dialog.tsx:437
+msgid "请选择图标"
+msgstr "请选择图标"
+
+#: src/features/menu/schemas/action-schema.ts:9
+#: src/features/menu/schemas/action-schema.ts:10
+#: src/features/menu/schemas/action-schema.ts:12
+#: src/features/menu/components/menu-action-dialog.tsx:302
+msgid "请选择父级菜单"
+msgstr "请选择父级菜单"
+
+#: src/features/menu/schemas/action-schema.ts:40
+#: src/features/menu/schemas/action-schema.ts:41
+#: src/features/menu/components/menu-action-dialog.tsx:402
+msgid "请选择组件路径"
+msgstr "请选择组件路径"
+
+#: src/features/menu/components/menu-action-dialog.tsx:366
+msgid "请选择路由"
+msgstr "请选择路由"
+
+#: src/components/theme-switch.tsx:33
+msgid "跟随系统"
+msgstr "跟随系统"
+
+#: src/features/menu/components/menu-view-info.tsx:99
+#: src/features/menu/components/menu-columns.tsx:22
+#: src/features/menu/components/menu-action-dialog.tsx:360
+msgid "路由"
+msgstr "路由"
+
+#: src/components/other/confirm-tip.tsx:33
+msgid "输入名称以确认删除"
+msgstr "输入名称以确认删除"
+
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:191
+msgid "输入您的新密码。"
+msgstr "输入您的新密码。"
+
+#: src/features/errors/unauthorized-error.tsx:19
+#: src/features/errors/not-found-error.tsx:19
+#: src/features/errors/general-error.tsx:29
+#: src/features/errors/forbidden.tsx:19
+msgid "返回"
+msgstr "返回"
+
+#: src/features/errors/unauthorized-error.tsx:22
+#: src/features/errors/not-found-error.tsx:22
+#: src/features/errors/general-error.tsx:32
+#: src/features/errors/forbidden.tsx:22
+msgid "返回首页"
+msgstr "返回首页"
+
+#: src/features/settings/profile/profile-form.tsx:84
+#: src/features/settings/email/email-form.tsx:131
+msgid "这是您的公开显示名称。"
+msgstr "这是您的公开显示名称。"
+
+#: src/features/settings/profile/profile-form.tsx:127
+msgid "这是您的头像。"
+msgstr "这是您的头像。"
+
+#: src/features/settings/profile/profile-form.tsx:103
+msgid "这是您的昵称。"
+msgstr "这是您的昵称。"
+
+#: src/features/settings/email/email-form.tsx:150
+msgid "这是您的邮箱。"
+msgstr "这是您的邮箱。"
+
+#: src/features/settings/email/email-form.tsx:191
+msgid "这是您绑定的新电子邮件地址。"
+msgstr "这是您绑定的新电子邮件地址。"
+
+#: src/components/profile-dropdown.tsx:63
+#: src/components/layout/nav-user.tsx:102
+msgid "退出登录"
+msgstr "退出登录"
+
+#: src/features/settings/appearance/appearance-form.tsx:32
+msgid "选择一种字体"
+msgstr "选择一种字体"
+
+#: src/features/settings/appearance/appearance-form.tsx:107
+msgid "选择您想要在系统中使用的主题。"
+msgstr "选择您想要在系统中使用的主题。"
+
+#: src/features/settings/appearance/index.tsx:8
+msgid "通用设置"
+msgstr "通用设置"
+
+#: src/features/auth/sign-in/index.tsx:58
+msgid "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>隐私政策</1>"
+msgstr "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>隐私政策</1>"
+
+#: src/features/user/components/user-view-info.tsx:99
+#: src/features/user/components/user-columns.tsx:19
+#: src/features/user/components/user-action-dialog.tsx:188
+#: src/features/settings/email/email-form.tsx:139
+#: src/features/auth/sign-in/components/user-auth-form.tsx:232
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:127
+#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:77
+msgid "邮箱"
+msgstr "邮箱"
+
+#: src/features/settings/email/email-form.tsx:49
+msgid "邮箱不能与当前邮箱相同"
+msgstr "邮箱不能与当前邮箱相同"
+
+#: src/features/settings/email/schemas/action-schema.ts:9
+#: src/features/auth/otp/components/otp-form.tsx:41
+#: src/features/auth/otp/components/otp-form.tsx:58
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:42
+#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:32
+msgid "邮箱无效"
+msgstr "邮箱无效"
+
+#: src/features/settings/email/index.tsx:8
+msgid "邮箱设置"
+msgstr "邮箱设置"
+
+#: src/features/auth/otp/components/otp-form.tsx:99
+msgid "邮箱验证码"
+msgstr "邮箱验证码"
+
+#: src/components/other/data-table/toolbar.tsx:102
+msgid "重置"
+msgstr "重置"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:65
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:92
+msgid "重置密码成功"
+msgstr "重置密码成功"
+
+#: src/features/user/components/user-reset-password-dialog.tsx:98
+msgid "重置用户"
+msgstr "重置用户"
+
+#: src/features/operation-log/components/operation-log-view-message.tsx:35
+#: src/features/operation-log/components/operation-log-view-info.tsx:220
+#: src/features/operation-log/components/operation-log-columns.tsx:28
+msgid "错误信息"
+msgstr "错误信息"
+
+#: src/components/command-menu.tsx:39
+msgid "键入命令或搜索..."
+msgstr "键入命令或搜索..."
+
+#: src/components/other/data-table/column-header.tsx:60
+msgid "降序"
+msgstr "降序"
+
+#: src/components/other/data-table/column-header.tsx:67
+msgid "隐藏"
+msgstr "隐藏"
+
+#: src/features/menu/data/data.ts:8
+msgid "页面元素"
+msgstr "页面元素"
+
+#: src/features/auth/otp/components/otp-form.tsx:132
+msgid "验证"
+msgstr "验证"
+
+#: src/features/settings/email/email-form.tsx:204
+#: src/features/auth/sign-in/components/user-auth-form.tsx:169
+#: src/features/auth/sign-in/components/user-auth-form.tsx:175
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:161
+msgid "验证码"
+msgstr "验证码"
+
+#: src/features/auth/sign-in/schemas/action-schema.ts:12
+msgid "验证码ID不能为空"
+msgstr "验证码ID不能为空"

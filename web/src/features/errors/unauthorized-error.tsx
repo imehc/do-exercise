@@ -1,4 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router'
+import { Trans } from '@lingui/react/macro'
 import { Button } from '~/components/ui/button'
 
 export default function UnauthorisedError() {
@@ -15,9 +16,11 @@ export default function UnauthorisedError() {
         </p>
         <div className='mt-6 flex gap-4'>
           <Button variant='outline' onClick={() => history.go(-1)}>
-            Go Back
+            <Trans>返回</Trans>
           </Button>
-          <Button onClick={() => navigate({ to: '/' })}>Back to Home</Button>
+          <Button onClick={() => navigate({ to: '/' })}>
+            <Trans>返回首页</Trans>
+          </Button>
         </div>
       </div>
     </div>

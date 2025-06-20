@@ -1,11 +1,8 @@
 import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import {
-  IconArrowRightDashed,
-  IconDeviceLaptop,
-  IconMoon,
-  IconSun,
-} from '@tabler/icons-react'
+import { IconArrowRightDashed } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useSearch } from '~/provider/search'
 import { useTheme } from '~/provider/theme'
 import {
@@ -18,6 +15,7 @@ import {
   CommandSeparator,
 } from '~/components/ui/command'
 import { NavGroup } from './layout/types'
+import { themeList } from './theme-switch'
 import { ScrollArea } from './ui/scroll-area'
 
 interface Props {
@@ -38,10 +36,12 @@ export function CommandMenu({ navGroups }: Props) {
 
   return (
     <CommandDialog modal open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder='Type a command or search...' />
+      <CommandInput placeholder={t`键入命令或搜索...`} />
       <CommandList>
         <ScrollArea type='hover' className='h-72 pr-1'>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty>
+            <Trans>没有内容.</Trans>
+          </CommandEmpty>
           {navGroups.map((group) => (
             <CommandGroup key={group.title} heading={group.title}>
               {group.items.map((navItem, i) => {
@@ -79,18 +79,15 @@ export function CommandMenu({ navGroups }: Props) {
             </CommandGroup>
           ))}
           <CommandSeparator />
-          <CommandGroup heading='Theme'>
-            <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
-              <IconSun /> <span>Light</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
-              <IconMoon className='scale-90' />
-              <span>Dark</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
-              <IconDeviceLaptop />
-              <span>System</span>
-            </CommandItem>
+          <CommandGroup heading={t`主题`}>
+            {themeList.map((item) => (
+              <CommandItem
+                key={item.value}
+                onSelect={() => runCommand(() => setTheme(item.value))}
+              >
+                {item.icon} <span>{item.label}</span>
+              </CommandItem>
+            ))}
           </CommandGroup>
         </ScrollArea>
       </CommandList>

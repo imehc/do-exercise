@@ -1,4 +1,5 @@
 import { IconSelector, IconLogout } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { UserProfile } from '~/do-exercise-api'
 import { useLogout } from '~/hooks/use-user'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
@@ -98,7 +99,7 @@ export function NavUser({ username, avatar, email }: NavUserProps) {
               disabled={isPending}
             >
               <IconLogout />
-              Log out
+              <Trans>退出登录</Trans>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -6,14 +6,24 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { i18n } from '@lingui/core'
+import { I18nProvider } from '@lingui/react'
 import { Provider } from 'jotai'
-import { store } from './atoms'
+import { messages as enMessages } from '~/locales/en-US/messages'
+import { messages as zhMessages } from '~/locales/zh-CN/messages'
+import { languageAtom, store } from './atoms'
 import { ResponseError } from './do-exercise-api'
 import './index.css'
 import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
+
+i18n.load({
+  'en-US': enMessages,
+  'zh-CN': zhMessages,
+})
+i18n.activate(store.get(languageAtom))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,15 +89,17 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
-            <FontProvider>
-              <RouterProvider router={router} />
-            </FontProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </Provider>
+      <I18nProvider i18n={i18n}>
+        <Provider store={store}>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
+              <FontProvider>
+                <RouterProvider router={router} />
+              </FontProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </Provider>
+      </I18nProvider>
     </StrictMode>
   )
 }

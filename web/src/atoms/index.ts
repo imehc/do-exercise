@@ -1,2 +1,3 @@
-export * from './token'
+export * from './language'
 export * from './sidebar'
+export * from './token'

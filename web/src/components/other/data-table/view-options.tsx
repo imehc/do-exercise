@@ -1,6 +1,7 @@
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import { Table } from '@tanstack/react-table'
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
@@ -12,10 +13,12 @@ import {
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
+  getColumnTitle?: (columnId: string) => string
 }
 
 export function DataTableViewOptions<TData>({
   table,
+  getColumnTitle,
 }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu modal={false}>
@@ -26,11 +29,13 @@ export function DataTableViewOptions<TData>({
           className='ml-auto hidden h-8 lg:flex'
         >
           <IconAdjustmentsHorizontal className='mr-2 h-4 w-4' />
-          View
+          <Trans>查看</Trans>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[150px]'>
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          <Trans>切换主题</Trans>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
           .getAllColumns()
@@ -46,7 +51,7 @@ export function DataTableViewOptions<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {getColumnTitle ? getColumnTitle(column.id) : column.id}
               </DropdownMenuCheckboxItem>
             )
           })}

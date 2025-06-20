@@ -6,17 +6,18 @@ import { SwitchThumb } from '@radix-ui/react-switch'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { SysApi, SystemApiApi, UpdateApiRequest } from '~/do-exercise-api'
 import { useApi } from '~/hooks/use-api'
+import { useChan } from '~/hooks/use-chan'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from '~/components/ui/dialog'
 import {
   Form,
@@ -28,7 +29,11 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
-import { ApiActionFormValues, apiActionSchema } from '../schemas/action-schema'
+import { DialogHeaderContent } from '~/components/other/dialog-header-content'
+import {
+  ApiActionFormValues,
+  getApiActionSchema,
+} from '../schemas/action-schema'
 
 interface Props {
   currentRow?: SysApi
@@ -38,23 +43,25 @@ interface Props {
 
 export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
   const isEdit = useMemo(() => !!currentRow, [currentRow])
-  const form = useForm<ApiActionFormValues>({
-    resolver: zodResolver(apiActionSchema),
-    defaultValues: isEdit
-      ? currentRow
-      : {
-          description: '',
-          group: '',
-          disabled: false,
-          sort: 0,
-        },
-  })
+  const form = useChan(
+    useForm<ApiActionFormValues>({
+      resolver: zodResolver(getApiActionSchema()),
+      defaultValues: isEdit
+        ? currentRow
+        : {
+            description: '',
+            group: '',
+            disabled: false,
+            sort: 0,
+          },
+    })
+  )
 
   const sysApi = useApi(SystemApiApi)
   const { isPending, mutate: saveChange } = useMutation({
     mutationFn: (values: UpdateApiRequest) => sysApi.updateApi(values),
     onSuccess: () => {
-      toast.success('更新成功')
+      toast.success(t`更新成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -76,11 +83,7 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
     >
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader className='text-left'>
-          <DialogTitle>{isEdit ? '修改Api' : '创建Api'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? '更新api相关数据。' : '创建api相关数据。'}
-            完成后点击保存。
-          </DialogDescription>
+          <DialogHeaderContent isEdit={isEdit} text={<Trans>接口</Trans>} />
         </DialogHeader>
         <div className='-mr-4 h-[26.25rem] w-full overflow-y-auto py-1 pr-4'>
           <Form {...form}>
@@ -95,13 +98,13 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      请求路径
+                      <Trans>请求路径</Trans>
                     </FormLabel>
                     <FormControl>
                       <Input
                         disabled
                         readOnly
-                        placeholder='请输入请求路径'
+                        placeholder={t`请输入请求路径`}
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -117,13 +120,13 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      请求方法
+                      <Trans>请求方法</Trans>
                     </FormLabel>
                     <FormControl>
                       <Input
                         disabled
                         readOnly
-                        placeholder='请输入请求方法'
+                        placeholder={t`请输入请求方法`}
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -139,12 +142,12 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      描述
+                      <Trans>描述</Trans>
                     </FormLabel>
                     <FormControl>
                       <Input
                         disabled={isPending}
-                        placeholder='请输入描述'
+                        placeholder={t`请输入描述`}
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -160,12 +163,12 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      分组
+                      <Trans>分组</Trans>
                     </FormLabel>
                     <FormControl>
                       <Input
                         disabled={isPending}
-                        placeholder='请填写分组名称'
+                        placeholder={t`请填写分组名称`}
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -181,7 +184,7 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      禁用状态
+                      <Trans>禁用状态</Trans>
                     </FormLabel>
                     <FormControl>
                       <Switch
@@ -202,12 +205,12 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-right'>
-                      排序
+                      <Trans>排序</Trans>
                     </FormLabel>
                     <FormControl>
                       <Input
                         disabled={isPending}
-                        placeholder='请输入排序值'
+                        placeholder={t`请输入排序值`}
                         className='col-span-4'
                         type='number'
                         {...field}
@@ -225,10 +228,14 @@ export function ApiActionDialog({ currentRow, open, onOpenChange }: Props) {
             {isPending ? (
               <>
                 <IconLoader3 className='animate-spin' />
-                <span>保存中...</span>
+                <span>
+                  <Trans>保存中</Trans>...
+                </span>
               </>
             ) : (
-              <span>保存</span>
+              <span>
+                <Trans>保存</Trans>
+              </span>
             )}
           </Button>
         </DialogFooter>

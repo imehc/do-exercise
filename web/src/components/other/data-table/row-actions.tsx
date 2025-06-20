@@ -6,7 +6,9 @@ import {
   IconTablePlus,
   IconDots,
 } from '@tabler/icons-react'
-import { useFormDialog } from '~/provider'
+import { Trans } from '@lingui/react/macro'
+import { DialogType, useFormDialog } from '~/provider'
+import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
@@ -16,6 +18,35 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+
+type Action = {
+  type: DialogType | 'split-line'
+  label: React.ReactNode
+  icon: React.ReactNode
+}
+
+const actions = [
+  {
+    type: 'view-info',
+    label: <Trans>详情</Trans>,
+    icon: <IconInfoHexagon size={16} />,
+  },
+  {
+    type: 'edit',
+    label: <Trans>编辑</Trans>,
+    icon: <IconEdit size={16} />,
+  },
+  {
+    type: 'split-line',
+    label: null,
+    icon: null,
+  },
+  {
+    type: 'delete',
+    label: <Trans>删除</Trans>,
+    icon: <IconTrash size={16} className='text-red-500!' />,
+  },
+] satisfies Action[]
 
 type MenuOption = {
   title?: string
@@ -38,28 +69,42 @@ interface DataTableRowActionsProps<T> {
 export function DataTableRowActions<T>({
   row,
   showEdit = false,
-  editOptions = {
-    title: 'Edit',
-    disable: false,
-  },
+  editOptions,
   showDelete = false,
-  deleteOptions = {
-    title: 'Delete',
-    disable: false,
-  },
+  deleteOptions,
   showInfo = false,
-  infoOptions = {
-    title: 'Info',
-    disable: false,
-  },
+  infoOptions,
   showAdd = false,
-  addOptions = {
-    title: 'Add',
-    disable: false,
-  },
+  addOptions,
   children,
 }: DataTableRowActionsProps<T>) {
   const { setOpen, setCurrentRow } = useFormDialog<T>()
+
+  const handleHiddenState = (action: Action) => {
+    switch (action.type) {
+      case 'view-info': {
+        return {
+          show: showInfo,
+          disabled: !!infoOptions?.disable,
+        }
+      }
+      case 'edit':
+        return {
+          show: showEdit,
+          disabled: !!editOptions?.disable,
+        }
+      case 'delete':
+        return {
+          show: showDelete,
+          disabled: !!deleteOptions?.disable,
+        }
+      default:
+        return {
+          show: false,
+          disabled: false,
+        }
+    }
+  }
 
   if (!showEdit && !showDelete && !showInfo) {
     return null
@@ -73,14 +118,16 @@ export function DataTableRowActions<T>({
           variant='outline'
           size='icon'
           hidden={!showAdd}
-          disabled={addOptions.disable}
+          disabled={addOptions?.disable || false}
           onClick={() => {
             setCurrentRow(row.original)
             setOpen('add-child')
           }}
         >
           <IconTablePlus />
-          <span className='sr-only'>Add child</span>
+          <span className='sr-only'>
+            <Trans>添加子元素</Trans>
+          </span>
         </Button>
       )}
       <DropdownMenu modal={false}>
@@ -90,51 +137,37 @@ export function DataTableRowActions<T>({
             className='data-[state=open]:bg-muted flex h-8 w-8 p-0'
           >
             <IconDots className='h-4 w-4' />
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>
+              <Trans>打开菜单</Trans>
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[160px]'>
-          <DropdownMenuItem
-            hidden={!showInfo}
-            disabled={infoOptions.disable}
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('view-info')
-            }}
-          >
-            {infoOptions.title}
-            <DropdownMenuShortcut>
-              <IconInfoHexagon size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            hidden={!showEdit}
-            disabled={editOptions.disable}
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('edit')
-            }}
-          >
-            {editOptions.title}
-            <DropdownMenuShortcut>
-              <IconEdit size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator hidden={!showDelete} />
-          <DropdownMenuItem
-            hidden={!showDelete}
-            disabled={deleteOptions.disable}
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('delete')
-            }}
-            className='text-red-500!'
-          >
-            {deleteOptions.title}
-            <DropdownMenuShortcut>
-              <IconTrash size={16} className='text-red-500!' />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
+          {actions.map((action) => {
+            if (action.type === 'split-line') {
+              return (
+                <DropdownMenuSeparator key={action.type} hidden={!showDelete} />
+              )
+            }
+            return (
+              <DropdownMenuItem
+                key={action.type}
+                hidden={!handleHiddenState(action).show}
+                disabled={handleHiddenState(action).disabled}
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen(action.type as DialogType)
+                }}
+              >
+                <span
+                  className={cn(action.type === 'delete' && 'text-red-500')}
+                >
+                  {action.label}
+                </span>
+                <DropdownMenuShortcut>{action.icon}</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            )
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

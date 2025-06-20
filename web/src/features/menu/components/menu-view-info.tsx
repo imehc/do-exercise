@@ -1,7 +1,8 @@
-import { format } from 'date-fns'
 import { useQuery } from '@tanstack/react-query'
 import { Icon, IconMessage } from '@tabler/icons-react'
 import * as icons from '@tabler/icons-react'
+import { i18n } from '@lingui/core'
+import { Trans } from '@lingui/react/macro'
 import { MenuType, SysMenuTree, SystemMenuApi } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { cn } from '~/lib/utils'
@@ -19,7 +20,11 @@ import {
 } from '~/components/ui/drawer'
 import { iconPrefix, StatusRenderer } from '~/components/other'
 import { callMethodTypes } from '~/features/api/data/data'
-import { callMenuMapping, callMenuTypes, callVisibleTypes } from '../data/data'
+import {
+  getCallMenuMapping,
+  callMenuTypes,
+  callVisibleTypes,
+} from '../data/data'
 
 interface Props {
   open: boolean
@@ -47,10 +52,10 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
       <DrawerContent className='max-h-[85vh]'>
         <DrawerHeader className='text-left'>
           <DrawerTitle className='flex items-center gap-2'>
-            <IconMessage /> 菜单详情
+            <IconMessage /> <Trans>菜单详情</Trans>
           </DrawerTitle>
           <DrawerDescription>
-            查看菜单详细信息。这包括 不同菜单类型对应不同的信息。
+            <Trans>查看菜单详细信息。</Trans>
           </DrawerDescription>
         </DrawerHeader>
 
@@ -65,14 +70,20 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
             return (
               <div className='grid gap-6 overflow-y-auto px-4'>
                 <div className='space-y-3'>
-                  <h4 className='text-lg font-medium'>基本信息</h4>
+                  <h4 className='text-lg font-medium'>
+                    <Trans>基本信息</Trans>
+                  </h4>
                   <div className='grid gap-3 text-sm'>
                     <div className='grid grid-cols-3 items-center gap-4'>
-                      <div className='font-medium'>菜单名称</div>
+                      <div className='font-medium'>
+                        <Trans>菜单名称</Trans>
+                      </div>
                       <div className='col-span-2'>{menu.name}</div>
                     </div>
                     <div className='grid grid-cols-3 items-center gap-4'>
-                      <div className='font-medium'>菜单类型</div>
+                      <div className='font-medium'>
+                        <Trans>菜单类型</Trans>
+                      </div>
                       <div className='col-span-2'>
                         <Badge
                           variant='outline'
@@ -81,28 +92,36 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                             callMenuTypes.get(menu.type)
                           )}
                         >
-                          {callMenuMapping.get(menu.type) ?? '-'}
+                          {getCallMenuMapping().get(menu.type) ?? '-'}
                         </Badge>
                       </div>
                     </div>
                     {menu.type === MenuType.menu && (
                       <>
                         <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>路由</div>
+                          <div className='font-medium'>
+                            <Trans>路由</Trans>
+                          </div>
                           <div className='col-span-2'>{menu.route}</div>
                         </div>
                         <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>组件</div>
+                          <div className='font-medium'>
+                            <Trans>组件</Trans>
+                          </div>
                           <div className='col-span-2'>{menu.component}</div>
                         </div>
                         <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>图标</div>
+                          <div className='font-medium'>
+                            <Trans>图标</Trans>
+                          </div>
                           <div className='col-span-2'>
                             {SelectedIcon && <SelectedIcon />}
                           </div>
                         </div>
                         <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>是否可见</div>
+                          <div className='font-medium'>
+                            <Trans>是否可见</Trans>
+                          </div>
                           <div className='col-span-2'>
                             <Badge
                               variant='outline'
@@ -111,7 +130,11 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                                 callVisibleTypes.get(menu.visible ?? false)
                               )}
                             >
-                              {menu.visible ? '是' : '否'}
+                              {menu.visible ? (
+                                <Trans>是</Trans>
+                              ) : (
+                                <Trans>否</Trans>
+                              )}
                             </Badge>
                           </div>
                         </div>
@@ -119,18 +142,24 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                     )}
                     {menu.type !== MenuType.button && (
                       <div className='grid grid-cols-3 items-center gap-4'>
-                        <div className='font-medium'>序号</div>
+                        <div className='font-medium'>
+                          <Trans>序号</Trans>
+                        </div>
                         <div className='col-span-2'>{menu.sort}</div>
                       </div>
                     )}
                     {menu.type === MenuType.button && (
                       <>
                         <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>权限标识</div>
+                          <div className='font-medium'>
+                            <Trans>权限标识</Trans>
+                          </div>
                           <div className='col-span-2'>{menu.permission}</div>
                         </div>
                         <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>关联API</div>
+                          <div className='font-medium'>
+                            <Trans>关联接口</Trans>
+                          </div>
                           <div className='col-span-2 flex flex-col gap-y-2'>
                             {menu?.apis?.map((api) => (
                               <Badge
@@ -148,15 +177,25 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                       </>
                     )}
                     <div className='grid grid-cols-3 items-center gap-4'>
-                      <div className='font-medium'>创建时间</div>
+                      <div className='font-medium'>
+                        <Trans>创建时间</Trans>
+                      </div>
                       <div className='col-span-2'>
-                        {format(menu.createdAt, 'yyyy-MM-dd HH:mm:ss')}
+                        {i18n.date(menu.createdAt, {
+                          dateStyle: 'short',
+                          timeStyle: 'medium',
+                        })}
                       </div>
                     </div>
                     <div className='grid grid-cols-3 items-center gap-4'>
-                      <div className='font-medium'>更新时间</div>
+                      <div className='font-medium'>
+                        <Trans>更新时间</Trans>
+                      </div>
                       <div className='col-span-2'>
-                        {format(menu.updatedAt, 'yyyy-MM-dd HH:mm:ss')}
+                        {i18n.date(menu.updatedAt, {
+                          dateStyle: 'short',
+                          timeStyle: 'medium',
+                        })}
                       </div>
                     </div>
                   </div>
@@ -168,7 +207,9 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
 
         <DrawerFooter className='gap-y-2'>
           <DrawerClose asChild>
-            <Button variant='outline'>关闭</Button>
+            <Button variant='outline'>
+              <Trans>关闭</Trans>
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

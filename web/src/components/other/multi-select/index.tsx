@@ -6,6 +6,7 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
@@ -289,7 +290,7 @@ export const MultiSelect = React.forwardRef<
               >
                 <IconCheck className='h-4 w-4' />
               </div>
-              (Select All)
+              <Trans>(选择全部)</Trans>
             </div>
             {options
               .filter((option) =>

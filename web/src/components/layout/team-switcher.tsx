@@ -16,7 +16,7 @@ export function TeamSwitcher({
   title = pkg.name,
   subTitle = pkg.description,
   logo,
-}: TeamSwitcher) {
+}: TeamSwitcherProps) {
   return (
     <SidebarMenu>
       <SidebarMenuItem>

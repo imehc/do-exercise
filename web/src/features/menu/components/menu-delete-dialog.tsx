@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { IconAlertTriangle } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import {
   DeleteMenuRequest,
@@ -10,10 +12,8 @@ import {
   SystemMenuApi,
 } from '~/do-exercise-api'
 import { useApi } from '~/hooks/use-api'
-import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
 import { ConfirmDialog } from '~/components/confirm-dialog'
+import { ConfirmTip } from '~/components/other/confirm-tip'
 
 interface Props {
   open: boolean
@@ -26,7 +26,7 @@ export function MenuDeleteDialog({ open, onOpenChange, currentRow }: Props) {
   const { isPending, mutate: handleDel } = useMutation({
     mutationFn: (values: DeleteMenuRequest) => sysMenuApi.deleteMenu(values),
     onSuccess: () => {
-      toast.success('删除成功')
+      toast.success(t`删除成功`)
       onOpenChange(false, true)
     },
   })
@@ -51,37 +51,18 @@ export function MenuDeleteDialog({ open, onOpenChange, currentRow }: Props) {
             className='stroke-destructive mr-1 inline-block'
             size={18}
           />
-          Delete Menu
+          <Trans>删除菜单</Trans>
         </span>
       }
       desc={
-        <div className='space-y-4'>
-          <p className='mb-2'>
-            Are you sure you want to delete the menu
-            <span className='font-bold'>{currentRow.name}</span>?
-            <br />
-            This action will permanently remove the menu and its related items
-            from the system. This cannot be undone.
-          </p>
-
-          <Label className='my-2'>
-            Menu name:
-            <Input
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter menu name to confirm deletion.'
-            />
-          </Label>
-
-          <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
-            <AlertDescription>
-              Please be careful, this operation cannot be undone.
-            </AlertDescription>
-          </Alert>
-        </div>
+        <ConfirmTip
+          text={<Trans>菜单</Trans>}
+          title={currentRow.name}
+          value={value}
+          onChange={setValue}
+        />
       }
-      confirmText='Delete'
+      confirmText={<Trans>删除</Trans>}
       destructive
     />
   )

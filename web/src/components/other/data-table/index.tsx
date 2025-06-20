@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { Trans } from '@lingui/react/macro'
 import { Pagination } from '~/do-exercise-api'
 import {
   Table,
@@ -39,6 +40,7 @@ interface DataTableProps<T>
   data: T[]
   meta?: Pagination
   isLoading?: boolean
+  getColumnTitle?: (columnId: string) => string
 }
 
 export function DataTable<T>({
@@ -50,6 +52,7 @@ export function DataTable<T>({
   search,
   serchOptions,
   isLoading = false,
+  getColumnTitle,
 }: DataTableProps<T>) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -128,6 +131,7 @@ export function DataTable<T>({
         navigate={navigate}
         search={search}
         enableClientPagination={enableClientPagination}
+        getColumnTitle={getColumnTitle}
       />
       <div className='rounded-md border'>
         <Table>
@@ -195,7 +199,7 @@ export function DataTable<T>({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  No results.
+                  <Trans>没有内容.</Trans>
                 </TableCell>
               </TableRow>
             )}

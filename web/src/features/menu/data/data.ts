@@ -1,4 +1,12 @@
+import { t } from '@lingui/core/macro'
 import { MenuType } from '~/do-exercise-api'
+
+export const getCallMenuMapping = () =>
+  new Map<MenuType, string>([
+    [MenuType.directory, t`目录`],
+    [MenuType.menu, t`菜单`],
+    [MenuType.button, t`页面元素`],
+  ])
 
 export const callMenuTypes = new Map<MenuType, string>([
   [
@@ -13,12 +21,6 @@ export const callMenuTypes = new Map<MenuType, string>([
     MenuType.button,
     'bg-cyan-100/30 text-cyan-900 dark:text-cyan-200 border-cyan-200',
   ],
-])
-
-export const callMenuMapping = new Map<MenuType, string>([
-  [MenuType.directory, '目录'],
-  [MenuType.menu, '菜单'],
-  [MenuType.button, '页面元素'],
 ])
 
 export const callVisibleTypes = new Map<boolean, string>([

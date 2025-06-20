@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { Button } from '~/components/ui/button'
 
 export default function MaintenanceError() {
@@ -11,7 +12,9 @@ export default function MaintenanceError() {
           We'll be back online shortly.
         </p>
         <div className='mt-6 flex gap-4'>
-          <Button variant='outline'>Learn more</Button>
+          <Button variant='outline'>
+            <Trans>了解更多信息</Trans>
+          </Button>
         </div>
       </div>
     </div>

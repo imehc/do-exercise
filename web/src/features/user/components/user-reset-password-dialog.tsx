@@ -2,6 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { IconArrowBackUp, IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import {
   ResetUserPasswordRequest,
@@ -60,7 +62,7 @@ export function UserResetPasswordDialog({
       mutationFn: (values: ResetUserPasswordRequest) =>
         sysUserApi.resetUserPassword(values),
       onSuccess: () => {
-        toast.success('重置密码成功')
+        toast.success(t`重置密码成功`)
         form.reset()
         onOpenChange(false, true)
       },
@@ -92,13 +94,19 @@ export function UserResetPasswordDialog({
       <DialogContent className='sm:max-w-2xl'>
         <DialogHeader className='text-left'>
           <DialogTitle>
-            <span>重置用户</span>
+            <span>
+              <Trans>重置用户</Trans>
+            </span>
             <span className='mx-1 text-gray-500 italic'>
               {currentRow?.username}
             </span>
-            <span>密码</span>
+            <span>
+              <Trans>密码</Trans>
+            </span>
           </DialogTitle>
-          <DialogDescription>设置新密码完成后点击保存。</DialogDescription>
+          <DialogDescription>
+            <Trans>设置新密码完成后点击保存。</Trans>
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -107,10 +115,12 @@ export function UserResetPasswordDialog({
             className='space-y-4 p-0.5'
           >
             <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-              <FormLabel className='col-span-2 text-right'>用户名</FormLabel>
+              <FormLabel className='col-span-2 text-right'>
+                <Trans>用户名</Trans>
+              </FormLabel>
               <FormControl>
                 <Input
-                  placeholder='请输入用户名'
+                  placeholder={t`请输入用户名`}
                   className='col-span-8'
                   autoComplete='off'
                   defaultValue={currentRow?.username}
@@ -125,10 +135,12 @@ export function UserResetPasswordDialog({
               name='password'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>密码</FormLabel>
+                  <FormLabel className='col-span-2 text-right'>
+                    <Trans>密码</Trans>
+                  </FormLabel>
                   <FormControl>
                     <PasswordInput
-                      placeholder='请输入密码'
+                      placeholder={t`请输入密码`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -145,11 +157,11 @@ export function UserResetPasswordDialog({
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                   <FormLabel className='col-span-2 text-right'>
-                    确认密码
+                    <Trans>确认密码</Trans>
                   </FormLabel>
                   <FormControl>
                     <PasswordInput
-                      placeholder='请输入确认密码'
+                      placeholder={t`请输入确认密码`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -167,10 +179,14 @@ export function UserResetPasswordDialog({
             {isPending ? (
               <>
                 <IconLoader3 className='animate-spin' />
-                <span>保存中...</span>
+                <span>
+                  <Trans>保存中</Trans>...
+                </span>
               </>
             ) : (
-              <span>保存</span>
+              <span>
+                <Trans>保存</Trans>
+              </span>
             )}
           </Button>
         </DialogFooter>

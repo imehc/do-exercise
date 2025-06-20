@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { UserAuthForm } from './components/user-auth-form'
 
 export default function SignIn() {
@@ -18,7 +19,7 @@ export default function SignIn() {
           >
             <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
           </svg>
-          Shadcn Admin
+          <Trans>敷了管理系统</Trans>
         </div>
 
         <img
@@ -32,9 +33,7 @@ export default function SignIn() {
         <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
-              &ldquo;This template has saved me countless hours of work and
-              helped me deliver stunning designs to my clients faster than ever
-              before.&rdquo;
+              &ldquo;<Trans>用于学习基本的权限管理系统及流程</Trans>&rdquo;
             </p>
             <footer className='text-sm'>John Doe</footer>
           </blockquote>
@@ -43,29 +42,35 @@ export default function SignIn() {
       <div className='lg:p-8'>
         <div className='mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px]'>
           <div className='flex flex-col space-y-2 text-left'>
-            <h1 className='text-2xl font-semibold tracking-tight'>Login</h1>
+            <h1 className='text-2xl font-semibold tracking-tight'>
+              <Trans>登录</Trans>
+            </h1>
             <p className='text-muted-foreground text-sm'>
-              Enter your username and password below <br />
-              to log into your account
+              <Trans>
+                要登录您的账户
+                <br />
+                请输入您的用户名和密码
+              </Trans>
             </p>
           </div>
           <UserAuthForm />
           <p className='text-muted-foreground px-8 text-center text-sm'>
-            By clicking login, you agree to our{' '}
-            <a
-              href='/terms'
-              className='hover:text-primary underline underline-offset-4'
-            >
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a
-              href='/privacy'
-              className='hover:text-primary underline underline-offset-4'
-            >
-              Privacy Policy
-            </a>
-            .
+            <Trans>
+              通过点击登录，代表您同意我们的{' '}
+              <a
+                href='/terms'
+                className='hover:text-primary underline underline-offset-4'
+              >
+                服务条款
+              </a>{' '}
+              和{' '}
+              <a
+                href='/privacy'
+                className='hover:text-primary underline underline-offset-4'
+              >
+                隐私政策
+              </a>
+            </Trans>
           </p>
         </div>
       </div>

@@ -76,6 +76,7 @@ func (s *SysApiApi) GetList(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.Success(ctx, data)
 }
@@ -89,6 +90,7 @@ func (s *SysApiApi) GetAll(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.Success(ctx, data)
 }
@@ -102,6 +104,7 @@ func (s *SysApiApi) GetGroupType(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.Success(ctx, data)
 }

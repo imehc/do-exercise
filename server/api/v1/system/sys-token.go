@@ -20,6 +20,7 @@ func (s *SysTokenApi) FindAll(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.Success(ctx, data)
 }
@@ -40,6 +41,7 @@ func (s *SysTokenApi) Delete(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.NoContent(ctx)
 }
@@ -60,6 +62,7 @@ func (s *SysTokenApi) ModityStatus(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.NoContent(ctx)
 }

@@ -106,6 +106,7 @@ func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	baseConf := util.Token{
 		ExpireTime: accessExpire,
@@ -223,6 +224,7 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 
 	user, err := userService.FindUserByEmail(req.Email)

@@ -113,6 +113,7 @@ func (s *SysMenuApi) GetTree(ctx *gin.Context) {
 			Type:    status.BAD_REQUEST_MSG,
 			Message: global.I18.Translate(err.Error(), lang),
 		})
+		return
 	}
 	response.Success(ctx, tree)
 }

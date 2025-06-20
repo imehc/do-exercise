@@ -6,6 +6,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
 } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { Pagination } from '~/do-exercise-api'
 import { Button } from '~/components/ui/button'
 import {
@@ -41,13 +42,21 @@ export function DataTablePagination<TData>({
       style={{ overflowClipMargin: 1 }}
     >
       <div className='text-muted-foreground hidden flex-1 text-sm sm:block'>
-        {table.getFilteredSelectedRowModel().rows.length} of{' '}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        <Trans>
+          已选
+          {table.getFilteredSelectedRowModel().rows.length}条,共
+          {table.getFilteredRowModel().rows.length} 条
+        </Trans>
+        <span className='ml-2'>
+          <Trans>总共 {total} 条</Trans>
+        </span>
       </div>
       <div className='flex items-center sm:space-x-6 lg:space-x-8'>
-        <div className='text-muted-foreground text-sm'>Total: {total}</div>
+        <div className='text-muted-foreground text-sm'></div>
         <div className='flex items-center space-x-2'>
-          <p className='hidden text-sm font-medium sm:block'>Rows per page</p>
+          <p className='hidden text-sm font-medium sm:block'>
+            <Trans>每页条数</Trans>
+          </p>
           <Select
             value={pageSize + ''}
             onValueChange={(value) => {
@@ -76,9 +85,11 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className='flex w-[100px] items-center justify-center text-sm font-medium'>
-          Page {table.getState().pagination.pageIndex + 1} of{' '}
-          {table.getPageCount()}
+        <div className='inline-flex items-center justify-center text-sm font-medium'>
+          <Trans>
+            第 {table.getState().pagination.pageIndex + 1} 页，共
+            {table.getPageCount()}页
+          </Trans>
         </div>
         <div className='flex items-center space-x-2'>
           <Button
@@ -92,7 +103,9 @@ export function DataTablePagination<TData>({
             }}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className='sr-only'>Go to first page</span>
+            <span className='sr-only'>
+              <Trans>第一页</Trans>
+            </span>
             <IconChevronsLeft className='h-4 w-4' />
           </Button>
           <Button
@@ -106,7 +119,9 @@ export function DataTablePagination<TData>({
             }}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className='sr-only'>Go to previous page</span>
+            <span className='sr-only'>
+              <Trans>上一页</Trans>
+            </span>
             <IconChevronLeft className='h-4 w-4' />
           </Button>
           <Button
@@ -125,7 +140,9 @@ export function DataTablePagination<TData>({
             }}
             disabled={!table.getCanNextPage()}
           >
-            <span className='sr-only'>Go to next page</span>
+            <span className='sr-only'>
+              <Trans>下一页</Trans>
+            </span>
             <IconChevronRight className='h-4 w-4' />
           </Button>
           <Button
@@ -144,7 +161,9 @@ export function DataTablePagination<TData>({
             }}
             disabled={!table.getCanNextPage()}
           >
-            <span className='sr-only'>Go to last page</span>
+            <span className='sr-only'>
+              <Trans>最后一页</Trans>
+            </span>
             <IconChevronsRight className='h-4 w-4' />
           </Button>
         </div>

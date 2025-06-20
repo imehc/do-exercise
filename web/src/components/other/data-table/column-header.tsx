@@ -5,6 +5,7 @@ import {
   IconSelector,
   IconEyeOff,
 } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import {
@@ -52,18 +53,18 @@ export function DataTableColumnHeader<TData, TValue>({
         <DropdownMenuContent align='start'>
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
             <IconArrowUp className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
-            Asc
+            <Trans>升序</Trans>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
             <IconArrowDown className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
-            Desc
+            <Trans>降序</Trans>
           </DropdownMenuItem>
           {column.getCanHide() && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
                 <IconEyeOff className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
-                Hide
+                <Trans>隐藏</Trans>
               </DropdownMenuItem>
             </>
           )}

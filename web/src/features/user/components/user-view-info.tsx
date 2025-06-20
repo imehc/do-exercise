@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { IconMessage } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { SystemUserApi, SysUser } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { useApi } from '~/hooks/use-api'
@@ -43,23 +44,31 @@ export function UserViewInfoDialog({ open, onOpenChange }: Props) {
       <DrawerContent className='max-h-[85vh]'>
         <DrawerHeader className='text-left'>
           <DrawerTitle className='flex items-center gap-2'>
-            <IconMessage /> 用户详情
+            <IconMessage /> <Trans>用户详情</Trans>
           </DrawerTitle>
-          <DrawerDescription>查看用户详细信息。</DrawerDescription>
+          <DrawerDescription>
+            <Trans>查看用户详细信息。</Trans>
+          </DrawerDescription>
         </DrawerHeader>
 
         <StatusRenderer isLoading={isLoadingUser} data={data}>
           {(user) => (
             <div className='grid gap-6 overflow-y-auto px-4'>
               <div className='space-y-3'>
-                <h4 className='text-lg font-medium'>基本信息</h4>
+                <h4 className='text-lg font-medium'>
+                  <Trans>基本信息</Trans>
+                </h4>
                 <div className='grid gap-3 text-sm'>
                   <div className='grid grid-cols-3 items-center gap-4'>
-                    <div className='font-medium'>用户名</div>
+                    <div className='font-medium'>
+                      <Trans>用户名</Trans>
+                    </div>
                     <div className='col-span-2'>{user.username}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
-                    <div className='font-medium'>头像</div>
+                    <div className='font-medium'>
+                      <Trans>头像</Trans>
+                    </div>
                     <div className='col-span-2'>
                       {
                         // TODO: 根据前缀判断是否需要拼接完整的图片地址
@@ -80,15 +89,21 @@ export function UserViewInfoDialog({ open, onOpenChange }: Props) {
                     </div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
-                    <div className='font-medium'>昵称</div>
+                    <div className='font-medium'>
+                      <Trans>昵称</Trans>
+                    </div>
                     <div className='col-span-2'>{user.nickname}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
-                    <div className='font-medium'>邮箱</div>
+                    <div className='font-medium'>
+                      <Trans>邮箱</Trans>
+                    </div>
                     <div className='col-span-2'>{user.email || '-'}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
-                    <div className='font-medium'>关联角色</div>
+                    <div className='font-medium'>
+                      <Trans>关联角色</Trans>
+                    </div>
                     <div className='col-span-2'>
                       {user.roles.map((role) => (
                         <Badge key={role.id} className='mr-2 last-of-type:mr-0'>
@@ -105,7 +120,9 @@ export function UserViewInfoDialog({ open, onOpenChange }: Props) {
 
         <DrawerFooter className='gap-y-2'>
           <DrawerClose asChild>
-            <Button variant='outline'>关闭</Button>
+            <Button variant='outline'>
+              <Trans>关闭</Trans>
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

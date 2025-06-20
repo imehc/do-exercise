@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { Trans } from '@lingui/react/macro'
 import {
   Card,
   CardContent,
@@ -16,11 +17,14 @@ export default function Otp() {
       <Card className='gap-4'>
         <CardHeader>
           <CardTitle className='text-base tracking-tight'>
-            Two-factor Authentication
+            <Trans>双因素认证</Trans>
           </CardTitle>
           <CardDescription>
-            Please enter the authentication code. <br /> We have sent the
-            authentication code to your email.
+            <Trans>
+              请输入身份验证代码。
+              <br />
+              我们已经发送了 验证码到您的电子邮件。
+            </Trans>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -38,12 +42,12 @@ export default function Otp() {
             .
           </p> */}
           <p className='text-muted-foreground px-8 text-center text-sm'>
-            Prefer using a password?{' '}
+            <Trans>更喜欢使用密码？</Trans>{' '}
             <Link
               to='/sign-in'
               className='hover:text-primary underline underline-offset-4'
             >
-              Sign in with password
+              <Trans>密码登录</Trans>
             </Link>
             .
           </p>

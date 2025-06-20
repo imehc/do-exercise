@@ -27,3 +27,5 @@ dist-ssr
 
 src/do-exercise-api
 routeTree.gen.ts
+stats.html
+**/messages.ts

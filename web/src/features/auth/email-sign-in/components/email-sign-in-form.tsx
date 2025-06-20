@@ -4,9 +4,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { i18n } from '@lingui/core'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { AuthApi, GetForgetPasswordCodeRequest } from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
 import { useApi } from '~/hooks/use-api'
+import { useChan } from '~/hooks/use-chan'
 import { Button } from '~/components/ui/button'
 import {
   Form,
@@ -20,19 +24,24 @@ import { Input } from '~/components/ui/input'
 
 type ForgotFormProps = HTMLAttributes<HTMLFormElement>
 
-const formSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: 'Please enter your email' })
-    .email({ message: 'Invalid email address' }),
-})
+const getFormSchema = () =>
+  z.object({
+    email: z
+      .string()
+      .min(1, { message: t`请输入您的邮箱` })
+      .email({ message: t`邮箱无效` }),
+  })
+
+type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>
 
 export function EmailSignInForm({ className, ...props }: ForgotFormProps) {
   const navigate = useNavigate()
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { email: '' },
-  })
+  const form = useChan(
+    useForm<FormSchemaValues>({
+      resolver: zodResolver(getFormSchema()),
+      defaultValues: { email: '' },
+    })
+  )
 
   const authApi = useApi(AuthApi)
   const { mutate: getForgetPasswordCode, isPending } = useMutation({
@@ -48,7 +57,7 @@ export function EmailSignInForm({ className, ...props }: ForgotFormProps) {
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  function onSubmit(data: FormSchemaValues) {
     getForgetPasswordCode(data)
   }
 
@@ -64,16 +73,18 @@ export function EmailSignInForm({ className, ...props }: ForgotFormProps) {
           name='email'
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>
+                <Trans>邮箱</Trans>
+              </FormLabel>
               <FormControl>
-                <Input placeholder='email' {...field} />
+                <Input placeholder={i18n._(t`请输入邮箱`)} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button className='mt-2' disabled={isPending}>
-          Continue
+          <Trans>继续</Trans>
         </Button>
       </form>
     </Form>

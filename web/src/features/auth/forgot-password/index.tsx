@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { Trans } from '@lingui/react/macro'
 import { ForgotPasswordForm } from './components/forgot-password-form'
 
 export default function ForgotPassword() {
@@ -19,7 +20,7 @@ export default function ForgotPassword() {
           >
             <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
           </svg>
-          Shadcn Admin
+          <Trans>敷了管理系统</Trans>
         </div>
 
         <img
@@ -33,11 +34,11 @@ export default function ForgotPassword() {
         <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
-              &ldquo;This template has saved me countless hours of work and
-              helped me deliver stunning designs to my clients faster than ever
-              before.&rdquo;
+              &ldquo;<Trans>用于学习基本的权限管理系统及流程</Trans>&rdquo;
             </p>
-            <footer className='text-sm'>John Doe</footer>
+            <footer className='text-sm'>
+              <Trans>Imehc</Trans>
+            </footer>
           </blockquote>
         </div>
       </div>
@@ -45,11 +46,10 @@ export default function ForgotPassword() {
         <div className='mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px]'>
           <div className='flex flex-col space-y-2 text-left'>
             <h1 className='text-2xl font-semibold tracking-tight'>
-              Forgot Password
+              <Trans>忘记密码</Trans>
             </h1>
             <p className='text-muted-foreground text-sm'>
-              Enter your registered email and <br /> we will send you a link to
-              reset your password.
+              输入您的注册电子邮件地址，我们将向您的电子邮件发送重置验证码。
             </p>
           </div>
           <ForgotPasswordForm />
@@ -58,7 +58,7 @@ export default function ForgotPassword() {
               to='/sign-in'
               className='hover:text-primary underline underline-offset-4'
             >
-              Sign in
+              <Trans>登录</Trans>
             </Link>
           </p>
         </div>

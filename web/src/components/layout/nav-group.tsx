@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import * as icons from '@tabler/icons-react'
-import { Icon } from '@tabler/icons-react'
+import { type Icon } from '@tabler/icons-react'
 import {
   Collapsible,
   CollapsibleContent,

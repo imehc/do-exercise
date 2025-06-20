@@ -1,99 +1,92 @@
-import { format } from 'date-fns'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, CellContext } from '@tanstack/react-table'
+import { t } from '@lingui/core/macro'
+import { useAtomValue } from 'jotai'
+import { languageAtom } from '~/atoms'
 import { SysUser } from '~/do-exercise-api'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
-import { DataTableColumnHeader, DataTableRowActions } from '~/components/other'
+import { DataTableRowActions } from '~/components/other'
+import {
+  createColumn,
+  createDateColumn,
+  createActionColumn,
+} from '~/components/other/data-table/column-utils'
 import { ResetPassword } from './user-reset-password-dialog'
 
-export const columns: ColumnDef<SysUser>[] = [
-  {
-    accessorKey: 'id',
-    header: '序号',
-    cell: ({ row, table }) => {
-      const pagination = table.getState().pagination
-      return (
-        (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) + row.index + 1
-      )
+const columnTitleMap = {
+  id: (): string => t`序号`,
+  username: (): string => t`用户名`,
+  nickname: (): string => t`昵称`,
+  email: (): string => t`邮箱`,
+  avatar: (): string => t`头像`,
+  createdAt: (): string => t`创建时间`,
+  updatedAt: (): string => t`更新时间`,
+}
+
+export const getColumnTitle = (columnId: string): string =>
+  columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
+
+export const useColumns = (): ColumnDef<SysUser>[] => {
+  useAtomValue(languageAtom)
+  return [
+    {
+      accessorKey: 'id',
+      header: () => columnTitleMap.id(),
+      cell: ({ row, table }) => {
+        const pagination = table.getState().pagination
+        return (
+          (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
+          row.index +
+          1
+        )
+      },
     },
-  },
-  {
-    accessorKey: 'username',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='用户名' />
-    ),
-    cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.original.username}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'nickname',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='昵称' />
-    ),
-    cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.original.nickname || '-'}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'email',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='邮箱' />
-    ),
-    cell: ({ row }) => (
-      <div className='w-fit text-nowrap'>{row.original.email || '-'}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'avatar',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='头像' />
-    ),
-    cell: ({ row }) => {
-      const avatar = row.original.avatar
-      if (!avatar) {
-        return '-'
-      }
-      // TODO: 根据前缀判断是否需要拼接完整的图片地址
-      return (
-        <div className='w-fit text-nowrap'>
-          <Avatar>
-            <AvatarImage src={avatar} alt={row.original.username} />
-            <AvatarFallback>{row.original.username.slice(0, 2)}</AvatarFallback>
-          </Avatar>
-        </div>
-      )
-    },
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'createdAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='创建时间' />
-    ),
-    cell: ({ row }) => (
-      <div>{format(row.original.createdAt, 'yyyy-MM-dd HH:mm:ss')}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'updatedAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='更新时间' />
-    ),
-    cell: ({ row }) => (
-      <div>{format(row.original.updatedAt, 'yyyy-MM-dd HH:mm:ss')}</div>
-    ),
-    enableSorting: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => (
+    createColumn<SysUser>({
+      key: 'username',
+      title: columnTitleMap.username,
+      cell: ({ row }: CellContext<SysUser, unknown>) => (
+        <div className='w-fit text-nowrap'>{row.original.username}</div>
+      ),
+    }),
+    createColumn<SysUser>({
+      key: 'nickname',
+      title: columnTitleMap.nickname,
+      cell: ({ row }: CellContext<SysUser, unknown>) => (
+        <div className='w-fit text-nowrap'>{row.original.nickname || '-'}</div>
+      ),
+    }),
+    createColumn<SysUser>({
+      key: 'email',
+      title: columnTitleMap.email,
+      cell: ({ row }: CellContext<SysUser, unknown>) => (
+        <div className='w-fit text-nowrap'>{row.original.email || '-'}</div>
+      ),
+    }),
+    createColumn<SysUser>({
+      key: 'avatar',
+      title: columnTitleMap.avatar,
+      cell: ({ row }: CellContext<SysUser, unknown>) => {
+        const avatar = row.original.avatar
+        if (!avatar) {
+          return '-'
+        }
+        return (
+          <div className='w-fit text-nowrap'>
+            <Avatar>
+              <AvatarImage src={avatar} alt={row.original.username} />
+              <AvatarFallback>
+                {row.original.username.slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        )
+      },
+    }),
+    createDateColumn<SysUser>('createdAt', columnTitleMap.createdAt),
+    createDateColumn<SysUser>('updatedAt', columnTitleMap.updatedAt),
+    createActionColumn<SysUser>(({ row }) => (
       <DataTableRowActions row={row} showEdit showDelete showInfo>
         {(user) => <ResetPassword currentRow={user} />}
       </DataTableRowActions>
-    ),
-  },
-]
+    )),
+  ]
+}

@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { Trans } from '@lingui/react/macro'
 import {
   Card,
   CardContent,
@@ -16,26 +17,26 @@ export default function EmailSignIn() {
       <Card className='gap-4'>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
-            Sign in with Email
+            <Trans>使用邮箱登录</Trans>
           </CardTitle>
           <CardDescription>
-            Enter your email address and we’ll send you a login link to access
-            your account.
+            <Trans>
+              请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。
+            </Trans>
           </CardDescription>
         </CardHeader>
         <CardContent>
           <EmailSignInForm />
         </CardContent>
-        <CardFooter>
+        <CardFooter className='justify-center'>
           <p className='text-muted-foreground px-8 text-center text-sm'>
-            Prefer using a password?{' '}
+            <Trans>更喜欢使用密码？</Trans>
             <Link
               to='/sign-in'
               className='hover:text-primary underline underline-offset-4'
             >
-              Sign in with password
+              <Trans>使用密码登录</Trans>
             </Link>
-            .
           </p>
         </CardFooter>
       </Card>

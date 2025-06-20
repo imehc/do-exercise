@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { IconAlertTriangle } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { DeleteUserRequest, SystemUserApi, SysUser } from '~/do-exercise-api'
 import { useApi } from '~/hooks/use-api'
-import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
 import { ConfirmDialog } from '~/components/confirm-dialog'
+import { ConfirmTip } from '~/components/other/confirm-tip'
 
 interface Props {
   open: boolean
@@ -22,7 +22,7 @@ export function UserDeleteDialog({ open, onOpenChange, currentRow }: Props) {
   const { isPending, mutate: handleDel } = useMutation({
     mutationFn: (values: DeleteUserRequest) => systemUserApi.deleteUser(values),
     onSuccess: () => {
-      toast.success('删除成功')
+      toast.success(t`删除成功`)
       onOpenChange(false, true)
     },
   })
@@ -31,7 +31,7 @@ export function UserDeleteDialog({ open, onOpenChange, currentRow }: Props) {
 
   const handleDelete = () => {
     if (value.trim() !== currentRow.username) return
-    handleDel({ id: currentRow.id  })
+    handleDel({ id: currentRow.id })
   }
 
   return (
@@ -47,35 +47,16 @@ export function UserDeleteDialog({ open, onOpenChange, currentRow }: Props) {
             className='stroke-destructive mr-1 inline-block'
             size={18}
           />
-          Delete User
+          <Trans>删除用户</Trans>
         </span>
       }
       desc={
-        <div className='space-y-4'>
-          <p className='mb-2'>
-            Are you sure you want to delete the user
-            <span className='font-bold'>{currentRow.username}</span>?
-            <br />
-            This action will permanently remove the user and its related items
-            from the system. This cannot be undone.
-          </p>
-
-          <Label className='my-2'>
-            User name:
-            <Input
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter user name to confirm deletion.'
-            />
-          </Label>
-
-          <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
-            <AlertDescription>
-              Please be careful, this operation cannot be undone.
-            </AlertDescription>
-          </Alert>
-        </div>
+        <ConfirmTip
+          text={<Trans>用户</Trans>}
+          title={currentRow.username}
+          value={value}
+          onChange={setValue}
+        />
       }
       confirmText='Delete'
       destructive

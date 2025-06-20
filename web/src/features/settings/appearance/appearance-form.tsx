@@ -3,10 +3,13 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { fonts } from '~/config/fonts'
 import { useFont } from '~/provider/font'
 import { useTheme } from '~/provider/theme'
+import { useChan } from '~/hooks/use-chan'
 import { Button } from '~/components/ui/button'
 import {
   Form,
@@ -20,17 +23,18 @@ import {
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { SelectDropdown } from '~/components/select-dropdown'
 
-const appearanceFormSchema = z.object({
-  theme: z.enum(['light', 'dark'], {
-    required_error: 'Please select a theme.',
-  }),
-  font: z.enum(fonts, {
-    invalid_type_error: 'Select a font',
-    required_error: 'Please select a font.',
-  }),
-})
+const getAppearanceFormSchema = () =>
+  z.object({
+    theme: z.enum(['light', 'dark'], {
+      required_error: t`请选择一个主题`,
+    }),
+    font: z.enum(fonts, {
+      invalid_type_error: t`选择一种字体`,
+      required_error: t`请选择一种字体`,
+    }),
+  })
 
-type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
+type AppearanceFormValues = z.infer<ReturnType<typeof getAppearanceFormSchema>>
 
 export function AppearanceForm() {
   const { font, setFont } = useFont()
@@ -43,17 +47,19 @@ export function AppearanceForm() {
     font,
   }
 
-  const form = useForm<AppearanceFormValues>({
-    resolver: zodResolver(appearanceFormSchema),
-    defaultValues,
-  })
+  const form = useChan(
+    useForm<AppearanceFormValues>({
+      resolver: zodResolver(getAppearanceFormSchema()),
+      defaultValues,
+    })
+  )
 
   function onSubmit(data: AppearanceFormValues) {
     setLoading(true)
     if (data.font != font) setFont(data.font)
     if (data.theme != theme) setTheme(data.theme)
     setLoading(false)
-    toast.success('Successfully updated appearance settings.')
+    toast.success(t`已成功更新外观设置`)
     // showSubmittedData(data)
   }
 
@@ -65,7 +71,9 @@ export function AppearanceForm() {
           name='font'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Font</FormLabel>
+              <FormLabel>
+                <Trans>字体</Trans>
+              </FormLabel>
               <FormControl>
                 <SelectDropdown
                   defaultValue={field.value ?? ''}
@@ -81,7 +89,7 @@ export function AppearanceForm() {
                 />
               </FormControl>
               <FormDescription className='font-manrope'>
-                Set the font you want to use in the dashboard.
+                <Trans>设定您想要在系统中使用的字体。</Trans>
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -92,9 +100,11 @@ export function AppearanceForm() {
           name='theme'
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>Theme</FormLabel>
+              <FormLabel>
+                <Trans>主题</Trans>
+              </FormLabel>
               <FormDescription>
-                Select the theme for the dashboard.
+                <Trans>选择您想要在系统中使用的主题。</Trans>
               </FormDescription>
               <FormMessage />
               <RadioGroup
@@ -124,7 +134,7 @@ export function AppearanceForm() {
                       </div>
                     </div>
                     <span className='block w-full p-2 text-center font-normal'>
-                      Light
+                      <Trans>浅色模式</Trans>
                     </span>
                   </FormLabel>
                 </FormItem>
@@ -150,7 +160,7 @@ export function AppearanceForm() {
                       </div>
                     </div>
                     <span className='block w-full p-2 text-center font-normal'>
-                      Dark
+                      <Trans>深色模式</Trans>
                     </span>
                   </FormLabel>
                 </FormItem>
@@ -163,10 +173,14 @@ export function AppearanceForm() {
           {loading ? (
             <>
               <IconLoader3 className='animate-spin' />
-              <span>保存中...</span>
+              <span>
+                <Trans>保存中</Trans>...
+              </span>
             </>
           ) : (
-            <span>保存</span>
+            <span>
+              <Trans>保存</Trans>
+            </span>
           )}
         </Button>
       </form>

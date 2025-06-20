@@ -5,12 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { IconLoader3, IconMail } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { originTokenAtom } from '~/atoms'
 import { AuthApi, LoginRequest } from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
 import { encryptPassword } from '~/utils/encrypt'
 import { useApi } from '~/hooks/use-api'
+import { useChan } from '~/hooks/use-chan'
 import { usePublicKey } from '~/hooks/use-public-key'
 import { Button } from '~/components/ui/button'
 import {
@@ -24,8 +27,8 @@ import {
 import { Input } from '~/components/ui/input'
 import { PasswordInput } from '~/components/password-input'
 import {
+  getSignInActionSchema,
   SignInActionFormValues,
-  signInActionSchema,
 } from '../schemas/action-schema'
 
 type UserAuthFormProps = HTMLAttributes<HTMLFormElement>
@@ -35,16 +38,18 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const setToken = useSetAtom(originTokenAtom)
   const navigate = useNavigate()
 
-  const form = useForm<SignInActionFormValues>({
-    resolver: zodResolver(signInActionSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-      captchaId: '',
-      captcha: '',
-      publicKey: '',
-    },
-  })
+  const form = useChan(
+    useForm<SignInActionFormValues>({
+      resolver: zodResolver(getSignInActionSchema()),
+      defaultValues: {
+        username: '',
+        password: '',
+        captchaId: '',
+        captcha: '',
+        publicKey: '',
+      },
+    })
+  )
 
   const {
     data: publicKeyData,
@@ -124,9 +129,11 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           name='username'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>用户名</FormLabel>
+              <FormLabel>
+                <Trans>用户名</Trans>
+              </FormLabel>
               <FormControl>
-                <Input placeholder='用户名' {...field} />
+                <Input placeholder={t`请输入用户名`} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -137,16 +144,18 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           name='password'
           render={({ field }) => (
             <FormItem className='relative'>
-              <FormLabel>密码</FormLabel>
+              <FormLabel>
+                <Trans>密码</Trans>
+              </FormLabel>
               <FormControl>
-                <PasswordInput placeholder='********' {...field} />
+                <PasswordInput placeholder={t`请输入密码`} {...field} />
               </FormControl>
               <FormMessage />
               <Link
                 to='/forgot-password'
                 className='text-muted-foreground absolute -top-0.5 right-0 text-sm font-medium hover:opacity-75'
               >
-                忘记密码?
+                <Trans>忘记密码?</Trans>
               </Link>
             </FormItem>
           )}
@@ -156,12 +165,14 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           name='captcha'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>验证码</FormLabel>
+              <FormLabel>
+                <Trans>验证码</Trans>
+              </FormLabel>
               <FormControl>
                 <div className='flex w-full items-center justify-between gap-x-4'>
                   <Input
                     disabled={isPending}
-                    placeholder='Capthca'
+                    placeholder={t`验证码`}
                     {...field}
                   />
                   <div className='relative aspect-[3/1] h-9 overflow-hidden rounded-md border border-solid border-[var(--input)]'>
@@ -189,10 +200,14 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           {loginIsPending ? (
             <>
               <IconLoader3 className='animate-spin' />
-              <span>登录中...</span>
+              <span>
+                <Trans>登录</Trans>...
+              </span>
             </>
           ) : (
-            <span>登录</span>
+            <span>
+              <Trans>登录</Trans>
+            </span>
           )}
         </Button>
 
@@ -201,9 +216,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             <span className='w-full border-t' />
           </div>
           <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background text-muted-foreground px-2'>
-              Or continue with
-            </span>
+            <span className='bg-background text-muted-foreground px-2'>或</span>
           </div>
         </div>
 
@@ -215,7 +228,9 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               disabled={isPending}
               className='w-full'
             >
-              <IconMail className='h-4 w-4' /> Email
+              <IconMail className='h-4 w-4' />
+              <Trans>邮箱</Trans>
+              <Trans>登录</Trans>
             </Button>
           </Link>
           {/* <Button variant='outline' type='button' disabled={isLoading}>

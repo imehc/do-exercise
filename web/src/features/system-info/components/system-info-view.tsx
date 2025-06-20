@@ -1,4 +1,5 @@
 import React from 'react'
+import { Trans } from '@lingui/react/macro'
 import { SysInfo } from '~/do-exercise-api'
 import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
 import { Progress } from '~/components/ui/progress'
@@ -14,8 +15,8 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
 
   // CPU数据转换
   const cpuData = sysData.cpu.cpus.map((usage, index) => ({
-    name: `核心 ${index + 1}`,
-    使用率: usage,
+    index: index + 1,
+    usageRate: usage,
   }))
 
   return (
@@ -23,27 +24,39 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
       {/* 操作系统信息卡片 */}
       <Card className='bg-background col-span-full rounded-lg shadow-sm'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-lg font-medium'>系统概览</CardTitle>
+          <CardTitle className='text-lg font-medium'>
+            <Trans>系统概览</Trans>
+          </CardTitle>
         </CardHeader>
         <CardContent className='grid grid-cols-2 gap-4 md:grid-cols-5'>
           <div className='space-y-1'>
-            <p className='text-muted-foreground text-sm'>操作系统</p>
+            <p className='text-muted-foreground text-sm'>
+              <Trans>操作系统</Trans>
+            </p>
             <p className='font-medium'>{sysData.os.goos}</p>
           </div>
           <div className='space-y-1'>
-            <p className='text-muted-foreground text-sm'>Go版本</p>
+            <p className='text-muted-foreground text-sm'>
+              <Trans>Go版本</Trans>
+            </p>
             <p className='font-medium'>{sysData.os.goVersion}</p>
           </div>
           <div className='space-y-1'>
-            <p className='text-muted-foreground text-sm'>协程数</p>
+            <p className='text-muted-foreground text-sm'>
+              <Trans>协程数</Trans>
+            </p>
             <p className='font-medium'>{sysData.os.numGoroutine}</p>
           </div>
           <div className='space-y-1'>
-            <p className='text-muted-foreground text-sm'>编译器</p>
+            <p className='text-muted-foreground text-sm'>
+              <Trans>编译器</Trans>
+            </p>
             <p className='font-medium'>{sysData.os.compiler}</p>
           </div>
           <div className='space-y-1'>
-            <p className='text-muted-foreground text-sm'>CPU核心</p>
+            <p className='text-muted-foreground text-sm'>
+              <Trans>CPU核心</Trans>
+            </p>
             <p className='font-medium'>{sysData.cpu.cores}</p>
           </div>
         </CardContent>
@@ -52,16 +65,22 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
       {/* CPU使用率卡片 */}
       <Card className='bg-background col-span-full rounded-lg shadow-sm md:col-span-1'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-lg font-medium'>CPU使用率</CardTitle>
+          <CardTitle className='text-lg font-medium'>
+            <Trans>CPU使用率</Trans>
+          </CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
           {cpuData.map((core) => (
-            <div key={core.name} className='space-y-2'>
+            <div key={core.index} className='space-y-2'>
               <div className='flex justify-between text-sm'>
-                <span className='text-muted-foreground'>{core.name}</span>
-                <span className='font-medium'>{core.使用率.toFixed(1)}%</span>
+                <span className='text-muted-foreground'>
+                  <Trans>核心 {core.index}</Trans>
+                </span>
+                <span className='font-medium'>
+                  {core.usageRate.toFixed(1)}%
+                </span>
               </div>
-              <Progress value={core.使用率} className='h-2' />
+              <Progress value={core.usageRate} className='h-2' />
             </div>
           ))}
         </CardContent>
@@ -70,20 +89,28 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
       {/* 内存使用情况卡片 */}
       <Card className='bg-background col-span-full rounded-lg shadow-sm md:col-span-1'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-lg font-medium'>内存使用情况</CardTitle>
+          <CardTitle className='text-lg font-medium'>
+            <Trans>内存使用情况</Trans>
+          </CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='space-y-2'>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>总内存</span>
+              <span className='text-muted-foreground'>
+                <Trans>总内存</Trans>
+              </span>
               <span className='font-medium'>{sysData.ram.total} MB</span>
             </div>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>已使用</span>
+              <span className='text-muted-foreground'>
+                <Trans>已使用</Trans>
+              </span>
               <span className='font-medium'>{sysData.ram.used} MB</span>
             </div>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>使用率</span>
+              <span className='text-muted-foreground'>
+                <Trans>使用率</Trans>
+              </span>
               <span className='font-medium'>
                 {memoryUsagePercent.toFixed(1)}%
               </span>
@@ -96,7 +123,9 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
       {/* 磁盘使用情况卡片 */}
       <Card className='bg-background col-span-full rounded-lg shadow-sm md:col-span-1'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-lg font-medium'>磁盘使用情况</CardTitle>
+          <CardTitle className='text-lg font-medium'>
+            <Trans>磁盘使用情况</Trans>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className='flex flex-col gap-y-3'>
@@ -105,19 +134,27 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
               return (
                 <div key={disk.mountPoint} className='space-y-2'>
                   <div className='flex justify-between text-sm'>
-                    <span className='text-muted-foreground'>挂载点</span>
+                    <span className='text-muted-foreground'>
+                      <Trans>挂载点</Trans>
+                    </span>
                     <span className='font-medium'>{disk.mountPoint}</span>
                   </div>
                   <div className='flex justify-between text-sm'>
-                    <span className='text-muted-foreground'>总容量</span>
+                    <span className='text-muted-foreground'>
+                      <Trans>总容量</Trans>
+                    </span>
                     <span className='font-medium'>{disk.total} MB</span>
                   </div>
                   <div className='flex justify-between text-sm'>
-                    <span className='text-muted-foreground'>已使用</span>
+                    <span className='text-muted-foreground'>
+                      <Trans>已使用</Trans>
+                    </span>
                     <span className='font-medium'>{disk.used} MB</span>
                   </div>
                   <div className='flex justify-between text-sm'>
-                    <span className='text-muted-foreground'>使用率</span>
+                    <span className='text-muted-foreground'>
+                      <Trans>使用率</Trans>
+                    </span>
                     <span className='font-medium'>
                       {usagePercent.toFixed(1)}%
                     </span>

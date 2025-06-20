@@ -149,9 +149,8 @@ const redirectToLogin = () => {
   router.navigate({ to: '/sign-in', replace: true })
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const redirectToForbidden = () => {
-  requestQueue = [] // 清空队列
-  refreshTokenFlag = false
-  window.location.href = '/403' // 跳转到forbidden页
-}
+// const redirectToForbidden = () => {
+//   requestQueue = [] // 清空队列
+//   refreshTokenFlag = false
+//   window.location.href = '/403' // 跳转到forbidden页
+// }

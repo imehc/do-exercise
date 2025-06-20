@@ -1,11 +1,15 @@
 import { z } from 'zod'
+import { t } from '@lingui/core/macro'
 
-export const profileSchema = z.object({
-  nickname: z
-    .string()
-    .max(10, { message: '昵称长度不能超过10个字符' })
-    .optional(),
-  avatar: z.string().optional(),
-})
+export const getProfileSchema = () =>
+  z.object({
+    nickname: z
+      .string()
+      .max(10, { message: t`昵称长度不能超过10个字符` })
+      .optional(),
+    avatar: z.string().optional(),
+  })
 
-export type ProfileSchemaFormValues = z.infer<typeof profileSchema>
+export type ProfileSchemaFormValues = z.infer<
+  ReturnType<typeof getProfileSchema>
+>

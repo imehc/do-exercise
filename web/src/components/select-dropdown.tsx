@@ -52,8 +52,8 @@ export function SelectDropdown({
             </div>
           </SelectItem>
         ) : items?.length ? (
-          items.map(({ label, value }) => (
-            <SelectItem key={value} value={value}>
+          items.map(({ label, value }, idx) => (
+            <SelectItem key={value + idx} value={value}>
               {label}
             </SelectItem>
           ))

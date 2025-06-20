@@ -1,4 +1,5 @@
 import { IconLoader3 } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { cn } from '~/lib/utils'
 import {
   AlertDialog,
@@ -52,7 +53,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
         {children}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>
-            {cancelBtnText ?? 'Cancel'}
+            {cancelBtnText ?? <Trans>取消</Trans>}
           </AlertDialogCancel>
           <Button
             variant={destructive ? 'destructive' : 'default'}
@@ -60,7 +61,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
             disabled={disabled || isLoading}
           >
             {isLoading && <IconLoader3 className='animate-spin' />}
-            {confirmText ?? 'Continue'}
+            {confirmText ?? <Trans>继续</Trans>}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

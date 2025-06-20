@@ -1,4 +1,5 @@
 import { IconMessage } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { SysOperationLog } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { Button } from '~/components/ui/button'
@@ -31,16 +32,20 @@ export function OperationLogViewResultDialog({ open, onOpenChange }: Props) {
       <DialogContent>
         <DialogHeader className='text-left'>
           <DialogTitle className='flex items-center gap-2'>
-            <IconMessage /> 响应数据
+            <IconMessage /> <Trans>响应数据</Trans>
           </DialogTitle>
-          <DialogDescription>下面是请求返回的响应数据。</DialogDescription>
+          <DialogDescription>
+            <Trans>下面是请求返回的响应数据。</Trans>
+          </DialogDescription>
         </DialogHeader>
 
         <CodeBlock language='json' content={currentRow?.result ?? ''} />
 
         <DialogFooter className='gap-y-2'>
           <DialogClose asChild>
-            <Button variant='outline'>Close</Button>
+            <Button variant='outline'>
+              <Trans>关闭</Trans>
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

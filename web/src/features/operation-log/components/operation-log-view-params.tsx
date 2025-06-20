@@ -1,4 +1,5 @@
 import { IconMessage } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { SysOperationLog } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { Button } from '~/components/ui/button'
@@ -31,10 +32,10 @@ export function OperationLogViewParamsDialog({ open, onOpenChange }: Props) {
       <DialogContent className='sm:max-w-md'>
         <DialogHeader className='text-left'>
           <DialogTitle className='flex items-center gap-2'>
-            <IconMessage /> 请求参数
+            <IconMessage /> <Trans>请求参数</Trans>
           </DialogTitle>
           <DialogDescription>
-            下面是随该请求发送的参数和查询数据。
+            <Trans>下面是随该请求发送的参数和查询数据。</Trans>
           </DialogDescription>
         </DialogHeader>
 
@@ -42,7 +43,9 @@ export function OperationLogViewParamsDialog({ open, onOpenChange }: Props) {
 
         <DialogFooter className='gap-y-2'>
           <DialogClose asChild>
-            <Button variant='outline'>Close</Button>
+            <Button variant='outline'>
+              <Trans>关闭</Trans>
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

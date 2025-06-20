@@ -1,5 +1,6 @@
 import { SwitchThumb } from '@radix-ui/react-switch'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { t } from '@lingui/core/macro'
 import { toast } from 'sonner'
 import {
   ModityTokenStatus,
@@ -51,7 +52,7 @@ export function ToggleDisabledSwitch({
           { modityTokenStatus: { accessToken, disabled: value } },
           {
             onSuccess: () => {
-              toast.success(`令牌已${value ? '禁用' : '启用'}`)
+              toast.success(value ? t`令牌已禁用` : t`令牌已启用`)
             },
             onError: () => {
               // toast.error('切换失败，已恢复原状态')

@@ -1,6 +1,7 @@
 import { IconSearch } from '@tabler/icons-react'
-import { cn } from '~/lib/utils'
+import { Trans } from '@lingui/react/macro'
 import { useSearch } from '~/provider/search'
+import { cn } from '~/lib/utils'
 import { Button } from './ui/button'
 
 interface Props {
@@ -9,8 +10,9 @@ interface Props {
   placeholder?: string
 }
 
-export function Search({ className = '', placeholder = 'Search' }: Props) {
+export function Search({ className = '', placeholder }: Props) {
   const { setOpen } = useSearch()
+
   return (
     <Button
       variant='outline'
@@ -24,7 +26,7 @@ export function Search({ className = '', placeholder = 'Search' }: Props) {
         aria-hidden='true'
         className='absolute top-1/2 left-1.5 -translate-y-1/2'
       />
-      <span className='ml-3'>{placeholder}</span>
+      <span className='ml-3'>{placeholder || <Trans>搜索</Trans>}</span>
       <kbd className='bg-muted pointer-events-none absolute top-[0.3rem] right-[0.3rem] hidden h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none sm:flex'>
         <span className='text-xs'>⌘</span>K
       </kbd>

@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { toast } from 'sonner'
 import { originTokenAtom } from '~/atoms'
@@ -30,27 +32,30 @@ import {
 
 type OtpFormProps = HTMLAttributes<HTMLFormElement>
 
-const formSchema = z.object({
-  code: z.string().min(1, { message: 'Please enter your email code.' }),
-  email: z
-    .string()
-    .min(1, { message: 'Please enter your email' })
-    .email({ message: 'Invalid email address' }),
-})
+const getFormSchema = () =>
+  z.object({
+    code: z.string().min(1, { message: t`请输入邮箱验证码` }),
+    email: z
+      .string()
+      .min(1, { message: t`请输入邮箱` })
+      .email({ message: t`邮箱无效` }),
+  })
+
+type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>
 
 export function OtpForm({ className, ...props }: OtpFormProps) {
   const setToken = useSetAtom(originTokenAtom)
   const navigate = useNavigate()
   const { email } = Route.useSearch()
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormSchemaValues>({
+    resolver: zodResolver(getFormSchema()),
     defaultValues: { code: '', email: '' },
   })
 
   useEffect(() => {
     if (!email?.trim()) {
-      toast.error('email invalid')
+      toast.error(t`邮箱无效`)
       return
     }
     form.setValue('email', email)
@@ -74,7 +79,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  function onSubmit(data: FormSchemaValues) {
     loginWithEmail({ loginWithEmail: data })
   }
 
@@ -90,7 +95,9 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
           name='code'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='sr-only'>One-Time Password</FormLabel>
+              <FormLabel className='sr-only'>
+                <Trans>邮箱验证码</Trans>
+              </FormLabel>
               <FormControl>
                 <InputOTP
                   disabled={isPending}
@@ -122,7 +129,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
           className='mt-2'
           disabled={form.watch('code').length < 6 || isPending}
         >
-          Verify
+          <Trans>验证</Trans>
         </Button>
       </form>
     </Form>

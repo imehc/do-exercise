@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { IconX } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { useDebounce } from '~/hooks/use-debounce'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -16,6 +18,7 @@ export interface DataTableToolbarProps<TData>
     key: keyof TData
     placeholder?: string
   }[]
+  getColumnTitle?: (columnId: string) => string
 }
 
 export function DataTableToolbar<TData>({
@@ -24,6 +27,7 @@ export function DataTableToolbar<TData>({
   search,
   navigate,
   serchOptions,
+  getColumnTitle,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
   // 🔍 保存搜索字段值（服务端模式）由于需要防抖，所以必须在这里临时存放，而不是直接使用search
@@ -81,7 +85,7 @@ export function DataTableToolbar<TData>({
             <Input
               key={option.key as string}
               placeholder={
-                option.placeholder || `Filter ${option.key as string}...`
+                option.placeholder || t`筛选 ${option.key as string}...`
               }
               value={value}
               onChange={(e) => handleInputChange(key, e.target.value)}
@@ -95,12 +99,12 @@ export function DataTableToolbar<TData>({
             onClick={handleReset}
             className='h-8 px-2 lg:px-3'
           >
-            Reset
+            <Trans>重置</Trans>
             <IconX className='ml-2 h-4 w-4' />
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      <DataTableViewOptions table={table} getColumnTitle={getColumnTitle} />
     </div>
   )
 }

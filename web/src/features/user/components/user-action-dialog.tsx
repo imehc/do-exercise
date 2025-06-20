@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import {
   CreateSysUser,
@@ -14,14 +16,13 @@ import {
 } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { useApi } from '~/hooks/use-api'
+import { useChan } from '~/hooks/use-chan'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from '~/components/ui/dialog'
 import {
   Form,
@@ -33,8 +34,9 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { AvatarUpload, MultiSelect, StatusRenderer } from '~/components/other'
+import { DialogHeaderContent } from '~/components/other/dialog-header-content'
 import { PasswordInput } from '~/components/password-input'
-import { ActionSysUserFormValues, schema } from '../schemas/action-schema'
+import { ActionSysUserFormValues, getSchema } from '../schemas/action-schema'
 
 interface Props {
   currentRow?: SysUser
@@ -48,23 +50,25 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   const sysRoleApi = useApi(SystemRoleApi)
 
   const isEdit = useMemo(() => !!currentRow, [currentRow])
-  const form = useForm<ActionSysUserFormValues>({
-    defaultValues: isEdit
-      ? {
-          ...currentRow,
-          isEdit,
-          roleIds: currentRow?.roles?.map((item) => item.id) ?? [],
-        }
-      : {
-          isEdit,
-          username: '',
-          nickname: '',
-          email: '',
-          avatar: '',
-          roleIds: [],
-        },
-    resolver: zodResolver(schema),
-  })
+  const form = useChan(
+    useForm<ActionSysUserFormValues>({
+      defaultValues: isEdit
+        ? {
+            ...currentRow,
+            isEdit,
+            roleIds: currentRow?.roles?.map((item) => item.id) ?? [],
+          }
+        : {
+            isEdit,
+            username: '',
+            nickname: '',
+            email: '',
+            avatar: '',
+            roleIds: [],
+          },
+      resolver: zodResolver(getSchema()),
+    })
+  )
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['findAllRoles'],
@@ -75,7 +79,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
     mutationFn: (values: CreateUserRequest) => sysUserApi.createUser(values),
     onSuccess: () => {
-      toast.success('创建成功')
+      toast.success(t`创建成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -84,7 +88,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   const { isPending: isPendingUpdate, mutate: saveUpdate } = useMutation({
     mutationFn: (values: UpdateUserRequest) => sysUserApi.updateUser(values),
     onSuccess: () => {
-      toast.success('更新成功')
+      toast.success(t`更新成功`)
       form.reset()
       onOpenChange(false, true)
     },
@@ -124,11 +128,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
     >
       <DialogContent className='sm:max-w-2xl'>
         <DialogHeader className='text-left'>
-          <DialogTitle>{isEdit ? '修改用户' : '创建用户'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? '更新用户相关信息。' : '创建用户相关信息。'}
-            完成后点击保存。
-          </DialogDescription>
+          <DialogHeaderContent isEdit={isEdit} text={<Trans>用户</Trans>} />
         </DialogHeader>
         <Form {...form}>
           <form
@@ -142,11 +142,11 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                   <FormLabel className='col-span-2 text-right'>
-                    用户名
+                    <Trans>用户名</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder='请输入用户名'
+                      placeholder={t`请输入用户名`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -163,10 +163,12 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='nickname'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>昵称</FormLabel>
+                  <FormLabel className='col-span-2 text-right'>
+                    <Trans>昵称</Trans>
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder='请输入昵称'
+                      placeholder={t`请输入昵称`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -182,10 +184,12 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='email'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>邮箱</FormLabel>
+                  <FormLabel className='col-span-2 text-right'>
+                    <Trans>邮箱</Trans>
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder='请输入邮箱'
+                      placeholder={t`请输入邮箱`}
                       className='col-span-8'
                       autoComplete='off'
                       {...field}
@@ -201,7 +205,9 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='avatar'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>头像</FormLabel>
+                  <FormLabel className='col-span-2 text-right'>
+                    <Trans>头像</Trans>
+                  </FormLabel>
                   <FormControl>
                     <AvatarUpload
                       // TODO: 根据前缀判断是否需要拼接完整的图片地址
@@ -219,7 +225,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                   <FormLabel className='col-span-2 text-right'>
-                    关联角色
+                    <Trans>关联角色</Trans>
                   </FormLabel>
                   <FormControl>
                     <StatusRenderer
@@ -235,7 +241,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                         }))}
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        placeholder='请选择关联角色'
+                        placeholder={t`请选择关联角色`}
                         variant='inverted'
                       />
                     </StatusRenderer>
@@ -252,11 +258,11 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        密码
+                        <Trans>密码</Trans>
                       </FormLabel>
                       <FormControl>
                         <PasswordInput
-                          placeholder='请输入密码'
+                          placeholder={t`请输入密码`}
                           className='col-span-8'
                           autoComplete='off'
                           {...field}
@@ -273,11 +279,11 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        确认密码
+                        <Trans>确认密码</Trans>
                       </FormLabel>
                       <FormControl>
                         <PasswordInput
-                          placeholder='请输入确认密码'
+                          placeholder={t`请输入确认密码`}
                           className='col-span-8'
                           autoComplete='off'
                           {...field}
@@ -297,10 +303,14 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
             {isPending ? (
               <>
                 <IconLoader3 className='animate-spin' />
-                <span>保存中...</span>
+                <span>
+                  <Trans>保存中</Trans>...
+                </span>
               </>
             ) : (
-              <span>保存</span>
+              <span>
+                <Trans>保存</Trans>
+              </span>
             )}
           </Button>
         </DialogFooter>

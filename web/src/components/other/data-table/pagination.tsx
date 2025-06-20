@@ -36,6 +36,11 @@ export function DataTablePagination<TData>({
     ? table.getPrePaginationRowModel().rows.length
     : (meta?.total ?? 0)
 
+  const selectRow = table.getFilteredSelectedRowModel().rows.length
+  const selectTotalRow = table.getFilteredRowModel().rows.length
+  const currentPage = table.getState().pagination.pageIndex + 1
+  const totalPage = table.getPageCount()
+
   return (
     <div
       className='flex items-center justify-between overflow-clip px-2'
@@ -43,12 +48,10 @@ export function DataTablePagination<TData>({
     >
       <div className='text-muted-foreground hidden flex-1 text-sm sm:block'>
         <Trans>
-          已选
-          {table.getFilteredSelectedRowModel().rows.length}条,共
-          {table.getFilteredRowModel().rows.length} 条
+          已选{selectRow}条,共{selectTotalRow}条
         </Trans>
         <span className='ml-2'>
-          <Trans>总共 {total} 条</Trans>
+          <Trans>总共{total}条</Trans>
         </span>
       </div>
       <div className='flex items-center sm:space-x-6 lg:space-x-8'>
@@ -87,8 +90,7 @@ export function DataTablePagination<TData>({
         </div>
         <div className='inline-flex items-center justify-center text-sm font-medium'>
           <Trans>
-            第 {table.getState().pagination.pageIndex + 1} 页，共
-            {table.getPageCount()}页
+            第{currentPage}页，共{totalPage}页
           </Trans>
         </div>
         <div className='flex items-center space-x-2'>

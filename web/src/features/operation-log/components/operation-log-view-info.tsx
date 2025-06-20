@@ -1,4 +1,3 @@
-import { format } from 'date-fns'
 import { IconMessage } from '@tabler/icons-react'
 import { i18n } from '@lingui/core'
 import { t } from '@lingui/core/macro'

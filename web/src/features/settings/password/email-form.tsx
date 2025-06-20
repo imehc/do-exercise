@@ -2,6 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver as resolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { ModifyPasswordRequest, UserApi } from '~/do-exercise-api'
 import { encryptPassword } from '~/utils/encrypt'
@@ -19,13 +21,13 @@ import {
 } from '~/components/ui/form'
 import { PasswordInput } from '~/components/password-input'
 import {
-  passwordSchema,
+  getPasswordSchema,
   PasswordSchemaFormValues,
 } from './schemas/action-schema'
 
 export default function PasswordForm() {
   const form = useForm<PasswordSchemaFormValues>({
-    resolver: resolver(passwordSchema),
+    resolver: resolver(getPasswordSchema()),
     mode: 'onChange',
   })
 
@@ -41,7 +43,7 @@ export default function PasswordForm() {
       mutationFn: (value: ModifyPasswordRequest) =>
         userApi.modifyPassword(value),
       onSuccess: () => {
-        toast.success(`更改密码成功`)
+        toast.success(t`更改密码成功`)
         refetchPublicKey()
       },
       onError: () => {
@@ -81,13 +83,17 @@ export default function PasswordForm() {
           name='oldPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Old Password</FormLabel>
+              <FormLabel>
+                <Trans>原密码</Trans>
+              </FormLabel>
               <PasswordInput
-                placeholder='old password'
+                placeholder={t`请输入原密码`}
                 {...field}
                 disabled={modifyPasswordIspending}
               />
-              <FormDescription>This is your old password.</FormDescription>
+              <FormDescription>
+                <Trans>这是您之前的设置的密码</Trans>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -98,15 +104,19 @@ export default function PasswordForm() {
           name='password'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>
+                <Trans>新密码</Trans>
+              </FormLabel>
               <FormControl>
                 <PasswordInput
-                  placeholder='password'
+                  placeholder={t`请输入新密码`}
                   {...field}
                   disabled={modifyPasswordIspending}
                 />
               </FormControl>
-              <FormDescription>This is your new password.</FormDescription>
+              <FormDescription>
+                <Trans>这是您设置的新密码</Trans>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -117,15 +127,17 @@ export default function PasswordForm() {
           name='confirmPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>确认密码</FormLabel>
               <FormControl>
                 <PasswordInput
-                  placeholder='confirm password'
+                  placeholder={t`请再次输入您的新密码`}
                   {...field}
                   disabled={modifyPasswordIspending}
                 />
               </FormControl>
-              <FormDescription>Enter your new password again.</FormDescription>
+              <FormDescription>
+                <Trans>这是您设置的新密码</Trans>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -135,10 +147,14 @@ export default function PasswordForm() {
           {modifyPasswordIspending ? (
             <>
               <IconLoader3 className='animate-spin' />
-              <span>更新中...</span>
+              <span>
+                <Trans>保存中</Trans>...
+              </span>
             </>
           ) : (
-            <span>更新</span>
+            <span>
+              <Trans>保存</Trans>
+            </span>
           )}
         </Button>
       </form>

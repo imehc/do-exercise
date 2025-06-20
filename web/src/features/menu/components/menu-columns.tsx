@@ -12,7 +12,11 @@ import {
   createActionColumn,
   createBadgeColumn,
 } from '~/components/other/data-table/column-utils'
-import { getCallMenuMapping, callMenuTypes, callVisibleTypes } from '../data/data'
+import {
+  getCallMenuMapping,
+  callMenuTypes,
+  callVisibleTypes,
+} from '../data/data'
 
 const translations = {
   menuName: (): string => t`菜单名称`,
@@ -88,8 +92,8 @@ export const useColumns = () => {
         const SelectedIcon =
           row.original.icon && row.original.type === MenuType.menu
             ? (icons[
-              (iconPrefix + row.original.icon) as keyof typeof icons
-            ] as Icon)
+                (iconPrefix + row.original.icon) as keyof typeof icons
+              ] as Icon)
             : null
         if (!SelectedIcon) {
           return <div className='w-fit text-nowrap'>-</div>

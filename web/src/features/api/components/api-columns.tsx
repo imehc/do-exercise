@@ -13,6 +13,7 @@ import {
 } from '~/components/other/data-table/column-utils'
 import { callDisabledTypes, callMethodTypes } from '../data/data'
 
+export type Row = { getValue(id: string): string }
 
 const columnTitleMap = {
   id: (): string => t`序号`,
@@ -65,7 +66,7 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
       (value: unknown) => callMethodTypes.get(value as string),
       (value: unknown) => value as string,
       {
-        filterFn: (row: any, id: string, value: any) =>
+        filterFn: (row: Row, id: string, value: Array<string>) =>
           value.includes(row.getValue(id)),
         enableHiding: false,
         enableSorting: true,
@@ -81,7 +82,7 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
       (value: unknown) => callDisabledTypes.get(value as boolean),
       (value: unknown) => (!value ? <Trans>正常</Trans> : <Trans>禁用</Trans>),
       {
-        filterFn: (row: any, id: string, value: any) =>
+        filterFn: (row: Row, id: string, value: Array<string>) =>
           value.includes(row.getValue(id)),
         enableHiding: false,
         enableSorting: false,

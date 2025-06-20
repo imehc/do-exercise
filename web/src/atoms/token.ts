@@ -12,10 +12,10 @@ export const originTokenAtom = atomWithStorage<Token>('tokenAtom', {
 
 const store = createStore()
 store.sub(originTokenAtom, () => {
-  console.log('originTokenAtom change')
+  // console.log('originTokenAtom change')
 })
 store.sub(languageAtom, () => {
-  console.log('languageAtom change')
+  // console.log('languageAtom change')
 })
 
 export { store }

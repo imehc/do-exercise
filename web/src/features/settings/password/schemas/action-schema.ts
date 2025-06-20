@@ -1,27 +1,31 @@
 import { z } from 'zod'
-import { passwordRule } from '~/features/user/schemas/action-schema'
+import { t } from '@lingui/core/macro'
+import { getPasswordRule } from '~/features/user/schemas/action-schema'
 
-export const passwordSchema = z
-  .object({
-    oldPassword: passwordRule,
-    password: passwordRule,
-    confirmPassword: passwordRule,
-  })
-  .superRefine(({ oldPassword, password, confirmPassword }, ctx) => {
-    if (oldPassword.trim() === password.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['password'],
-        message: 'The new password cannot be the same as the old password.',
-      })
-    }
-    if (password.trim() !== confirmPassword.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['confirmPassword'],
-        message: 'The passwords entered twice are inconsistent.',
-      })
-    }
-  })
+export const getPasswordSchema = () =>
+  z
+    .object({
+      oldPassword: getPasswordRule(),
+      password: getPasswordRule(),
+      confirmPassword: getPasswordRule(),
+    })
+    .superRefine(({ oldPassword, password, confirmPassword }, ctx) => {
+      if (oldPassword.trim() === password.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['password'],
+          message: t`新密码不能与旧密码相同`,
+        })
+      }
+      if (password.trim() !== confirmPassword.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['confirmPassword'],
+          message: t`两次输入的密码不一致`,
+        })
+      }
+    })
 
-export type PasswordSchemaFormValues = z.infer<typeof passwordSchema>
+export type PasswordSchemaFormValues = z.infer<
+  ReturnType<typeof getPasswordSchema>
+>

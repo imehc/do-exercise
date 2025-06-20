@@ -64,6 +64,10 @@ function TransferPanel<T extends Item>({
   checkboxId,
   renderLabel,
 }: TransferPanelProps<T>) {
+  const count = useMemo(() => {
+    return countSelected(filteredItems)
+  }, [filteredItems])
+
   return (
     <div
       className={cn(
@@ -130,7 +134,7 @@ function TransferPanel<T extends Item>({
           htmlFor={checkboxId}
           className='text-muted-foreground text-sm font-medium'
         >
-          <Trans>{countSelected(filteredItems)} 项已选</Trans>
+          <Trans>{count} 项已选</Trans>
         </label>
       </div>
       <ul className='h-50 overflow-y-auto border-t p-1'>

@@ -9,7 +9,8 @@ import { languageAtom } from '~/atoms'
  * @returns
  */
 export function useChan<T extends FieldValues = FieldValues>(
-  form: UseFormReturn<T>
+  form: UseFormReturn<T>,
+  noVerification = false
 ): UseFormReturn<T> {
   const locale = useAtomValue(languageAtom)
 
@@ -20,6 +21,7 @@ export function useChan<T extends FieldValues = FieldValues>(
   const isFirst = useRef(true)
 
   useEffect(() => {
+    if (!noVerification) return
     if (isFirst.current) {
       isFirst.current = false
       return
@@ -29,7 +31,7 @@ export function useChan<T extends FieldValues = FieldValues>(
       form.clearErrors()
       form.trigger()
     }
-  }, [locale])
+  }, [form, hasError, locale, noVerification])
 
   return form
 }

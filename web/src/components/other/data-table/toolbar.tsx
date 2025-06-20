@@ -84,9 +84,7 @@ export function DataTableToolbar<TData>({
           return (
             <Input
               key={option.key as string}
-              placeholder={
-                option.placeholder || t`筛选 ${option.key as string}...`
-              }
+              placeholder={option.placeholder || t`筛选 ${key}...`}
               value={value}
               onChange={(e) => handleInputChange(key, e.target.value)}
               className='h-8 w-[150px] lg:w-[250px]'

@@ -1,19 +1,26 @@
 import globals from 'globals'
 import js from '@eslint/js'
 import pluginQuery from '@tanstack/eslint-plugin-query'
+import pluginLingui from 'eslint-plugin-lingui'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
-import pluginLingui from "eslint-plugin-lingui";
 
 export default tseslint.config(
-  { ignores: ['dist', 'src/components/ui'] },
+  {
+    ignores: [
+      'dist',
+      'src/components/ui',
+      'src/do-exercise-api',
+      'src/locales',
+    ],
+  },
   {
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
       ...pluginQuery.configs['flat/recommended'],
-      ...pluginLingui.configs["flat/recommended"],
+      pluginLingui.configs['flat/recommended'],
     ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {

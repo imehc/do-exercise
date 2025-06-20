@@ -70,17 +70,15 @@ export const SysInfoView: React.FC<SystemDashboardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {cpuData.map((core) => (
-            <div key={core.index} className='space-y-2'>
+          {cpuData.map(({ index, usageRate }) => (
+            <div key={index} className='space-y-2'>
               <div className='flex justify-between text-sm'>
                 <span className='text-muted-foreground'>
-                  <Trans>核心 {core.index}</Trans>
+                  <Trans>核心 {index}</Trans>
                 </span>
-                <span className='font-medium'>
-                  {core.usageRate.toFixed(1)}%
-                </span>
+                <span className='font-medium'>{usageRate.toFixed(1)}%</span>
               </div>
-              <Progress value={core.usageRate} className='h-2' />
+              <Progress value={usageRate} className='h-2' />
             </div>
           ))}
         </CardContent>

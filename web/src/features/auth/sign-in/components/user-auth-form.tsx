@@ -3,13 +3,14 @@ import { addSeconds } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { IconLoader3, IconMail } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { originTokenAtom } from '~/atoms'
 import { AuthApi, LoginRequest } from '~/do-exercise-api'
+import { Route } from '~/routes/(auth)/sign-in'
 import { cn } from '~/lib/utils'
 import { encryptPassword } from '~/utils/encrypt'
 import { useApi } from '~/hooks/use-api'
@@ -36,7 +37,7 @@ type UserAuthFormProps = HTMLAttributes<HTMLFormElement>
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const authApi = useApi(AuthApi)
   const setToken = useSetAtom(originTokenAtom)
-  const navigate = useNavigate()
+  const navigate = Route.useNavigate()
 
   const form = useChan(
     useForm<SignInActionFormValues>({

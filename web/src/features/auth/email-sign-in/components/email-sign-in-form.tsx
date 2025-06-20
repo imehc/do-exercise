@@ -3,11 +3,11 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import { i18n } from '@lingui/core'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { AuthApi, GetForgetPasswordCodeRequest } from '~/do-exercise-api'
+import { Route } from '~/routes/(auth)/email-sign-in'
 import { cn } from '~/lib/utils'
 import { useApi } from '~/hooks/use-api'
 import { useChan } from '~/hooks/use-chan'
@@ -35,7 +35,7 @@ const getFormSchema = () =>
 type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>
 
 export function EmailSignInForm({ className, ...props }: ForgotFormProps) {
-  const navigate = useNavigate()
+  const navigate = Route.useNavigate()
   const form = useChan(
     useForm<FormSchemaValues>({
       resolver: zodResolver(getFormSchema()),

@@ -10,6 +10,7 @@ import {
   createBadgeColumn,
   createDateColumn,
 } from '~/components/other/data-table/column-utils'
+import type { Row } from '~/features/api/components/api-columns'
 import { callMethodTypes } from '~/features/api/data/data'
 import { callCodeTypes } from '../data/data'
 import { OperationLogViewDialog } from './operation-log-view-dialog'
@@ -131,7 +132,7 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
         )
       },
       options: {
-        filterFn: (row: any, id: string, value: any) =>
+        filterFn: (row: Row, id: string, value: Array<string>) =>
           value.includes(row.getValue(id)),
         enableHiding: false,
         enableSorting: false,

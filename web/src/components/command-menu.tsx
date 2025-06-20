@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { IconArrowRightDashed } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
+import { themeList } from '~/commons/theme'
 import { useSearch } from '~/provider/search'
 import { useTheme } from '~/provider/theme'
 import {
@@ -15,7 +16,6 @@ import {
   CommandSeparator,
 } from '~/components/ui/command'
 import { NavGroup } from './layout/types'
-import { themeList } from './theme-switch'
 import { ScrollArea } from './ui/scroll-area'
 
 interface Props {

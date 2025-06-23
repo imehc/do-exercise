@@ -28,23 +28,31 @@ i18n.activate(store.get(languageAtom))
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error) => {
+      retry: (_, error) => {
+        if (error instanceof ResponseError) {
+          if (error.response.status > 403) {
+            router.navigate({ to: '/sign-in', replace: true })
+          }
+        }
+
+        return false
+
         // eslint-disable-next-line no-console
-        if (import.meta.env.DEV) console.log({ failureCount, error })
+        // if (import.meta.env.DEV) console.log({ failureCount, error })
 
-        if (failureCount >= 0 && import.meta.env.DEV) return false
-        if (failureCount > 3 && import.meta.env.PROD) return false
+        // if (failureCount >= 0 && import.meta.env.DEV) return false
+        // if (failureCount > 3 && import.meta.env.PROD) return false
 
-        return !(
-          error instanceof ResponseError &&
-          [401, 403].includes(error.response?.status ?? 0)
-        )
+        // return !(
+        //   error instanceof ResponseError &&
+        //   [401, 403].includes(error.response?.status ?? 0)
+        // )
       },
       refetchOnWindowFocus: import.meta.env.PROD,
       staleTime: 10 * 1000, // 10s
     },
     mutations: {
-      onError: () => {},
+      onError: () => { },
     },
   },
   queryCache: new QueryCache({

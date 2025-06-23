@@ -18,6 +18,7 @@
 
 1. 检查 MinIO Access Keys 是否已配置
    - 如果 MinIO 服务无法正常启动，很可能是因为未配置 Access Keys
+   - 确保 Bucket 与 `config.yaml` 中的 bucket_name 一致
    - 请确保已正确配置 MinIO 的 Access Key 和 Secret Key
    - 可以通过 MinIO 控制台进行配置
 

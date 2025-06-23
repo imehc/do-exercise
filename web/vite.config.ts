@@ -23,7 +23,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/apis': {
-        target: 'http://localhost:6020',
+        target: 'http://127.0.0.1:6020',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/apis/, ''),
       },

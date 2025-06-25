@@ -27,7 +27,7 @@ export function apiInstance<
 >(Api: T, conf?: ConfigurationParameters) {
   const accessToken = store.get(originTokenAtom).accessToken
   const _conf = new Configuration({
-    basePath: import.meta.env.PROD ? 'http://127.0.0.1:80/apis' : '/apis',
+    basePath: '/apis',
     // 注意如果是bearer token的话，这里则是accessToken
     apiKey: accessToken, //|| import.meta.env.VITE_APP_AUTH_KEY,
     headers: conf?.headers,

@@ -1,0 +1,56 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+dist-ssr
+*.local
+stats.html
+
+# Editor and OS files
+.vscode
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Git related
+.git
+.gitignore
+
+# Docker related
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# Generated files
+src/do-exercise-api
+routeTree.gen.ts
+**/messages.ts
+
+# Test coverage and cache
+coverage
+.nyc_output
+.eslintcache
+.env
+.env.*
+!.env.example
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+.npm 

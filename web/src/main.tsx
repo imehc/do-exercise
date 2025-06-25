@@ -11,8 +11,7 @@ import { I18nProvider } from '@lingui/react'
 import { Provider } from 'jotai'
 import { messages as enMessages } from '~/locales/en-US/messages'
 import { messages as zhMessages } from '~/locales/zh-CN/messages'
-import { languageAtom, store } from './atoms'
-import { ResponseError } from './do-exercise-api'
+import { languageAtom, originTokenAtom, store } from './atoms'
 import './index.css'
 import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
@@ -28,25 +27,21 @@ i18n.activate(store.get(languageAtom))
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (_, error) => {
-        if (error instanceof ResponseError) {
-          if (error.response.status > 403) {
-            router.navigate({ to: '/sign-in', replace: true })
-          }
-        }
-
-        return false
-
+      retry: (failureCount, error) => {
         // eslint-disable-next-line no-console
-        // if (import.meta.env.DEV) console.log({ failureCount, error })
+        if (import.meta.env.DEV) console.log({ failureCount, error })
 
-        // if (failureCount >= 0 && import.meta.env.DEV) return false
-        // if (failureCount > 3 && import.meta.env.PROD) return false
+        if (failureCount >= 0 && import.meta.env.DEV) return false
+        if (failureCount > 0 && import.meta.env.PROD) {
+          router.navigate({ to: '/sign-in', replace: true })
+          return false
+        }
 
         // return !(
         //   error instanceof ResponseError &&
         //   [401, 403].includes(error.response?.status ?? 0)
         // )
+        return true
       },
       refetchOnWindowFocus: import.meta.env.PROD,
       staleTime: 10 * 1000, // 10s
@@ -79,7 +74,7 @@ const queryClient = new QueryClient({
 // Create a new router instance
 export const router = createRouter({
   routeTree,
-  context: { queryClient },
+  context: { queryClient, token: store.get(originTokenAtom) },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
 })

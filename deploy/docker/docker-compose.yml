@@ -38,9 +38,9 @@ services:
   minio:
     container_name: minio_data
     image: bitnami/minio:2024.7.4
-    # ports:
-    #   - "9000:9000"
-    #   - "9001:9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     env_file:
       - .env
     volumes:
@@ -74,29 +74,18 @@ services:
       dockerfile: web/Dockerfile
       args:
         OPENAPI_YAML: server/openapi.yaml
-    # ports:
-    #   - "6021:80"
+    ports:
+      - "80:80"
+      - "443:443"
     depends_on:
       - server
     restart: on-failure:3
-    networks:
-      network:
-        ipv4_address: 166.6.0.26
-  nginx:
-    container_name: nginx_proxy
-    image: nginx:stable
-    depends_on:
-      - server
-      - web
-    ports:
-      - "443:443"
-      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
     networks:
       network:
-        ipv4_address: 166.6.0.25
+        ipv4_address: 166.6.0.26
 
 networks:
   network:

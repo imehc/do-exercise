@@ -1,5 +1,7 @@
 ## 注意事项
 
+> **提示**：如果启动容器或服务连接失败，请优先检查各服务的配置文件（如 .env、config.yaml 等）是否填写正确，端口、数据库、MinIO、Redis 等连接信息需与实际环境一致。
+
 ### 配置文件准备
 在执行 docker-compose 之前，请确保完成以下配置文件的准备：
 
@@ -16,6 +18,7 @@
 
 1. 检查 MinIO Access Keys 是否已配置
    - 如果 MinIO 服务无法正常启动，很可能是因为未配置 Access Keys
+   - 确保 Bucket 与 `config.yaml` 中的 bucket_name 一致
    - 请确保已正确配置 MinIO 的 Access Key 和 Secret Key
    - 可以通过 MinIO 控制台进行配置
 

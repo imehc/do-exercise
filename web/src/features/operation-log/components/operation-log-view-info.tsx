@@ -98,7 +98,13 @@ export function OperationLogViewInfoDialog({ open, onOpenChange }: Props) {
                 <div className='font-medium'>
                   <Trans>IP属地</Trans>
                 </div>
-                <div className='col-span-2'>{currentRow.address || '-'}</div>
+                <div className='col-span-2'>
+                  {currentRow.address
+                    ?.split('|')
+                    .filter((part) => part && !/^\d+$/.test(part))
+                    .slice(0, -1)
+                    .join(' ') || '-'}
+                </div>
               </div>
               <div className='grid grid-cols-3 items-center gap-4'>
                 <div className='font-medium'>

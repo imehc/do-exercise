@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "knip": "knip",
-    "gen:apis": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./src/do-exercise-api -i ../server/openapi.yaml && node ./scripts/fix-generated-files.cjs",
+    "gen:apis": "openapi-generator generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./src/do-exercise-api -i ../server/openapi.yaml && node ./scripts/fix-generated-files.cjs",
+    "gen:apis-other": "openapi-generator-cli generate -g typescript-fetch -c ./openapi-generator.config.yaml -o ./src/do-exercise-api -i ../server/openapi.yaml && node ./scripts/fix-generated-files.cjs",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "extract": "lingui extract",
@@ -99,5 +100,6 @@
     "typescript-eslint": "^8.32.1",
     "vite": "^6.3.5",
     "vitest": "^3.1.4"
-  }
+  },
+  "packageManager": "pnpm@10.12.3+sha512.467df2c586056165580ad6dfb54ceaad94c5a30f80893ebdec5a44c5aa73c205ae4a5bb9d5ed6bb84ea7c249ece786642bbb49d06a307df218d03da41c317417"
 }

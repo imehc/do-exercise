@@ -3,6 +3,7 @@ import { IconMessage } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { SystemUserApi, SysUser } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
+import { ensureHttpPrefix } from '~/utils/url'
 import { useApi } from '~/hooks/use-api'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
@@ -70,22 +71,19 @@ export function UserViewInfoDialog({ open, onOpenChange }: Props) {
                       <Trans>头像</Trans>
                     </div>
                     <div className='col-span-2'>
-                      {
-                        // TODO: 根据前缀判断是否需要拼接完整的图片地址
-                        user?.avatar ? (
-                          <Avatar>
-                            <AvatarImage
-                              src={user.avatar}
-                              alt={user.username}
-                            />
-                            <AvatarFallback>
-                              {user.username.slice(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          '-'
-                        )
-                      }
+                      {user?.avatar ? (
+                        <Avatar>
+                          <AvatarImage
+                            src={ensureHttpPrefix(user.avatar)}
+                            alt={user.username}
+                          />
+                          <AvatarFallback>
+                            {user.username.slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        '-'
+                      )}
                     </div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>

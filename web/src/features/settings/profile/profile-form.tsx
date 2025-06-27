@@ -97,6 +97,7 @@ export default function ProfileForm() {
               <Input
                 placeholder={t`请输入昵称`}
                 {...field}
+                value={field.value ?? ''}
                 disabled={updateUserProfileIspending}
               />
               <FormDescription>
@@ -117,7 +118,6 @@ export default function ProfileForm() {
               </FormLabel>
               <FormControl>
                 <AvatarUpload
-                  // TODO: 根据前缀判断是否需要拼接完整的图片地址
                   disabled={updateUserProfileIspending}
                   value={field.value}
                   onChange={field.onChange}

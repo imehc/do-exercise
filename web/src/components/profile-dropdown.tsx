@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { Trans } from '@lingui/react/macro'
+import { ensureHttpPrefix } from '~/utils/url'
 import { useLogout, useUserProfile } from '~/hooks/use-user'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
@@ -25,9 +26,8 @@ export function ProfileDropdown() {
       <DropdownMenuTrigger asChild disabled={userProfileIsLoading}>
         <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
           <Avatar className='h-8 w-8'>
-            {/* TODO: 根据前缀判断是否需要拼接完整的图片地址 */}
             <AvatarImage
-              src={userProfile?.avatar}
+              src={ensureHttpPrefix(userProfile?.avatar)}
               alt={userProfile?.username}
             />
             <AvatarFallback>ST</AvatarFallback>

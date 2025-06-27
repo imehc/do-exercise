@@ -55,6 +55,10 @@ msgstr "IP属地"
 msgid "上一页"
 msgstr "上一页"
 
+#: src/hooks/use-upload.ts:73
+msgid "上传失败"
+msgstr "上传失败"
+
 #: src/components/other/data-table/pagination.tsx:146
 msgid "下一页"
 msgstr "下一页"
@@ -135,7 +139,7 @@ msgid "使用邮箱登录"
 msgstr "使用邮箱登录"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:188
-#: src/features/user/components/user-action-dialog.tsx:312
+#: src/features/user/components/user-action-dialog.tsx:311
 #: src/features/settings/profile/profile-form.tsx:144
 #: src/features/settings/password/email-form.tsx:156
 #: src/features/settings/appearance/appearance-form.tsx:182
@@ -146,7 +150,7 @@ msgid "保存"
 msgstr "保存"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:183
-#: src/features/user/components/user-action-dialog.tsx:307
+#: src/features/user/components/user-action-dialog.tsx:306
 #: src/features/settings/profile/profile-form.tsx:139
 #: src/features/settings/password/email-form.tsx:151
 #: src/features/settings/appearance/appearance-form.tsx:177
@@ -175,12 +179,12 @@ msgstr "关联接口"
 msgid "关联菜单"
 msgstr "关联菜单"
 
-#: src/features/user/components/user-view-info.tsx:105
-#: src/features/user/components/user-action-dialog.tsx:228
+#: src/features/user/components/user-view-info.tsx:103
+#: src/features/user/components/user-action-dialog.tsx:227
 msgid "关联角色"
 msgstr "关联角色"
 
-#: src/features/user/components/user-view-info.tsx:124
+#: src/features/user/components/user-view-info.tsx:122
 #: src/features/token/components/token-view-info.tsx:135
 #: src/features/role/components/role-view-info.tsx:97
 #: src/features/operation-log/components/operation-log-view-result.tsx:47
@@ -349,7 +353,7 @@ msgstr "在此管理您的密码设置。"
 msgid "在此管理您的电子邮件设置。"
 msgstr "在此管理您的电子邮件设置。"
 
-#: src/features/user/components/user-view-info.tsx:59
+#: src/features/user/components/user-view-info.tsx:60
 #: src/features/token/components/token-view-info.tsx:53
 #: src/features/role/components/role-view-info.tsx:53
 #: src/features/operation-log/components/operation-log-view-info.tsx:62
@@ -362,10 +366,10 @@ msgstr "基本信息"
 msgid "失败"
 msgstr "失败"
 
-#: src/features/user/components/user-view-info.tsx:70
+#: src/features/user/components/user-view-info.tsx:71
 #: src/features/user/components/user-columns.tsx:20
 #: src/features/user/components/user-action-dialog.tsx:209
-#: src/features/settings/profile/profile-form.tsx:116
+#: src/features/settings/profile/profile-form.tsx:117
 msgid "头像"
 msgstr "头像"
 
@@ -379,8 +383,8 @@ msgstr "完成后点击保存。"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:104
 #: src/features/user/components/user-reset-password-dialog.tsx:139
-#: src/features/user/components/user-action-dialog.tsx:261
-#: src/features/auth/sign-in/components/user-auth-form.tsx:148
+#: src/features/user/components/user-action-dialog.tsx:260
+#: src/features/auth/sign-in/components/user-auth-form.tsx:145
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:181
 msgid "密码"
 msgstr "密码"
@@ -451,7 +455,7 @@ msgstr "序号"
 msgid "忘记密码"
 msgstr "忘记密码"
 
-#: src/features/auth/sign-in/components/user-auth-form.tsx:158
+#: src/features/auth/sign-in/components/user-auth-form.tsx:155
 msgid "忘记密码?"
 msgstr "忘记密码?"
 
@@ -588,7 +592,7 @@ msgstr "是否是机器人"
 msgid "是否是移动端"
 msgstr "是否是移动端"
 
-#: src/features/user/components/user-view-info.tsx:93
+#: src/features/user/components/user-view-info.tsx:91
 #: src/features/user/components/user-columns.tsx:18
 #: src/features/user/components/user-action-dialog.tsx:167
 #: src/features/settings/profile/profile-form.tsx:95
@@ -644,6 +648,10 @@ msgstr "更新成功"
 msgid "更新时间"
 msgstr "更新时间"
 
+#: src/components/other/avatar-upload/index.tsx:33
+msgid "未选择文件"
+msgstr "未选择文件"
+
 #: src/features/menu/components/menu-view-info.tsx:155
 #: src/features/menu/components/menu-columns.tsx:23
 #: src/features/menu/components/menu-action-dialog.tsx:457
@@ -662,7 +670,7 @@ msgstr "查看令牌详细信息。"
 msgid "查看操作详细信息和相关信息。这包括 请求参数、时间戳和执行状态。"
 msgstr "查看操作详细信息和相关信息。这包括 请求参数、时间戳和执行状态。"
 
-#: src/features/user/components/user-view-info.tsx:50
+#: src/features/user/components/user-view-info.tsx:51
 msgid "查看用户详细信息。"
 msgstr "查看用户详细信息。"
 
@@ -791,7 +799,7 @@ msgstr "用户ID"
 msgid "用户列表"
 msgstr "用户列表"
 
-#: src/features/user/components/user-view-info.tsx:64
+#: src/features/user/components/user-view-info.tsx:65
 #: src/features/user/components/user-reset-password-dialog.tsx:119
 #: src/features/user/components/user-columns.tsx:17
 #: src/features/user/components/user-action-dialog.tsx:145
@@ -800,7 +808,7 @@ msgstr "用户列表"
 #: src/features/token/components/token-columns.tsx:17
 #: src/features/settings/profile/profile-form.tsx:73
 #: src/features/settings/email/email-form.tsx:120
-#: src/features/auth/sign-in/components/user-auth-form.tsx:133
+#: src/features/auth/sign-in/components/user-auth-form.tsx:130
 msgid "用户名"
 msgstr "用户名"
 
@@ -824,14 +832,14 @@ msgstr "用户名长度不能大于10个字符"
 msgid "用户名长度不能小于2个字符"
 msgstr "用户名长度不能小于2个字符"
 
-#: src/features/user/components/user-view-info.tsx:47
+#: src/features/user/components/user-view-info.tsx:48
 msgid "用户详情"
 msgstr "用户详情"
 
 #: src/features/auth/sign-in/index.tsx:46
-#: src/features/auth/sign-in/components/user-auth-form.tsx:204
-#: src/features/auth/sign-in/components/user-auth-form.tsx:209
-#: src/features/auth/sign-in/components/user-auth-form.tsx:233
+#: src/features/auth/sign-in/components/user-auth-form.tsx:201
+#: src/features/auth/sign-in/components/user-auth-form.tsx:206
+#: src/features/auth/sign-in/components/user-auth-form.tsx:230
 #: src/features/auth/forgot-password/index.tsx:61
 msgid "登录"
 msgstr "登录"
@@ -841,7 +849,7 @@ msgid "目录"
 msgstr "目录"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:160
-#: src/features/user/components/user-action-dialog.tsx:282
+#: src/features/user/components/user-action-dialog.tsx:281
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:204
 msgid "确认密码"
 msgstr "确认密码"
@@ -1087,8 +1095,8 @@ msgstr "请输入原密码"
 
 #: src/features/user/schemas/action-schema.ts:63
 #: src/features/user/components/user-reset-password-dialog.tsx:143
-#: src/features/user/components/user-action-dialog.tsx:265
-#: src/features/auth/sign-in/components/user-auth-form.tsx:151
+#: src/features/user/components/user-action-dialog.tsx:264
+#: src/features/auth/sign-in/components/user-auth-form.tsx:148
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:185
 msgid "请输入密码"
 msgstr "请输入密码"
@@ -1141,13 +1149,13 @@ msgstr "请输入正确的邮箱地址"
 #: src/features/user/components/user-reset-password-dialog.tsx:123
 #: src/features/user/components/user-action-dialog.tsx:149
 #: src/features/settings/profile/profile-form.tsx:77
-#: src/features/auth/sign-in/components/user-auth-form.tsx:136
+#: src/features/auth/sign-in/components/user-auth-form.tsx:133
 msgid "请输入用户名"
 msgstr "请输入用户名"
 
 #: src/features/user/schemas/action-schema.ts:83
 #: src/features/user/components/user-reset-password-dialog.tsx:164
-#: src/features/user/components/user-action-dialog.tsx:286
+#: src/features/user/components/user-action-dialog.tsx:285
 msgid "请输入确认密码"
 msgstr "请输入确认密码"
 
@@ -1191,7 +1199,7 @@ msgid "请输入身份验证代码。<0/>我们已经发送了 验证码到您�
 msgstr "请输入身份验证代码。<0/>我们已经发送了 验证码到您的电子邮件。"
 
 #: src/features/user/components/user-action-dialog.tsx:192
-#: src/features/auth/otp/components/otp-form.tsx:40
+#: src/features/auth/otp/components/otp-form.tsx:39
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:41
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:130
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:80
@@ -1201,7 +1209,7 @@ msgstr "请输入邮箱"
 #: src/features/settings/email/email-form.tsx:208
 #: src/features/settings/email/schemas/action-schema.ts:11
 #: src/features/settings/email/schemas/action-schema.ts:12
-#: src/features/auth/otp/components/otp-form.tsx:37
+#: src/features/auth/otp/components/otp-form.tsx:36
 msgid "请输入邮箱验证码"
 msgstr "请输入邮箱验证码"
 
@@ -1232,7 +1240,7 @@ msgid "请选择关联的菜单"
 msgstr "请选择关联的菜单"
 
 #: src/features/user/schemas/action-schema.ts:47
-#: src/features/user/components/user-action-dialog.tsx:244
+#: src/features/user/components/user-action-dialog.tsx:243
 msgid "请选择关联角色"
 msgstr "请选择关联角色"
 
@@ -1304,7 +1312,7 @@ msgstr "这是您的公开显示名称。"
 msgid "这是您的头像。"
 msgstr "这是您的头像。"
 
-#: src/features/settings/profile/profile-form.tsx:103
+#: src/features/settings/profile/profile-form.tsx:104
 msgid "这是您的昵称。"
 msgstr "这是您的昵称。"
 
@@ -1322,7 +1330,7 @@ msgid "这是您设置的新密码"
 msgstr "这是您设置的新密码"
 
 #: src/components/profile-dropdown.tsx:63
-#: src/components/layout/nav-user.tsx:102
+#: src/components/layout/nav-user.tsx:101
 msgid "退出登录"
 msgstr "退出登录"
 
@@ -1342,11 +1350,11 @@ msgstr "通用设置"
 msgid "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>隐私政策</1>"
 msgstr "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>隐私政策</1>"
 
-#: src/features/user/components/user-view-info.tsx:99
+#: src/features/user/components/user-view-info.tsx:97
 #: src/features/user/components/user-columns.tsx:19
 #: src/features/user/components/user-action-dialog.tsx:188
 #: src/features/settings/email/email-form.tsx:139
-#: src/features/auth/sign-in/components/user-auth-form.tsx:232
+#: src/features/auth/sign-in/components/user-auth-form.tsx:229
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:127
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:77
 msgid "邮箱"
@@ -1357,8 +1365,8 @@ msgid "邮箱不能与当前邮箱相同"
 msgstr "邮箱不能与当前邮箱相同"
 
 #: src/features/settings/email/schemas/action-schema.ts:9
-#: src/features/auth/otp/components/otp-form.tsx:41
-#: src/features/auth/otp/components/otp-form.tsx:58
+#: src/features/auth/otp/components/otp-form.tsx:40
+#: src/features/auth/otp/components/otp-form.tsx:56
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:42
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:32
 msgid "邮箱无效"
@@ -1368,7 +1376,7 @@ msgstr "邮箱无效"
 msgid "邮箱设置"
 msgstr "邮箱设置"
 
-#: src/features/auth/otp/components/otp-form.tsx:99
+#: src/features/auth/otp/components/otp-form.tsx:95
 msgid "邮箱验证码"
 msgstr "邮箱验证码"
 
@@ -1407,13 +1415,13 @@ msgstr "隐藏"
 msgid "页面元素"
 msgstr "页面元素"
 
-#: src/features/auth/otp/components/otp-form.tsx:132
+#: src/features/auth/otp/components/otp-form.tsx:128
 msgid "验证"
 msgstr "验证"
 
 #: src/features/settings/email/email-form.tsx:204
-#: src/features/auth/sign-in/components/user-auth-form.tsx:169
-#: src/features/auth/sign-in/components/user-auth-form.tsx:175
+#: src/features/auth/sign-in/components/user-auth-form.tsx:166
+#: src/features/auth/sign-in/components/user-auth-form.tsx:172
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:161
 msgid "验证码"
 msgstr "验证码"

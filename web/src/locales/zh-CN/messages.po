@@ -81,6 +81,7 @@ msgstr "下面是随该请求发送的参数和查询数据。"
 msgid "两次输入的密码不一致"
 msgstr "两次输入的密码不一致"
 
+#: src/features/settings/index.tsx:49
 #: src/features/settings/profile/index.tsx:8
 msgid "个人资料"
 msgstr "个人资料"
@@ -98,7 +99,7 @@ msgstr "了解更多信息"
 #~ msgid "亮色模式"
 #~ msgstr "亮色模式"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:111
+#: src/features/operation-log/components/operation-log-view-info.tsx:117
 msgid "代理"
 msgstr "代理"
 
@@ -190,7 +191,7 @@ msgstr "关联角色"
 #: src/features/operation-log/components/operation-log-view-result.tsx:47
 #: src/features/operation-log/components/operation-log-view-params.tsx:47
 #: src/features/operation-log/components/operation-log-view-message.tsx:47
-#: src/features/operation-log/components/operation-log-view-info.tsx:317
+#: src/features/operation-log/components/operation-log-view-info.tsx:323
 #: src/features/operation-log/components/operation-log-view-body.tsx:49
 #: src/features/menu/components/menu-view-info.tsx:211
 msgid "关闭"
@@ -248,7 +249,7 @@ msgstr "创建成功"
 #: src/features/token/components/token-view-info.tsx:92
 #: src/features/token/components/token-columns.tsx:20
 #: src/features/role/components/role-columns.tsx:17
-#: src/features/operation-log/components/operation-log-view-info.tsx:301
+#: src/features/operation-log/components/operation-log-view-info.tsx:307
 #: src/features/menu/components/menu-view-info.tsx:181
 #: src/features/api/components/api-columns.tsx:26
 msgid "创建时间"
@@ -323,8 +324,8 @@ msgid "取消"
 msgstr "取消"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:92
-#: src/features/operation-log/components/operation-log-view-info.tsx:144
-#: src/features/operation-log/components/operation-log-view-info.tsx:161
+#: src/features/operation-log/components/operation-log-view-info.tsx:150
+#: src/features/operation-log/components/operation-log-view-info.tsx:167
 #: src/features/menu/components/menu-view-info.tsx:136
 #: src/features/menu/components/menu-columns.tsx:31
 msgid "否"
@@ -334,7 +335,7 @@ msgstr "否"
 msgid "响应数据"
 msgstr "响应数据"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:258
+#: src/features/operation-log/components/operation-log-view-info.tsx:264
 #: src/features/operation-log/components/operation-log-columns.tsx:32
 msgid "响应结果"
 msgstr "响应结果"
@@ -361,7 +362,11 @@ msgstr "在此管理您的电子邮件设置。"
 msgid "基本信息"
 msgstr "基本信息"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:194
+#: src/features/settings/index.tsx:69
+msgid "外观"
+msgstr "外观"
+
+#: src/features/operation-log/components/operation-log-view-info.tsx:200
 #: src/features/operation-log/components/operation-log-columns.tsx:37
 msgid "失败"
 msgstr "失败"
@@ -384,6 +389,7 @@ msgstr "完成后点击保存。"
 #: src/features/user/components/user-reset-password-dialog.tsx:104
 #: src/features/user/components/user-reset-password-dialog.tsx:139
 #: src/features/user/components/user-action-dialog.tsx:260
+#: src/features/settings/index.tsx:59
 #: src/features/auth/sign-in/components/user-auth-form.tsx:145
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:181
 msgid "密码"
@@ -475,7 +481,7 @@ msgstr "总容量"
 msgid "您确定要删除这个{text}吗?"
 msgstr "您确定要删除这个{text}吗?"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:194
+#: src/features/operation-log/components/operation-log-view-info.tsx:200
 #: src/features/operation-log/components/operation-log-columns.tsx:36
 msgid "成功"
 msgstr "成功"
@@ -562,8 +568,8 @@ msgid "新密码不能与旧密码相同"
 msgstr "新密码不能与旧密码相同"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:90
-#: src/features/operation-log/components/operation-log-view-info.tsx:142
-#: src/features/operation-log/components/operation-log-view-info.tsx:161
+#: src/features/operation-log/components/operation-log-view-info.tsx:148
+#: src/features/operation-log/components/operation-log-view-info.tsx:167
 #: src/features/menu/components/menu-view-info.tsx:134
 #: src/features/menu/components/menu-columns.tsx:30
 msgid "是"
@@ -579,16 +585,16 @@ msgstr "是否内网IP"
 msgid "是否可见"
 msgstr "是否可见"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:189
+#: src/features/operation-log/components/operation-log-view-info.tsx:195
 #: src/features/operation-log/components/operation-log-columns.tsx:27
 msgid "是否成功"
 msgstr "是否成功"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:151
+#: src/features/operation-log/components/operation-log-view-info.tsx:157
 msgid "是否是机器人"
 msgstr "是否是机器人"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:131
+#: src/features/operation-log/components/operation-log-view-info.tsx:137
 msgid "是否是移动端"
 msgstr "是否是移动端"
 
@@ -720,12 +726,12 @@ msgstr "没有内容."
 msgid "浅色模式"
 msgstr "浅色模式"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:119
+#: src/features/operation-log/components/operation-log-view-info.tsx:125
 #: src/features/operation-log/components/operation-log-columns.tsx:24
 msgid "浏览器"
 msgstr "浏览器"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:125
+#: src/features/operation-log/components/operation-log-view-info.tsx:131
 msgid "浏览器版本"
 msgstr "浏览器版本"
 
@@ -747,7 +753,7 @@ msgstr "添加子元素"
 msgid "父级菜单"
 msgstr "父级菜单"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:200
+#: src/features/operation-log/components/operation-log-view-info.tsx:206
 #: src/features/operation-log/components/operation-log-columns.tsx:28
 msgid "状态码"
 msgstr "状态码"
@@ -889,7 +895,7 @@ msgstr "管理您的个人资料"
 msgid "管理您的帐户设置。"
 msgstr "管理您的帐户设置。"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:105
+#: src/features/operation-log/components/operation-log-view-info.tsx:111
 #: src/features/operation-log/components/operation-log-columns.tsx:23
 msgid "系统"
 msgstr "系统"
@@ -938,7 +944,7 @@ msgstr "编译器"
 msgid "编辑"
 msgstr "编辑"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:295
+#: src/features/operation-log/components/operation-log-view-info.tsx:301
 #: src/features/operation-log/components/operation-log-columns.tsx:35
 msgid "耗时"
 msgstr "耗时"
@@ -1044,24 +1050,24 @@ msgstr "请填写分组名称"
 msgid "请小心，此操作无法撤消。"
 msgstr "请小心，此操作无法撤消。"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:232
+#: src/features/operation-log/components/operation-log-view-info.tsx:238
 #: src/features/operation-log/components/operation-log-view-body.tsx:35
 #: src/features/operation-log/components/operation-log-columns.tsx:31
 msgid "请求体"
 msgstr "请求体"
 
 #: src/features/operation-log/components/operation-log-view-params.tsx:35
-#: src/features/operation-log/components/operation-log-view-info.tsx:245
+#: src/features/operation-log/components/operation-log-view-info.tsx:251
 #: src/features/operation-log/components/operation-log-columns.tsx:30
 msgid "请求参数"
 msgstr "请求参数"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:273
+#: src/features/operation-log/components/operation-log-view-info.tsx:279
 #: src/features/operation-log/components/operation-log-columns.tsx:33
 msgid "请求开始时间"
 msgstr "请求开始时间"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:173
+#: src/features/operation-log/components/operation-log-view-info.tsx:179
 #: src/features/operation-log/components/operation-log-columns.tsx:26
 #: src/features/api/components/api-columns.tsx:22
 #: src/features/api/components/api-action.tsx:123
@@ -1073,12 +1079,12 @@ msgstr "请求方法"
 msgid "请求用户"
 msgstr "请求用户"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:284
+#: src/features/operation-log/components/operation-log-view-info.tsx:290
 #: src/features/operation-log/components/operation-log-columns.tsx:34
 msgid "请求结束时间"
 msgstr "请求结束时间"
 
-#: src/features/operation-log/components/operation-log-view-info.tsx:167
+#: src/features/operation-log/components/operation-log-view-info.tsx:173
 #: src/features/operation-log/components/operation-log-columns.tsx:25
 #: src/features/api/components/api-columns.tsx:20
 #: src/features/api/components/api-action.tsx:101
@@ -1353,6 +1359,7 @@ msgstr "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1
 #: src/features/user/components/user-view-info.tsx:97
 #: src/features/user/components/user-columns.tsx:19
 #: src/features/user/components/user-action-dialog.tsx:188
+#: src/features/settings/index.tsx:54
 #: src/features/settings/email/email-form.tsx:139
 #: src/features/auth/sign-in/components/user-auth-form.tsx:229
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:127
@@ -1394,7 +1401,7 @@ msgid "重置用户"
 msgstr "重置用户"
 
 #: src/features/operation-log/components/operation-log-view-message.tsx:35
-#: src/features/operation-log/components/operation-log-view-info.tsx:219
+#: src/features/operation-log/components/operation-log-view-info.tsx:225
 #: src/features/operation-log/components/operation-log-columns.tsx:29
 msgid "错误信息"
 msgstr "错误信息"

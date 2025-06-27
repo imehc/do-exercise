@@ -217,7 +217,8 @@ components:
           format: int64
           description: 过期时间戳(秒)
       required:
-        - url
+        - put_object_url
+        - get_object_url
         - expires
 
     SSEMessage:

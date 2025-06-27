@@ -46,17 +46,17 @@ export default function Settings() {
 
 const sidebarNavItems = [
   {
-    title: 'Profile',
+    title: <Trans>个人资料</Trans>,
     icon: <IconUser size={18} />,
     href: '/settings',
   },
   {
-    title: 'Email',
+    title: <Trans>邮箱</Trans>,
     icon: <IconMail size={18} />,
     href: '/settings/email',
   },
   {
-    title: 'Password',
+    title: <Trans>密码</Trans>,
     icon: <IconLock size={18} />,
     href: '/settings/password',
   },
@@ -66,7 +66,7 @@ const sidebarNavItems = [
   //   href: '/settings/account',
   // },
   {
-    title: 'Appearance',
+    title: <Trans>外观</Trans>,
     icon: <IconPalette size={18} />,
     href: '/settings/appearance',
   },

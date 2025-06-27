@@ -4,7 +4,6 @@ import { addSeconds } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
@@ -45,7 +44,6 @@ type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>
 
 export function OtpForm({ className, ...props }: OtpFormProps) {
   const setToken = useSetAtom(originTokenAtom)
-  const navigate = useNavigate()
   const { email } = Route.useSearch()
 
   const form = useForm<FormSchemaValues>({
@@ -73,9 +71,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
           data.refreshExpireTime
         ).getTime(),
       })
-      navigate({
-        to: '/',
-      })
+      window.location.href = '/';
     },
   })
 

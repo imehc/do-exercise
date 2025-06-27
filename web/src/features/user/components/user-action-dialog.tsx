@@ -210,7 +210,6 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                   </FormLabel>
                   <FormControl>
                     <AvatarUpload
-                      // TODO: 根据前缀判断是否需要拼接完整的图片地址
                       value={field.value}
                       onChange={field.onChange}
                     />

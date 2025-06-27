@@ -63,6 +63,7 @@ minio:
   secret_key: xxxxxxxx
   bucket_name: do-exercise
   expires: 3600
+  presigned_host: 127.0.0.1:9000/oss
 
 # email
 email:

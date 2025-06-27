@@ -20,6 +20,7 @@ COPY ${OPENAPI_YAML} ../server/openapi.yaml
 
 # 生成API代码
 RUN pnpm run gen:apis-other
+RUN pnpm run compile
 
 # 构建前端
 RUN pnpm run build

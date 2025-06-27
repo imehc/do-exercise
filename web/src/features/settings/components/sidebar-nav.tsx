@@ -15,7 +15,7 @@ import {
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
     href: string
-    title: string
+    title: React.ReactNode
     icon: JSX.Element
   }[]
 }

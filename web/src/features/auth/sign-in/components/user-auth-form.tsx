@@ -10,7 +10,6 @@ import { Trans } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { originTokenAtom } from '~/atoms'
 import { AuthApi, LoginRequest } from '~/do-exercise-api'
-import { Route } from '~/routes/(auth)/sign-in'
 import { cn } from '~/lib/utils'
 import { encryptPassword } from '~/utils/encrypt'
 import { useApi } from '~/hooks/use-api'
@@ -37,7 +36,6 @@ type UserAuthFormProps = HTMLAttributes<HTMLFormElement>
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const authApi = useApi(AuthApi)
   const setToken = useSetAtom(originTokenAtom)
-  const navigate = Route.useNavigate()
 
   const form = useChan(
     useForm<SignInActionFormValues>({
@@ -89,9 +87,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           data.refreshExpireTime
         ).getTime(),
       })
-      navigate({
-        to: '/',
-      })
+      window.location.href = '/';
     },
     onError: () => {
       refetchPublicKey()

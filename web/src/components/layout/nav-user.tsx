@@ -1,6 +1,7 @@
 import { IconSelector, IconLogout } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { UserProfile } from '~/do-exercise-api'
+import { ensureHttpPrefix } from '~/utils/url'
 import { useLogout } from '~/hooks/use-user'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import {
@@ -34,8 +35,7 @@ export function NavUser({ username, avatar, email }: NavUserProps) {
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
               <Avatar className='h-8 w-8 rounded-lg'>
-                {/* TODO: 根据前缀判断是否需要拼接完整的图片地址 */}
-                <AvatarImage src={avatar} alt={username} />
+                <AvatarImage src={ensureHttpPrefix(avatar)} alt={username} />
                 <AvatarFallback className='rounded-lg'>ST</AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
@@ -54,8 +54,7 @@ export function NavUser({ username, avatar, email }: NavUserProps) {
             <DropdownMenuLabel className='p-0 font-normal'>
               <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
                 <Avatar className='h-8 w-8 rounded-lg'>
-                  {/* TODO: 根据前缀判断是否需要拼接完整的图片地址 */}
-                  <AvatarImage src={avatar} alt={username} />
+                  <AvatarImage src={ensureHttpPrefix(avatar)} alt={username} />
                   <AvatarFallback className='rounded-lg'>SN</AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>

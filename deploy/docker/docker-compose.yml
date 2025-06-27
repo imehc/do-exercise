@@ -37,7 +37,7 @@ services:
     container_name: minio_data
     image: bitnami/minio:2024.7.4
     ports:
-      - "9000:9000"
+      # - "9000:9000"
       - "9001:9001"
     env_file:
       - .env
@@ -75,6 +75,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "9000:9000"
     depends_on:
       - server
     restart: on-failure:3

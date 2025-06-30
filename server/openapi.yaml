@@ -252,22 +252,32 @@ components:
         refresh_token:
           type: string
           description: 刷新令牌
-        created_at:
+        access_token_created:
           type: string
           format: date-time
-          description: 创建时间
-        expired_at:
+          description: 令牌创建时间
+        access_token_expired:
           type: string
           format: date-time
-          description: 到期时间
+          description: 令牌到期时间
+        refresh_token_created:
+          type: string
+          format: date-time
+          description: 刷新令牌创建时间
+        refresh_token_expired:
+          type: string
+          format: date-time
+          description: 刷新令牌到期时间
       required:
         - username
         - user_id
         - disabled
         - access_token
         - refresh_token
-        - created_at
-        - expired_at
+        - access_token_created
+        - access_token_expired
+        - refresh_token_created
+        - refresh_token_expired
 
     DeleteToken:
       type: object

@@ -45,6 +45,7 @@ func InitGorm(isAutoMigrate bool) {
 			system.SysRole{},
 			system.SysApi{},
 			system.SysOperationLog{},
+			system.SysJob{},
 			gormadapter.CasbinRule{},
 		)
 		if err != nil {

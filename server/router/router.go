@@ -60,6 +60,7 @@ func Run() *gin.Engine {
 		system.InitSysOperationLogRouter(protected)
 		system.InitSysTokenRouter(protected)
 		system.InitSysInfoRouter(protected)
+		system.InitSysJobRouter(protected)
 
 		common.InitAuthRouter(noAuth)
 

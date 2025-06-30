@@ -2,10 +2,8 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
-	"github.com/imehc/do-exercise/server/model/common/status"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/spf13/cast"
 )
@@ -14,13 +12,9 @@ type SysApiApi struct{}
 
 // Update 更新api
 func (s *SysApiApi) Update(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("idCannotBeEmpty", lang),
-		})
+		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
 	var req request.UpdateSysApiReq
@@ -31,10 +25,7 @@ func (s *SysApiApi) Update(ctx *gin.Context) {
 	req.Id = id
 
 	if err := apiService.Update(req); err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.NoContent(ctx)
@@ -42,21 +33,14 @@ func (s *SysApiApi) Update(ctx *gin.Context) {
 
 // Get 获取api详情
 func (s *SysApiApi) Get(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	id := cast.ToUint(ctx.Param("id"))
 	if id == 0 {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("idCannotBeEmpty", lang),
-		})
+		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
 	api, err := apiService.Get(id)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.Success(ctx, api)
@@ -64,7 +48,6 @@ func (s *SysApiApi) Get(ctx *gin.Context) {
 
 // GetList 获取api列表
 func (s *SysApiApi) GetList(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	var req common.Pagination
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.Error(err)
@@ -72,10 +55,7 @@ func (s *SysApiApi) GetList(ctx *gin.Context) {
 	}
 	data, err := apiService.GetList(req)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.Success(ctx, data)
@@ -83,13 +63,9 @@ func (s *SysApiApi) GetList(ctx *gin.Context) {
 
 // GetAll 获取所有api
 func (s *SysApiApi) GetAll(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	data, err := apiService.GetAll()
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.Success(ctx, data)
@@ -97,13 +73,9 @@ func (s *SysApiApi) GetAll(ctx *gin.Context) {
 
 // GetGroupType 获取分组类型
 func (s *SysApiApi) GetGroupType(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	data, err := apiService.GroupType()
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.Success(ctx, data)

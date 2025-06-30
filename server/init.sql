@@ -26,6 +26,14 @@ INSERT INTO sys_api VALUES(24, '/system/token', '删除指定令牌', 'SYSTEM', 
 INSERT INTO sys_api VALUES(25, '/system/token', '更新指定令牌状态', 'SYSTEM', 'PATCH', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(26, '/system/info', '获取系统运行信息', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(27, '/system/roles/all', '获取所有角色', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(28, '/system/jobs', '获取定时任务列表', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(29, '/system/jobs', '创建定时任务', 'SYSTEM', 'POST', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(30, '/system/jobs/:id', '根据ID获取定时任务', 'SYSTEM', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(31, '/system/jobs/:id', '根据ID更新定时任务', 'SYSTEM', 'PUT', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(32, '/system/jobs/:id', '根据ID删除定时任务', 'SYSTEM', 'DELETE', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(33, '/system/jobs/:id/start', '启动定时任务', 'SYSTEM', 'POST', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(34, '/system/jobs/:id/stop', '停止定时任务', 'SYSTEM', 'POST', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
+INSERT INTO sys_api VALUES(35, '/system/jobs/:id/execute', '立即执行定时任务', 'SYSTEM', 'POST', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
 INSERT INTO sys_api VALUES(101, '/user/profile', '用户获取基本信息', 'COMMON', 'GET', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 INSERT INTO sys_api VALUES(102, '/user/profile', '用户更新基本信息', 'COMMON', 'PUT', true, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
@@ -81,6 +89,14 @@ INSERT INTO sys_menu VALUES(152, '删除', 7, 'token:delete', NULL, 3, NULL, NUL
 INSERT INTO sys_menu VALUES(153, '更新', 7, 'token:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(8, '系统信息', 1, NULL, 'DeviceDesktopAnalytics', 2, '/system-info', '/system-info/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(161, '查询', 8, 'system-info:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(9, '定时任务', 1, NULL, 'Subtask', 2, '/task', '/task/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(171, '查询', 9, 'task:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(172, '创建', 9, 'task:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(173, '更新', 9, 'task:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(174, '删除', 9, 'task:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(175, '启动', 9, 'task:start', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(176, '停止', 9, 'task:stop', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(177, '立即执行', 9, 'task:execute', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 
 SELECT setval(pg_get_serial_sequence('sys_menu', 'id'), (SELECT MAX(id) FROM sys_menu)); -- 重置自增序列;
 
@@ -112,6 +128,15 @@ INSERT INTO sys_menu_apis VALUES(153, 25);
 INSERT INTO sys_menu_apis VALUES(161, 26);
 INSERT INTO sys_menu_apis VALUES(132, 27);
 INSERT INTO sys_menu_apis VALUES(133, 27);
+INSERT INTO sys_menu_apis VALUES(171, 28);
+INSERT INTO sys_menu_apis VALUES(172, 29);
+INSERT INTO sys_menu_apis VALUES(173, 30);
+INSERT INTO sys_menu_apis VALUES(173, 31);
+INSERT INTO sys_menu_apis VALUES(174, 32);
+INSERT INTO sys_menu_apis VALUES(175, 33);
+INSERT INTO sys_menu_apis VALUES(176, 34);
+INSERT INTO sys_menu_apis VALUES(177, 35);
+
 
 -- 角色数据;
 INSERT INTO sys_role VALUES(1, '管理员', 'system', '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
@@ -147,6 +172,14 @@ INSERT INTO sys_role_menu VALUES(1, 152);
 INSERT INTO sys_role_menu VALUES(1, 153);
 INSERT INTO sys_role_menu VALUES(1, 8);
 INSERT INTO sys_role_menu VALUES(1, 161);
+INSERT INTO sys_role_menu VALUES(1, 9);
+INSERT INTO sys_role_menu VALUES(1, 171);
+INSERT INTO sys_role_menu VALUES(1, 172);
+INSERT INTO sys_role_menu VALUES(1, 173);
+INSERT INTO sys_role_menu VALUES(1, 174);
+INSERT INTO sys_role_menu VALUES(1, 175);
+INSERT INTO sys_role_menu VALUES(1, 176);
+INSERT INTO sys_role_menu VALUES(1, 177);
 -- 用户数据;
 INSERT INTO sys_user VALUES('12345678910', 'admin', '我是管理员', NULL, NULL, '$2a$10$gI7PJi4gyTc.sG2m5ZgbcO/I0E8nLkW2AHhWFxGMaCogU2H/E3YzC', '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 
@@ -180,5 +213,30 @@ INSERT INTO casbin_rule VALUES(124, 'p', 'system', '/system/token', 'PATCH', NUL
 INSERT INTO casbin_rule VALUES(125, 'p', 'system', '/system/info', 'GET', NULL, NULL, NULL);
 INSERT INTO casbin_rule VALUES(126, 'p', 'system', '/system/roles/all', 'GET', NULL, NULL, NULL);
 INSERT INTO casbin_rule VALUES(127, 'p', 'system', '/system/users/:id/reset_password', 'PUT', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(128, 'p', 'system', '/system/jobs', 'GET', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(129, 'p', 'system', '/system/jobs', 'POST', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(130, 'p', 'system', '/system/jobs/:id', 'GET', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(131, 'p', 'system', '/system/jobs/:id', 'PUT', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(132, 'p', 'system', '/system/jobs/:id', 'DELETE', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(133, 'p', 'system', '/system/jobs/:id/start', 'POST', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(134, 'p', 'system', '/system/jobs/:id/stop', 'POST', NULL, NULL, NULL);
+INSERT INTO casbin_rule VALUES(135, 'p', 'system', '/system/jobs/:id/execute', 'POST', NULL, NULL, NULL);
 
 INSERT INTO casbin_rule VALUES(1, 'g', '12345678910', 'system', NULL, NULL, NULL, NULL);
+
+
+-- 初始化一条定时任务（每小时清理sys_operation_log表中username为空的记录，默认不启动）
+INSERT INTO sys_job (
+    name, job_group, cron_expression, command, status, concurrent, description, last_time, next_time, times, retry_times, retry_interval, timeout, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by
+) VALUES (
+    '清理空用户名操作日志',
+    'system',
+    '0 0 * * * *',
+    'clean_empty_username_operation_logs',
+    2,
+    FALSE,
+    '每小时清理sys_operation_log表中username为空的记录',
+    NULL, NULL, 0, 0, 0, 300,
+    CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system', NULL, NULL
+);
+SELECT setval(pg_get_serial_sequence('sys_job', 'id'), (SELECT MAX(id) FROM sys_job)); -- 重置自增序列;

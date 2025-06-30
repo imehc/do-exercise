@@ -113,6 +113,14 @@ msgstr "Token"
 msgid "令牌列表"
 msgstr "Token list"
 
+#: src/features/token/components/token-view-info.tsx:81
+msgid "令牌创建时间"
+msgstr "Token creation time"
+
+#: src/features/token/components/token-view-info.tsx:89
+msgid "令牌到期时间"
+msgstr "Token expiration time"
+
 #: src/features/token/components/token-toggle-disabled-switch.tsx:55
 msgid "令牌已启用"
 msgstr "Token is enabled"
@@ -185,7 +193,7 @@ msgid "关联角色"
 msgstr "Related Role"
 
 #: src/features/user/components/user-view-info.tsx:122
-#: src/features/token/components/token-view-info.tsx:135
+#: src/features/token/components/token-view-info.tsx:151
 #: src/features/role/components/role-view-info.tsx:97
 #: src/features/operation-log/components/operation-log-view-result.tsx:47
 #: src/features/operation-log/components/operation-log-view-params.tsx:47
@@ -243,7 +251,6 @@ msgstr "Created successfully"
 #~ msgstr "Creating Interface Information"
 
 #: src/features/user/components/user-columns.tsx:21
-#: src/features/token/components/token-view-info.tsx:92
 #: src/features/token/components/token-columns.tsx:20
 #: src/features/role/components/role-columns.tsx:17
 #: src/features/operation-log/components/operation-log-view-info.tsx:307
@@ -281,14 +288,21 @@ msgstr "Delete Menu"
 msgid "删除角色"
 msgstr "Delete Role"
 
-#: src/features/token/components/token-view-info.tsx:100
 #: src/features/token/components/token-columns.tsx:21
 msgid "到期时间"
 msgstr "Expiration time"
 
-#: src/features/token/components/token-view-info.tsx:81
+#: src/features/token/components/token-view-info.tsx:97
 msgid "刷新令牌"
 msgstr "Refresh token"
+
+#: src/features/token/components/token-view-info.tsx:108
+msgid "刷新令牌创建时间"
+msgstr "Refresh token creation time"
+
+#: src/features/token/components/token-view-info.tsx:116
+msgid "刷新令牌到期时间"
+msgstr "Refresh token expiration time"
 
 #: src/components/other/data-table/column-header.tsx:56
 msgid "升序"
@@ -437,7 +451,7 @@ msgstr "Used"
 msgid "已成功更新外观设置"
 msgstr "Appearance settings have been updated successfully"
 
-#: src/features/token/components/token-view-info.tsx:121
+#: src/features/token/components/token-view-info.tsx:137
 msgid "已禁用"
 msgstr "Disabled"
 
@@ -694,7 +708,7 @@ msgstr "Core {index}"
 msgid "根节点"
 msgstr "root"
 
-#: src/features/token/components/token-view-info.tsx:119
+#: src/features/token/components/token-view-info.tsx:135
 #: src/features/api/components/api-columns.tsx:83
 msgid "正常"
 msgstr "normal"
@@ -857,7 +871,7 @@ msgstr "Disk usage"
 msgid "禁用"
 msgstr "Disabled"
 
-#: src/features/token/components/token-view-info.tsx:108
+#: src/features/token/components/token-view-info.tsx:124
 #: src/features/token/components/token-columns.tsx:19
 #: src/features/api/components/api-columns.tsx:24
 #: src/features/api/components/api-action.tsx:187
@@ -1235,6 +1249,7 @@ msgid "请选择关联的菜单"
 msgstr "Please select the associated menu"
 
 #: src/features/user/schemas/action-schema.ts:47
+#: src/features/user/schemas/action-schema.ts:49
 #: src/features/user/components/user-action-dialog.tsx:243
 msgid "请选择关联角色"
 msgstr "Please select the associated role"

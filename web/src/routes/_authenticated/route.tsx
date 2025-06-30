@@ -90,7 +90,7 @@ function RouteComponent() {
   return (
     <SearchProvider navGroups={navGroups}>
       <SidebarProvider>
-        <SkipToMain />
+        {/* <SkipToMain /> */}
         <AppSidebar navGroups={navGroups} user={userProfile} />
         <div
           id='content'

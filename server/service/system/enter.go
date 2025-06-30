@@ -8,4 +8,5 @@ type ServiceGroup struct {
 	SysOperationLogService
 	SysTokenService
 	SysInfoService
+	SysJobService
 }

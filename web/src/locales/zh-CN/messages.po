@@ -33,6 +33,12 @@ msgstr "CPU使用率"
 msgid "CPU核心"
 msgstr "CPU核心"
 
+#: src/features/task/components/task-view-info.tsx:79
+#: src/features/task/components/task-columns.tsx:22
+#: src/features/task/components/task-action-dialog.tsx:204
+msgid "cron表达式"
+msgstr "cron表达式"
+
 #: src/features/system-info/components/system-info-view.tsx:40
 msgid "Go版本"
 msgstr "Go版本"
@@ -59,9 +65,17 @@ msgstr "上一页"
 msgid "上传失败"
 msgstr "上传失败"
 
+#: src/features/task/components/task-view-info.tsx:133
+msgid "上次执行时间"
+msgstr "上次执行时间"
+
 #: src/components/other/data-table/pagination.tsx:146
 msgid "下一页"
 msgstr "下一页"
+
+#: src/features/task/components/task-view-info.tsx:146
+msgid "下次执行时间"
+msgstr "下次执行时间"
 
 #: src/features/operation-log/components/operation-log-view-result.tsx:38
 msgid "下面是请求返回的响应数据。"
@@ -134,6 +148,23 @@ msgstr "令牌已禁用"
 msgid "令牌详情"
 msgstr "令牌详情"
 
+#: src/features/task/components/task-view-info.tsx:73
+#: src/features/task/components/task-columns.tsx:21
+#: src/features/task/components/task-action-dialog.tsx:183
+msgid "任务分组"
+msgstr "任务分组"
+
+#: src/features/task/components/task-view-info.tsx:67
+#: src/features/task/components/task-columns.tsx:20
+#: src/features/task/components/task-action-dialog.tsx:163
+msgid "任务名称"
+msgstr "任务名称"
+
+#: src/features/task/components/task-view-info.tsx:127
+#: src/features/task/components/task-columns.tsx:25
+msgid "任务描述"
+msgstr "任务描述"
+
 #: src/features/auth/email-sign-in/index.tsx:38
 msgid "使用密码登录"
 msgstr "使用密码登录"
@@ -149,6 +180,7 @@ msgstr "使用邮箱登录"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:188
 #: src/features/user/components/user-action-dialog.tsx:311
+#: src/features/task/components/task-action-dialog.tsx:394
 #: src/features/settings/profile/profile-form.tsx:144
 #: src/features/settings/password/email-form.tsx:156
 #: src/features/settings/appearance/appearance-form.tsx:182
@@ -160,6 +192,7 @@ msgstr "保存"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:183
 #: src/features/user/components/user-action-dialog.tsx:306
+#: src/features/task/components/task-action-dialog.tsx:389
 #: src/features/settings/profile/profile-form.tsx:139
 #: src/features/settings/password/email-form.tsx:151
 #: src/features/settings/appearance/appearance-form.tsx:177
@@ -172,6 +205,14 @@ msgstr "保存中"
 #: src/components/other/dialog-header-content.tsx:13
 msgid "修改{text}"
 msgstr "修改{text}"
+
+#: src/features/task/components/task-action-button.tsx:106
+msgid "停止任务"
+msgstr "停止任务"
+
+#: src/features/task/components/task-action-button.tsx:48
+msgid "停止成功"
+msgstr "停止成功"
 
 #: src/features/auth/sign-in/schemas/action-schema.ts:16
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:48
@@ -195,6 +236,7 @@ msgstr "关联角色"
 
 #: src/features/user/components/user-view-info.tsx:122
 #: src/features/token/components/token-view-info.tsx:151
+#: src/features/task/components/task-view-info.tsx:212
 #: src/features/role/components/role-view-info.tsx:97
 #: src/features/operation-log/components/operation-log-view-result.tsx:47
 #: src/features/operation-log/components/operation-log-view-params.tsx:47
@@ -240,6 +282,7 @@ msgid "创建{text}相关信息。"
 msgstr "创建{text}相关信息。"
 
 #: src/features/user/components/user-action-dialog.tsx:82
+#: src/features/task/components/task-action-dialog.tsx:85
 #: src/features/role/components/role-action-dialog.tsx:65
 #: src/features/menu/components/menu-action-dialog.tsx:126
 msgid "创建成功"
@@ -255,6 +298,8 @@ msgstr "创建成功"
 
 #: src/features/user/components/user-columns.tsx:21
 #: src/features/token/components/token-columns.tsx:20
+#: src/features/task/components/task-view-info.tsx:183
+#: src/features/task/components/task-columns.tsx:26
 #: src/features/role/components/role-columns.tsx:17
 #: src/features/operation-log/components/operation-log-view-info.tsx:307
 #: src/features/menu/components/menu-view-info.tsx:181
@@ -272,8 +317,13 @@ msgstr "删除"
 msgid "删除令牌"
 msgstr "删除令牌"
 
+#: src/features/task/components/task-delete-dialog.tsx:51
+msgid "删除定时任务"
+msgstr "删除定时任务"
+
 #: src/features/user/components/user-delete-dialog.tsx:25
 #: src/features/token/components/token-delete-dialog.tsx:30
+#: src/features/task/components/task-delete-dialog.tsx:26
 #: src/features/role/components/role-delete-dialog.tsx:25
 #: src/features/menu/components/menu-delete-dialog.tsx:29
 msgid "删除成功"
@@ -337,6 +387,7 @@ msgstr "发送验证码"
 msgid "取消"
 msgstr "取消"
 
+#: src/features/task/components/task-view-info.tsx:121
 #: src/features/operation-log/components/operation-log-view-info.tsx:92
 #: src/features/operation-log/components/operation-log-view-info.tsx:150
 #: src/features/operation-log/components/operation-log-view-info.tsx:167
@@ -344,6 +395,10 @@ msgstr "取消"
 #: src/features/menu/components/menu-columns.tsx:31
 msgid "否"
 msgstr "否"
+
+#: src/features/task/components/task-action-button.tsx:40
+msgid "启动成功"
+msgstr "启动成功"
 
 #: src/features/operation-log/components/operation-log-view-result.tsx:35
 msgid "响应数据"
@@ -370,6 +425,7 @@ msgstr "在此管理您的电子邮件设置。"
 
 #: src/features/user/components/user-view-info.tsx:60
 #: src/features/token/components/token-view-info.tsx:53
+#: src/features/task/components/task-view-info.tsx:62
 #: src/features/role/components/role-view-info.tsx:53
 #: src/features/operation-log/components/operation-log-view-info.tsx:62
 #: src/features/menu/components/menu-view-info.tsx:74
@@ -399,6 +455,19 @@ msgstr "字体"
 #: src/components/other/dialog-header-content.tsx:21
 msgid "完成后点击保存。"
 msgstr "完成后点击保存。"
+
+#: src/features/task/index.tsx:27
+#: src/features/task/components/task-action-dialog.tsx:149
+msgid "定时任务"
+msgstr "定时任务"
+
+#: src/features/task/components/task-delete-dialog.tsx:56
+msgid "定时任务名称"
+msgstr "定时任务名称"
+
+#: src/features/task/components/task-view-info.tsx:50
+msgid "定时任务详情"
+msgstr "定时任务详情"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:104
 #: src/features/user/components/user-reset-password-dialog.tsx:139
@@ -462,14 +531,23 @@ msgstr "已禁用"
 msgid "已选{selectRow}条,共{selectTotalRow}条"
 msgstr "已选{selectRow}条,共{selectTotalRow}条"
 
+#: src/features/task/components/task-action-dialog.tsx:300
+msgid "并发执行"
+msgstr "并发执行"
+
 #: src/features/user/components/user-columns.tsx:16
 #: src/features/token/components/token-columns.tsx:15
+#: src/features/task/components/task-columns.tsx:19
 #: src/features/role/components/role-columns.tsx:14
 #: src/features/operation-log/components/operation-log-columns.tsx:19
 #: src/features/menu/components/menu-view-info.tsx:146
 #: src/features/api/components/api-columns.tsx:19
 msgid "序号"
 msgstr "序号"
+
+#: src/features/task/components/task-action-button.tsx:104
+msgid "开始任务"
+msgstr "开始任务"
 
 #: src/features/auth/forgot-password/index.tsx:49
 msgid "忘记密码"
@@ -500,9 +578,35 @@ msgstr "您确定要删除这个{text}吗?"
 msgid "成功"
 msgstr "成功"
 
+#: src/features/auth/sign-in/components/user-auth-form.tsx:217
+msgid "或"
+msgstr "或"
+
 #: src/components/other/data-table/row-actions.tsx:141
 msgid "打开菜单"
 msgstr "打开菜单"
+
+#: src/features/task/components/task-action-button.tsx:108
+msgid "执行任务"
+msgstr "执行任务"
+
+#: src/features/task/components/task-view-info.tsx:85
+#: src/features/task/components/task-columns.tsx:23
+#: src/features/task/components/task-action-dialog.tsx:225
+msgid "执行命令"
+msgstr "执行命令"
+
+#: src/features/task/components/task-action-button.tsx:57
+msgid "执行成功"
+msgstr "执行成功"
+
+#: src/features/task/components/task-view-info.tsx:159
+msgid "执行次数"
+msgstr "执行次数"
+
+#: src/features/task/components/task-view-info.tsx:177
+msgid "执行超时时间(秒)"
+msgstr "执行超时时间(秒)"
 
 #: src/components/other/code-block.tsx:72
 msgid "折叠"
@@ -544,6 +648,7 @@ msgstr "接口"
 msgid "接口列表"
 msgstr "接口列表"
 
+#: src/features/task/components/task-action-dialog.tsx:279
 #: src/features/api/components/api-columns.tsx:21
 #: src/features/api/components/api-action.tsx:145
 msgid "描述"
@@ -581,6 +686,7 @@ msgstr "新密码"
 msgid "新密码不能与旧密码相同"
 msgstr "新密码不能与旧密码相同"
 
+#: src/features/task/components/task-view-info.tsx:121
 #: src/features/operation-log/components/operation-log-view-info.tsx:90
 #: src/features/operation-log/components/operation-log-view-info.tsx:148
 #: src/features/operation-log/components/operation-log-view-info.tsx:167
@@ -598,6 +704,10 @@ msgstr "是否内网IP"
 #: src/features/menu/components/menu-action-dialog.tsx:519
 msgid "是否可见"
 msgstr "是否可见"
+
+#: src/features/task/components/task-view-info.tsx:111
+msgid "是否并发执行"
+msgstr "是否并发执行"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:195
 #: src/features/operation-log/components/operation-log-columns.tsx:27
@@ -624,6 +734,12 @@ msgstr "昵称"
 msgid "昵称长度不能超过10个字符"
 msgstr "昵称长度不能超过10个字符"
 
+#: src/features/task/components/task-view-info.tsx:104
+#: src/features/task/components/task-columns.tsx:84
+#: src/features/task/components/task-action-dialog.tsx:263
+msgid "暂停"
+msgstr "暂停"
+
 #: src/components/theme-switch.tsx:28
 #~ msgid "暗色模式"
 #~ msgstr "暗色模式"
@@ -646,6 +762,7 @@ msgid "更新{text}相关信息。"
 msgstr "更新{text}相关信息。"
 
 #: src/features/user/components/user-action-dialog.tsx:91
+#: src/features/task/components/task-action-dialog.tsx:95
 #: src/features/settings/profile/profile-form.tsx:56
 #: src/features/role/components/role-action-dialog.tsx:74
 #: src/features/menu/components/menu-action-dialog.tsx:135
@@ -662,6 +779,8 @@ msgstr "更新成功"
 #~ msgstr "更新接口信息"
 
 #: src/features/user/components/user-columns.tsx:22
+#: src/features/task/components/task-view-info.tsx:194
+#: src/features/task/components/task-columns.tsx:27
 #: src/features/role/components/role-columns.tsx:18
 #: src/features/menu/components/menu-view-info.tsx:192
 #: src/features/api/components/api-columns.tsx:27
@@ -685,6 +804,10 @@ msgstr "查看"
 #: src/features/token/components/token-view-info.tsx:44
 msgid "查看令牌详细信息。"
 msgstr "查看令牌详细信息。"
+
+#: src/features/task/components/task-view-info.tsx:53
+msgid "查看定时任务详细信息。"
+msgstr "查看定时任务详细信息。"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:53
 msgid "查看操作详细信息和相关信息。这包括 请求参数、时间戳和执行状态。"
@@ -719,6 +842,9 @@ msgid "根节点"
 msgstr "根节点"
 
 #: src/features/token/components/token-view-info.tsx:135
+#: src/features/task/components/task-view-info.tsx:102
+#: src/features/task/components/task-columns.tsx:84
+#: src/features/task/components/task-action-dialog.tsx:261
 #: src/features/api/components/api-columns.tsx:83
 msgid "正常"
 msgstr "正常"
@@ -754,6 +880,7 @@ msgid "深色模式"
 msgstr "深色模式"
 
 #: src/features/user/components/user-primary-buttons.tsx:12
+#: src/features/task/components/task-primary-buttons.tsx:12
 #: src/features/role/components/role-primary-buttons.tsx:12
 #: src/features/menu/components/menu-primary-buttons.tsx:12
 msgid "添加"
@@ -766,6 +893,12 @@ msgstr "添加子元素"
 #: src/features/menu/components/menu-action-dialog.tsx:297
 msgid "父级菜单"
 msgstr "父级菜单"
+
+#: src/features/task/components/task-view-info.tsx:91
+#: src/features/task/components/task-columns.tsx:24
+#: src/features/task/components/task-action-dialog.tsx:246
+msgid "状态"
+msgstr "状态"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:206
 #: src/features/operation-log/components/operation-log-columns.tsx:28
@@ -788,6 +921,10 @@ msgstr "用于学习基本的权限管理系统及流程"
 #: src/features/token/index.tsx:29
 msgid "用于查看并操作令牌。"
 msgstr "用于查看并操作令牌。"
+
+#: src/features/task/index.tsx:28
+msgid "用于查看并操作定时任务。"
+msgstr "用于查看并操作定时任务。"
 
 #: src/features/user/index.tsx:28
 msgid "用于查看并操作用户信息。"
@@ -859,7 +996,7 @@ msgstr "用户详情"
 #: src/features/auth/sign-in/index.tsx:46
 #: src/features/auth/sign-in/components/user-auth-form.tsx:201
 #: src/features/auth/sign-in/components/user-auth-form.tsx:206
-#: src/features/auth/sign-in/components/user-auth-form.tsx:230
+#: src/features/auth/sign-in/components/user-auth-form.tsx:232
 #: src/features/auth/forgot-password/index.tsx:61
 msgid "登录"
 msgstr "登录"
@@ -1109,6 +1246,24 @@ msgstr "请求路径"
 msgid "请求返回了一个错误，响应详细信息如下。"
 msgstr "请求返回了一个错误，响应详细信息如下。"
 
+#: src/features/task/schemas/action-schema.ts:14
+#: src/features/task/schemas/action-schema.ts:15
+#: src/features/task/components/task-action-dialog.tsx:208
+msgid "请输入cron表达式"
+msgstr "请输入cron表达式"
+
+#: src/features/task/schemas/action-schema.ts:11
+#: src/features/task/schemas/action-schema.ts:12
+#: src/features/task/components/task-action-dialog.tsx:187
+msgid "请输入任务分组"
+msgstr "请输入任务分组"
+
+#: src/features/task/schemas/action-schema.ts:8
+#: src/features/task/schemas/action-schema.ts:9
+#: src/features/task/components/task-action-dialog.tsx:167
+msgid "请输入任务名称"
+msgstr "请输入任务名称"
+
 #: src/features/settings/password/email-form.tsx:90
 msgid "请输入原密码"
 msgstr "请输入原密码"
@@ -1137,11 +1292,18 @@ msgstr "请输入您的邮箱"
 msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 msgstr "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 
+#: src/features/task/schemas/action-schema.ts:17
+#: src/features/task/schemas/action-schema.ts:18
+#: src/features/task/components/task-action-dialog.tsx:229
+msgid "请输入执行命令"
+msgstr "请输入执行命令"
+
 #: src/features/menu/components/menu-action-dialog.tsx:546
 #: src/features/api/components/api-action.tsx:213
 msgid "请输入排序值"
 msgstr "请输入排序值"
 
+#: src/features/task/components/task-action-dialog.tsx:283
 #: src/features/api/components/api-action.tsx:150
 msgid "请输入描述"
 msgstr "请输入描述"
@@ -1209,6 +1371,10 @@ msgstr "请输入请求方法"
 msgid "请输入请求路径"
 msgstr "请输入请求路径"
 
+#: src/features/task/components/task-action-dialog.tsx:370
+msgid "请输入超时时间(秒)"
+msgstr "请输入超时时间(秒)"
+
 #: src/features/menu/schemas/action-schema.ts:37
 #: src/features/menu/schemas/action-schema.ts:38
 msgid "请输入路由地址"
@@ -1232,6 +1398,14 @@ msgstr "请输入邮箱"
 #: src/features/auth/otp/components/otp-form.tsx:36
 msgid "请输入邮箱验证码"
 msgstr "请输入邮箱验证码"
+
+#: src/features/task/components/task-action-dialog.tsx:326
+msgid "请输入重试次数"
+msgstr "请输入重试次数"
+
+#: src/features/task/components/task-action-dialog.tsx:348
+msgid "请输入重试间隔(秒)"
+msgstr "请输入重试间隔(秒)"
 
 #: src/features/auth/sign-in/schemas/action-schema.ts:14
 #: src/features/auth/sign-in/schemas/action-schema.ts:15
@@ -1278,6 +1452,10 @@ msgstr "请选择图标"
 msgid "请选择父级菜单"
 msgstr "请选择父级菜单"
 
+#: src/features/task/schemas/action-schema.ts:19
+msgid "请选择状态"
+msgstr "请选择状态"
+
 #: src/features/menu/schemas/action-schema.ts:40
 #: src/features/menu/schemas/action-schema.ts:41
 #: src/features/menu/components/menu-action-dialog.tsx:402
@@ -1287,6 +1465,10 @@ msgstr "请选择组件路径"
 #: src/features/menu/components/menu-action-dialog.tsx:366
 msgid "请选择路由"
 msgstr "请选择路由"
+
+#: src/features/task/components/task-action-dialog.tsx:365
+msgid "超时时间(秒)"
+msgstr "超时时间(秒)"
 
 #: src/components/theme-switch.tsx:33
 #~ msgid "跟随系统"
@@ -1376,7 +1558,7 @@ msgstr "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1
 #: src/features/user/components/user-action-dialog.tsx:188
 #: src/features/settings/index.tsx:54
 #: src/features/settings/email/email-form.tsx:139
-#: src/features/auth/sign-in/components/user-auth-form.tsx:229
+#: src/features/auth/sign-in/components/user-auth-form.tsx:231
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:127
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:77
 msgid "邮箱"
@@ -1414,6 +1596,16 @@ msgstr "重置密码成功"
 #: src/features/user/components/user-reset-password-dialog.tsx:98
 msgid "重置用户"
 msgstr "重置用户"
+
+#: src/features/task/components/task-view-info.tsx:165
+#: src/features/task/components/task-action-dialog.tsx:321
+msgid "重试次数"
+msgstr "重试次数"
+
+#: src/features/task/components/task-view-info.tsx:171
+#: src/features/task/components/task-action-dialog.tsx:343
+msgid "重试间隔(秒)"
+msgstr "重试间隔(秒)"
 
 #: src/features/operation-log/components/operation-log-view-message.tsx:35
 #: src/features/operation-log/components/operation-log-view-info.tsx:225

@@ -25,6 +25,7 @@ import { Route as authEmailSignInImport } from './routes/(auth)/email-sign-in'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUserIndexImport } from './routes/_authenticated/user/index'
 import { Route as AuthenticatedTokenIndexImport } from './routes/_authenticated/token/index'
+import { Route as AuthenticatedTaskIndexImport } from './routes/_authenticated/task/index'
 import { Route as AuthenticatedSystemInfoIndexImport } from './routes/_authenticated/system-info/index'
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRoleIndexImport } from './routes/_authenticated/role/index'
@@ -122,6 +123,12 @@ const AuthenticatedUserIndexRoute = AuthenticatedUserIndexImport.update({
 const AuthenticatedTokenIndexRoute = AuthenticatedTokenIndexImport.update({
   id: '/token/',
   path: '/token/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+
+const AuthenticatedTaskIndexRoute = AuthenticatedTaskIndexImport.update({
+  id: '/task/',
+  path: '/task/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -380,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSystemInfoIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/task/': {
+      id: '/_authenticated/task/'
+      path: '/task'
+      fullPath: '/task'
+      preLoaderRoute: typeof AuthenticatedTaskIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/token/': {
       id: '/_authenticated/token/'
       path: '/token'
@@ -434,6 +448,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOperationLogIndexRoute: typeof AuthenticatedOperationLogIndexRoute
   AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
   AuthenticatedSystemInfoIndexRoute: typeof AuthenticatedSystemInfoIndexRoute
+  AuthenticatedTaskIndexRoute: typeof AuthenticatedTaskIndexRoute
   AuthenticatedTokenIndexRoute: typeof AuthenticatedTokenIndexRoute
   AuthenticatedUserIndexRoute: typeof AuthenticatedUserIndexRoute
 }
@@ -446,6 +461,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOperationLogIndexRoute: AuthenticatedOperationLogIndexRoute,
   AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
   AuthenticatedSystemInfoIndexRoute: AuthenticatedSystemInfoIndexRoute,
+  AuthenticatedTaskIndexRoute: AuthenticatedTaskIndexRoute,
   AuthenticatedTokenIndexRoute: AuthenticatedTokenIndexRoute,
   AuthenticatedUserIndexRoute: AuthenticatedUserIndexRoute,
 }
@@ -478,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/role': typeof AuthenticatedRoleIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/system-info': typeof AuthenticatedSystemInfoIndexRoute
+  '/task': typeof AuthenticatedTaskIndexRoute
   '/token': typeof AuthenticatedTokenIndexRoute
   '/user': typeof AuthenticatedUserIndexRoute
 }
@@ -505,6 +522,7 @@ export interface FileRoutesByTo {
   '/role': typeof AuthenticatedRoleIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/system-info': typeof AuthenticatedSystemInfoIndexRoute
+  '/task': typeof AuthenticatedTaskIndexRoute
   '/token': typeof AuthenticatedTokenIndexRoute
   '/user': typeof AuthenticatedUserIndexRoute
 }
@@ -535,6 +553,7 @@ export interface FileRoutesById {
   '/_authenticated/role/': typeof AuthenticatedRoleIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/system-info/': typeof AuthenticatedSystemInfoIndexRoute
+  '/_authenticated/task/': typeof AuthenticatedTaskIndexRoute
   '/_authenticated/token/': typeof AuthenticatedTokenIndexRoute
   '/_authenticated/user/': typeof AuthenticatedUserIndexRoute
 }
@@ -566,6 +585,7 @@ export interface FileRouteTypes {
     | '/role'
     | '/settings/'
     | '/system-info'
+    | '/task'
     | '/token'
     | '/user'
   fileRoutesByTo: FileRoutesByTo
@@ -592,6 +612,7 @@ export interface FileRouteTypes {
     | '/role'
     | '/settings'
     | '/system-info'
+    | '/task'
     | '/token'
     | '/user'
   id:
@@ -620,6 +641,7 @@ export interface FileRouteTypes {
     | '/_authenticated/role/'
     | '/_authenticated/settings/'
     | '/_authenticated/system-info/'
+    | '/_authenticated/task/'
     | '/_authenticated/token/'
     | '/_authenticated/user/'
   fileRoutesById: FileRoutesById
@@ -683,6 +705,7 @@ export const routeTree = rootRoute
         "/_authenticated/operation-log/",
         "/_authenticated/role/",
         "/_authenticated/system-info/",
+        "/_authenticated/task/",
         "/_authenticated/token/",
         "/_authenticated/user/"
       ]
@@ -777,6 +800,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/system-info/": {
       "filePath": "_authenticated/system-info/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/task/": {
+      "filePath": "_authenticated/task/index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/token/": {

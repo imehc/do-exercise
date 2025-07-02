@@ -109,9 +109,6 @@ msgstr "Theme"
 msgid "了解更多信息"
 msgstr "Learn more"
 
-#~ msgid "亮色模式"
-#~ msgstr "Light mode"
-
 #: src/features/operation-log/components/operation-log-view-info.tsx:117
 msgid "代理"
 msgstr "Proxy"
@@ -286,12 +283,6 @@ msgstr "Create {text} related information."
 #: src/features/menu/components/menu-action-dialog.tsx:126
 msgid "创建成功"
 msgstr "Created successfully"
-
-#~ msgid "创建接口"
-#~ msgstr "Create Interface"
-
-#~ msgid "创建接口信息"
-#~ msgstr "Creating Interface Information"
 
 #: src/features/user/components/user-columns.tsx:21
 #: src/features/token/components/token-columns.tsx:20
@@ -737,9 +728,6 @@ msgstr "Nicknames cannot exceed 10 characters in length"
 msgid "暂停"
 msgstr "Pause"
 
-#~ msgid "暗色模式"
-#~ msgstr "Dark mode"
-
 #: src/features/auth/otp/index.tsx:45
 #: src/features/auth/email-sign-in/index.tsx:33
 msgid "更喜欢使用密码？"
@@ -765,12 +753,6 @@ msgstr "Update {text} related information."
 #: src/features/api/components/api-action.tsx:64
 msgid "更新成功"
 msgstr "Update succeeded."
-
-#~ msgid "更新接口"
-#~ msgstr "Updating the interface"
-
-#~ msgid "更新接口信息"
-#~ msgstr "Updating interface information"
 
 #: src/features/user/components/user-columns.tsx:22
 #: src/features/task/components/task-view-info.tsx:194
@@ -927,9 +909,6 @@ msgstr "Used to view all operation logs, including request information, response
 #: src/features/api/index.tsx:28
 msgid "用于查看接口详情和更新接口信息。"
 msgstr "Used to view interface details and update interface information."
-
-#~ msgid "用于查看接口详情和编辑接口信息"
-#~ msgstr "For viewing interface details and editing interface information"
 
 #: src/features/user/components/user-delete-dialog.tsx:55
 #: src/features/user/components/user-action-dialog.tsx:131
@@ -1235,20 +1214,20 @@ msgstr "Request Path"
 msgid "请求返回了一个错误，响应详细信息如下。"
 msgstr "The request returned an error, and the response details are as follows."
 
-#: src/features/task/schemas/action-schema.ts:14
 #: src/features/task/schemas/action-schema.ts:15
+#: src/features/task/schemas/action-schema.ts:16
 #: src/features/task/components/task-action-dialog.tsx:208
 msgid "请输入cron表达式"
 msgstr "Please enter cron expression"
 
-#: src/features/task/schemas/action-schema.ts:11
 #: src/features/task/schemas/action-schema.ts:12
+#: src/features/task/schemas/action-schema.ts:13
 #: src/features/task/components/task-action-dialog.tsx:187
 msgid "请输入任务分组"
 msgstr "Please enter a task group"
 
-#: src/features/task/schemas/action-schema.ts:8
 #: src/features/task/schemas/action-schema.ts:9
+#: src/features/task/schemas/action-schema.ts:10
 #: src/features/task/components/task-action-dialog.tsx:167
 msgid "请输入任务名称"
 msgstr "Please enter a task name"
@@ -1281,8 +1260,8 @@ msgstr "Please enter your email address"
 msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 msgstr "Please enter your email address, and we will send you a verification code. Please log in with the verification code."
 
-#: src/features/task/schemas/action-schema.ts:17
-#: src/features/task/schemas/action-schema.ts:18
+#: src/features/task/schemas/action-schema.ts:26
+#: src/features/task/schemas/action-schema.ts:27
 #: src/features/task/components/task-action-dialog.tsx:229
 msgid "请输入执行命令"
 msgstr "Please enter the execute command"
@@ -1305,6 +1284,10 @@ msgstr "Please enter a new password"
 #: src/features/settings/profile/profile-form.tsx:98
 msgid "请输入昵称"
 msgstr "Please enter a nickname"
+
+#: src/features/task/schemas/action-schema.ts:23
+msgid "请输入有效的cron表达式"
+msgstr "Please enter a valid cron expression"
 
 #: src/features/menu/schemas/action-schema.ts:48
 #: src/features/menu/schemas/action-schema.ts:49
@@ -1441,7 +1424,7 @@ msgstr "Please select the icon"
 msgid "请选择父级菜单"
 msgstr "Please select the parent menu"
 
-#: src/features/task/schemas/action-schema.ts:19
+#: src/features/task/schemas/action-schema.ts:28
 msgid "请选择状态"
 msgstr "Please select a status"
 
@@ -1458,9 +1441,6 @@ msgstr "Please select a route"
 #: src/features/task/components/task-action-dialog.tsx:365
 msgid "超时时间(秒)"
 msgstr "Timeout (seconds)"
-
-#~ msgid "跟随系统"
-#~ msgstr "System"
 
 #: src/features/menu/components/menu-view-info.tsx:103
 #: src/features/menu/components/menu-columns.tsx:26

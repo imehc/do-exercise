@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
+	"github.com/robfig/cron/v3"
 )
 
 var lock sync.Mutex // 添加互斥锁
@@ -36,6 +37,7 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 		v.RegisterValidation("complexPassword", complexPassword) // 校验密码是否包含字母、数字和特殊字符
 		v.RegisterValidation("uniqueName", uniqueName)           // 校验可以为空，但是如果不为空则必须为唯一，且只能包含字母、数字和冒号
 		v.RegisterValidation("menuType", menuType)               // 校验菜单类型是否为1或2或3
+		v.RegisterValidation("cron", cronExpression)             // 校验cron表达式格式
 
 		switch locale {
 		case "zh":
@@ -70,6 +72,12 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 				t, _ := ut.T("menuType", fe.Field())
 				return t
 			})
+			v.RegisterTranslation("cron", trans, func(ut ut.Translator) error {
+				return ut.Add("cron", "{0}必须为有效的cron表达式", true)
+			}, func(ut ut.Translator, fe validator.FieldError) string {
+				t, _ := ut.T("cron", fe.Field())
+				return t
+			})
 		default:
 			en_translations.RegisterDefaultTranslations(v, trans)
 			v.RegisterTranslation("startWithLetter", trans, func(ut ut.Translator) error {
@@ -101,6 +109,12 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 				return ut.Add("menuType", "{0} must be 1 or 2 or 3", true)
 			}, func(ut ut.Translator, fe validator.FieldError) string {
 				t, _ := ut.T("menuType", fe.Field())
+				return t
+			})
+			v.RegisterTranslation("cron", trans, func(ut ut.Translator) error {
+				return ut.Add("cron", "{0} must be a valid cron expression", true)
+			}, func(ut ut.Translator, fe validator.FieldError) string {
+				t, _ := ut.T("cron", fe.Field())
 				return t
 			})
 		}
@@ -155,4 +169,12 @@ func uniqueName(fl validator.FieldLevel) bool {
 func menuType(fl validator.FieldLevel) bool {
 	value := fl.Field().Uint()
 	return value == 1 || value == 2 || value == 3
+}
+
+// 自定义校验函数：检查cron表达式是否合法
+func cronExpression(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	parser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
+	_, err := parser.Parse(value)
+	return err == nil
 }

@@ -2,10 +2,13 @@ package system
 
 import (
 	"errors"
+	"fmt"
 
 	"sync"
 
 	"os/exec"
+
+	"time"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
@@ -285,6 +288,34 @@ func (s *SysJobService) addJobToScheduler(job *system.SysJob) (gocron.Job, error
 
 // runJob 执行任务命令
 func (s *SysJobService) runJob(job *system.SysJob) error {
+	db := global.DB
+
+	// 记录上次执行时间
+	now := time.Now()
+	job.LastTime = &now
+	job.Times++
+
+	// 计算下次执行时间（如果有调度器信息）
+	if scheduler != nil {
+		jobMapMutex.Lock()
+		if jobUUID, exists := jobMap[job.Id]; exists {
+			uid := uuid.MustParse(jobUUID)
+			for _, gocronJob := range scheduler.Jobs() {
+				if gocronJob.ID() == uid {
+					next, err := gocronJob.NextRun()
+					if err == nil {
+						nextUTC := next.UTC()
+						job.NextTime = &nextUTC
+					}
+					break
+				}
+			}
+		}
+		jobMapMutex.Unlock()
+	}
+
+	db.Model(&system.SysJob{}).Where("id = ?", job.Id).Select("LastTime", "NextTime", "Times").Updates(job)
+
 	if job.Command == "clean_empty_username_operation_logs" {
 		return s.CleanEmptyUsernameOperationLogs()
 	}
@@ -292,10 +323,10 @@ func (s *SysJobService) runJob(job *system.SysJob) error {
 	cmd := exec.Command("/bin/sh", "-c", job.Command)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		println("任务执行失败：", job.Name, job.Command, "错误：", err.Error(), "输出：", string(output))
+		fmt.Println("任务执行失败：", job.Name, job.Command, "错误：", err.Error(), "输出：", string(output))
 		return err
 	}
-	println("任务执行成功：", job.Name, job.Command, "输出：", string(output))
+	fmt.Println("任务执行成功：", job.Name, job.Command, "输出：", string(output))
 	return nil
 }
 
@@ -335,5 +366,5 @@ func RemoveJobStr(s gocron.Scheduler, id string) error {
 // 清理sys_operation_log表中username为空的任务实现
 func (s *SysJobService) CleanEmptyUsernameOperationLogs() error {
 	db := global.DB
-	return db.Where("username = ''").Delete(&system.SysOperationLog{}).Error
+	return db.Unscoped().Where("username = '' OR username IS NULL").Delete(&system.SysOperationLog{}).Error
 }

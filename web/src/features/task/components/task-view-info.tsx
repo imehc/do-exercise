@@ -135,9 +135,9 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
                     <div className='col-span-2'>
                       {job.lastTime
                         ? i18n.date(job.lastTime, {
-                            dateStyle: 'short',
-                            timeStyle: 'medium',
-                          })
+                          dateStyle: 'short',
+                          timeStyle: 'medium',
+                        })
                         : '-'}
                     </div>
                   </div>
@@ -148,9 +148,9 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
                     <div className='col-span-2'>
                       {job.nextTime
                         ? i18n.date(job.nextTime, {
-                            dateStyle: 'short',
-                            timeStyle: 'medium',
-                          })
+                          dateStyle: 'short',
+                          timeStyle: 'medium',
+                        })
                         : '-'}
                     </div>
                   </div>
@@ -158,25 +158,25 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
                     <div className='font-medium'>
                       <Trans>执行次数</Trans>
                     </div>
-                    <div className='col-span-2'>{job.times || '-'}</div>
+                    <div className='col-span-2'>{job.times || 0}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
                       <Trans>重试次数</Trans>
                     </div>
-                    <div className='col-span-2'>{job.retryTimes || '-'}</div>
+                    <div className='col-span-2'>{job.retryTimes || 0}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
                       <Trans>重试间隔(秒)</Trans>
                     </div>
-                    <div className='col-span-2'>{job.retryInterval || '-'}</div>
+                    <div className='col-span-2'>{job.retryInterval || 0}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
                       <Trans>执行超时时间(秒)</Trans>
                     </div>
-                    <div className='col-span-2'>{job.timeout || '-'}</div>
+                    <div className='col-span-2'>{job.timeout || 0}</div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>

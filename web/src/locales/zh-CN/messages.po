@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2025-06-19 10:41+0800\n"
+"POT-Creation-Date: 2025-07-02 09:18+0800\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -108,10 +108,6 @@ msgstr "主题"
 #: src/features/errors/maintenance-error.tsx:16
 msgid "了解更多信息"
 msgstr "了解更多信息"
-
-#: src/components/theme-switch.tsx:23
-#~ msgid "亮色模式"
-#~ msgstr "亮色模式"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:117
 msgid "代理"
@@ -287,14 +283,6 @@ msgstr "创建{text}相关信息。"
 #: src/features/menu/components/menu-action-dialog.tsx:126
 msgid "创建成功"
 msgstr "创建成功"
-
-#: src/features/api/components/api-action.tsx:88
-#~ msgid "创建接口"
-#~ msgstr "创建接口"
-
-#: src/features/api/components/api-action.tsx:91
-#~ msgid "创建接口信息"
-#~ msgstr "创建接口信息"
 
 #: src/features/user/components/user-columns.tsx:21
 #: src/features/token/components/token-columns.tsx:20
@@ -740,10 +728,6 @@ msgstr "昵称长度不能超过10个字符"
 msgid "暂停"
 msgstr "暂停"
 
-#: src/components/theme-switch.tsx:28
-#~ msgid "暗色模式"
-#~ msgstr "暗色模式"
-
 #: src/features/auth/otp/index.tsx:45
 #: src/features/auth/email-sign-in/index.tsx:33
 msgid "更喜欢使用密码？"
@@ -769,14 +753,6 @@ msgstr "更新{text}相关信息。"
 #: src/features/api/components/api-action.tsx:64
 msgid "更新成功"
 msgstr "更新成功"
-
-#: src/features/api/components/api-action.tsx:88
-#~ msgid "更新接口"
-#~ msgstr "更新接口"
-
-#: src/features/api/components/api-action.tsx:91
-#~ msgid "更新接口信息"
-#~ msgstr "更新接口信息"
 
 #: src/features/user/components/user-columns.tsx:22
 #: src/features/task/components/task-view-info.tsx:194
@@ -828,10 +804,6 @@ msgstr "查看菜单详细信息。"
 #: src/features/role/components/role-view-info.tsx:43
 msgid "查看角色详细信息。"
 msgstr "查看角色详细信息。"
-
-#: src/features/system-info/components/system-info-view.tsx:77
-#~ msgid "核心 {0}"
-#~ msgstr "核心 {0}"
 
 #: src/features/system-info/components/system-info-view.tsx:77
 msgid "核心 {index}"
@@ -937,10 +909,6 @@ msgstr "用于查看所有操作日志，包括请求信息、响应结果和操
 #: src/features/api/index.tsx:28
 msgid "用于查看接口详情和更新接口信息。"
 msgstr "用于查看接口详情和更新接口信息。"
-
-#: src/features/api/index.tsx:47
-#~ msgid "用于查看接口详情和编辑接口信息"
-#~ msgstr "用于查看接口详情和编辑接口信息"
 
 #: src/features/user/components/user-delete-dialog.tsx:55
 #: src/features/user/components/user-action-dialog.tsx:131
@@ -1246,20 +1214,20 @@ msgstr "请求路径"
 msgid "请求返回了一个错误，响应详细信息如下。"
 msgstr "请求返回了一个错误，响应详细信息如下。"
 
-#: src/features/task/schemas/action-schema.ts:14
 #: src/features/task/schemas/action-schema.ts:15
+#: src/features/task/schemas/action-schema.ts:16
 #: src/features/task/components/task-action-dialog.tsx:208
 msgid "请输入cron表达式"
 msgstr "请输入cron表达式"
 
-#: src/features/task/schemas/action-schema.ts:11
 #: src/features/task/schemas/action-schema.ts:12
+#: src/features/task/schemas/action-schema.ts:13
 #: src/features/task/components/task-action-dialog.tsx:187
 msgid "请输入任务分组"
 msgstr "请输入任务分组"
 
-#: src/features/task/schemas/action-schema.ts:8
 #: src/features/task/schemas/action-schema.ts:9
+#: src/features/task/schemas/action-schema.ts:10
 #: src/features/task/components/task-action-dialog.tsx:167
 msgid "请输入任务名称"
 msgstr "请输入任务名称"
@@ -1292,8 +1260,8 @@ msgstr "请输入您的邮箱"
 msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 msgstr "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 
-#: src/features/task/schemas/action-schema.ts:17
-#: src/features/task/schemas/action-schema.ts:18
+#: src/features/task/schemas/action-schema.ts:26
+#: src/features/task/schemas/action-schema.ts:27
 #: src/features/task/components/task-action-dialog.tsx:229
 msgid "请输入执行命令"
 msgstr "请输入执行命令"
@@ -1316,6 +1284,10 @@ msgstr "请输入新密码"
 #: src/features/settings/profile/profile-form.tsx:98
 msgid "请输入昵称"
 msgstr "请输入昵称"
+
+#: src/features/task/schemas/action-schema.ts:23
+msgid "请输入有效的cron表达式"
+msgstr "请输入有效的cron表达式"
 
 #: src/features/menu/schemas/action-schema.ts:48
 #: src/features/menu/schemas/action-schema.ts:49
@@ -1452,7 +1424,7 @@ msgstr "请选择图标"
 msgid "请选择父级菜单"
 msgstr "请选择父级菜单"
 
-#: src/features/task/schemas/action-schema.ts:19
+#: src/features/task/schemas/action-schema.ts:28
 msgid "请选择状态"
 msgstr "请选择状态"
 
@@ -1469,10 +1441,6 @@ msgstr "请选择路由"
 #: src/features/task/components/task-action-dialog.tsx:365
 msgid "超时时间(秒)"
 msgstr "超时时间(秒)"
-
-#: src/components/theme-switch.tsx:33
-#~ msgid "跟随系统"
-#~ msgstr "跟随系统"
 
 #: src/features/menu/components/menu-view-info.tsx:103
 #: src/features/menu/components/menu-columns.tsx:26

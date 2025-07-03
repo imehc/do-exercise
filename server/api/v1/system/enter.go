@@ -10,6 +10,7 @@ type ApiGroup struct {
 	SysOperationLogApi
 	SysTokenApi
 	SysInfoApi
+	SysJobApi
 }
 
 var (
@@ -20,4 +21,5 @@ var (
 	sysOperationLogService = service.ServiceGroupApp.SystemServiceGroup.SysOperationLogService // 系统操作日志服务
 	sysTokenService        = service.ServiceGroupApp.SystemServiceGroup.SysTokenService        // 令牌服务
 	sysInfoService         = service.ServiceGroupApp.SystemServiceGroup.SysInfoService         // 系统信息服务
+	jobService            = service.ServiceGroupApp.SystemServiceGroup.SysJobService          // 定时任务服务
 )

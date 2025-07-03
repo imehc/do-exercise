@@ -46,7 +46,7 @@ export const getSchema = () =>
         .array(z.number(), {
           required_error: t`请选择关联角色`,
         })
-        .min(1, '请选择关联角色'),
+        .min(1, t`请选择关联角色`),
 
       isEdit: z.boolean().default(false).optional(),
     })

@@ -78,6 +78,22 @@ export function TokenViewInfoDialog({ open, onOpenChange }: Props) {
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
+                      <Trans>令牌创建时间</Trans>
+                    </div>
+                    <div className='col-span-2'>
+                      {format(token.accessTokenCreated, 'yyyy-MM-dd HH:mm:ss')}
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-3 items-center gap-4'>
+                    <div className='font-medium'>
+                      <Trans>令牌到期时间</Trans>
+                    </div>
+                    <div className='col-span-2'>
+                      {format(token.accessTokenExpired, 'yyyy-MM-dd HH:mm:ss')}
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-3 items-center gap-4'>
+                    <div className='font-medium'>
                       <Trans>刷新令牌</Trans>
                     </div>
                     <div className='col-span-2'>
@@ -89,18 +105,18 @@ export function TokenViewInfoDialog({ open, onOpenChange }: Props) {
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
-                      <Trans>创建时间</Trans>
+                      <Trans>刷新令牌创建时间</Trans>
                     </div>
                     <div className='col-span-2'>
-                      {format(token.createdAt, 'yyyy-MM-dd HH:mm:ss')}
+                      {format(token.refreshTokenCreated, 'yyyy-MM-dd HH:mm:ss')}
                     </div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
-                      <Trans>到期时间</Trans>
+                      <Trans>刷新令牌到期时间</Trans>
                     </div>
                     <div className='col-span-2'>
-                      {format(token.expiredAt, 'yyyy-MM-dd HH:mm:ss')}
+                      {format(token.refreshTokenExpired, 'yyyy-MM-dd HH:mm:ss')}
                     </div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>

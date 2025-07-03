@@ -16,7 +16,6 @@ import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
 import { LoadingSpinner } from '~/components/other'
-import SkipToMain from '~/components/skip-to-main'
 
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
@@ -90,7 +89,7 @@ function RouteComponent() {
   return (
     <SearchProvider navGroups={navGroups}>
       <SidebarProvider>
-        <SkipToMain />
+        {/* <SkipToMain /> */}
         <AppSidebar navGroups={navGroups} user={userProfile} />
         <div
           id='content'

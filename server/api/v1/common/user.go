@@ -12,7 +12,6 @@ import (
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/model/common/response"
-	"github.com/imehc/do-exercise/server/model/common/status"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/redis/go-redis/v9"
 )
@@ -99,7 +98,6 @@ func (s *UserApi) clearEmailCache(ctx context.Context, iRedis *redis.Client, ema
 
 // sendEmailCode 发送邮箱验证码
 func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.EmailData, userId string) {
-	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
 
@@ -110,20 +108,14 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 
 	to, _, err := s.checkEmail(ctx, context, iRedis, uId, emailType)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 
 	minute := time.Duration(10) * time.Minute
 	code := util.GenerateRandomNumber(6)
 	if err := s.setEmailCache(context, iRedis, emailType, *to, code, uId, minute); err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("emailSendFailed", lang),
-		})
+		response.BadRequest(ctx, "emailSendFailed")
 		return
 	}
 
@@ -133,16 +125,10 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 	if err := s.sendEmail(global.Config.Email.User, *to, *data); err != nil {
 		err := s.clearEmailCache(context, iRedis, emailType, *to)
 		if err != nil {
-			response.BadRequest(ctx, response.ValidationError{
-				Type:    status.BAD_REQUEST_MSG,
-				Message: global.I18.Translate("emailSendFailed", lang),
-			})
+			response.BadRequest(ctx, "emailSendFailed")
 			return
 		}
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("emailSendFailed", lang),
-		})
+		response.BadRequest(ctx, "emailSendFailed")
 		return
 	}
 	response.NoContent(ctx)
@@ -150,7 +136,6 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 
 // bindEmail 绑定邮箱
 func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
-	lang := ctx.GetString("lang")
 	iRedis := global.Redis
 	context := context.Background()
 	userId := ctx.MustGet("userId").(string)
@@ -163,10 +148,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 
 	cache, err := s.getEmailCache(context, iRedis, emailType, req.Email)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 
@@ -175,10 +157,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 	}()
 
 	if cache.Code != req.Code || cache.UserId != userId {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate("captchaError", lang),
-		})
+		response.BadRequest(ctx, "captchaError")
 		return
 	}
 
@@ -186,10 +165,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 		Id:    userId,
 		Email: req.Email,
 	}); err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.NoContent(ctx)
@@ -234,7 +210,6 @@ func (s *UserApi) RebindEmail(ctx *gin.Context) {
 
 // UpdatePassword 修改密码
 func (s *UserApi) UpdatePassword(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	userId := ctx.MustGet("userId").(string)
 
 	req := &request.UserModifyPasswordReq{}
@@ -245,18 +220,12 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 
 	oldPassword, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.OldPassword, false)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password, true)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	req.Id = userId
@@ -264,10 +233,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 	req.Password = password
 
 	if err := userService.UpdatePassword(*req); err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.NoContent(ctx)
@@ -275,7 +241,6 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 
 // UpdateProfile 修改用户基本信息
 func (s *UserApi) UpdateProfile(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	userId := ctx.MustGet("userId").(string)
 
 	var req request.UserModifyProfileReq
@@ -288,10 +253,7 @@ func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 
 	err := userService.UpdateProfile(req)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.NoContent(ctx)
@@ -299,15 +261,11 @@ func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 
 // GetProfile 获取用户基本信息
 func (s *UserApi) GetProfile(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	userId := ctx.MustGet("userId").(string)
 
 	user, err := userService.GetProfile(userId)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.Success(ctx, user)
@@ -315,15 +273,11 @@ func (s *UserApi) GetProfile(ctx *gin.Context) {
 
 // GetMenu 获取用户菜单
 func (s *UserApi) GetMenu(ctx *gin.Context) {
-	lang := ctx.GetString("lang")
 	userId := ctx.MustGet("userId").(string)
 
 	menu, err := userService.GetMenu(userId)
 	if err != nil {
-		response.BadRequest(ctx, response.ValidationError{
-			Type:    status.BAD_REQUEST_MSG,
-			Message: global.I18.Translate(err.Error(), lang),
-		})
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 	response.Success(ctx, menu)

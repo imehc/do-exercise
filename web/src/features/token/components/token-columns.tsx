@@ -17,8 +17,8 @@ const columnTitleMap = {
   username: (): string => t`用户名`,
   accessToken: (): string => t`令牌`,
   disabled: (): string => t`禁用状态`,
-  createdAt: (): string => t`创建时间`,
-  expiredAt: (): string => t`到期时间`,
+  accessTokenCreated: (): string => t`创建时间`,
+  accessTokenExpired: (): string => t`到期时间`,
 }
 
 export const getColumnTitle = (columnId: string): string =>
@@ -111,8 +111,14 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
         )
       },
     }),
-    createDateColumn<TokenInfo>('createdAt', columnTitleMap.createdAt),
-    createDateColumn<TokenInfo>('expiredAt', columnTitleMap.expiredAt),
+    createDateColumn<TokenInfo>(
+      'accessTokenCreated',
+      columnTitleMap.accessTokenCreated
+    ),
+    createDateColumn<TokenInfo>(
+      'accessTokenExpired',
+      columnTitleMap.accessTokenExpired
+    ),
     createActionColumn<TokenInfo>(({ row }) => (
       <DataTableRowActions row={row} showDelete showInfo />
     )),

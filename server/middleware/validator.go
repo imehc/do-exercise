@@ -5,10 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/internal"
 	"github.com/imehc/do-exercise/server/model/common/response"
-	"github.com/imehc/do-exercise/server/model/common/status"
 )
 
 // ValidatorMiddleware 验证错误处理中间件
@@ -37,11 +35,7 @@ func ValidaterMiddleware() gin.HandlerFunc {
 						Messages: []string{message},
 					})
 				}
-				response.BadRequest(c, response.ValidationError{
-					Type:    status.BAD_REQUEST_MSG,
-					Message: global.I18.Translate("badRequest", lang),
-					Details: details,
-				})
+				response.BadRequestDetails(c, "badRequest", details)
 				return
 			}
 			response.ServerError(c)

@@ -65,9 +65,7 @@ const middleware = {
           handleRefreshToken()
         })
       } else if (response.status === 403) {
-        const text = await response.text()
-        toast.error(text || 'Forbidden')
-        // redirectToForbidden()
+        redirectToForbidden()
       } else if (response.status === 429) {
         const text = await response.text()
         toast.error(text || 'Too many requests, please try again later.')
@@ -149,8 +147,8 @@ const redirectToLogin = () => {
   router.navigate({ to: '/sign-in', replace: true })
 }
 
-// const redirectToForbidden = () => {
-//   requestQueue = [] // 清空队列
-//   refreshTokenFlag = false
-//   window.location.href = '/403' // 跳转到forbidden页
-// }
+const redirectToForbidden = () => {
+  requestQueue = [] // 清空队列
+  refreshTokenFlag = false
+  window.location.href = '/403' // 跳转到forbidden页
+}

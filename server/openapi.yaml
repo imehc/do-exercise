@@ -252,22 +252,32 @@ components:
         refresh_token:
           type: string
           description: 刷新令牌
-        created_at:
+        access_token_created:
           type: string
           format: date-time
-          description: 创建时间
-        expired_at:
+          description: 令牌创建时间
+        access_token_expired:
           type: string
           format: date-time
-          description: 到期时间
+          description: 令牌到期时间
+        refresh_token_created:
+          type: string
+          format: date-time
+          description: 刷新令牌创建时间
+        refresh_token_expired:
+          type: string
+          format: date-time
+          description: 刷新令牌到期时间
       required:
         - username
         - user_id
         - disabled
         - access_token
         - refresh_token
-        - created_at
-        - expired_at
+        - access_token_created
+        - access_token_expired
+        - refresh_token_created
+        - refresh_token_expired
 
     DeleteToken:
       type: object
@@ -1040,6 +1050,155 @@ components:
         - name
         - parent_id
         - type
+
+    JobStatus:
+      type: integer
+      description: 状态
+      enum:
+        - 1
+        - 2
+      x-enum-descriptions:
+        - 正常
+        - 暂停
+      x-enum-varnames:
+        - normal
+        - paused
+
+    SysJob:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 任务ID
+        name:
+          type: string
+          description: 任务名称
+        job_group:
+          type: string
+          description: 任务分组
+        cron_expression:
+          type: string
+          description: cron表达式
+        command:
+          type: string
+          description: 执行命令
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        concurrent:
+          type: boolean
+          description: 是否并发执行
+        description:
+          type: string
+          description: 任务描述
+        last_time:
+          type: string
+          format: date-time
+          description: 上次执行时间
+        next_time:
+          type: string
+          format: date-time
+          description: 下次执行时间
+        times:
+          type: integer
+          description: 执行次数
+        retry_times:
+          type: integer
+          description: 重试次数
+        retry_interval:
+          type: integer
+          description: 重试间隔(秒)
+        timeout:
+          type: integer
+          description: 执行超时时间(秒)
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        created_by:
+          type: string
+          description: 创建人
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        updated_by:
+          type: string
+          description: 更新人
+      required:
+        - id
+        - name
+        - job_group
+        - cron_expression
+        - command
+        - status
+        - concurrent
+        - created_at
+        - created_by
+        - updated_at
+        - updated_by
+
+    CreateSysJob:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 任务名称
+        job_group:
+          type: string
+          description: 任务分组
+        cron_expression:
+          type: string
+          description: cron表达式
+        command:
+          type: string
+          description: 执行命令
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        concurrent:
+          type: boolean
+          description: 是否并发执行
+        description:
+          type: string
+          description: 任务描述
+        retry_times:
+          type: integer
+          description: 重试次数
+        retry_interval:
+          type: integer
+          description: 重试间隔(秒)
+        timeout:
+          type: integer
+          description: 执行超时时间(秒)
+      required:
+        - name
+        - job_group
+        - cron_expression
+        - command
+        - status
+
+    UpdateSysJob:
+      allOf:
+        - $ref: '#/components/schemas/CreateSysJob'
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: 任务ID
+          required:
+            - id
+
+    SysJobListResponse:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/Pagination'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SysJob'
+      required:
+        - meta
+        - data
 
 paths:
   /auth/public_key:
@@ -1980,3 +2139,172 @@ paths:
                 items:
                   $ref: "#/components/schemas/Menu"
           description: "获取成功"
+
+  /system/jobs:
+    post:
+      summary: 创建定时任务
+      operationId: createSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSysJob'
+      responses:
+        '201':
+          description: 创建成功
+    get:
+      summary: 获取定时任务列表
+      operationId: findSysJobs
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: job_group
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SysJobListResponse'
+
+  /system/jobs/{id}:
+    get:
+      summary: 获取定时任务详情
+      operationId: findSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SysJob'
+    put:
+      summary: 更新定时任务
+      operationId: updateSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSysJob'
+      responses:
+        '204':
+          description: 更新成功
+    delete:
+      summary: 删除定时任务
+      operationId: deleteSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 删除成功
+
+  /system/jobs/{id}/start:
+    post:
+      summary: 启动定时任务
+      operationId: startSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 启动成功
+
+  /system/jobs/{id}/stop:
+    post:
+      summary: 停止定时任务
+      operationId: stopSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 停止成功
+
+  /system/jobs/{id}/execute:
+    post:
+      summary: 立即执行定时任务
+      operationId: executeSysJob
+      tags:
+        - system-job
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 执行成功

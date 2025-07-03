@@ -10,6 +10,7 @@ type RouterGroup struct {
 	SysOperationLogRouter
 	SysTokenRouter
 	SysInfoRouter
+	SysJobRouter
 }
 
 var (
@@ -20,4 +21,5 @@ var (
 	sysOperationLogApi = api.ApiGroupApp.SystemApiGroup.SysOperationLogApi
 	sysTokenApi        = api.ApiGroupApp.SystemApiGroup.SysTokenApi
 	sysInfoApi         = api.ApiGroupApp.SystemApiGroup.SysInfoApi
+	sysJobApi          = api.ApiGroupApp.SystemApiGroup.SysJobApi
 )

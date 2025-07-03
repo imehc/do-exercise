@@ -27,6 +27,7 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 	rdb := global.Redis
 
 	accessTokenKeys := []string{}
+	refreshTokenKeys := []string{}
 	var cursor uint64
 	pattern := fmt.Sprintf("%s*", util.PrefixUserAcessToken)
 	// SCAN 所有 userAccessToken_:* 的 key
@@ -73,7 +74,7 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 		return nil, errors.New("getFailed")
 	}
 
-	// Step 3: 解析 JSON 为结构体
+	// Step 3: 解析 JSON 为结构体并收集refreshToken keys
 	result := make(map[string]model.TokenInfo)
 	for i, cmd := range cmds {
 		val, err := cmd.Result()
@@ -89,17 +90,65 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 		}
 
 		result[accessTokenKeys[i]] = info
+		// 收集refreshToken keys
+		refreshTokenKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, info.RefreshToken)
+		refreshTokenKeys = append(refreshTokenKeys, refreshTokenKey)
+	}
+
+	// Step 4: Pipeline 批量 GET 所有 refreshToken 值
+	refreshPipe := rdb.Pipeline()
+	refreshCmds := make([]*redis.StringCmd, len(refreshTokenKeys))
+	for i, key := range refreshTokenKeys {
+		refreshCmds[i] = refreshPipe.Get(ctx, key)
+	}
+
+	_, err = refreshPipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		log.Error("Failed to exec pipeline for refresh tokens", zap.Error(err))
+		return nil, errors.New("getFailed")
+	}
+
+	// Step 5: 解析 refreshToken JSON 为结构体
+	refreshResult := make(map[string]model.RefreshTokenInfo)
+	for i, cmd := range refreshCmds {
+		val, err := cmd.Result()
+		if err != nil && err != redis.Nil {
+			log.Warn("Failed to get refresh token value", zap.String("key", refreshTokenKeys[i]), zap.Error(err))
+			continue
+		}
+
+		var info model.RefreshTokenInfo
+		if err := json.Unmarshal([]byte(val), &info); err != nil {
+			log.Warn("Failed to parse refresh token JSON", zap.String("key", refreshTokenKeys[i]), zap.Error(err))
+			continue
+		}
+
+		refreshResult[refreshTokenKeys[i]] = info
 	}
 
 	tokens := lo.Map(lo.Entries(result), func(entry lo.Entry[string, model.TokenInfo], _ int) response.SysTokenLogRsp {
+		// 获取对应的refreshToken信息
+		refreshTokenKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, entry.Value.RefreshToken)
+		refreshInfo, hasRefresh := refreshResult[refreshTokenKey]
+
+		// 如果refreshToken信息不存在，使用默认值
+		if !hasRefresh {
+			refreshInfo = model.RefreshTokenInfo{
+				CreatedTime: entry.Value.CreatedTime, // 使用accessToken的创建时间作为默认值
+				ExpiredTime: entry.Value.ExpiredTime, // 使用accessToken的过期时间作为默认值
+			}
+		}
+
 		return response.SysTokenLogRsp{
-			UserId:       entry.Value.UserId,
-			Username:     entry.Value.Username,
-			AccessToken:  strings.TrimPrefix(entry.Key, util.PrefixAccessToken),
-			RefreshToken: entry.Value.RefreshToken,
-			Disabled:     entry.Value.Disabled,
-			CreatedAt:    entry.Value.CreatedTime,
-			ExpiredAt:    entry.Value.ExpiredTime,
+			UserId:              entry.Value.UserId,
+			Username:            entry.Value.Username,
+			AccessToken:         strings.TrimPrefix(entry.Key, util.PrefixAccessToken),
+			RefreshToken:        entry.Value.RefreshToken,
+			Disabled:            entry.Value.Disabled,
+			AccessTokenCreated:  entry.Value.CreatedTime,
+			AccessTokenExpired:  entry.Value.ExpiredTime,
+			RefreshTokenCreated: refreshInfo.CreatedTime,
+			RefreshTokenExpired: refreshInfo.ExpiredTime,
 		}
 	})
 
@@ -110,10 +159,10 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 		if a.Username > b.Username {
 			return 1
 		}
-		if a.CreatedAt.Before(b.CreatedAt) {
+		if a.AccessTokenCreated.Before(b.AccessTokenCreated) {
 			return -1
 		}
-		if a.CreatedAt.After(b.CreatedAt) {
+		if a.AccessTokenCreated.After(b.AccessTokenCreated) {
 			return 1
 		}
 		return 0

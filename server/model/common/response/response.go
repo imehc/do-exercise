@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model/common/status"
 )
 
 // Response 响应处理
@@ -34,8 +35,22 @@ func NoContent(c *gin.Context) {
 }
 
 // BadRequest 请求错误响应
-func BadRequest(c *gin.Context, value ValidationError) {
-	Response(c, http.StatusBadRequest, value)
+func BadRequest(c *gin.Context, value string) {
+	lang := c.GetString("lang")
+	Response(c, http.StatusBadRequest, ValidationError{
+		Type:    status.BAD_REQUEST_MSG,
+		Message: global.I18.Translate(value, lang),
+	})
+}
+
+// BadRequest 请求错误响应带详情
+func BadRequestDetails(c *gin.Context, value string, details []ValidationDetail) {
+	lang := c.GetString("lang")
+	Response(c, http.StatusBadRequest, ValidationError{
+		Type:    status.BAD_REQUEST_MSG,
+		Message: global.I18.Translate(value, lang),
+		Details: details,
+	})
 }
 
 // StatusTooManyRequests 访问过于频繁

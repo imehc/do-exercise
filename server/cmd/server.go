@@ -19,6 +19,7 @@ var serverCmd = &cobra.Command{
 
 		// 启动服务器
 		defer shared.RSACrypto.Stop()
+		defer shared.JobSchedulerInstance.Stop() // 停止定时任务调度器
 		search := global.Searcher
 		if search != nil {
 			defer search.Close()

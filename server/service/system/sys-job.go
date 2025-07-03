@@ -2,17 +2,10 @@ package system
 
 import (
 	"errors"
-	"fmt"
-
-	"sync"
-
-	"os/exec"
-
 	"time"
 
-	"github.com/go-co-op/gocron/v2"
-	"github.com/google/uuid"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -20,24 +13,6 @@ import (
 	"github.com/imehc/do-exercise/server/util"
 	"gorm.io/gorm"
 )
-
-var (
-	scheduler     gocron.Scheduler
-	schedulerOnce sync.Once
-	jobMap        = make(map[uint]string) // jobId -> gocron.Job.ID().String()
-	jobMapMutex   sync.Mutex
-)
-
-func getScheduler() gocron.Scheduler {
-	schedulerOnce.Do(func() {
-		var err error
-		scheduler, err = gocron.NewScheduler()
-		if err == nil {
-			scheduler.Start()
-		}
-	})
-	return scheduler
-}
 
 type SysJobService struct{}
 
@@ -73,13 +48,10 @@ func (s *SysJobService) Create(req request.CreateSysJobReq) (*response.SysJobRes
 	}
 	// 如果创建时状态为1，自动加入调度器
 	if job.Status == 1 {
-		gocronJob, err := s.addJobToScheduler(job)
-		if err != nil {
+		jobScheduler := shared.GetJobScheduler()
+		if err := jobScheduler.AddJob(job); err != nil {
 			return nil, err
 		}
-		jobMapMutex.Lock()
-		jobMap[job.Id] = gocronJob.ID().String()
-		jobMapMutex.Unlock()
 	}
 	return s.convertToResp(job), nil
 }
@@ -92,12 +64,9 @@ func (s *SysJobService) Update(req request.UpdateSysJobReq) error {
 		return err
 	}
 	// 先移除调度器中的旧任务（如有）
-	jobMapMutex.Lock()
-	if jobUUID, exists := jobMap[job.Id]; exists {
-		_ = RemoveJobStr(getScheduler(), jobUUID)
-		delete(jobMap, job.Id)
-	}
-	jobMapMutex.Unlock()
+	jobScheduler := shared.GetJobScheduler()
+	_ = jobScheduler.RemoveJob(job.Id)
+
 	// 更新字段
 	job.Name = req.Name
 	job.JobGroup = req.JobGroup
@@ -114,13 +83,9 @@ func (s *SysJobService) Update(req request.UpdateSysJobReq) error {
 	}
 	// 如新状态为1，重加到调度器
 	if job.Status == 1 {
-		gocronJob, err := s.addJobToScheduler(job)
-		if err != nil {
+		if err := jobScheduler.AddJob(job); err != nil {
 			return err
 		}
-		jobMapMutex.Lock()
-		jobMap[job.Id] = gocronJob.ID().String()
-		jobMapMutex.Unlock()
 	}
 	return nil
 }
@@ -133,12 +98,9 @@ func (s *SysJobService) Delete(id uint) error {
 		return err
 	}
 	// 先从调度器移除
-	jobMapMutex.Lock()
-	if jobUUID, exists := jobMap[job.Id]; exists {
-		_ = RemoveJobStr(getScheduler(), jobUUID)
-		delete(jobMap, job.Id)
-	}
-	jobMapMutex.Unlock()
+	jobScheduler := shared.GetJobScheduler()
+	_ = jobScheduler.RemoveJob(job.Id)
+
 	// 再从数据库删除
 	if err := db.Delete(&system.SysJob{}, id).Error; err != nil {
 		return err
@@ -154,7 +116,18 @@ func (s *SysJobService) Get(id uint) (*response.SysJobResp, error) {
 		return nil, err
 	}
 
-	return s.convertToResp(job), nil
+	resp := s.convertToResp(job)
+
+	// 尝试从Redis获取实时统计信息
+	jobScheduler := shared.GetJobScheduler()
+	if stats, err := jobScheduler.GetJobStatsFromRedis(job.Id); err == nil {
+		// 如果Redis中有统计信息，使用Redis的数据
+		resp.LastTime = &stats.LastTime
+		resp.NextTime = &stats.NextTime
+		resp.Times = stats.Times
+	}
+
+	return resp, nil
 }
 
 // GetList 获取定时任务列表
@@ -215,16 +188,14 @@ func (s *SysJobService) Start(id uint) error {
 		return errors.New("job.jobAlreadyStarted")
 	}
 
-	jobMapMutex.Lock()
-	defer jobMapMutex.Unlock()
-	if _, exists := jobMap[job.Id]; exists {
+	jobScheduler := shared.GetJobScheduler()
+	if jobScheduler.IsJobInScheduler(job.Id) {
 		return errors.New("job.alreadyInScheduler")
 	}
-	gocronJob, err := s.addJobToScheduler(job)
-	if err != nil {
+
+	if err := jobScheduler.AddJob(job); err != nil {
 		return err
 	}
-	jobMap[job.Id] = gocronJob.ID().String()
 
 	job.Status = 1
 	if err := db.Save(job).Error; err != nil {
@@ -246,16 +217,20 @@ func (s *SysJobService) Stop(id uint) error {
 		return errors.New("job.jobAlreadyStopped")
 	}
 
-	sch := getScheduler()
-	jobMapMutex.Lock()
-	if jobUUID, exists := jobMap[job.Id]; exists {
-		_ = RemoveJobStr(sch, jobUUID)
-		delete(jobMap, job.Id)
-	}
-	jobMapMutex.Unlock()
+	jobScheduler := shared.GetJobScheduler()
 
-	job.Status = 2
-	if err := db.Save(job).Error; err != nil {
+	// 1. 直接同步 Redis 统计到数据库（只读，不写入Redis）
+	err = jobScheduler.SyncOneJobStatsToDatabase(id)
+	if err != nil {
+		return errors.New("job.stopJobFailed")
+	}
+	// 2. 再移除调度器任务
+	_ = jobScheduler.RemoveJob(id)
+
+	if err := db.Model(job).
+		Update("Status", 2).
+		Update("NextTime", nil).
+		Error; err != nil {
 		return errors.New("job.stopJobFailed")
 	}
 
@@ -269,65 +244,45 @@ func (s *SysJobService) Execute(id uint) error {
 	if err != nil {
 		return err
 	}
-	return s.runJob(job)
+
+	// 记录执行开始时间
+	now := time.Now()
+	jobScheduler := shared.GetJobScheduler()
+
+	// 执行任务
+	err = jobScheduler.ExecuteJob(job)
+	if err != nil {
+		return err
+	}
+
+	// 只更新last_time和times，不更新next_time
+	return db.Model(&system.SysJob{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"last_time": now,
+			"next_time": nil,
+			"times":     gorm.Expr("times + 1"),
+		}).Error
 }
 
-// addJobToScheduler 添加任务到gocron调度器
-func (s *SysJobService) addJobToScheduler(job *system.SysJob) (gocron.Job, error) {
-	sch := getScheduler()
-	gocronJob, err := sch.NewJob(
-		gocron.CronJob(job.CronExpression, true), // 使用秒 即六位需要设置为true
-		gocron.NewTask(func() { s.runJob(job) }),
-		gocron.WithName(job.Name),
-	)
+// GetJobStats 获取任务统计信息
+func (s *SysJobService) GetJobStats(id uint) (*shared.JobStats, error) {
+	// 检查任务是否存在
+	db := global.DB
+	_, err := s.checkJobExist(db, id)
 	if err != nil {
 		return nil, err
 	}
-	return gocronJob, nil
+
+	// 从Redis获取统计信息
+	jobScheduler := shared.GetJobScheduler()
+	return jobScheduler.GetJobStatsFromRedis(id)
 }
 
-// runJob 执行任务命令
-func (s *SysJobService) runJob(job *system.SysJob) error {
-	db := global.DB
-
-	// 记录上次执行时间
-	now := time.Now()
-	job.LastTime = &now
-	job.Times++
-
-	// 计算下次执行时间（如果有调度器信息）
-	if scheduler != nil {
-		jobMapMutex.Lock()
-		if jobUUID, exists := jobMap[job.Id]; exists {
-			uid := uuid.MustParse(jobUUID)
-			for _, gocronJob := range scheduler.Jobs() {
-				if gocronJob.ID() == uid {
-					next, err := gocronJob.NextRun()
-					if err == nil {
-						nextUTC := next.UTC()
-						job.NextTime = &nextUTC
-					}
-					break
-				}
-			}
-		}
-		jobMapMutex.Unlock()
-	}
-
-	db.Model(&system.SysJob{}).Where("id = ?", job.Id).Select("LastTime", "NextTime", "Times").Updates(job)
-
-	if job.Command == "clean_empty_username_operation_logs" {
-		return s.CleanEmptyUsernameOperationLogs()
-	}
-	// 支持执行shell命令
-	cmd := exec.Command("/bin/sh", "-c", job.Command)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println("任务执行失败：", job.Name, job.Command, "错误：", err.Error(), "输出：", string(output))
-		return err
-	}
-	fmt.Println("任务执行成功：", job.Name, job.Command, "输出：", string(output))
-	return nil
+// SyncStatsToDatabase 手动同步统计信息到数据库
+func (s *SysJobService) SyncStatsToDatabase() error {
+	jobScheduler := shared.GetJobScheduler()
+	return jobScheduler.SyncStatsToDatabase()
 }
 
 // convertToResp 将数据库模型转换为响应结构
@@ -352,19 +307,4 @@ func (s *SysJobService) convertToResp(job *system.SysJob) *response.SysJobResp {
 		UpdatedAt:      job.UpdatedAt,
 		UpdatedBy:      job.UpdatedBy,
 	}
-}
-
-// RemoveJobStr 用于通过字符串UUID移除任务
-func RemoveJobStr(s gocron.Scheduler, id string) error {
-	u, err := uuid.Parse(id)
-	if err != nil {
-		return err
-	}
-	return s.RemoveJob(u)
-}
-
-// 清理sys_operation_log表中username为空的任务实现
-func (s *SysJobService) CleanEmptyUsernameOperationLogs() error {
-	db := global.DB
-	return db.Unscoped().Where("username = '' OR username IS NULL").Delete(&system.SysOperationLog{}).Error
 }

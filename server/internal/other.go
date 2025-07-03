@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 func InitOther() {
 	initSnowflake()
 	initEmail()
+	initJobScheduler()
 }
 
 func initSnowflake() {
@@ -35,5 +37,16 @@ func initEmail() {
 		SmtpPort:     global.Config.Email.Port,
 		SmtpUser:     global.Config.Email.User,
 		SmtpPass:     global.Config.Email.Pass,
+	}
+}
+
+func initJobScheduler() {
+	shared.JobSchedulerInstance = shared.GetJobScheduler()
+
+	// 恢复数据库中的定时任务
+	if err := shared.JobSchedulerInstance.RestoreJobsFromDatabase(); err != nil {
+		fmt.Printf("恢复定时任务失败: %v\n", err)
+	} else {
+		fmt.Println("定时任务恢复完成")
 	}
 }

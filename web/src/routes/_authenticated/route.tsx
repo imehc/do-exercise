@@ -15,7 +15,7 @@ import { useUserProfile } from '~/hooks/use-user'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
-import { LoadingSpinner } from '~/components/other'
+import { LoadingSpinner, Watermark } from '~/components/other'
 
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
@@ -105,6 +105,7 @@ function RouteComponent() {
         >
           <Outlet />
         </div>
+        <Watermark content={userProfile?.nickname || userProfile?.username} />
       </SidebarProvider>
     </SearchProvider>
   )

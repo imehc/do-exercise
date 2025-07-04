@@ -4,6 +4,7 @@ import { Trans } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { JobStatus, SysJob } from '~/do-exercise-api'
+import { basicMoreOptions, usePermissions, WithPermission } from '~/provider'
 import { DataTableRowActions, InlineCopy } from '~/components/other'
 import {
   createColumn,
@@ -32,6 +33,9 @@ export const getColumnTitle = (columnId: string): string =>
 
 export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
   useAtomValue(languageAtom)
+  const permissions = usePermissions()
+  const hasMore = basicMoreOptions.every((p) => permissions.includes(p))
+
   return [
     {
       accessorKey: 'id',
@@ -95,25 +99,48 @@ export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
       accessorKey: 'start',
       header: '',
       cell: ({ row }) => (
-        <TaskActionButton row={row.original} type='start' refresh={refresh} />
+        <WithPermission permission='start'>
+          <TaskActionButton row={row.original} type='start' refresh={refresh} />
+        </WithPermission>
       ),
     },
     {
       accessorKey: 'stop',
       header: '',
       cell: ({ row }) => (
-        <TaskActionButton row={row.original} type='stop' refresh={refresh} />
+        <WithPermission permission='stop'>
+          <TaskActionButton row={row.original} type='stop' refresh={refresh} />
+        </WithPermission>
       ),
     },
     {
       accessorKey: 'execute',
       header: '',
       cell: ({ row }) => (
-        <TaskActionButton row={row.original} type='execute' refresh={refresh} />
+        <WithPermission permission='execute'>
+          <TaskActionButton
+            row={row.original}
+            type='execute'
+            refresh={refresh}
+          />
+        </WithPermission>
       ),
     },
-    createActionColumn<SysJob>(({ row }) => (
-      <DataTableRowActions row={row} showEdit showDelete showInfo />
-    )),
+    ...[
+      hasMore
+        ? createActionColumn<SysJob>(({ row }) => (
+          <WithPermission>
+            {(permissions) => (
+              <DataTableRowActions
+                row={row}
+                showEdit={permissions.some((p) => p === 'update')}
+                showDelete={permissions.some((p) => p === 'delete')}
+                showInfo={permissions.some((p) => p === 'info')}
+              />
+            )}
+          </WithPermission>
+        ))
+        : [],
+    ].flat(),
   ]
 }

@@ -1,20 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
 import { SystemInfoApi } from '~/do-exercise-api'
+import { useHasPermission, WithPermission } from '~/provider'
 import { useApi } from '~/hooks/use-api'
 import { MainBody, MainHeader, StatusRenderer } from '~/components/other'
+import ForbiddenError from '../errors/forbidden'
 import { SysInfoView } from './components/system-info-view'
 
 export default function SystemInfo() {
+  const enabled = useHasPermission('query')
   const systemInfoApi = useApi(SystemInfoApi)
   const { isLoading, data } = useQuery({
     queryKey: ['getSystemInfo'],
     queryFn: () => systemInfoApi.getSystemInfo(),
     refetchInterval: 1000 * 10,
+    enabled,
   })
 
   return (
-    <>
+    <WithPermission permission='query' fallback={<ForbiddenError />}>
       <MainHeader />
       <MainBody
         title={<Trans>系统信息</Trans>}
@@ -24,6 +28,6 @@ export default function SystemInfo() {
           {(info) => <SysInfoView data={info} />}
         </StatusRenderer>
       </MainBody>
-    </>
+    </WithPermission>
   )
 }

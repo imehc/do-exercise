@@ -51,6 +51,7 @@ export default tseslint.config(
           ignoreRestSiblings: true,
         },
       ],
+      'react-refresh/only-export-components': 'off'
     },
   }
 )

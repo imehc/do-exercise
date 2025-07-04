@@ -3,6 +3,7 @@ import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { SysRole } from '~/do-exercise-api'
+import { basicMoreOptions, usePermissions } from '~/provider'
 import { DataTableRowActions } from '~/components/other'
 import {
   createActionColumn,
@@ -23,6 +24,9 @@ export const getColumnTitle = (columnId: string): string =>
 
 export const useColumns = (): ColumnDef<SysRole>[] => {
   useAtomValue(languageAtom)
+  const permissions = usePermissions()
+  const hasMore = basicMoreOptions.every((p) => permissions.includes(p))
+
   return [
     {
       accessorKey: 'id',
@@ -52,8 +56,12 @@ export const useColumns = (): ColumnDef<SysRole>[] => {
     }),
     createDateColumn<SysRole>('createdAt', columnTitleMap.createdAt),
     createDateColumn<SysRole>('updatedAt', columnTitleMap.updatedAt),
-    createActionColumn<SysRole>(({ row }) => (
-      <DataTableRowActions row={row} showEdit showDelete showInfo />
-    )),
+    ...[
+      hasMore
+        ? createActionColumn<SysRole>(({ row }) => (
+            <DataTableRowActions row={row} showEdit showDelete showInfo />
+          ))
+        : [],
+    ].flat(),
   ]
 }

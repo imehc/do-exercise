@@ -58,22 +58,22 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
     useForm<ActionSysJobFormValues>({
       defaultValues: isEdit
         ? {
-            ...currentRow,
-            isEdit,
-          }
+          ...currentRow,
+          isEdit,
+        }
         : {
-            isEdit,
-            name: '',
-            jobGroup: '',
-            cronExpression: '',
-            command: '',
-            status: JobStatus.normal,
-            description: '',
-            concurrent: false,
-            retryTimes: undefined,
-            retryInterval: undefined,
-            timeout: undefined,
-          },
+          isEdit,
+          name: '',
+          jobGroup: '',
+          cronExpression: '',
+          command: '',
+          status: JobStatus.normal,
+          description: '',
+          concurrent: false,
+          retryTimes: undefined,
+          retryInterval: undefined,
+          timeout: undefined,
+        },
       resolver: zodResolver(getSchema()),
     })
   )
@@ -159,18 +159,18 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='name'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>任务名称</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t`请输入任务名称`}
-                      className='col-span-8'
+                      className='col-span-7'
                       autoComplete='off'
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -179,19 +179,19 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='jobGroup'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>任务分组</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t`请输入任务分组`}
-                      className='col-span-8'
+                      className='col-span-7'
                       autoComplete='off'
                       {...field}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -200,19 +200,19 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='cronExpression'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>cron表达式</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t`请输入cron表达式`}
-                      className='col-span-8'
+                      className='col-span-7'
                       autoComplete='off'
                       {...field}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -221,19 +221,19 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='command'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>执行命令</Trans>
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={t`请输入执行命令`}
-                      className='col-span-8'
+                      className='col-span-7'
                       autoComplete='off'
                       {...field}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -242,14 +242,14 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='status'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>状态</Trans>
                   </FormLabel>
                   <Select
                     onValueChange={(v) => field.onChange(+v as JobStatus)}
                     defaultValue={field.value?.toString()}
                   >
-                    <FormControl className='col-span-8 w-full'>
+                    <FormControl className='col-span-7 w-full'>
                       <SelectTrigger>
                         <SelectValue placeholder='请选择状态' />
                       </SelectTrigger>
@@ -266,7 +266,7 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -275,19 +275,19 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='description'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>描述</Trans>
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={t`请输入描述`}
-                      className='col-span-8'
+                      className='col-span-7'
                       autoComplete='off'
                       {...field}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -296,7 +296,7 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='concurrent'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>并发执行</Trans>
                   </FormLabel>
                   <FormControl>
@@ -308,7 +308,7 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
                       <SwitchThumb />
                     </Switch>
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -317,20 +317,20 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='retryTimes'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>重试次数</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       type='number'
                       placeholder={t`请输入重试次数`}
-                      className='col-span-8'
+                      className='col-span-7'
                       {...field}
                       onChange={(v) => field.onChange(+v.target.value)}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -339,20 +339,20 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='retryInterval'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>重试间隔(秒)</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       type='number'
                       placeholder={t`请输入重试间隔(秒)`}
-                      className='col-span-8'
+                      className='col-span-7'
                       {...field}
                       onChange={(v) => field.onChange(+v.target.value)}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />
@@ -361,20 +361,20 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
               name='timeout'
               render={({ field }) => (
                 <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
+                  <FormLabel className='col-span-3 text-right'>
                     <Trans>超时时间(秒)</Trans>
                   </FormLabel>
                   <FormControl>
                     <Input
                       type='number'
                       placeholder={t`请输入超时时间(秒)`}
-                      className='col-span-8'
+                      className='col-span-7'
                       {...field}
                       onChange={(v) => field.onChange(+v.target.value)}
                       disabled={isPending}
                     />
                   </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
+                  <FormMessage className='col-span-7 col-start-4' />
                 </FormItem>
               )}
             />

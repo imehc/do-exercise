@@ -3,6 +3,12 @@ import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { SysUser } from '~/do-exercise-api'
+import {
+  basicMoreOptions,
+  PermissionType,
+  usePermissions,
+  WithPermission,
+} from '~/provider'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { DataTableRowActions } from '~/components/other'
 import {
@@ -27,6 +33,11 @@ export const getColumnTitle = (columnId: string): string =>
 
 export const useColumns = (): ColumnDef<SysUser>[] => {
   useAtomValue(languageAtom)
+  const permissions = usePermissions()
+  const hasMore = (
+    [...basicMoreOptions, 'reset'] satisfies PermissionType[]
+  ).every((p) => permissions.includes(p))
+
   return [
     {
       accessorKey: 'id',
@@ -83,10 +94,23 @@ export const useColumns = (): ColumnDef<SysUser>[] => {
     }),
     createDateColumn<SysUser>('createdAt', columnTitleMap.createdAt),
     createDateColumn<SysUser>('updatedAt', columnTitleMap.updatedAt),
-    createActionColumn<SysUser>(({ row }) => (
-      <DataTableRowActions row={row} showEdit showDelete showInfo>
-        {(user) => <ResetPassword currentRow={user} />}
-      </DataTableRowActions>
-    )),
+    ...[
+      hasMore
+        ? createActionColumn<SysUser>(({ row }) => (
+            <DataTableRowActions
+              row={row}
+              showEdit={permissions.some((p) => p === 'update')}
+              showDelete={permissions.some((p) => p === 'delete')}
+              showInfo={permissions.some((p) => p === 'info')}
+            >
+              {(user) => (
+                <WithPermission permission='reset'>
+                  <ResetPassword currentRow={user} />
+                </WithPermission>
+              )}
+            </DataTableRowActions>
+          ))
+        : [],
+    ].flat(),
   ]
 }

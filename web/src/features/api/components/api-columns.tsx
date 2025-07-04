@@ -4,6 +4,7 @@ import { Trans } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { SysApi } from '~/do-exercise-api'
+import { usePermissions } from '~/provider'
 import { DataTableRowActions } from '~/components/other'
 import {
   createColumn,
@@ -32,6 +33,8 @@ export const getColumnTitle = (columnId: string): string =>
 
 export const useColumns = (): ColumnDef<SysApi>[] => {
   useAtomValue(languageAtom)
+  const permissions = usePermissions()
+  const hasMore = permissions.some((p) => p === 'update')
 
   return [
     {
@@ -97,8 +100,14 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
     }),
     createDateColumn<SysApi>('createdAt', columnTitleMap.createdAt),
     createDateColumn<SysApi>('updatedAt', columnTitleMap.updatedAt),
-    createActionColumn<SysApi>(({ row }: CellContext<SysApi, unknown>) => (
-      <DataTableRowActions row={row} showEdit />
-    )),
+    ...[
+      hasMore
+        ? createActionColumn<SysApi>(
+            ({ row }: CellContext<SysApi, unknown>) => (
+              <DataTableRowActions row={row} showEdit />
+            )
+          )
+        : [],
+    ].flat(),
   ]
 }

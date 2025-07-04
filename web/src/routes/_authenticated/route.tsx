@@ -15,13 +15,15 @@ import { useUserProfile } from '~/hooks/use-user'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
-import { LoadingSpinner } from '~/components/other'
+import { LoadingSpinner, Watermark } from '~/components/other'
+import { PermissionProvider } from '~/provider'
 
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
   return queryOptions({
     queryKey: ['getUserMenu'],
     queryFn: () => userApi.getUserMenu(),
+    staleTime: 60 * 1000,
   })
 }
 
@@ -80,6 +82,12 @@ function RouteComponent() {
     )
   }, [menus])
 
+  const permissions = useMemo(() =>
+    menus.
+      filter((item) => item.type === MenuType.button).
+      map((item) => item.permission!),
+    [menus])
+
   const isLoading = userProfileIsLoading || userMenuIsLoading
 
   if (isLoading) {
@@ -87,25 +95,28 @@ function RouteComponent() {
   }
 
   return (
-    <SearchProvider navGroups={navGroups}>
-      <SidebarProvider>
-        {/* <SkipToMain /> */}
-        <AppSidebar navGroups={navGroups} user={userProfile} />
-        <div
-          id='content'
-          className={cn(
-            'ml-auto w-full max-w-full',
-            'peer-data-[state=collapsed]:w-[calc(100%-var(--sidebar-width-icon)-1rem)]',
-            'peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]',
-            'sm:transition-[width] sm:duration-200 sm:ease-linear',
-            'flex h-svh flex-col',
-            'group-data-[scroll-locked=1]/body:h-full',
-            'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh'
-          )}
-        >
-          <Outlet />
-        </div>
-      </SidebarProvider>
-    </SearchProvider>
+    <PermissionProvider permissions={permissions}>
+      <SearchProvider navGroups={navGroups}>
+        <SidebarProvider>
+          {/* <SkipToMain /> */}
+          <AppSidebar navGroups={navGroups} user={userProfile} />
+          <div
+            id='content'
+            className={cn(
+              'ml-auto w-full max-w-full',
+              'peer-data-[state=collapsed]:w-[calc(100%-var(--sidebar-width-icon)-1rem)]',
+              'peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]',
+              'sm:transition-[width] sm:duration-200 sm:ease-linear',
+              'flex h-svh flex-col',
+              'group-data-[scroll-locked=1]/body:h-full',
+              'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh'
+            )}
+          >
+            <Outlet />
+          </div>
+          <Watermark content={userProfile?.nickname || userProfile?.username} />
+        </SidebarProvider>
+      </SearchProvider>
+    </PermissionProvider>
   )
 }

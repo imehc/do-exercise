@@ -3,6 +3,7 @@ import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { TokenInfo } from '~/do-exercise-api'
+import { PermissionType, usePermissions, WithPermission } from '~/provider'
 import { DataTableRowActions, InlineCopy } from '~/components/other'
 import {
   createColumn,
@@ -26,6 +27,11 @@ export const getColumnTitle = (columnId: string): string =>
 
 export const useColumns = (): ColumnDef<TokenInfo>[] => {
   useAtomValue(languageAtom)
+  const permissions = usePermissions()
+  const hasUpdate = permissions.some((p) => p === 'update')
+  const hasMore = (['update', 'delete'] satisfies PermissionType[]).every((p) =>
+    permissions.includes(p)
+  )
   return [
     // 选择框列
     // {
@@ -98,19 +104,23 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
         />
       ),
     }),
-    createColumn<TokenInfo>({
-      key: 'disabled',
-      title: columnTitleMap.disabled,
-      cell: ({ row }: CellContext<TokenInfo, unknown>) => {
-        const token = row.original
-        return (
-          <ToggleDisabledSwitch
-            accessToken={token.accessToken}
-            disabled={token.disabled}
-          />
-        )
-      },
-    }),
+    ...[
+      hasUpdate
+        ? createColumn<TokenInfo>({
+            key: 'disabled',
+            title: columnTitleMap.disabled,
+            cell: ({ row }: CellContext<TokenInfo, unknown>) => {
+              const token = row.original
+              return (
+                <ToggleDisabledSwitch
+                  accessToken={token.accessToken}
+                  disabled={token.disabled}
+                />
+              )
+            },
+          })
+        : [],
+    ].flat(),
     createDateColumn<TokenInfo>(
       'accessTokenCreated',
       columnTitleMap.accessTokenCreated
@@ -119,8 +129,20 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
       'accessTokenExpired',
       columnTitleMap.accessTokenExpired
     ),
-    createActionColumn<TokenInfo>(({ row }) => (
-      <DataTableRowActions row={row} showDelete showInfo />
-    )),
+    ...[
+      hasMore
+        ? createActionColumn<TokenInfo>(({ row }) => (
+            <WithPermission>
+              {(permissions) => (
+                <DataTableRowActions
+                  row={row}
+                  showDelete={permissions.some((p) => p === 'delete')}
+                  showInfo={permissions.some((p) => p === 'info')}
+                />
+              )}
+            </WithPermission>
+          ))
+        : [],
+    ].flat(),
   ]
 }

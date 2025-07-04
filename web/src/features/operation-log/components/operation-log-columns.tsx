@@ -3,6 +3,7 @@ import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { SysOperationLog } from '~/do-exercise-api'
+import { usePermissions, WithPermission } from '~/provider'
 import { DataTableRowActions, Status } from '~/components/other'
 import {
   createColumn,
@@ -42,7 +43,8 @@ export const getColumnTitle = (columnId: string): string =>
 
 export const useColumns = (): ColumnDef<SysOperationLog>[] => {
   useAtomValue(languageAtom)
-
+  const permissions = usePermissions()
+  const hasMore = permissions.some((p) => p === 'info')
   return [
     {
       accessorKey: 'id',
@@ -181,8 +183,19 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
         <div>{row.original.latency}ms</div>
       ),
     }),
-    createActionColumn<SysOperationLog>(({ row }) => (
-      <DataTableRowActions row={row} showInfo />
-    )),
+    ...[
+      hasMore
+        ? createActionColumn<SysOperationLog>(({ row }) => (
+            <WithPermission>
+              {(permissions) => (
+                <DataTableRowActions
+                  row={row}
+                  showInfo={permissions.some((p) => p === 'info')}
+                />
+              )}
+            </WithPermission>
+          ))
+        : [],
+    ].flat(),
   ]
 }

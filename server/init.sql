@@ -71,22 +71,28 @@ INSERT INTO sys_menu VALUES(111, '查询', 3, 'menu:query', NULL, 3, NULL, NULL,
 INSERT INTO sys_menu VALUES(112, '创建', 3, 'menu:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(113, '更新', 3, 'menu:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(114, '删除', 3, 'menu:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(115, '详情', 3, 'menu:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(4, '角色管理', 1, NULL, 'Shield', 2, '/role', '/role/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(121, '查询', 4, 'role:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(122, '创建', 4, 'role:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(123, '更新', 4, 'role:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(124, '删除', 4, 'role:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(125, '详情', 4, 'role:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(5, '用户管理', 1, NULL, 'Users', 2, '/user', '/user/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(131, '查询', 5, 'user:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(132, '创建', 5, 'user:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(133, '更新', 5, 'user:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(134, '删除', 5, 'user:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(135, '详情', 5, 'user:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(136, '重置密码', 5, 'user:reset', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(6, '操作记录', 1, NULL, 'WorldCog', 2, '/operation-log', '/operation-log/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(141, '查询', 6, 'operation-log:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(142, '详情', 6, 'operation-log:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(7, '令牌管理', 1, NULL, 'Key', 2, '/token', '/token/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(151, '查询', 7, 'token:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(152, '删除', 7, 'token:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(153, '更新', 7, 'token:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(154, '详情', 7, 'token:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(8, '系统信息', 1, NULL, 'DeviceDesktopAnalytics', 2, '/system-info', '/system-info/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(161, '查询', 8, 'system-info:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(9, '定时任务', 1, NULL, 'Subtask', 2, '/task', '/task/page.tsx', 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
@@ -97,6 +103,7 @@ INSERT INTO sys_menu VALUES(174, '删除', 9, 'task:delete', NULL, 3, NULL, NULL
 INSERT INTO sys_menu VALUES(175, '启动', 9, 'task:start', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(176, '停止', 9, 'task:stop', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 INSERT INTO sys_menu VALUES(177, '立即执行', 9, 'task:execute', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu VALUES(178, '详情', 9, 'task:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
 
 SELECT setval(pg_get_serial_sequence('sys_menu', 'id'), (SELECT MAX(id) FROM sys_menu)); -- 重置自增序列;
 
@@ -111,16 +118,20 @@ INSERT INTO sys_menu_apis VALUES(113, 4);
 INSERT INTO sys_menu_apis VALUES(113, 7);
 INSERT INTO sys_menu_apis VALUES(113, 8);
 INSERT INTO sys_menu_apis VALUES(114, 9);
+INSERT INTO sys_menu_apis VALUES(115, 7);
 INSERT INTO sys_menu_apis VALUES(121, 11);
 INSERT INTO sys_menu_apis VALUES(122, 12);
 INSERT INTO sys_menu_apis VALUES(123, 13);
 INSERT INTO sys_menu_apis VALUES(123, 14);
 INSERT INTO sys_menu_apis VALUES(124, 15);
+INSERT INTO sys_menu_apis VALUES(125, 13);
 INSERT INTO sys_menu_apis VALUES(131, 16);
 INSERT INTO sys_menu_apis VALUES(132, 17);
 INSERT INTO sys_menu_apis VALUES(133, 18);
 INSERT INTO sys_menu_apis VALUES(133, 19);
 INSERT INTO sys_menu_apis VALUES(134, 20);
+INSERT INTO sys_menu_apis VALUES(135, 18);
+INSERT INTO sys_menu_apis VALUES(136, 21);
 INSERT INTO sys_menu_apis VALUES(141, 22);
 INSERT INTO sys_menu_apis VALUES(151, 23);
 INSERT INTO sys_menu_apis VALUES(152, 24);
@@ -136,6 +147,7 @@ INSERT INTO sys_menu_apis VALUES(174, 32);
 INSERT INTO sys_menu_apis VALUES(175, 33);
 INSERT INTO sys_menu_apis VALUES(176, 34);
 INSERT INTO sys_menu_apis VALUES(177, 35);
+INSERT INTO sys_menu_apis VALUES(178, 30);
 
 
 -- 角色数据;

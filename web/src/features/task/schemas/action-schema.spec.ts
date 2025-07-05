@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
 import { isValidCron } from 'cron-validator'
+import { describe, it, expect } from 'vitest'
 
 const valid6 = '0 0 0 * * *'
 const valid6b = '0,30 * * * * *'

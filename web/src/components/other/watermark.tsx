@@ -11,7 +11,7 @@ interface WatermarkProps {
   gap?: number
   className?: string
   lightColor?: string // 新增
-  darkColor?: string  // 新增
+  darkColor?: string // 新增
 }
 
 /**
@@ -27,21 +27,25 @@ export const Watermark: React.FC<WatermarkProps> = ({
   gap = 200,
   className = '',
   lightColor = '#000', // 默认白天黑色
-  darkColor = '#fff',  // 默认夜间白色
+  darkColor = '#fff', // 默认夜间白色
 }) => {
   const ref = React.useRef<HTMLDivElement>(null)
 
   // 检测主题
   const getTheme = React.useCallback(() => {
     if (typeof window === 'undefined') return 'light'
-    return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    return document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'light'
   }, [])
 
   // 获取shadui全局字体
   const getFontFamily = React.useCallback(() => {
     if (typeof window === 'undefined') return 'Inter, sans-serif'
     // 优先取html/body的font-family
-    const htmlFont = window.getComputedStyle(document.documentElement).fontFamily
+    const htmlFont = window.getComputedStyle(
+      document.documentElement
+    ).fontFamily
     const bodyFont = window.getComputedStyle(document.body).fontFamily
     return bodyFont || htmlFont || 'Inter, sans-serif'
   }, [])
@@ -53,7 +57,10 @@ export const Watermark: React.FC<WatermarkProps> = ({
     const observer = new MutationObserver(() => {
       setTheme(getTheme())
     })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
     return () => observer.disconnect()
   }, [getTheme])
 
@@ -77,7 +84,18 @@ export const Watermark: React.FC<WatermarkProps> = ({
     ctx.rotate((rotate * Math.PI) / 180)
     ctx.fillText(content, 0, 0)
     return c.toDataURL('image/png')
-  }, [content, opacity, rotate, fontSize, color, gap, getFontFamily, theme, lightColor, darkColor])
+  }, [
+    content,
+    opacity,
+    rotate,
+    fontSize,
+    color,
+    gap,
+    getFontFamily,
+    theme,
+    lightColor,
+    darkColor,
+  ])
 
   // 防删除机制：使用MutationObserver
   React.useEffect(() => {
@@ -140,7 +158,9 @@ export const Watermark: React.FC<WatermarkProps> = ({
   return (
     <div
       ref={ref}
-      className={cn(`pointer-events-none fixed inset-0 w-screen h-screen select-none ${className}`)}
+      className={cn(
+        `pointer-events-none fixed inset-0 h-screen w-screen select-none ${className}`
+      )}
       style={{
         zIndex,
         backgroundImage: `url(${canvas})`,
@@ -153,4 +173,4 @@ export const Watermark: React.FC<WatermarkProps> = ({
       }}
     />
   )
-} 
+}

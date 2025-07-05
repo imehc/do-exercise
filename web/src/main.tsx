@@ -47,7 +47,7 @@ const queryClient = new QueryClient({
       staleTime: 10 * 1000, // 10s
     },
     mutations: {
-      onError: () => { },
+      onError: () => {},
     },
   },
   queryCache: new QueryCache({

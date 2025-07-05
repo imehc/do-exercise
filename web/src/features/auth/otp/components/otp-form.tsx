@@ -71,7 +71,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
           data.refreshExpireTime
         ).getTime(),
       })
-      window.location.href = '/';
+      window.location.href = '/'
     },
   })
 

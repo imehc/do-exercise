@@ -56,7 +56,11 @@ export type PermissionType =
   | 'execute'
   | 'reset'
 
-export const basicMoreOptions = ['update', 'delete', 'info'] satisfies PermissionType[]
+export const basicMoreOptions = [
+  'update',
+  'delete',
+  'info',
+] satisfies PermissionType[]
 
 type SignalPermission = {
   permission: PermissionType

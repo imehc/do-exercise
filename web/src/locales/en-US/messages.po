@@ -284,7 +284,7 @@ msgstr "Create {text} related information."
 msgid "创建成功"
 msgstr "Created successfully"
 
-#: src/features/user/components/user-columns.tsx:27
+#: src/features/user/components/user-columns.tsx:28
 #: src/features/token/components/token-columns.tsx:21
 #: src/features/task/components/task-view-info.tsx:183
 #: src/features/task/components/task-columns.tsx:27
@@ -430,7 +430,7 @@ msgid "失败"
 msgstr "Fail"
 
 #: src/features/user/components/user-view-info.tsx:71
-#: src/features/user/components/user-columns.tsx:26
+#: src/features/user/components/user-columns.tsx:27
 #: src/features/user/components/user-action-dialog.tsx:209
 #: src/features/settings/profile/profile-form.tsx:117
 msgid "头像"
@@ -523,7 +523,7 @@ msgstr "{selectRow} of {selectTotalRow} selected"
 msgid "并发执行"
 msgstr "Concurrent execution"
 
-#: src/features/user/components/user-columns.tsx:22
+#: src/features/user/components/user-columns.tsx:23
 #: src/features/token/components/token-columns.tsx:16
 #: src/features/task/components/task-columns.tsx:20
 #: src/features/role/components/role-columns.tsx:15
@@ -711,7 +711,7 @@ msgid "是否是移动端"
 msgstr "Is it a mobile terminal?"
 
 #: src/features/user/components/user-view-info.tsx:91
-#: src/features/user/components/user-columns.tsx:24
+#: src/features/user/components/user-columns.tsx:25
 #: src/features/user/components/user-action-dialog.tsx:167
 #: src/features/settings/profile/profile-form.tsx:95
 msgid "昵称"
@@ -754,7 +754,7 @@ msgstr "Update {text} related information."
 msgid "更新成功"
 msgstr "Update succeeded."
 
-#: src/features/user/components/user-columns.tsx:28
+#: src/features/user/components/user-columns.tsx:29
 #: src/features/task/components/task-view-info.tsx:194
 #: src/features/task/components/task-columns.tsx:28
 #: src/features/role/components/role-columns.tsx:19
@@ -830,7 +830,7 @@ msgid "每页条数"
 msgstr "Number of articles per page"
 
 #: src/components/command-menu.tsx:43
-#: src/components/other/data-table/index.tsx:202
+#: src/components/other/data-table/index.tsx:303
 msgid "没有内容."
 msgstr "No content."
 
@@ -926,7 +926,7 @@ msgstr "User list"
 
 #: src/features/user/components/user-view-info.tsx:65
 #: src/features/user/components/user-reset-password-dialog.tsx:119
-#: src/features/user/components/user-columns.tsx:23
+#: src/features/user/components/user-columns.tsx:24
 #: src/features/user/components/user-action-dialog.tsx:145
 #: src/features/token/index.tsx:47
 #: src/features/token/components/token-view-info.tsx:64
@@ -1256,8 +1256,8 @@ msgstr "Please enter your email address"
 msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 msgstr "Please enter your email address, and we will send you a verification code. Please log in with the verification code."
 
+#: src/features/task/schemas/action-schema.ts:21
 #: src/features/task/schemas/action-schema.ts:22
-#: src/features/task/schemas/action-schema.ts:23
 #: src/features/task/components/task-action-dialog.tsx:229
 msgid "请输入执行命令"
 msgstr "Please enter the execute command"
@@ -1281,7 +1281,7 @@ msgstr "Please enter a new password"
 msgid "请输入昵称"
 msgstr "Please enter a nickname"
 
-#: src/features/task/schemas/action-schema.ts:19
+#: src/features/task/schemas/action-schema.ts:18
 msgid "请输入有效的cron表达式"
 msgstr "Please enter a valid cron expression"
 
@@ -1420,7 +1420,7 @@ msgstr "Please select the icon"
 msgid "请选择父级菜单"
 msgstr "Please select the parent menu"
 
-#: src/features/task/schemas/action-schema.ts:24
+#: src/features/task/schemas/action-schema.ts:23
 msgid "请选择状态"
 msgstr "Please select a status"
 
@@ -1522,7 +1522,7 @@ msgid "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>
 msgstr "By clicking Login, you agree to our <0>Terms of Service</0> and <1>Privacy Policy</1>."
 
 #: src/features/user/components/user-view-info.tsx:97
-#: src/features/user/components/user-columns.tsx:25
+#: src/features/user/components/user-columns.tsx:26
 #: src/features/user/components/user-action-dialog.tsx:188
 #: src/features/settings/index.tsx:54
 #: src/features/settings/email/email-form.tsx:139

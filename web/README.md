@@ -14,4 +14,4 @@ pnpm gen:apis
 pnpm gen:apis-other
 ```
 
-> **注意**：如果启动或开发过程中提示找不到 `do-exercise-api` 相关模块，请先确认 `src/do-exercise-api` 目录是否存在，若不存在请按上述命令生成。 
+> **注意**：如果启动或开发过程中提示找不到 `do-exercise-api` 相关模块，请先确认 `src/do-exercise-api` 目录是否存在，若不存在请按上述命令生成。

@@ -31,8 +31,8 @@ export const useUserProfile = () => {
     queryKey: ['getUserProfile'],
     queryFn: () => userApi.getUserProfile(),
     retry: (failureCount, error) => {
-      if(error instanceof ResponseError){
-        if(error.response.status== 401 || error.response?.status === 403){
+      if (error instanceof ResponseError) {
+        if (error.response.status == 401 || error.response?.status === 403) {
           return false
         }
       }

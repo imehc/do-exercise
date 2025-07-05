@@ -1,15 +1,15 @@
-import { useCallback, useMemo } from "react";
-import { Subject } from "rxjs";
+import { useCallback, useMemo } from 'react'
+import { Subject } from 'rxjs'
 
 export function useSubject<T = unknown>(): [Subject<T>, (val: T) => void] {
-  const subject = useMemo(() => new Subject<T>(), []);
+  const subject = useMemo(() => new Subject<T>(), [])
   const handler = useCallback(
     (val: T) => {
-      subject.next(val);
+      subject.next(val)
     },
-    [subject],
-  );
-  return useMemo(() => [subject, handler], [handler, subject]);
+    [subject]
+  )
+  return useMemo(() => [subject, handler], [handler, subject])
 }
 
 // RxJS Subject 类型区别：

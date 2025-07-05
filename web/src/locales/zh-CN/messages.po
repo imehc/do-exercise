@@ -284,7 +284,7 @@ msgstr "创建{text}相关信息。"
 msgid "创建成功"
 msgstr "创建成功"
 
-#: src/features/user/components/user-columns.tsx:27
+#: src/features/user/components/user-columns.tsx:28
 #: src/features/token/components/token-columns.tsx:21
 #: src/features/task/components/task-view-info.tsx:183
 #: src/features/task/components/task-columns.tsx:27
@@ -430,7 +430,7 @@ msgid "失败"
 msgstr "失败"
 
 #: src/features/user/components/user-view-info.tsx:71
-#: src/features/user/components/user-columns.tsx:26
+#: src/features/user/components/user-columns.tsx:27
 #: src/features/user/components/user-action-dialog.tsx:209
 #: src/features/settings/profile/profile-form.tsx:117
 msgid "头像"
@@ -523,7 +523,7 @@ msgstr "已选{selectRow}条,共{selectTotalRow}条"
 msgid "并发执行"
 msgstr "并发执行"
 
-#: src/features/user/components/user-columns.tsx:22
+#: src/features/user/components/user-columns.tsx:23
 #: src/features/token/components/token-columns.tsx:16
 #: src/features/task/components/task-columns.tsx:20
 #: src/features/role/components/role-columns.tsx:15
@@ -711,7 +711,7 @@ msgid "是否是移动端"
 msgstr "是否是移动端"
 
 #: src/features/user/components/user-view-info.tsx:91
-#: src/features/user/components/user-columns.tsx:24
+#: src/features/user/components/user-columns.tsx:25
 #: src/features/user/components/user-action-dialog.tsx:167
 #: src/features/settings/profile/profile-form.tsx:95
 msgid "昵称"
@@ -754,7 +754,7 @@ msgstr "更新{text}相关信息。"
 msgid "更新成功"
 msgstr "更新成功"
 
-#: src/features/user/components/user-columns.tsx:28
+#: src/features/user/components/user-columns.tsx:29
 #: src/features/task/components/task-view-info.tsx:194
 #: src/features/task/components/task-columns.tsx:28
 #: src/features/role/components/role-columns.tsx:19
@@ -830,7 +830,7 @@ msgid "每页条数"
 msgstr "每页条数"
 
 #: src/components/command-menu.tsx:43
-#: src/components/other/data-table/index.tsx:202
+#: src/components/other/data-table/index.tsx:303
 msgid "没有内容."
 msgstr "没有内容."
 
@@ -926,7 +926,7 @@ msgstr "用户列表"
 
 #: src/features/user/components/user-view-info.tsx:65
 #: src/features/user/components/user-reset-password-dialog.tsx:119
-#: src/features/user/components/user-columns.tsx:23
+#: src/features/user/components/user-columns.tsx:24
 #: src/features/user/components/user-action-dialog.tsx:145
 #: src/features/token/index.tsx:47
 #: src/features/token/components/token-view-info.tsx:64
@@ -1256,8 +1256,8 @@ msgstr "请输入您的邮箱"
 msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 msgstr "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 
+#: src/features/task/schemas/action-schema.ts:21
 #: src/features/task/schemas/action-schema.ts:22
-#: src/features/task/schemas/action-schema.ts:23
 #: src/features/task/components/task-action-dialog.tsx:229
 msgid "请输入执行命令"
 msgstr "请输入执行命令"
@@ -1281,7 +1281,7 @@ msgstr "请输入新密码"
 msgid "请输入昵称"
 msgstr "请输入昵称"
 
-#: src/features/task/schemas/action-schema.ts:19
+#: src/features/task/schemas/action-schema.ts:18
 msgid "请输入有效的cron表达式"
 msgstr "请输入有效的cron表达式"
 
@@ -1420,7 +1420,7 @@ msgstr "请选择图标"
 msgid "请选择父级菜单"
 msgstr "请选择父级菜单"
 
-#: src/features/task/schemas/action-schema.ts:24
+#: src/features/task/schemas/action-schema.ts:23
 msgid "请选择状态"
 msgstr "请选择状态"
 
@@ -1522,7 +1522,7 @@ msgid "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>
 msgstr "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>隐私政策</1>"
 
 #: src/features/user/components/user-view-info.tsx:97
-#: src/features/user/components/user-columns.tsx:25
+#: src/features/user/components/user-columns.tsx:26
 #: src/features/user/components/user-action-dialog.tsx:188
 #: src/features/settings/index.tsx:54
 #: src/features/settings/email/email-form.tsx:139

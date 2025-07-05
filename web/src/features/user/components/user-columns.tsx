@@ -9,6 +9,7 @@ import {
   usePermissions,
   WithPermission,
 } from '~/provider'
+import { ensureHttpPrefix } from '~/utils/url'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { DataTableRowActions } from '~/components/other'
 import {
@@ -83,7 +84,10 @@ export const useColumns = (): ColumnDef<SysUser>[] => {
         return (
           <div className='w-fit text-nowrap'>
             <Avatar>
-              <AvatarImage src={avatar} alt={row.original.username} />
+              <AvatarImage
+                src={ensureHttpPrefix(avatar)}
+                alt={row.original.username}
+              />
               <AvatarFallback>
                 {row.original.username.slice(0, 2)}
               </AvatarFallback>

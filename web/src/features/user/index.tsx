@@ -44,6 +44,10 @@ export default function Role() {
             data={data?.data || []}
             columns={columns}
             navigate={navigate}
+            stickyColumns={{
+              left: ['id'], // 固定序号列
+              right: ['actions'], // 固定操作列
+            }}
           />
         </MainBody>
       </FormDialogProvider>

@@ -36,6 +36,10 @@ export default function Menu() {
             data={data}
             columns={columns}
             getColumnTitle={getColumnTitle}
+            stickyColumns={{
+              left: ['id'],
+              right: ['actions'],
+            }}
           />
         </MainBody>
       </FormDialogProvider>

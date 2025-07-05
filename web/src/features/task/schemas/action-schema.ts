@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { t } from '@lingui/core/macro'
-import { JobStatus } from '~/do-exercise-api'
 import { isValidCron } from 'cron-validator'
+import { JobStatus } from '~/do-exercise-api'
 
 export const getSchema = () =>
   z.object({
@@ -14,10 +14,9 @@ export const getSchema = () =>
     cronExpression: z
       .string({ required_error: t`请输入cron表达式` })
       .min(1, t`请输入cron表达式`)
-      .refine(
-        (val) => isValidCron(val, { seconds: true }),
-        { message: t`请输入有效的cron表达式` }
-      ),
+      .refine((val) => isValidCron(val, { seconds: true }), {
+        message: t`请输入有效的cron表达式`,
+      }),
     command: z
       .string({ required_error: t`请输入执行命令` })
       .min(1, t`请输入执行命令`),

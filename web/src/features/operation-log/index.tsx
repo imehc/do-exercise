@@ -47,6 +47,10 @@ export default function OperationLog() {
             data={data?.data || []}
             columns={columns}
             getColumnTitle={getColumnTitle}
+            stickyColumns={{
+              left: ['id'],
+              right: ['actions'],
+            }}
           />
         </MainBody>
       </FormDialogProvider>

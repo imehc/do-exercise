@@ -7,6 +7,7 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import { MenuType, UserApi } from '~/do-exercise-api'
+import { PermissionProvider } from '~/provider'
 import { SearchProvider } from '~/provider/search'
 import { cn } from '~/lib/utils'
 import { handleToMenuTree } from '~/utils/handle-menu-tree'
@@ -16,7 +17,6 @@ import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
 import { LoadingSpinner, Watermark } from '~/components/other'
-import { PermissionProvider } from '~/provider'
 
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
@@ -82,11 +82,13 @@ function RouteComponent() {
     )
   }, [menus])
 
-  const permissions = useMemo(() =>
-    menus.
-      filter((item) => item.type === MenuType.button).
-      map((item) => item.permission!),
-    [menus])
+  const permissions = useMemo(
+    () =>
+      menus
+        .filter((item) => item.type === MenuType.button)
+        .map((item) => item.permission!),
+    [menus]
+  )
 
   const isLoading = userProfileIsLoading || userMenuIsLoading
 

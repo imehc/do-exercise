@@ -43,6 +43,10 @@ export default function Task() {
             data={data?.data || []}
             columns={columns}
             navigate={navigate}
+            stickyColumns={{
+              left: ['id'],
+              right: ['actions'],
+            }}
           />
         </MainBody>
       </FormDialogProvider>

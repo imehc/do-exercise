@@ -47,6 +47,10 @@ export default function Token() {
               { key: 'username', placeholder: t`用户名` },
               { key: 'accessToken', placeholder: t`令牌` },
             ]}
+            stickyColumns={{
+              left: ['id'],
+              right: ['actions'],
+            }}
           />
         </MainBody>
       </FormDialogProvider>

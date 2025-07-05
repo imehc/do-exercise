@@ -57,6 +57,10 @@ export default function Role() {
               },
             ]}
             getColumnTitle={getColumnTitle}
+            stickyColumns={{
+              left: ['id'],
+              right: ['actions'],
+            }}
           />
         </MainBody>
       </FormDialogProvider>

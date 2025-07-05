@@ -135,9 +135,9 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
                     <div className='col-span-2'>
                       {job.lastTime
                         ? i18n.date(job.lastTime, {
-                          dateStyle: 'short',
-                          timeStyle: 'medium',
-                        })
+                            dateStyle: 'short',
+                            timeStyle: 'medium',
+                          })
                         : '-'}
                     </div>
                   </div>
@@ -148,9 +148,9 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
                     <div className='col-span-2'>
                       {job.nextTime
                         ? i18n.date(job.nextTime, {
-                          dateStyle: 'short',
-                          timeStyle: 'medium',
-                        })
+                            dateStyle: 'short',
+                            timeStyle: 'medium',
+                          })
                         : '-'}
                     </div>
                   </div>

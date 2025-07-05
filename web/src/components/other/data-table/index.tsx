@@ -16,6 +16,7 @@ import {
 } from '@tanstack/react-table'
 import { Trans } from '@lingui/react/macro'
 import { Pagination } from '~/do-exercise-api'
+import { cn } from '~/lib/utils'
 import {
   Table,
   TableBody,
@@ -31,6 +32,12 @@ import { DataTableToolbar, DataTableToolbarProps } from './toolbar'
 export { DataTableColumnHeader } from './column-header'
 export { DataTableRowActions } from './row-actions'
 
+// 固定列配置接口
+export interface StickyColumnConfig {
+  left?: string[] // 左侧固定列的 accessorKey
+  right?: string[] // 右侧固定列的 accessorKey
+}
+
 interface DataTableProps<T>
   extends Pick<
     DataTableToolbarProps<T>,
@@ -41,6 +48,7 @@ interface DataTableProps<T>
   meta?: Pagination
   isLoading?: boolean
   getColumnTitle?: (columnId: string) => string
+  stickyColumns?: StickyColumnConfig // 新的固定列配置
 }
 
 export function DataTable<T>({
@@ -53,6 +61,7 @@ export function DataTable<T>({
   serchOptions,
   isLoading = false,
   getColumnTitle,
+  stickyColumns,
 }: DataTableProps<T>) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -123,6 +132,37 @@ export function DataTable<T>({
       : undefined,
   })
 
+  // 获取固定列配置
+  const getStickyConfig = () => {
+    if (stickyColumns) {
+      return stickyColumns
+    }
+    return { left: [], right: [] }
+  }
+
+  const stickyConfig = getStickyConfig()
+
+  // 获取列的固定样式
+  const getStickyClass = (columnId: string, isHeader: boolean = false) => {
+    const leftSticky = stickyConfig.left?.includes(columnId)
+    const rightSticky = stickyConfig.right?.includes(columnId)
+
+    if (!leftSticky && !rightSticky) return ''
+
+    const baseClass = 'sticky z-50 bg-background'
+    const hoverClass = isHeader ? '' : 'group-hover/row:bg-muted/50'
+
+    if (leftSticky) {
+      return cn(baseClass, 'left-0 shadow-sm', hoverClass)
+    }
+
+    if (rightSticky) {
+      return cn(baseClass, 'right-0 shadow-sm', hoverClass)
+    }
+
+    return ''
+  }
+
   return (
     <div className='space-y-4'>
       <DataTableToolbar
@@ -134,77 +174,139 @@ export function DataTable<T>({
         getColumnTitle={getColumnTitle}
       />
       <div className='rounded-md border'>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className='group/row'>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className={
-                        (header.column.columnDef.meta as { className?: string })
-                          ?.className ?? ''
-                      }
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='text-muted-foreground pointer-events-none h-64 text-center'
-                >
-                  <LoadingSpinner />
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={
-                        (cell.column.columnDef.meta as { className?: string })
-                          ?.className ?? ''
-                      }
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+        <div className='overflow-x-auto'>
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className='group/row'>
+                  {headerGroup.headers.map((header) => {
+                    const stickyClass = getStickyClass(header.column.id, true)
+                    const isSticky = stickyClass.includes('sticky')
+                    const isLeftSticky = stickyConfig.left?.includes(
+                      header.column.id
+                    )
+                    const isRightSticky = stickyConfig.right?.includes(
+                      header.column.id
+                    )
+
+                    return (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        className={cn(
+                          (
+                            header.column.columnDef.meta as {
+                              className?: string
+                            }
+                          )?.className ?? '',
+                          stickyClass
+                        )}
+                        style={
+                          isSticky
+                            ? {
+                                backgroundColor: 'var(--background)',
+                                position: 'sticky',
+                                zIndex: 50,
+                                left: isLeftSticky ? 0 : undefined,
+                                right: isRightSticky ? 0 : undefined,
+                                boxShadow: isLeftSticky
+                                  ? '2px 0 4px rgba(0,0,0,0.1)'
+                                  : isRightSticky
+                                    ? '-2px 0 4px rgba(0,0,0,0.1)'
+                                    : undefined,
+                              }
+                            : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='h-24 text-center'
-                >
-                  <Trans>没有内容.</Trans>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className='text-muted-foreground pointer-events-none h-64 text-center'
+                  >
+                    <LoadingSpinner />
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className='group/row'
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const stickyClass = getStickyClass(cell.column.id)
+                      const isSticky = stickyClass.includes('sticky')
+                      const isLeftSticky = stickyConfig.left?.includes(
+                        cell.column.id
+                      )
+                      const isRightSticky = stickyConfig.right?.includes(
+                        cell.column.id
+                      )
+
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            (
+                              cell.column.columnDef.meta as {
+                                className?: string
+                              }
+                            )?.className ?? '',
+                            stickyClass
+                          )}
+                          style={
+                            isSticky
+                              ? {
+                                  backgroundColor: 'var(--background)',
+                                  position: 'sticky',
+                                  zIndex: 50,
+                                  left: isLeftSticky ? 0 : undefined,
+                                  right: isRightSticky ? 0 : undefined,
+                                  boxShadow: isLeftSticky
+                                    ? '2px 0 4px rgba(0,0,0,0.1)'
+                                    : isRightSticky
+                                      ? '-2px 0 4px rgba(0,0,0,0.1)'
+                                      : undefined,
+                                }
+                              : undefined
+                          }
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className='h-24 text-center'
+                  >
+                    <Trans>没有内容.</Trans>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
       {((!!meta && !!navigate) || enableClientPagination) && (
         <DataTablePagination

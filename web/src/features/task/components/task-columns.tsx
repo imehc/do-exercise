@@ -129,17 +129,17 @@ export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
     ...[
       hasMore
         ? createActionColumn<SysJob>(({ row }) => (
-          <WithPermission>
-            {(permissions) => (
-              <DataTableRowActions
-                row={row}
-                showEdit={permissions.some((p) => p === 'update')}
-                showDelete={permissions.some((p) => p === 'delete')}
-                showInfo={permissions.some((p) => p === 'info')}
-              />
-            )}
-          </WithPermission>
-        ))
+            <WithPermission>
+              {(permissions) => (
+                <DataTableRowActions
+                  row={row}
+                  showEdit={permissions.some((p) => p === 'update')}
+                  showDelete={permissions.some((p) => p === 'delete')}
+                  showInfo={permissions.some((p) => p === 'info')}
+                />
+              )}
+            </WithPermission>
+          ))
         : [],
     ].flat(),
   ]

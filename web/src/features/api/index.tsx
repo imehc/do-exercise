@@ -43,6 +43,10 @@ export default function Api() {
             columns={columns}
             navigate={navigate}
             getColumnTitle={getColumnTitle}
+            stickyColumns={{
+              left: ['id'],
+              right: ['actions'],
+            }}
           />
         </MainBody>
       </FormDialogProvider>

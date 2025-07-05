@@ -58,22 +58,22 @@ export function TaskActionDialog({ currentRow, open, onOpenChange }: Props) {
     useForm<ActionSysJobFormValues>({
       defaultValues: isEdit
         ? {
-          ...currentRow,
-          isEdit,
-        }
+            ...currentRow,
+            isEdit,
+          }
         : {
-          isEdit,
-          name: '',
-          jobGroup: '',
-          cronExpression: '',
-          command: '',
-          status: JobStatus.normal,
-          description: '',
-          concurrent: false,
-          retryTimes: undefined,
-          retryInterval: undefined,
-          timeout: undefined,
-        },
+            isEdit,
+            name: '',
+            jobGroup: '',
+            cronExpression: '',
+            command: '',
+            status: JobStatus.normal,
+            description: '',
+            concurrent: false,
+            retryTimes: undefined,
+            retryInterval: undefined,
+            timeout: undefined,
+          },
       resolver: zodResolver(getSchema()),
     })
   )

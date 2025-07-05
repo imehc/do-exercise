@@ -38,7 +38,7 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = () => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
-  const hasMore = basicMoreOptions.every((p) => permissions.includes(p))
+  const hasMore = basicMoreOptions.some((p) => permissions.includes(p))
 
   return [
     createColumn<SysMenuTree>({
@@ -142,10 +142,10 @@ export const useColumns = () => {
         ? createActionColumn<SysMenuTree>(({ row }) => (
             <DataTableRowActions
               row={row}
-              showEdit
-              showDelete
-              showInfo
-              showAdd
+              showEdit={permissions.some((p) => p === 'update')}
+              showDelete={permissions.some((p) => p === 'delete')}
+              showInfo={permissions.some((p) => p === 'info')}
+              showAdd={permissions.some((p) => p === 'create')}
             />
           ))
         : [],

@@ -34,7 +34,7 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
-  const hasMore = basicMoreOptions.every((p) => permissions.includes(p))
+  const hasMore = basicMoreOptions.some((p) => permissions.includes(p))
 
   return [
     {

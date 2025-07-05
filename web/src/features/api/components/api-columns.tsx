@@ -104,7 +104,10 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
       hasMore
         ? createActionColumn<SysApi>(
             ({ row }: CellContext<SysApi, unknown>) => (
-              <DataTableRowActions row={row} showEdit />
+              <DataTableRowActions
+                row={row}
+                showEdit={permissions.some((p) => p === 'update')}
+              />
             )
           )
         : [],

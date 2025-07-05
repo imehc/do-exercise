@@ -29,7 +29,7 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasUpdate = permissions.some((p) => p === 'update')
-  const hasMore = (['update', 'delete'] satisfies PermissionType[]).every((p) =>
+  const hasMore = (['update', 'delete'] satisfies PermissionType[]).some((p) =>
     permissions.includes(p)
   )
   return [

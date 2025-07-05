@@ -36,7 +36,7 @@ export const useColumns = (): ColumnDef<SysUser>[] => {
   const permissions = usePermissions()
   const hasMore = (
     [...basicMoreOptions, 'reset'] satisfies PermissionType[]
-  ).every((p) => permissions.includes(p))
+  ).some((p) => permissions.includes(p))
 
   return [
     {

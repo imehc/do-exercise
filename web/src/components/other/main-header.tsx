@@ -1,6 +1,5 @@
 import { LanguageSwitch } from '../language-switch'
 import { Header } from '../layout/header'
-import { ProfileDropdown } from '../profile-dropdown'
 import { Search } from '../search'
 import { ThemeSwitch } from '../theme-switch'
 
@@ -11,7 +10,7 @@ export function MainHeader() {
       <div className='ml-auto flex items-center space-x-4'>
         <LanguageSwitch />
         <ThemeSwitch />
-        <ProfileDropdown />
+        {/* <ProfileDropdown /> */}
       </div>
     </Header>
   )

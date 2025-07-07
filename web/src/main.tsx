@@ -28,7 +28,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        // eslint-disable-next-line no-console
         if (import.meta.env.DEV) console.log({ failureCount, error })
 
         if (failureCount >= 0 && import.meta.env.DEV) return false
@@ -41,7 +40,7 @@ const queryClient = new QueryClient({
         //   error instanceof ResponseError &&
         //   [401, 403].includes(error.response?.status ?? 0)
         // )
-        return true
+        return false
       },
       refetchOnWindowFocus: import.meta.env.PROD,
       staleTime: 10 * 1000, // 10s

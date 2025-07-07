@@ -1,5 +1,6 @@
 export * from './avatar-upload'
 export * from './code-block'
+export * from './calendar'
 export * from './data-table'
 export * from './loading-spinner'
 export * from './icon-select'

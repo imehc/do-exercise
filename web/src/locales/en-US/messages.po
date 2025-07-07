@@ -17,9 +17,18 @@ msgstr ""
 msgid "(选择全部)"
 msgstr "(Select all)"
 
+#. placeholder {0}: format(date, 'EEEE, MMMM d, yyyy')
+#: src/components/other/calendar/components/dialogs/events-list-dialog.tsx:56
+msgid "{0} 的事件"
+msgstr "Events on {0}"
+
 #: src/components/other/transfer-list/index.tsx:137
 msgid "{count} 项已选"
 msgstr "{count} items have been selected"
+
+#: src/components/other/calendar/components/header/date-navigator.tsx:56
+msgid "{eventCount} 事件"
+msgstr "{eventCount} events"
 
 #: src/components/other/confirm-tip.tsx:28
 msgid "{text}名称:"
@@ -56,6 +65,26 @@ msgstr "IP address"
 #: src/features/operation-log/components/operation-log-columns.tsx:23
 msgid "IP属地"
 msgstr "IP location"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:34
+msgid "一"
+msgstr "Mon"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:18
+msgid "一月"
+msgstr "Jan"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:24
+msgid "七月"
+msgstr "Jul"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:36
+msgid "三"
+msgstr "Wed"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:20
+msgid "三月"
+msgstr "Mar"
 
 #: src/components/other/data-table/pagination.tsx:125
 msgid "上一页"
@@ -100,14 +129,50 @@ msgstr "The passwords entered twice are inconsistent."
 msgid "个人资料"
 msgstr "Personal profile"
 
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:162
+msgid "为您的日历创建新事件。"
+msgstr "Create a new event for your calendar."
+
 #: src/components/command-menu.tsx:82
 #: src/features/settings/appearance/appearance-form.tsx:104
 msgid "主题"
 msgstr "Theme"
 
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:26
+msgid "九月"
+msgstr "Sep"
+
 #: src/features/errors/maintenance-error.tsx:16
 msgid "了解更多信息"
 msgstr "Learn more"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:139
+msgid "事件创建成功"
+msgstr "Event created successfully"
+
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:38
+msgid "事件删除成功"
+msgstr "Event deleted successfully"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:136
+msgid "事件更新成功"
+msgstr "Event updated successfully"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:35
+msgid "二"
+msgstr "Tue"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:19
+msgid "二月"
+msgstr "Feb"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:38
+msgid "五"
+msgstr "Fri"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:22
+msgid "五月"
+msgstr "May"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:117
 msgid "代理"
@@ -198,9 +263,17 @@ msgstr "Save"
 msgid "保存中"
 msgstr "Saved"
 
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:268
+msgid "保存更改"
+msgstr "Save Changes"
+
 #: src/components/other/dialog-header-content.tsx:13
 msgid "修改{text}"
 msgstr "Modify {text}"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:160
+msgid "修改您的现有事件。"
+msgstr "Modify your existing event."
 
 #: src/features/task/components/task-action-button.tsx:106
 msgid "停止任务"
@@ -210,10 +283,27 @@ msgstr "Stop task"
 msgid "停止成功"
 msgstr "Stop succeeding"
 
+#: src/components/other/calendar/components/header/user-select.tsx:20
+#: src/components/other/calendar/components/header/user-select.tsx:37
+msgid "全部"
+msgstr "All"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:25
+msgid "八月"
+msgstr "Aug"
+
 #: src/features/auth/sign-in/schemas/action-schema.ts:16
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:48
 msgid "公钥不能为空"
 msgstr "The public key cannot be empty"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:39
+msgid "六"
+msgstr "Sat"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:23
+msgid "六月"
+msgstr "Jun"
 
 #: src/features/menu/components/menu-view-info.tsx:161
 #: src/features/menu/components/menu-action-dialog.tsx:478
@@ -277,6 +367,10 @@ msgstr "Create {text}"
 msgid "创建{text}相关信息。"
 msgstr "Create {text} related information."
 
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:268
+msgid "创建事件"
+msgstr "Create Event"
+
 #: src/features/user/components/user-action-dialog.tsx:82
 #: src/features/task/components/task-action-dialog.tsx:85
 #: src/features/role/components/role-action-dialog.tsx:65
@@ -296,10 +390,16 @@ msgid "创建时间"
 msgstr "Creation time"
 
 #: src/components/other/data-table/row-actions.tsx:46
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:117
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:43
 #: src/features/token/components/token-delete-dialog.tsx:70
 #: src/features/menu/components/menu-delete-dialog.tsx:65
 msgid "删除"
 msgstr "Delete"
+
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:40
+msgid "删除事件错误"
+msgstr "Error deleting event"
 
 #: src/features/token/components/token-delete-dialog.tsx:59
 msgid "删除令牌"
@@ -345,6 +445,18 @@ msgstr "Refresh token creation time"
 msgid "刷新令牌到期时间"
 msgstr "Refresh token expiration time"
 
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:28
+msgid "十一月"
+msgstr "Nov"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:29
+msgid "十二月"
+msgstr "Dec"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:27
+msgid "十月"
+msgstr "Oct"
+
 #: src/components/other/data-table/column-header.tsx:56
 msgid "升序"
 msgstr "Asc"
@@ -372,6 +484,8 @@ msgid "发送验证码"
 msgstr "Send code"
 
 #: src/components/confirm-dialog.tsx:56
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:54
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:264
 msgid "取消"
 msgstr "Cancel"
 
@@ -388,6 +502,38 @@ msgstr "NO"
 msgid "启动成功"
 msgstr "Start successfully"
 
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:16
+msgid "周一"
+msgstr "Mon"
+
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:18
+msgid "周三"
+msgstr "Wed"
+
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:17
+msgid "周二"
+msgstr "Tue"
+
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:20
+msgid "周五"
+msgstr "Fri"
+
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:21
+msgid "周六"
+msgstr "Sat"
+
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:19
+msgid "周四"
+msgstr "Thu"
+
+#: src/components/other/calendar/components/month-view/calendar-month-view.tsx:15
+msgid "周日"
+msgstr "Sun"
+
+#: src/components/other/calendar/components/week-and-day-view/calendar-week-view.tsx:43
+msgid "周视图在较小设备上不可用。"
+msgstr "Weekly view is not available on smaller devices."
+
 #: src/features/operation-log/components/operation-log-view-result.tsx:35
 msgid "响应数据"
 msgstr "Response data"
@@ -396,6 +542,14 @@ msgstr "Response data"
 #: src/features/operation-log/components/operation-log-columns.tsx:33
 msgid "响应结果"
 msgstr "Response result"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:37
+msgid "四"
+msgstr "Thu"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:21
+msgid "四月"
+msgstr "Apr"
 
 #: src/features/menu/components/menu-view-info.tsx:115
 #: src/features/menu/components/menu-columns.tsx:25
@@ -519,6 +673,10 @@ msgstr "Disabled"
 msgid "已选{selectRow}条,共{selectTotalRow}条"
 msgstr "{selectRow} of {selectTotalRow} selected"
 
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:56
+msgid "年视图在较小设备上不可用。"
+msgstr "Yearly view is not available on smaller devices."
+
 #: src/features/task/components/task-action-dialog.tsx:300
 msgid "并发执行"
 msgstr "Concurrent execution"
@@ -536,6 +694,19 @@ msgstr "No."
 #: src/features/task/components/task-action-button.tsx:104
 msgid "开始任务"
 msgstr "Start task"
+
+#: src/components/ui/date-time-picker.tsx:62
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:70
+msgid "开始日期"
+msgstr "Start Date"
+
+#: src/components/other/calendar/schemas.ts:9
+msgid "开始日期是必需的"
+msgstr "Start date is required"
+
+#: src/components/other/calendar/components/change-badge-variant-input.tsx:39
+msgid "徽章样式"
+msgstr "Badge Style"
 
 #: src/features/auth/forgot-password/index.tsx:49
 msgid "忘记密码"
@@ -556,6 +727,10 @@ msgstr "Total memory"
 #: src/features/system-info/components/system-info-view.tsx:142
 msgid "总容量"
 msgstr "Gross capacity"
+
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:48
+msgid "您确定要删除吗？"
+msgstr "Are you sure you want to delete?"
 
 #: src/components/other/confirm-tip.tsx:18
 msgid "您确定要删除这个{text}吗?"
@@ -604,6 +779,22 @@ msgstr "Collapse"
 msgid "挂载点"
 msgstr "Mounting point"
 
+#: src/components/other/calendar/components/header/calendar-header.tsx:97
+msgid "按周查看"
+msgstr "Week View"
+
+#: src/components/other/calendar/components/header/calendar-header.tsx:118
+msgid "按年查看"
+msgstr "Year View"
+
+#: src/components/other/calendar/components/header/calendar-header.tsx:84
+msgid "按日查看"
+msgstr "Day View"
+
+#: src/components/other/calendar/components/header/calendar-header.tsx:108
+msgid "按月查看"
+msgstr "Month View"
+
 #: src/features/settings/email/email-form.tsx:238
 msgid "换绑"
 msgstr "Rebind"
@@ -636,11 +827,17 @@ msgstr "API"
 msgid "接口列表"
 msgstr "API List"
 
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:94
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:246
 #: src/features/task/components/task-action-dialog.tsx:279
 #: src/features/api/components/api-columns.tsx:22
 #: src/features/api/components/api-action.tsx:145
 msgid "描述"
 msgstr "Description"
+
+#: src/components/other/calendar/schemas.ts:7
+msgid "描述是必需的"
+msgstr "Description is required"
 
 #: src/components/search.tsx:29
 #: src/components/other/transfer-list/index.tsx:84
@@ -673,6 +870,10 @@ msgstr "New password"
 #: src/features/settings/password/schemas/action-schema.ts:17
 msgid "新密码不能与旧密码相同"
 msgstr "The new password cannot be the same as the old password"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:33
+msgid "日"
+msgstr "Sun"
 
 #: src/features/task/components/task-view-info.tsx:121
 #: src/features/operation-log/components/operation-log-view-info.tsx:90
@@ -733,6 +934,10 @@ msgstr "Pause"
 msgid "更喜欢使用密码？"
 msgstr "Prefer to use passwords?"
 
+#: src/components/other/calendar/components/dialogs/events-list-dialog.tsx:41
+msgid "更多..."
+msgstr "More..."
+
 #: src/features/settings/email/email-form.tsx:74
 msgid "更换成功"
 msgstr "Replacement succeeded."
@@ -762,6 +967,10 @@ msgstr "Update succeeded."
 #: src/features/api/components/api-columns.tsx:28
 msgid "更新时间"
 msgstr "Update time"
+
+#: src/components/other/calendar/components/agenda-view/agenda-events.tsx:124
+msgid "未找到结果。"
+msgstr "No results found."
 
 #: src/components/other/avatar-upload/index.tsx:33
 msgid "未选择文件"
@@ -805,6 +1014,14 @@ msgstr "View menu details."
 msgid "查看角色详细信息。"
 msgstr "View the role details."
 
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:179
+msgid "标题"
+msgstr "Title"
+
+#: src/components/other/calendar/schemas.ts:6
+msgid "标题是必需的"
+msgstr "Title is required"
+
 #: src/features/system-info/components/system-info-view.tsx:77
 msgid "核心 {index}"
 msgstr "Core {index}"
@@ -813,6 +1030,14 @@ msgstr "Core {index}"
 msgid "根节点"
 msgstr "root"
 
+#: src/components/other/calendar/components/header/filter.tsx:27
+msgid "橙色"
+msgstr "Orange"
+
+#: src/components/other/calendar/components/week-and-day-view/calendar-day-view.tsx:206
+msgid "正在进行"
+msgstr "Happening Now"
+
 #: src/features/token/components/token-view-info.tsx:135
 #: src/features/task/components/task-view-info.tsx:102
 #: src/features/task/components/task-columns.tsx:88
@@ -820,6 +1045,10 @@ msgstr "root"
 #: src/features/api/components/api-columns.tsx:86
 msgid "正常"
 msgstr "normal"
+
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:50
+msgid "此操作不可撤销。这将永久删除您的事件，并从我们的服务器中移除事件数据。"
+msgstr "This action cannot be undone. This will permanently delete your event and remove the event data from our servers."
 
 #: src/components/other/confirm-tip.tsx:21
 msgid "此操作将永久删除{text}及其相关的系统中的项目，这是无法撤消的。"
@@ -858,9 +1087,25 @@ msgstr "Dark Mode"
 msgid "添加"
 msgstr "Add"
 
+#: src/components/other/calendar/components/header/calendar-header.tsx:140
+msgid "添加事件"
+msgstr "Add Event"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:146
+msgid "添加事件失败"
+msgstr "Failed to add event"
+
 #: src/components/other/data-table/row-actions.tsx:129
 msgid "添加子元素"
 msgstr "Add child elements"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:156
+msgid "添加新事件"
+msgstr "Add New Event"
+
+#: src/components/other/calendar/components/header/filter.tsx:71
+msgid "清除筛选"
+msgstr "Clear Filters"
 
 #: src/features/menu/components/menu-action-dialog.tsx:297
 msgid "父级菜单"
@@ -969,6 +1214,10 @@ msgstr "User details"
 msgid "登录"
 msgstr "Sign In"
 
+#: src/components/other/calendar/components/week-and-day-view/calendar-day-view.tsx:211
+msgid "目前没有预约或咨询"
+msgstr "No appointments or consultations at the moment"
+
 #: src/features/menu/data/data.ts:6
 msgid "目录"
 msgstr "Directory"
@@ -997,6 +1246,10 @@ msgstr "Disabled state"
 #: src/components/other/data-table/pagination.tsx:92
 msgid "第{currentPage}页，共{totalPage}页"
 msgstr "Page {currentPage} of {totalPage}"
+
+#: src/components/other/calendar/components/month-view/month-event-badge.tsx:127
+msgid "第{eventCurrentDay}天, 共{eventTotalDays}天"
+msgstr "Day {eventCurrentDay} of {eventTotalDays}"
 
 #: src/components/other/data-table/pagination.tsx:109
 msgid "第一页"
@@ -1027,6 +1280,14 @@ msgstr "System information"
 msgid "系统概览"
 msgstr "System overview"
 
+#: src/components/other/calendar/components/header/filter.tsx:26
+msgid "紫色"
+msgstr "Purple"
+
+#: src/components/other/calendar/components/header/filter.tsx:24
+msgid "红色"
+msgstr "Red"
+
 #: src/features/menu/components/menu-view-info.tsx:109
 #: src/features/menu/components/menu-columns.tsx:28
 #: src/features/menu/components/menu-action-dialog.tsx:396
@@ -1049,19 +1310,42 @@ msgstr "Binding succeeded"
 msgid "绑定邮箱"
 msgstr "Bind Email"
 
+#: src/components/ui/date-time-picker.tsx:64
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:82
+msgid "结束日期"
+msgstr "End Date"
+
+#: src/components/other/calendar/schemas.ts:12
+msgid "结束日期是必需的"
+msgstr "End date is required"
+
 #: src/components/confirm-dialog.tsx:64
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:55
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:222
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:87
 msgid "继续"
 msgstr "Continue"
+
+#: src/components/other/calendar/components/header/filter.tsx:23
+msgid "绿色"
+msgstr "Green"
 
 #: src/features/system-info/components/system-info-view.tsx:52
 msgid "编译器"
 msgstr "Compiler"
 
 #: src/components/other/data-table/row-actions.tsx:36
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:108
 msgid "编辑"
 msgstr "Edit"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:156
+msgid "编辑事件"
+msgstr "Edit Event"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:146
+msgid "编辑事件失败"
+msgstr "Failed to edit event"
 
 #: src/features/operation-log/components/operation-log-view-info.tsx:301
 #: src/features/operation-log/components/operation-log-columns.tsx:36
@@ -1101,6 +1385,10 @@ msgstr "Menu type"
 msgid "菜单详情"
 msgstr "Menu details"
 
+#: src/components/other/calendar/components/header/filter.tsx:22
+msgid "蓝色"
+msgstr "Blue"
+
 #: src/features/auth/sign-in/index.tsx:49
 msgid "要登录您的账户<0/>请输入您的用户名和密码"
 msgstr "To log in to your account<0/> enter your username and password"
@@ -1132,6 +1420,10 @@ msgstr "Role code"
 msgid "角色详情"
 msgstr "Role details"
 
+#: src/components/other/confirm-tip.tsx:39
+msgid "警告！"
+msgstr "Warning!"
+
 #: src/features/settings/appearance/appearance-form.tsx:92
 msgid "设定您想要在系统中使用的字体。"
 msgstr "Set the font you want to use in the system."
@@ -1156,6 +1448,11 @@ msgstr "Please enter your password again"
 #: src/features/settings/password/email-form.tsx:133
 msgid "请再次输入您的新密码"
 msgstr "Please enter your new password again"
+
+#: src/components/other/calendar/components/year-view/calendar-year-view.tsx:59
+#: src/components/other/calendar/components/week-and-day-view/calendar-week-view.tsx:44
+msgid "请切换到日视图或月视图。"
+msgstr "Please switch to daily or monthly view."
 
 #: src/features/api/components/api-action.tsx:171
 msgid "请填写分组名称"
@@ -1267,6 +1564,7 @@ msgstr "Please enter the execute command"
 msgid "请输入排序值"
 msgstr "Please enter a sort value"
 
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:251
 #: src/features/task/components/task-action-dialog.tsx:283
 #: src/features/api/components/api-action.tsx:150
 msgid "请输入描述"
@@ -1290,6 +1588,10 @@ msgstr "Please enter a valid cron expression"
 #: src/features/menu/components/menu-action-dialog.tsx:461
 msgid "请输入权限标识"
 msgstr "Please enter the permission ID"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:184
+msgid "请输入标题"
+msgstr "Please enter a title"
 
 #: src/features/user/schemas/action-schema.ts:41
 msgid "请输入正确的邮箱地址"
@@ -1434,9 +1736,9 @@ msgstr "Please select a component path"
 msgid "请选择路由"
 msgstr "Please select a route"
 
-#: src/components/other/confirm-tip.tsx:39
-msgid "警告！"
-msgstr "Warning!"
+#: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:58
+msgid "负责人"
+msgstr "Responsible Person"
 
 #: src/features/task/components/task-action-dialog.tsx:365
 msgid "超时时间(秒)"
@@ -1504,6 +1806,10 @@ msgstr "This is the new password you set"
 #: src/components/layout/nav-user.tsx:101
 msgid "退出登录"
 msgstr "Log out"
+
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:220
+msgid "选择一个颜色"
+msgstr "Select a color"
 
 #: src/features/settings/appearance/appearance-form.tsx:32
 msgid "选择一种字体"
@@ -1582,6 +1888,7 @@ msgid "错误信息"
 msgstr "Error message"
 
 #: src/components/command-menu.tsx:39
+#: src/components/other/calendar/components/agenda-view/agenda-events.tsx:50
 msgid "键入命令或搜索..."
 msgstr "Type a command or search..."
 
@@ -1597,6 +1904,14 @@ msgstr "Hide"
 msgid "页面元素"
 msgstr "Page"
 
+#: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:213
+msgid "颜色"
+msgstr "Color"
+
+#: src/components/other/calendar/schemas.ts:15
+msgid "颜色是必需的"
+msgstr "Color is required"
+
 #: src/features/auth/otp/components/otp-form.tsx:128
 msgid "验证"
 msgstr "Validate"
@@ -1611,3 +1926,7 @@ msgstr "Captcha"
 #: src/features/auth/sign-in/schemas/action-schema.ts:12
 msgid "验证码ID不能为空"
 msgstr "Captcha ID cannot be empty"
+
+#: src/components/other/calendar/components/header/filter.tsx:25
+msgid "黄色"
+msgstr "Yellow"

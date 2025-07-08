@@ -1,21 +1,13 @@
-import { Suspense } from 'react'
-import {
-  Calendar,
-  CalendarSkeleton,
-  MainBody,
-  MainHeader,
-} from '~/components/other'
-import { getEvents, getUsers } from '~/components/other/calendar/requests'
+import { Main } from '~/components/layout/main'
+import { LunarCalendar, MainHeader } from '~/components/other'
 
 export default function Dashboard() {
   return (
     <>
       <MainHeader />
-      <MainBody>
-        <Suspense fallback={<CalendarSkeleton />}>
-          <Calendar events={getEvents()} users={getUsers()} readonly />
-        </Suspense>
-      </MainBody>
+      <Main fixed>
+        <LunarCalendar />
+      </Main>
     </>
   )
 }

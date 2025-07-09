@@ -1,10 +1,37 @@
 import { useState, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { SolarDay } from 'tyme4ts'
 import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { LunarDayDetailDrawer } from './lunar-day-detail-drawer'
 import type { LunarCell } from './lunar-types'
+
+// 动画配置，与日历组件保持一致
+const transition = {
+  type: 'spring' as const,
+  stiffness: 200,
+  damping: 20,
+}
+
+const staggerContainer: Variants = {
+  animate: {
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+}
+
+const fadeIn: Variants = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+}
+
+const badgeAnimation: Variants = {
+  initial: { scale: 0, opacity: 0 },
+  animate: { scale: 1, opacity: 1 },
+  whileHover: { scale: 1.1 },
+}
 
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
@@ -159,16 +186,23 @@ export function LunarCalendar() {
   return (
     <div className='bg-background grid h-full w-full grid-rows-[auto_1fr] rounded-xl font-sans shadow-sm select-none'>
       {/* 星期栏 */}
-      <div className='bg-muted grid h-16 grid-cols-7'>
+      <motion.div 
+        className='bg-muted grid h-16 grid-cols-7'
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
         {weekDays.map((w, i) => (
-          <div
+          <motion.div
             key={w}
+            variants={fadeIn}
+            transition={{ ...transition, delay: i * 0.05 }}
             className={`flex h-full items-center justify-center text-base font-bold ${i === 5 || i === 6 ? 'text-destructive' : 'text-muted-foreground'}`}
           >
             {w}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
       {/* 日历格子区域（带动画和按钮） */}
       <div className='relative h-full w-full'>
         <AnimatePresence mode='wait' initial={false}>
@@ -184,7 +218,7 @@ export function LunarCalendar() {
               opacity: 0,
               x: direction.current === 0 ? 0 : direction.current > 0 ? -40 : 40,
             }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ ...transition, duration: 0.3 }}
           >
             {cur.year}年{cur.month}月
           </motion.div>
@@ -214,6 +248,7 @@ export function LunarCalendar() {
           <motion.div
             key={cur.year + '-' + cur.month}
             className='grid h-full min-h-0 grid-cols-7'
+            variants={staggerContainer}
             initial={{
               opacity: 0,
               x: direction.current === 0 ? 0 : direction.current > 0 ? 40 : -40,
@@ -223,27 +258,45 @@ export function LunarCalendar() {
               opacity: 0,
               x: direction.current === 0 ? 0 : direction.current > 0 ? -40 : 40,
             }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ ...transition, duration: 0.3 }}
           >
             {rows.flat().map((cell, idx) =>
               cell ? (
                 cell.isToday ? (
-                  <div
+                  <motion.div
                     key={idx}
-                    className='bg-primary relative flex h-full min-h-[64px] w-full flex-col items-center justify-center px-1 py-2 shadow-lg'
+                    variants={fadeIn}
+                    transition={{ ...transition, delay: idx * 0.01 }}
+                    className='bg-primary relative flex h-full min-h-[64px] w-full flex-col items-center justify-center px-1 py-2 shadow-lg cursor-pointer'
                     onClick={() => {
                       setSelectedCell(cell)
                       setShowDrawer(true)
                     }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     {/* 右上角“今”徽标 */}
-                    <span className='bg-primary-foreground text-primary absolute top-1 right-1 rounded-full px-1 text-xs leading-tight font-bold shadow md:top-2 md:right-2 md:px-2 md:text-sm'>
+                    <motion.span 
+                      variants={badgeAnimation}
+                      transition={{ ...transition, delay: idx * 0.01 + 0.2 }}
+                      className='bg-primary-foreground text-primary absolute top-1 right-1 rounded-full px-1 text-xs leading-tight font-bold shadow md:top-2 md:right-2 md:px-2 md:text-sm'
+                    >
                       今
-                    </span>
-                    <div className='text-primary-foreground mb-1 text-2xl leading-none font-extrabold md:text-3xl'>
+                    </motion.span>
+                    <motion.div 
+                      className='text-primary-foreground mb-1 text-2xl leading-none font-extrabold md:text-3xl'
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{ ...transition, delay: idx * 0.01 + 0.1 }}
+                    >
                       {cell.solar.day}
-                    </div>
-                    <div className='text-primary-foreground flex min-h-4 w-full items-center justify-center gap-x-2 text-xs'>
+                    </motion.div>
+                    <motion.div 
+                      className='text-primary-foreground flex min-h-4 w-full items-center justify-center gap-x-2 text-xs'
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...transition, delay: idx * 0.01 + 0.15 }}
+                    >
                       {cell.isOtherMonth ? (
                         cell.lunar.day === 1 ? (
                           `${cell.lunar.month < 0 ? '闰' : ''}${toChinese(Math.abs(cell.lunar.month))}月`
@@ -270,12 +323,14 @@ export function LunarCalendar() {
                           </span>
                         </>
                       )}
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 ) : (
-                  <div
+                  <motion.div
                     key={idx}
-                    className={`group relative flex h-full min-h-[64px] w-full flex-col items-center justify-center px-1 py-2 transition-all ${getCellBgClass(cell)} ${
+                    variants={fadeIn}
+                    transition={{ ...transition, delay: idx * 0.01 }}
+                    className={`group relative flex h-full min-h-[64px] w-full flex-col items-center justify-center px-1 py-2 transition-all cursor-pointer ${getCellBgClass(cell)} ${
                       cell.solar.week === 6 || cell.solar.week === 0
                         ? cell.isOtherMonth
                           ? 'text-muted-foreground/60'
@@ -288,34 +343,47 @@ export function LunarCalendar() {
                       setSelectedCell(cell)
                       setShowDrawer(true)
                     }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     {/* 班/休 badge */}
                     {cell.lunar.holidayFestival &&
                       typeof cell.lunar.holidayFestival === 'object' &&
                       typeof cell.lunar.holidayFestival.isWork === 'function' &&
                       !cell.isOtherMonth && (
-                        <Badge
-                          variant={
-                            cell.lunar.holidayFestival.isWork()
-                              ? 'secondary'
-                              : 'destructive'
-                          }
-                          className={`absolute top-1 right-1 rounded-full px-1.5 py-0.5 text-xs font-bold shadow md:top-2 md:right-2 md:px-2 md:text-sm ${cell.lunar.holidayFestival.isWork() ? 'bg-primary-foreground text-black dark:text-white' : 'bg-destructive text-white'}`}
+                        <motion.div
+                          variants={badgeAnimation}
+                          transition={{ ...transition, delay: idx * 0.01 + 0.2 }}
                         >
-                          {cell.lunar.holidayFestival.isWork() ? '班' : '休'}
-                        </Badge>
+                          <Badge
+                            variant={
+                              cell.lunar.holidayFestival.isWork()
+                                ? 'secondary'
+                                : 'destructive'
+                            }
+                            className={`absolute top-1 right-1 rounded-full px-1.5 py-0.5 text-xs font-bold shadow md:top-2 md:right-2 md:px-2 md:text-sm ${cell.lunar.holidayFestival.isWork() ? 'bg-primary-foreground text-black dark:text-white' : 'bg-destructive text-white'}`}
+                          >
+                            {cell.lunar.holidayFestival.isWork() ? '班' : '休'}
+                          </Badge>
+                        </motion.div>
                       )}
-                    <div
+                    <motion.div
                       className={`mb-1 text-2xl leading-none font-extrabold md:text-3xl ${cell.isOtherMonth ? 'text-muted-foreground/60' : ''}`}
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{ ...transition, delay: idx * 0.01 + 0.1 }}
                     >
                       {cell.solar.day}
-                    </div>
-                    <div
+                    </motion.div>
+                    <motion.div
                       className={`flex min-h-4 w-full items-center justify-center gap-x-2 text-xs ${
                         cell.isOtherMonth
                           ? 'text-muted-foreground/40'
                           : 'text-gray-500'
                       }`}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...transition, delay: idx * 0.01 + 0.15 }}
                     >
                       {cell.isOtherMonth ? (
                         <>
@@ -348,8 +416,8 @@ export function LunarCalendar() {
                           </span>
                         </>
                       )}
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 )
               ) : null
             )}

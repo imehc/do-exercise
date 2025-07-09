@@ -1,5 +1,5 @@
 import { Trans } from '@lingui/react/macro'
-import { CheckIcon, Filter, RefreshCcw } from 'lucide-react'
+import { IconCheck, IconFilter, IconRefresh } from '@tabler/icons-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,7 @@ export default function FilterEvents() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Toggle variant='outline' className='w-fit cursor-pointer'>
-          <Filter className='h-4 w-4' />
+          <IconFilter className='h-4 w-4' />
         </Toggle>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[150px]'>
@@ -52,7 +52,7 @@ export default function FilterEvents() {
               <span>
                 {selectedColors.includes(color.value) && (
                   <span className='text-blue-500'>
-                    <CheckIcon className='size-4' />
+                    <IconCheck className='size-4' />
                   </span>
                 )}
               </span>
@@ -67,7 +67,7 @@ export default function FilterEvents() {
             clearFilter()
           }}
         >
-          <RefreshCcw className='size-3.5' />
+          <IconRefresh className='size-3.5' />
           <Trans>清除筛选</Trans>
         </DropdownMenuItem>
       </DropdownMenuContent>

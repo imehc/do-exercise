@@ -3,7 +3,7 @@ import { differenceInCalendarDays } from 'date-fns'
 import { enUS } from 'date-fns/locale/en-US'
 import { zhCN } from 'date-fns/locale/zh-CN'
 import { useAtomValue } from 'jotai'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import {
   DayPicker,
   labelNext,
@@ -211,7 +211,7 @@ function Calendar({
       }}
       components={{
         Chevron: ({ orientation }) => {
-          const Icon = orientation === 'left' ? ChevronLeft : ChevronRight
+          const Icon = orientation === 'left' ? IconChevronLeft : IconChevronRight
           return <Icon className='h-4 w-4' />
         },
         Nav: ({ className }) => (
@@ -371,7 +371,7 @@ function Nav({
         }
         onClick={handlePreviousClick}
       >
-        <ChevronLeft className='h-4 w-4' />
+        <IconChevronLeft className='h-4 w-4' />
       </Button>
 
       <Button
@@ -387,7 +387,7 @@ function Nav({
         }
         onClick={handleNextClick}
       >
-        <ChevronRight className='h-4 w-4' />
+        <IconChevronRight className='h-4 w-4' />
       </Button>
     </nav>
   )

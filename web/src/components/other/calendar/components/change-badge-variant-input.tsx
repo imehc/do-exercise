@@ -1,5 +1,5 @@
 import { Trans } from '@lingui/react/macro'
-import { DotIcon, PaletteIcon } from 'lucide-react'
+import { IconPoint, IconPalette } from '@tabler/icons-react'
 import {
   Tooltip,
   TooltipContent,
@@ -29,9 +29,9 @@ export function ChangeBadgeVariantInput() {
               }
             >
               {badgeVariant === 'dot' ? (
-                <DotIcon className='h-5 w-5' />
+                <IconPoint className='h-5 w-5' />
               ) : (
-                <PaletteIcon className='h-5 w-5' />
+                <IconPalette className='h-5 w-5' />
               )}
             </MotionButton>
           </TooltipTrigger>

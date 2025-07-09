@@ -151,6 +151,7 @@ msgid "事件创建成功"
 msgstr "Event created successfully"
 
 #: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:38
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:29
 msgid "事件删除成功"
 msgstr "Event deleted successfully"
 
@@ -391,13 +392,14 @@ msgstr "Creation time"
 
 #: src/components/other/data-table/row-actions.tsx:46
 #: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:117
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:43
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:44
 #: src/features/token/components/token-delete-dialog.tsx:70
 #: src/features/menu/components/menu-delete-dialog.tsx:65
 msgid "删除"
 msgstr "Delete"
 
 #: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:40
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:31
 msgid "删除事件错误"
 msgstr "Error deleting event"
 
@@ -484,7 +486,7 @@ msgid "发送验证码"
 msgstr "Send code"
 
 #: src/components/confirm-dialog.tsx:56
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:54
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:55
 #: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:264
 msgid "取消"
 msgstr "Cancel"
@@ -728,7 +730,7 @@ msgstr "Total memory"
 msgid "总容量"
 msgstr "Gross capacity"
 
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:48
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:49
 msgid "您确定要删除吗？"
 msgstr "Are you sure you want to delete?"
 
@@ -1046,7 +1048,7 @@ msgstr "Happening Now"
 msgid "正常"
 msgstr "normal"
 
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:50
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:51
 msgid "此操作不可撤销。这将永久删除您的事件，并从我们的服务器中移除事件数据。"
 msgstr "This action cannot be undone. This will permanently delete your event and remove the event data from our servers."
 
@@ -1320,7 +1322,7 @@ msgid "结束日期是必需的"
 msgstr "End date is required"
 
 #: src/components/confirm-dialog.tsx:64
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:55
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:56
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:222
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:87
 msgid "继续"

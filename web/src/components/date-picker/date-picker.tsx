@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
+import { IconCalendar } from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
 import { Calendar } from '~/components/ui/calendar'
@@ -25,7 +25,7 @@ export default function DatePicker() {
             !date && 'text-muted-foreground'
           )}
         >
-          <CalendarIcon className='mr-2 h-4 w-4' />
+          <IconCalendar className='mr-2 h-4 w-4' />
           {date ? format(date, 'PPP') : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>

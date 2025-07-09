@@ -6,12 +6,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: @lingui/cli\n"
 "Language: zh-CN\n"
-"Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Plural-Forms: \n"
 
 #: src/components/other/multi-select/index.tsx:293
 msgid "(选择全部)"
@@ -146,15 +140,12 @@ msgstr "九月"
 msgid "了解更多信息"
 msgstr "了解更多信息"
 
-#: src/components/other/calendar/components/header/date-navigator.tsx:59
-#~ msgid "事件"
-#~ msgstr "事件"
-
 #: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:139
 msgid "事件创建成功"
 msgstr "事件创建成功"
 
 #: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:38
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:29
 msgid "事件删除成功"
 msgstr "事件删除成功"
 
@@ -395,13 +386,14 @@ msgstr "创建时间"
 
 #: src/components/other/data-table/row-actions.tsx:46
 #: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:117
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:43
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:44
 #: src/features/token/components/token-delete-dialog.tsx:70
 #: src/features/menu/components/menu-delete-dialog.tsx:65
 msgid "删除"
 msgstr "删除"
 
 #: src/components/other/calendar/components/dialogs/event-details-dialog.tsx:40
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:31
 msgid "删除事件错误"
 msgstr "删除事件错误"
 
@@ -488,7 +480,7 @@ msgid "发送验证码"
 msgstr "发送验证码"
 
 #: src/components/confirm-dialog.tsx:56
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:54
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:55
 #: src/components/other/calendar/components/dialogs/add-edit-event-dialog.tsx:264
 msgid "取消"
 msgstr "取消"
@@ -732,7 +724,7 @@ msgstr "总内存"
 msgid "总容量"
 msgstr "总容量"
 
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:48
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:49
 msgid "您确定要删除吗？"
 msgstr "您确定要删除吗？"
 
@@ -1050,7 +1042,7 @@ msgstr "正在进行"
 msgid "正常"
 msgstr "正常"
 
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:50
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:51
 msgid "此操作不可撤销。这将永久删除您的事件，并从我们的服务器中移除事件数据。"
 msgstr "此操作不可撤销。这将永久删除您的事件，并从我们的服务器中移除事件数据。"
 
@@ -1324,7 +1316,7 @@ msgid "结束日期是必需的"
 msgstr "结束日期是必需的"
 
 #: src/components/confirm-dialog.tsx:64
-#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:55
+#: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:56
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:222
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:87
 msgid "继续"

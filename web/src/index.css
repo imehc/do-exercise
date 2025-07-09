@@ -252,3 +252,9 @@
 .drop-target.bg-primary\/10::after {
   opacity: 1;
 }
+
+/* 文字竖向布局 */
+.vertical-rl {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}

@@ -1,6 +1,7 @@
-import { TrashIcon } from 'lucide-react'
+import { IconTrash } from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { Trans, t } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
+import { t } from '@lingui/core/macro'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +40,7 @@ export default function DeleteEventDialog({ eventId }: DeleteEventDialogProps) {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant='destructive'>
-          <TrashIcon />
+          <IconTrash />
           <Trans>删除</Trans>
         </Button>
       </AlertDialogTrigger>

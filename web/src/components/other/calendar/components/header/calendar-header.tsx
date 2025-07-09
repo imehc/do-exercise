@@ -4,14 +4,14 @@ import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { motion } from 'framer-motion'
 import {
-  CalendarRange,
-  Columns,
-  Grid2X2,
-  Grid3X3,
-  LayoutList,
-  List,
-  Plus,
-} from 'lucide-react'
+  IconCalendarEvent,
+  IconColumns,
+  IconGrid3x3,
+  IconGrid4x4,
+  IconLayoutList,
+  IconList,
+  IconPlus,
+} from '@tabler/icons-react'
 import { Button } from '~/components/ui/button'
 import { ButtonGroup } from '~/components/ui/button-group'
 import { Toggle } from '~/components/ui/toggle'
@@ -70,11 +70,11 @@ export function CalendarHeader() {
             <Toggle className='relative'>
               {view === 'agenda' ? (
                 <>
-                  <CalendarRange />
+                  <IconCalendarEvent />
                   <span className='absolute -top-1 -right-1 size-3 rounded-full bg-green-400'></span>
                 </>
               ) : (
-                <LayoutList />
+                <IconLayoutList />
               )}
             </Toggle>
           </MotionButton>
@@ -89,7 +89,7 @@ export function CalendarHeader() {
               whileHover='hover'
               whileTap='tap'
             >
-              <List className='h-4 w-4' />
+              <IconList className='h-4 w-4' />
             </MotionButton>
 
             <MotionButton
@@ -100,7 +100,7 @@ export function CalendarHeader() {
               whileHover='hover'
               whileTap='tap'
             >
-              <Columns className='h-4 w-4' />
+              <IconColumns className='h-4 w-4' />
             </MotionButton>
 
             <MotionButton
@@ -111,7 +111,7 @@ export function CalendarHeader() {
               whileHover='hover'
               whileTap='tap'
             >
-              <Grid3X3 className='h-4 w-4' />
+              <IconGrid3x3 className='h-4 w-4' />
             </MotionButton>
             <MotionButton
               variant={view === 'year' ? 'default' : 'outline'}
@@ -121,7 +121,7 @@ export function CalendarHeader() {
               whileHover='hover'
               whileTap='tap'
             >
-              <Grid2X2 className='h-4 w-4' />
+              <IconGrid4x4 className='h-4 w-4' />
             </MotionButton>
           </ButtonGroup>
         </div>
@@ -136,7 +136,7 @@ export function CalendarHeader() {
                 whileHover='hover'
                 whileTap='tap'
               >
-                <Plus className='h-4 w-4' />
+                <IconPlus className='h-4 w-4' />
                 <Trans>添加事件</Trans>
               </MotionButton>
             </AddEditEventDialog>

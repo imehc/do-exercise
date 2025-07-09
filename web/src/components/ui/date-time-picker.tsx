@@ -1,6 +1,6 @@
 import type { ControllerRenderProps, UseFormReturn } from 'react-hook-form'
 import { Trans } from '@lingui/react/macro'
-import { CalendarIcon } from 'lucide-react'
+import { IconCalendar } from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Button } from '~/components/ui/button'
@@ -83,7 +83,7 @@ export function DateTimePicker({ form, field }: DatePickerProps) {
                 // )
                 <span>MM/DD/YYYY hh:mm aa</span>
               )}
-              <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+              <IconCalendar className='ml-auto h-4 w-4 opacity-50' />
             </Button>
           </FormControl>
         </PopoverTrigger>

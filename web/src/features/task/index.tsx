@@ -8,7 +8,7 @@ import {
 } from '~/provider'
 import { Route } from '~/routes/_authenticated/task'
 import { useApi } from '~/hooks/use-api'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { useColumns } from './components/task-columns'
 import { TaskDialogs } from './components/task-dialogs'
@@ -30,7 +30,6 @@ export default function Task() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>定时任务</Trans>}
           subTitle={<Trans>用于查看并操作定时任务。</Trans>}

@@ -16,7 +16,7 @@ import { useUserProfile } from '~/hooks/use-user'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
-import { LoadingSpinner, Watermark } from '~/components/other'
+import { LoadingSpinner, MainHeader, Watermark } from '~/components/other'
 
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
@@ -44,7 +44,6 @@ export const Route = createFileRoute('/_authenticated')({
         return redirect({ to: '/403' })
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('error', error)
     }
   },
@@ -114,6 +113,7 @@ function RouteComponent() {
               'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh'
             )}
           >
+            <MainHeader />
             <Outlet />
           </div>
           <Watermark content={userProfile?.nickname || userProfile?.username} />

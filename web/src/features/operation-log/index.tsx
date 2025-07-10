@@ -8,7 +8,7 @@ import {
 } from '~/provider'
 import { Route } from '~/routes/_authenticated/operation-log'
 import { useApi } from '~/hooks/use-api'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { getColumnTitle, useColumns } from './components/operation-log-columns'
 import { OperationLogDialogs } from './components/operation-log-dialogs'
@@ -30,7 +30,6 @@ export default function OperationLog() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>操作日志列表</Trans>}
           subTitle={

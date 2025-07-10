@@ -5,7 +5,7 @@ import {
   useHasPermission,
   WithPermission,
 } from '~/provider'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { getColumnTitle, useColumns } from './components/menu-columns'
 import { MenuDialogs } from './components/menu-dialogs'
@@ -24,7 +24,6 @@ export default function Menu() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>菜单列表</Trans>}
           subTitle={<Trans>用于创建、更新、以及查看菜单信息。</Trans>}

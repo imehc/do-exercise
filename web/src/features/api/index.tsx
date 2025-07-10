@@ -8,7 +8,7 @@ import {
 } from '~/provider'
 import { Route } from '~/routes/_authenticated/api'
 import { useApi } from '~/hooks/use-api'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { getColumnTitle, useColumns } from './components/api-columns'
 import { ApiDialogs } from './components/api-dialogs'
@@ -30,7 +30,6 @@ export default function Api() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>接口列表</Trans>}
           subTitle={<Trans>用于查看接口详情和更新接口信息。</Trans>}

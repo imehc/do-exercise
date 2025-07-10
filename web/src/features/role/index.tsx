@@ -9,7 +9,7 @@ import {
 } from '~/provider'
 import { Route } from '~/routes/_authenticated/role'
 import { useApi } from '~/hooks/use-api'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { getColumnTitle, useColumns } from './components/role-columns'
 import { RoleDialogs } from './components/role-dialogs'
@@ -32,7 +32,6 @@ export default function Role() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>角色列表</Trans>}
           subTitle={<Trans>用于创建、更新、以及查看角色信息。</Trans>}

@@ -3,7 +3,7 @@ import { Trans } from '@lingui/react/macro'
 import { SystemInfoApi } from '~/do-exercise-api'
 import { useHasPermission, WithPermission } from '~/provider'
 import { useApi } from '~/hooks/use-api'
-import { MainBody, MainHeader, StatusRenderer } from '~/components/other'
+import { MainBody, StatusRenderer } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { SysInfoView } from './components/system-info-view'
 
@@ -19,7 +19,6 @@ export default function SystemInfo() {
 
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
-      <MainHeader />
       <MainBody
         title={<Trans>系统信息</Trans>}
         subTitle={<Trans>查看系统、磁盘、CPU、内存等信息</Trans>}

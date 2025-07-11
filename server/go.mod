@@ -82,7 +82,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/casbin/gorm-adapter/v3 v3.32.0
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/go-playground/validator/v10 v10.25.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/juju/ratelimit v1.0.2
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20241220152942-06eb5c6e8230

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Trans } from '@lingui/react/macro'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -68,7 +68,7 @@ export function DateNavigator({ view, events }: IProps) {
           whileHover='hover'
           whileTap='tap'
         >
-          <ChevronLeft className='h-4 w-4' />
+          <IconChevronLeft className='h-4 w-4' />
         </MotionButton>
 
         <motion.p
@@ -89,7 +89,7 @@ export function DateNavigator({ view, events }: IProps) {
           whileHover='hover'
           whileTap='tap'
         >
-          <ChevronRight className='h-4 w-4' />
+          <IconChevronRight className='h-4 w-4' />
         </MotionButton>
       </div>
     </div>

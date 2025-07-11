@@ -1,13 +1,13 @@
 import { ColumnDef, CellContext } from '@tanstack/react-table'
-import * as icons from '@tabler/icons-react'
-import { Icon } from '@tabler/icons-react'
+import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { MenuType, SysMenuTree } from '~/do-exercise-api'
 import { basicMoreOptions, usePermissions } from '~/provider'
+import { toIconComponent } from '~/utils/icon'
 import { Button } from '~/components/ui/button'
-import { DataTableRowActions, iconPrefix } from '~/components/other'
+import { DataTableRowActions } from '~/components/other'
 import {
   createColumn,
   createActionColumn,
@@ -52,9 +52,9 @@ export const useColumns = () => {
             onClick={row.getToggleExpandedHandler()}
           >
             {row.getIsExpanded() ? (
-              <icons.IconChevronDown className='h-4 w-4' />
+              <IconChevronDown className='h-4 w-4' />
             ) : (
-              <icons.IconChevronRight className='h-4 w-4' />
+              <IconChevronRight className='h-4 w-4' />
             )}
           </Button>
         ) : null
@@ -94,9 +94,7 @@ export const useColumns = () => {
       cell: ({ row }: CellContext<SysMenuTree, unknown>) => {
         const SelectedIcon =
           row.original.icon && row.original.type === MenuType.menu
-            ? (icons[
-                (iconPrefix + row.original.icon) as keyof typeof icons
-              ] as Icon)
+            ? toIconComponent(row.original.icon)
             : null
         if (!SelectedIcon) {
           return <div className='w-fit text-nowrap'>-</div>

@@ -8,7 +8,7 @@ import {
 } from '~/provider'
 import { Route } from '~/routes/_authenticated/user'
 import { useApi } from '~/hooks/use-api'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { useColumns } from './components/user-columns'
 import { UserDialogs } from './components/user-dialogs'
@@ -31,7 +31,6 @@ export default function Role() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>用户列表</Trans>}
           subTitle={<Trans>用于查看并操作用户信息。</Trans>}

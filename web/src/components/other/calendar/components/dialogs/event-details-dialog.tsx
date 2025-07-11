@@ -4,7 +4,7 @@ import { ReactNode } from 'react'
 import { parseISO } from 'date-fns'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
-import { Calendar, Clock, Text, User } from 'lucide-react'
+import { IconCalendar, IconClock, IconAlignLeft, IconUser } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Button } from '~/components/ui/button'
@@ -52,7 +52,7 @@ export function EventDetailsDialog({ event, children }: IProps) {
         <ScrollArea className='max-h-[80vh]'>
           <div className='space-y-4 p-4'>
             <div className='flex items-start gap-2'>
-              <User className='text-muted-foreground mt-1 size-4 shrink-0' />
+              <IconUser className='text-muted-foreground mt-1 size-4 shrink-0' />
               <div>
                 <p className='text-sm font-medium'>
                   <Trans>负责人</Trans>
@@ -64,7 +64,7 @@ export function EventDetailsDialog({ event, children }: IProps) {
             </div>
 
             <div className='flex items-start gap-2'>
-              <Calendar className='text-muted-foreground mt-1 size-4 shrink-0' />
+              <IconCalendar className='text-muted-foreground mt-1 size-4 shrink-0' />
               <div>
                 <p className='text-sm font-medium'>
                   <Trans>开始日期</Trans>
@@ -76,7 +76,7 @@ export function EventDetailsDialog({ event, children }: IProps) {
             </div>
 
             <div className='flex items-start gap-2'>
-              <Clock className='text-muted-foreground mt-1 size-4 shrink-0' />
+              <IconClock className='text-muted-foreground mt-1 size-4 shrink-0' />
               <div>
                 <p className='text-sm font-medium'>
                   <Trans>结束日期</Trans>
@@ -88,7 +88,7 @@ export function EventDetailsDialog({ event, children }: IProps) {
             </div>
 
             <div className='flex items-start gap-2'>
-              <Text className='text-muted-foreground mt-1 size-4 shrink-0' />
+              <IconAlignLeft className='text-muted-foreground mt-1 size-4 shrink-0' />
               <div>
                 <p className='text-sm font-medium'>
                   <Trans>描述</Trans>

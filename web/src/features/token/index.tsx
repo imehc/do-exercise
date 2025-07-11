@@ -8,7 +8,7 @@ import {
   WithPermission,
 } from '~/provider'
 import { useApi } from '~/hooks/use-api'
-import { DataTable, MainBody, MainHeader } from '~/components/other'
+import { DataTable, MainBody } from '~/components/other'
 import ForbiddenError from '../errors/forbidden'
 import { getColumnTitle, useColumns } from './components/token-columns'
 import { TokenDialogs } from './components/token-dialogs'
@@ -31,7 +31,6 @@ export default function Token() {
   return (
     <WithPermission permission='query' fallback={<ForbiddenError />}>
       <FormDialogProvider>
-        <MainHeader />
         <MainBody
           title={<Trans>令牌列表</Trans>}
           subTitle={<Trans>用于查看并操作令牌。</Trans>}

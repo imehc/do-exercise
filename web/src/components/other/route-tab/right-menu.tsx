@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   IconMinimize,
   IconMaximize,
@@ -7,6 +7,7 @@ import {
   IconX,
   IconMinus,
 } from '@tabler/icons-react'
+import screenfull from 'screenfull'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
@@ -29,8 +30,35 @@ interface RightMenuProps {
   onCloseAll?: () => void
 }
 
-export function RightMenu({ activeTab, totalTabs, onRefresh, onClose, onCloseAll }: RightMenuProps) {
+export function RightMenu({
+  activeTab,
+  totalTabs,
+  onRefresh,
+  onClose,
+  onCloseAll,
+}: RightMenuProps) {
   const [fullscreen, setFullscreen] = useState(false)
+
+  // 监听全屏状态变化，确保 UI 状态同步
+  useEffect(() => {
+    if (!screenfull.isEnabled) return
+    const handler = () => setFullscreen(screenfull.isFullscreen)
+    screenfull.on('change', handler)
+    return () => {
+      screenfull.off('change', handler)
+    }
+  }, [])
+
+  // 进入/退出全屏
+  const toggleFullscreen = () => {
+    if (!screenfull.isEnabled) return
+    const root = document.getElementById('root') || document.documentElement
+    if (!screenfull.isFullscreen) {
+      screenfull.request(root)
+    } else {
+      screenfull.exit()
+    }
+  }
 
   return (
     <div className='bg-background/80 z-10 flex items-center gap-1 pl-2'>
@@ -38,7 +66,7 @@ export function RightMenu({ activeTab, totalTabs, onRefresh, onClose, onCloseAll
       {/* 更多 */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <MoreMenu 
+          <MoreMenu
             activeTab={activeTab}
             totalTabs={totalTabs}
             onClose={onClose}
@@ -50,9 +78,9 @@ export function RightMenu({ activeTab, totalTabs, onRefresh, onClose, onCloseAll
       {/* 刷新 */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button 
-            variant='ghost' 
-            size='icon' 
+          <Button
+            variant='ghost'
+            size='icon'
             className='size-9 scale-95'
             onClick={() => activeTab && onRefresh?.(activeTab)}
           >
@@ -67,7 +95,7 @@ export function RightMenu({ activeTab, totalTabs, onRefresh, onClose, onCloseAll
           <Button
             variant='ghost'
             size='icon'
-            onClick={() => setFullscreen((f) => !f)}
+            onClick={toggleFullscreen}
             className='size-9 scale-95'
           >
             {fullscreen ? (
@@ -83,15 +111,19 @@ export function RightMenu({ activeTab, totalTabs, onRefresh, onClose, onCloseAll
   )
 }
 
-function MoreMenu({ activeTab, totalTabs, onClose, onCloseAll }: {
+function MoreMenu({
+  activeTab,
+  totalTabs,
+  onClose,
+  onCloseAll,
+}: {
   activeTab?: string
   totalTabs?: number
   onClose?: (id: string) => void
   onCloseAll?: () => void
 }) {
-  // 判断是否是第一个tab（不能关闭）
-  const isFirstTab = activeTab === '1' // 假设第一个tab的id是'1'
-  
+  const isFirstTab = activeTab === 'dashboard'
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -100,16 +132,16 @@ function MoreMenu({ activeTab, totalTabs, onClose, onCloseAll }: {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => activeTab && onClose?.(activeTab)}
           disabled={isFirstTab}
         >
-          <IconX className='mr-2' />
+          <IconX className='mr-1' />
           关闭当前标签页
         </DropdownMenuItem>
         {totalTabs && totalTabs > 1 && (
           <DropdownMenuItem onClick={() => onCloseAll?.()}>
-            <IconMinus className='mr-2' />
+            <IconMinus className='mr-1' />
             关闭全部标签页
           </DropdownMenuItem>
         )}

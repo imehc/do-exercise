@@ -1,22 +1,23 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, PropsWithChildren, useContext } from 'react'
 import { useMatch } from '@tanstack/react-router'
+import { Menu } from '~/do-exercise-api'
 
 type PermissionContextType = {
+  menus: Menu[]
   permissions: string[]
 }
 
 export const PermissionContext = createContext<PermissionContextType>({
+  menus: [],
   permissions: [],
 })
 
 export const PermissionProvider = ({
+  menus,
   permissions,
   children,
-}: {
-  permissions: string[]
-  children: React.ReactNode
-}) => (
-  <PermissionContext.Provider value={{ permissions }}>
+}: PropsWithChildren<PermissionContextType>) => (
+  <PermissionContext.Provider value={{ permissions, menus }}>
     {children}
   </PermissionContext.Provider>
 )
@@ -38,6 +39,11 @@ export const usePermissions = () => {
       (item) => item.split(':')[0] === routeToPermissionKey(match.pathname)
     )
     .map((item) => item.split(':')[1]) as PermissionType[]
+}
+
+export const useMenus = () => {
+  const { menus } = useContext(PermissionContext)
+  return menus
 }
 
 export const useHasPermission = (permission: PermissionType) => {
@@ -78,7 +84,7 @@ export const WithPermission: React.FC<PermissionProps> = ({
   ...props
 }) => {
   const permissions = usePermissions()
-  console.log(permissions)
+  // console.log(permissions)
 
   if (typeof children === 'function') {
     return children(permissions as PermissionType[])

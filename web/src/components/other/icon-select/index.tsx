@@ -1,7 +1,8 @@
 import { useRef, useState, useDeferredValue, useMemo, useEffect } from 'react'
-import * as icons from '@tabler/icons-react'
+import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '~/lib/utils'
+import { getIconComponentList, toIconComponent } from '~/utils/icon'
 import { useGridColumnCount } from '~/hooks/use-grid-column-count'
 import { Button } from '~/components/ui/button'
 import {
@@ -25,10 +26,6 @@ export type IconSelectProps = {
   placeholder?: string
 }
 
-type Icon = React.ForwardRefExoticComponent<
-  icons.IconProps & React.RefAttributes<icons.Icon>
->
-
 export const IconSelect = ({
   value,
   onChange,
@@ -38,9 +35,7 @@ export const IconSelect = ({
 }: IconSelectProps) => {
   const ref = useRef<HTMLButtonElement>(null)
 
-  const SelectedIcon = value
-    ? (icons[(iconPrefix + value) as keyof typeof icons] as Icon)
-    : null
+  const SelectedIcon = toIconComponent(value)
 
   return (
     <Popover modal>
@@ -81,12 +76,12 @@ export const IconSelect = ({
               role='button'
               tabIndex={0}
             >
-              <icons.IconX className='size-4' />
+              <IconX className='size-4' />
             </div>
           )}
           <span className='bg-border w-px self-stretch' />
           <div className='text-muted-foreground mr-1.25 flex items-center px-2 opacity-50'>
-            <icons.IconChevronDown size={16} />
+            <IconChevronDown size={16} />
           </div>
         </Button>
       </PopoverTrigger>
@@ -104,15 +99,7 @@ export const IconSelect = ({
   )
 }
 
-export const iconPrefix = 'Icon'
 const estimateSize = 48
-
-const iconList = Object.entries(icons)
-  .filter(([name]) => name.startsWith('Icon'))
-  .map(([name]) => ({
-    label: name.replace(iconPrefix, ''),
-    icon: icons[name as keyof typeof icons] as Icon,
-  }))
 
 interface IconSelectContentProps {
   value?: string
@@ -129,7 +116,7 @@ function IconSelectContent({
   const [search, setSearch] = useState<string>(() => value ?? '')
   const deferredSearch = useDeferredValue(search)
   const filteredIcons = useMemo(() => {
-    return iconList.filter(({ label }) =>
+    return getIconComponentList().filter(({ label }) =>
       label.toLowerCase().includes(deferredSearch.toLowerCase())
     )
   }, [deferredSearch])
@@ -156,7 +143,7 @@ function IconSelectContent({
   return (
     <>
       <div className='flex items-center border-b px-3'>
-        <icons.IconSearch className='mr-2 size-4 shrink-0 opacity-50' />
+        <IconSearch className='mr-2 size-4 shrink-0 opacity-50' />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}

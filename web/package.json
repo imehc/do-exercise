@@ -73,6 +73,7 @@
     "react-top-loading-bar": "^3.0.2",
     "react-virtualized-auto-sizer": "^1.0.26",
     "rxjs": "^7.8.2",
+    "screenfull": "^6.0.2",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.8",

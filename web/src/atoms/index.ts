@@ -1,3 +1,4 @@
 export * from './language'
 export * from './sidebar'
 export * from './token'
+export * from './route-tab'

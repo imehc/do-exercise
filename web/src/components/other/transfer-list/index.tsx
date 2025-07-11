@@ -10,7 +10,7 @@ import { AriaInvalidProps } from '..'
 
 type Invalid = React.AriaAttributes['aria-invalid']
 
-export type Item = {
+type Item = {
   key: number
   label: string
   selected?: boolean

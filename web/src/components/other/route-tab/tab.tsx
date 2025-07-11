@@ -179,6 +179,7 @@ export function Tab({
                 onCloseLeft={onCloseLeft}
                 onCloseRight={onCloseRight}
                 onCloseOther={onCloseOther}
+                activeTab={activeTab}
               />
             ))}
           </TabsList>
@@ -197,8 +198,9 @@ function DragPreview({ tab, isActive }: { tab: TabItem; isActive: boolean }) {
   const Icon = toIconComponent(tab.icon)
   return (
     <div
-      className={`flex items-center gap-x-1 rounded-md border px-2 py-1 shadow-lg ${isActive ? 'bg-background' : 'bg-muted text-muted-foreground'
-        }`}
+      className={`flex items-center gap-x-1 rounded-md border px-2 py-1 shadow-lg ${
+        isActive ? 'bg-background' : 'bg-muted text-muted-foreground'
+      }`}
     >
       {Icon && <Icon className='size-4' />}
       {tab.name}
@@ -220,6 +222,7 @@ function TabItemComponent({
   onCloseLeft,
   onCloseRight,
   onCloseOther,
+  activeTab,
 }: TabItem & {
   isLast?: boolean
   hasLeftTabs?: boolean
@@ -231,6 +234,7 @@ function TabItemComponent({
   onCloseLeft?: (id: string) => void
   onCloseRight?: (id: string) => void
   onCloseOther?: (id: string) => void
+  activeTab?: string
 }) {
   const tabRef = React.useRef<HTMLDivElement>(null)
   const {
@@ -255,6 +259,8 @@ function TabItemComponent({
   const handleClick = (e?: React.MouseEvent) => {
     // 如果点击的是删除按钮，不执行切换
     if (e && (e.target as HTMLElement).closest('.tab-close-btn')) return
+    // 如果是当前激活的 tab，不响应点击
+    if (id === activeTab) return
     onClick?.(id)
   }
 
@@ -276,8 +282,9 @@ function TabItemComponent({
             key={id}
             value={id}
             width='fit'
-            className={`gap-x-1 px-2 py-1 transition-colors ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'
-              }`}
+            className={`gap-x-1 px-2 py-1 transition-colors ${
+              isDragging ? 'cursor-grabbing' : 'cursor-pointer'
+            }`}
             onClick={handleClick}
             asChild
           >

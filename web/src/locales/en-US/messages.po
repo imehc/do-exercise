@@ -124,7 +124,7 @@ msgstr "The following are the parameters and query data sent with this request."
 msgid "两次输入的密码不一致"
 msgstr "The passwords entered twice are inconsistent."
 
-#: src/features/settings/index.tsx:49
+#: src/features/settings/index.tsx:34
 #: src/features/settings/profile/index.tsx:8
 msgid "个人资料"
 msgstr "Personal profile"
@@ -179,14 +179,14 @@ msgstr "May"
 msgid "代理"
 msgstr "Proxy"
 
-#: src/features/token/index.tsx:48
+#: src/features/token/index.tsx:47
 #: src/features/token/components/token-view-info.tsx:70
 #: src/features/token/components/token-delete-dialog.tsx:64
 #: src/features/token/components/token-columns.tsx:19
 msgid "令牌"
 msgstr "Token"
 
-#: src/features/token/index.tsx:36
+#: src/features/token/index.tsx:35
 msgid "令牌列表"
 msgstr "Token list"
 
@@ -306,7 +306,7 @@ msgstr "Sat"
 msgid "六月"
 msgstr "Jun"
 
-#: src/features/menu/components/menu-view-info.tsx:161
+#: src/features/menu/components/menu-view-info.tsx:159
 #: src/features/menu/components/menu-action-dialog.tsx:478
 msgid "关联接口"
 msgstr "Related API"
@@ -330,7 +330,7 @@ msgstr "Related Role"
 #: src/features/operation-log/components/operation-log-view-message.tsx:47
 #: src/features/operation-log/components/operation-log-view-info.tsx:323
 #: src/features/operation-log/components/operation-log-view-body.tsx:49
-#: src/features/menu/components/menu-view-info.tsx:211
+#: src/features/menu/components/menu-view-info.tsx:209
 msgid "关闭"
 msgstr "Close"
 
@@ -385,7 +385,7 @@ msgstr "Created successfully"
 #: src/features/task/components/task-columns.tsx:27
 #: src/features/role/components/role-columns.tsx:18
 #: src/features/operation-log/components/operation-log-view-info.tsx:307
-#: src/features/menu/components/menu-view-info.tsx:181
+#: src/features/menu/components/menu-view-info.tsx:179
 #: src/features/api/components/api-columns.tsx:27
 msgid "创建时间"
 msgstr "Creation time"
@@ -495,7 +495,7 @@ msgstr "Cancel"
 #: src/features/operation-log/components/operation-log-view-info.tsx:92
 #: src/features/operation-log/components/operation-log-view-info.tsx:150
 #: src/features/operation-log/components/operation-log-view-info.tsx:167
-#: src/features/menu/components/menu-view-info.tsx:136
+#: src/features/menu/components/menu-view-info.tsx:134
 #: src/features/menu/components/menu-columns.tsx:32
 msgid "否"
 msgstr "NO"
@@ -553,7 +553,7 @@ msgstr "Thu"
 msgid "四月"
 msgstr "Apr"
 
-#: src/features/menu/components/menu-view-info.tsx:115
+#: src/features/menu/components/menu-view-info.tsx:113
 #: src/features/menu/components/menu-columns.tsx:25
 #: src/features/menu/components/menu-action-dialog.tsx:432
 msgid "图标"
@@ -572,11 +572,11 @@ msgstr "Manage your email settings here."
 #: src/features/task/components/task-view-info.tsx:62
 #: src/features/role/components/role-view-info.tsx:53
 #: src/features/operation-log/components/operation-log-view-info.tsx:62
-#: src/features/menu/components/menu-view-info.tsx:74
+#: src/features/menu/components/menu-view-info.tsx:72
 msgid "基本信息"
 msgstr "Basic information"
 
-#: src/features/settings/index.tsx:69
+#: src/features/settings/index.tsx:54
 msgid "外观"
 msgstr "Appearance"
 
@@ -600,7 +600,7 @@ msgstr "Font"
 msgid "完成后点击保存。"
 msgstr "Click Save when you're done."
 
-#: src/features/task/index.tsx:35
+#: src/features/task/index.tsx:34
 #: src/features/task/components/task-action-dialog.tsx:149
 msgid "定时任务"
 msgstr "Scheduled task"
@@ -616,7 +616,7 @@ msgstr "Scheduled task info"
 #: src/features/user/components/user-reset-password-dialog.tsx:104
 #: src/features/user/components/user-reset-password-dialog.tsx:139
 #: src/features/user/components/user-action-dialog.tsx:260
-#: src/features/settings/index.tsx:59
+#: src/features/settings/index.tsx:44
 #: src/features/auth/sign-in/components/user-auth-form.tsx:145
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:181
 msgid "密码"
@@ -688,7 +688,7 @@ msgstr "Concurrent execution"
 #: src/features/task/components/task-columns.tsx:20
 #: src/features/role/components/role-columns.tsx:15
 #: src/features/operation-log/components/operation-log-columns.tsx:20
-#: src/features/menu/components/menu-view-info.tsx:146
+#: src/features/menu/components/menu-view-info.tsx:144
 #: src/features/api/components/api-columns.tsx:20
 msgid "序号"
 msgstr "No."
@@ -825,7 +825,7 @@ msgstr "Sorting value must be greater than or equal to 0."
 msgid "接口"
 msgstr "API"
 
-#: src/features/api/index.tsx:35
+#: src/features/api/index.tsx:34
 msgid "接口列表"
 msgstr "API List"
 
@@ -847,7 +847,7 @@ msgstr "Description is required"
 msgid "搜索"
 msgstr "Search"
 
-#: src/features/operation-log/index.tsx:35
+#: src/features/operation-log/index.tsx:34
 msgid "操作日志列表"
 msgstr "Operation log list"
 
@@ -881,7 +881,7 @@ msgstr "Sun"
 #: src/features/operation-log/components/operation-log-view-info.tsx:90
 #: src/features/operation-log/components/operation-log-view-info.tsx:148
 #: src/features/operation-log/components/operation-log-view-info.tsx:167
-#: src/features/menu/components/menu-view-info.tsx:134
+#: src/features/menu/components/menu-view-info.tsx:132
 #: src/features/menu/components/menu-columns.tsx:31
 msgid "是"
 msgstr "YES"
@@ -890,7 +890,7 @@ msgstr "YES"
 msgid "是否内网IP"
 msgstr "Intranet IP"
 
-#: src/features/menu/components/menu-view-info.tsx:123
+#: src/features/menu/components/menu-view-info.tsx:121
 #: src/features/menu/components/menu-columns.tsx:30
 #: src/features/menu/components/menu-action-dialog.tsx:519
 msgid "是否可见"
@@ -965,7 +965,7 @@ msgstr "Update succeeded."
 #: src/features/task/components/task-view-info.tsx:194
 #: src/features/task/components/task-columns.tsx:28
 #: src/features/role/components/role-columns.tsx:19
-#: src/features/menu/components/menu-view-info.tsx:192
+#: src/features/menu/components/menu-view-info.tsx:190
 #: src/features/api/components/api-columns.tsx:28
 msgid "更新时间"
 msgstr "Update time"
@@ -978,7 +978,7 @@ msgstr "No results found."
 msgid "未选择文件"
 msgstr "no file selected"
 
-#: src/features/menu/components/menu-view-info.tsx:155
+#: src/features/menu/components/menu-view-info.tsx:153
 #: src/features/menu/components/menu-columns.tsx:24
 #: src/features/menu/components/menu-action-dialog.tsx:457
 msgid "权限标识"
@@ -1004,7 +1004,7 @@ msgstr "View operation details and related information. This includes request pa
 msgid "查看用户详细信息。"
 msgstr "View user details."
 
-#: src/features/system-info/index.tsx:25
+#: src/features/system-info/index.tsx:24
 msgid "查看系统、磁盘、CPU、内存等信息"
 msgstr "View system, disk, CPU, memory and other information."
 
@@ -1124,11 +1124,11 @@ msgstr "Status"
 msgid "状态码"
 msgstr "Status code"
 
-#: src/features/menu/index.tsx:30
+#: src/features/menu/index.tsx:29
 msgid "用于创建、更新、以及查看菜单信息。"
 msgstr "Used to create, update and view menu information."
 
-#: src/features/role/index.tsx:38
+#: src/features/role/index.tsx:37
 msgid "用于创建、更新、以及查看角色信息。"
 msgstr "Used to create, update and view role information."
 
@@ -1137,23 +1137,23 @@ msgstr "Used to create, update and view role information."
 msgid "用于学习基本的权限管理系统及流程"
 msgstr "For learning basic rights management systems and processes"
 
-#: src/features/token/index.tsx:37
+#: src/features/token/index.tsx:36
 msgid "用于查看并操作令牌。"
 msgstr "Used to view and manipulate tokens."
 
-#: src/features/task/index.tsx:36
+#: src/features/task/index.tsx:35
 msgid "用于查看并操作定时任务。"
 msgstr "Used to view and operate scheduled tasks."
 
-#: src/features/user/index.tsx:37
+#: src/features/user/index.tsx:36
 msgid "用于查看并操作用户信息。"
 msgstr "Used to view and manipulate user information."
 
-#: src/features/operation-log/index.tsx:37
+#: src/features/operation-log/index.tsx:36
 msgid "用于查看所有操作日志，包括请求信息、响应结果和操作人等。"
 msgstr "Used to view all operation logs, including request information, response results and operators."
 
-#: src/features/api/index.tsx:36
+#: src/features/api/index.tsx:35
 msgid "用于查看接口详情和更新接口信息。"
 msgstr "Used to view interface details and update interface information."
 
@@ -1167,7 +1167,7 @@ msgstr "User"
 msgid "用户ID"
 msgstr "User ID"
 
-#: src/features/user/index.tsx:36
+#: src/features/user/index.tsx:35
 msgid "用户列表"
 msgstr "User list"
 
@@ -1175,7 +1175,7 @@ msgstr "User list"
 #: src/features/user/components/user-reset-password-dialog.tsx:119
 #: src/features/user/components/user-columns.tsx:24
 #: src/features/user/components/user-action-dialog.tsx:145
-#: src/features/token/index.tsx:47
+#: src/features/token/index.tsx:46
 #: src/features/token/components/token-view-info.tsx:64
 #: src/features/token/components/token-columns.tsx:18
 #: src/features/settings/profile/profile-form.tsx:73
@@ -1265,7 +1265,7 @@ msgstr "Filter {key}..."
 msgid "管理您的个人资料"
 msgstr "Manage your personal profile."
 
-#: src/features/settings/index.tsx:30
+#: src/features/settings/index.tsx:16
 msgid "管理您的帐户设置。"
 msgstr "Manage your account settings."
 
@@ -1274,7 +1274,7 @@ msgstr "Manage your account settings."
 msgid "系统"
 msgstr "system"
 
-#: src/features/system-info/index.tsx:24
+#: src/features/system-info/index.tsx:23
 msgid "系统信息"
 msgstr "System information"
 
@@ -1290,7 +1290,7 @@ msgstr "Purple"
 msgid "红色"
 msgstr "Red"
 
-#: src/features/menu/components/menu-view-info.tsx:109
+#: src/features/menu/components/menu-view-info.tsx:107
 #: src/features/menu/components/menu-columns.tsx:28
 #: src/features/menu/components/menu-action-dialog.tsx:396
 msgid "组件"
@@ -1368,17 +1368,17 @@ msgstr "Get code"
 msgid "菜单"
 msgstr "Menu"
 
-#: src/features/menu/index.tsx:29
+#: src/features/menu/index.tsx:28
 msgid "菜单列表"
 msgstr "Menu list"
 
-#: src/features/menu/components/menu-view-info.tsx:79
+#: src/features/menu/components/menu-view-info.tsx:77
 #: src/features/menu/components/menu-columns.tsx:23
 #: src/features/menu/components/menu-action-dialog.tsx:335
 msgid "菜单名称"
 msgstr "Menu name"
 
-#: src/features/menu/components/menu-view-info.tsx:85
+#: src/features/menu/components/menu-view-info.tsx:83
 #: src/features/menu/components/menu-columns.tsx:26
 msgid "菜单类型"
 msgstr "Menu type"
@@ -1400,18 +1400,18 @@ msgstr "To log in to your account<0/> enter your username and password"
 msgid "角色"
 msgstr "Role"
 
-#: src/features/role/index.tsx:37
+#: src/features/role/index.tsx:36
 msgid "角色列表"
 msgstr "Role list"
 
-#: src/features/role/index.tsx:52
+#: src/features/role/index.tsx:51
 #: src/features/role/components/role-view-info.tsx:58
 #: src/features/role/components/role-columns.tsx:16
 #: src/features/role/components/role-action-dialog.tsx:119
 msgid "角色名称"
 msgstr "Role name"
 
-#: src/features/role/index.tsx:56
+#: src/features/role/index.tsx:55
 #: src/features/role/components/role-view-info.tsx:64
 #: src/features/role/components/role-columns.tsx:17
 #: src/features/role/components/role-action-dialog.tsx:140
@@ -1431,7 +1431,8 @@ msgid "设定您想要在系统中使用的字体。"
 msgstr "Set the font you want to use in the system."
 
 #: src/components/profile-dropdown.tsx:52
-#: src/features/settings/index.tsx:27
+#: src/components/other/route-tab/index.tsx:32
+#: src/features/settings/index.tsx:13
 msgid "设置"
 msgstr "Set up"
 
@@ -1746,7 +1747,7 @@ msgstr "Responsible Person"
 msgid "超时时间(秒)"
 msgstr "Timeout (seconds)"
 
-#: src/features/menu/components/menu-view-info.tsx:103
+#: src/features/menu/components/menu-view-info.tsx:101
 #: src/features/menu/components/menu-columns.tsx:27
 #: src/features/menu/components/menu-action-dialog.tsx:360
 msgid "路由"
@@ -1832,7 +1833,7 @@ msgstr "By clicking Login, you agree to our <0>Terms of Service</0> and <1>Priva
 #: src/features/user/components/user-view-info.tsx:97
 #: src/features/user/components/user-columns.tsx:26
 #: src/features/user/components/user-action-dialog.tsx:188
-#: src/features/settings/index.tsx:54
+#: src/features/settings/index.tsx:39
 #: src/features/settings/email/email-form.tsx:139
 #: src/features/auth/sign-in/components/user-auth-form.tsx:231
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:127
@@ -1913,6 +1914,10 @@ msgstr "Color"
 #: src/components/other/calendar/schemas.ts:15
 msgid "颜色是必需的"
 msgstr "Color is required"
+
+#: src/components/other/route-tab/index.tsx:25
+msgid "首页"
+msgstr "Dashboard"
 
 #: src/features/auth/otp/components/otp-form.tsx:128
 msgid "验证"

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
-import * as icons from '@tabler/icons-react'
-import { type Icon } from '@tabler/icons-react'
+import { IconChevronRight } from '@tabler/icons-react'
+import { toIconComponent } from '~/utils/icon'
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,7 +18,6 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '~/components/ui/sidebar'
-import { iconPrefix } from '../other'
 import { Badge } from '../ui/badge'
 import {
   DropdownMenu,
@@ -61,9 +60,7 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 
 const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
   const { setOpenMobile } = useSidebar()
-  const SelectedIcon = item.icon
-    ? (icons[(iconPrefix + item.icon) as keyof typeof icons] as Icon)
-    : null
+  const SelectedIcon = toIconComponent(item.icon)
 
   return (
     <SidebarMenuItem>
@@ -90,9 +87,8 @@ const SidebarMenuCollapsible = ({
   href: string
 }) => {
   const { setOpenMobile } = useSidebar()
-  const SelectedIcon = item.icon
-    ? (icons[(iconPrefix + item.icon) as keyof typeof icons] as Icon)
-    : null
+  const SelectedIcon = toIconComponent(item.icon)
+
   return (
     <Collapsible
       asChild
@@ -105,7 +101,7 @@ const SidebarMenuCollapsible = ({
             {SelectedIcon && <SelectedIcon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <icons.IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent className='CollapsibleContent'>
@@ -138,9 +134,8 @@ const SidebarMenuCollapsedDropdown = ({
   item: NavCollapsible
   href: string
 }) => {
-  const SelectedIcon = item.icon
-    ? (icons[(iconPrefix + item.icon) as keyof typeof icons] as Icon)
-    : null
+  const SelectedIcon = toIconComponent(item.icon)
+
   return (
     <SidebarMenuItem>
       <DropdownMenu>
@@ -152,7 +147,7 @@ const SidebarMenuCollapsedDropdown = ({
             {SelectedIcon && <SelectedIcon />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <icons.IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent side='right' align='start' sideOffset={4}>

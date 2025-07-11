@@ -6,12 +6,14 @@ import { SidebarTrigger } from '~/components/ui/sidebar'
 interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
   fixed?: boolean
   ref?: React.Ref<HTMLElement>
+  showTab?: boolean
 }
 
 export const Header = ({
   className,
   fixed,
   children,
+  showTab = false,
   ...props
 }: HeaderProps) => {
   const [offset, setOffset] = React.useState(0)
@@ -31,8 +33,10 @@ export const Header = ({
   return (
     <header
       className={cn(
-        'bg-background flex h-16 items-center gap-3 p-4 sm:gap-4',
+        'bg-background flex items-center gap-3 p-4 sm:gap-4',
         fixed && 'header-fixed peer/header fixed z-50 w-[inherit] rounded-md',
+        fixed && showTab && 'header-with-tabs',
+        showTab ? 'h-24' : 'h-16',
         offset > 10 && fixed ? 'shadow-sm' : 'shadow-none',
         className
       )}

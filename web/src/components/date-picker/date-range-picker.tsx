@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { addDays, format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
+import { IconCalendar } from '@tabler/icons-react'
 import { type DateRange } from 'react-day-picker'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
@@ -31,7 +31,7 @@ export default function DateRangePicker({
               !date && 'text-muted-foreground'
             )}
           >
-            <CalendarIcon className='mr-2 h-4 w-4' />
+            <IconCalendar className='mr-2 h-4 w-4' />
             {date?.from ? (
               date.to ? (
                 <>

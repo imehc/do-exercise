@@ -16,7 +16,7 @@ import { useUserProfile } from '~/hooks/use-user'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
-import { LoadingSpinner, Watermark } from '~/components/other'
+import { LoadingSpinner, MainHeader, Watermark } from '~/components/other'
 
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
@@ -44,7 +44,6 @@ export const Route = createFileRoute('/_authenticated')({
         return redirect({ to: '/403' })
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('error', error)
     }
   },
@@ -56,10 +55,9 @@ function RouteComponent() {
   const { data: userProfile, isLoading: userProfileIsLoading } =
     useUserProfile()
 
-  const { data: menus = [], isLoading: userMenuIsLoading } =
-    useQuery(getUserMenu())
+  const { data = [], isLoading: userMenuIsLoading } = useQuery(getUserMenu())
   const navGroups = useMemo(() => {
-    const { directory = [], menu = [] } = handleToMenuTree(menus)
+    const { directory = [], menu = [] } = handleToMenuTree(data)
     if (directory.length > 0) {
       return directory.map(
         (item) =>
@@ -80,14 +78,18 @@ function RouteComponent() {
           items: [],
         }) as NavGroup
     )
-  }, [menus])
+  }, [data])
 
   const permissions = useMemo(
     () =>
-      menus
+      data
         .filter((item) => item.type === MenuType.button)
         .map((item) => item.permission!),
-    [menus]
+    [data]
+  )
+  const menus = useMemo(
+    () => data.filter((item) => item.type === MenuType.menu),
+    [data]
   )
 
   const isLoading = userProfileIsLoading || userMenuIsLoading
@@ -97,7 +99,7 @@ function RouteComponent() {
   }
 
   return (
-    <PermissionProvider permissions={permissions}>
+    <PermissionProvider permissions={permissions} menus={menus}>
       <SearchProvider navGroups={navGroups}>
         <SidebarProvider>
           {/* <SkipToMain /> */}
@@ -114,6 +116,7 @@ function RouteComponent() {
               'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh'
             )}
           >
+            <MainHeader />
             <Outlet />
           </div>
           <Watermark content={userProfile?.nickname || userProfile?.username} />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 import { IEvent } from '~/components/other/calendar/interfaces'
 
 interface DragDropContextType {

@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { parseISO, isWithinInterval } from 'date-fns'
 import { Trans } from '@lingui/react/macro'
-import { Calendar as IconCalendar, Clock, User } from 'lucide-react'
+import { IconCalendar, IconClock, IconUser } from '@tabler/icons-react'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Calendar } from '~/components/ui/calendar'
 import { ScrollArea } from '~/components/ui/scroll-area'
@@ -226,7 +226,7 @@ export function CalendarDayView({ singleDayEvents, multiDayEvents }: IProps) {
 
                       {user && (
                         <div className='flex items-center gap-1.5'>
-                          <User className='text-t-quinary size-4' />
+                          <IconUser className='text-t-quinary size-4' />
                           <span className='text-t-tertiary text-sm'>
                             {user.name}
                           </span>
@@ -241,7 +241,7 @@ export function CalendarDayView({ singleDayEvents, multiDayEvents }: IProps) {
                       </div>
 
                       <div className='flex items-center gap-1.5'>
-                        <Clock className='text-t-quinary size-4' />
+                        <IconClock className='text-t-quinary size-4' />
                         <span className='text-t-tertiary text-sm'>
                           {formatTime(
                             parseISO(event.startDate),

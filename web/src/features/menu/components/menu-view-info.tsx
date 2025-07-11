@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { Icon, IconMessage } from '@tabler/icons-react'
-import * as icons from '@tabler/icons-react'
+import { IconMessage } from '@tabler/icons-react'
 import { i18n } from '@lingui/core'
 import { Trans } from '@lingui/react/macro'
 import { MenuType, SysMenuTree, SystemMenuApi } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { cn } from '~/lib/utils'
+import { toIconComponent } from '~/utils/icon'
 import { useApi } from '~/hooks/use-api'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -18,7 +18,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '~/components/ui/drawer'
-import { iconPrefix, StatusRenderer } from '~/components/other'
+import { StatusRenderer } from '~/components/other'
 import { callMethodTypes } from '~/features/api/data/data'
 import {
   getCallMenuMapping,
@@ -63,9 +63,7 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
           {(menu) => {
             const SelectedIcon =
               menu.icon && menu.type === MenuType.menu
-                ? (icons[
-                    (iconPrefix + menu.icon) as keyof typeof icons
-                  ] as Icon)
+                ? toIconComponent(menu.icon)
                 : null
             return (
               <div className='grid gap-6 overflow-y-auto px-4'>

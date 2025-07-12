@@ -12,9 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	sqlFile string
-)
+var sqlFile string
 
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",

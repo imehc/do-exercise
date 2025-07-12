@@ -34,7 +34,6 @@ func InitI18n() {
 		}
 		return nil
 	})
-
 	if err != nil {
 		util.Exit("遍历国际化目录失败:", err)
 	}

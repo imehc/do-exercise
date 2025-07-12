@@ -109,7 +109,6 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 			Total:    total,
 		},
 	}, nil
-
 }
 
 // GetAll 查询所有api

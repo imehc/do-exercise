@@ -156,7 +156,8 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 				Id:   item.Id,
 				Name: item.Name,
 			}
-		})}, nil
+		}),
+	}, nil
 }
 
 // Delete 删除角色

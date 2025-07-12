@@ -21,11 +21,11 @@ var lock sync.Mutex // 添加互斥锁
 func InitTrans(locale string) (trans ut.Translator, err error) {
 	lock.Lock()
 	defer lock.Unlock()
-	//修改gin框架中的validator引擎属性, 实现定制
+	// 修改gin框架中的validator引擎属性, 实现定制
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		zhT := zh.New() //中文翻译器
-		enT := en.New() //英文翻译器
-		//第一个参数是备用的语言环境，后面的参数是应该支持的语言环境
+		zhT := zh.New() // 中文翻译器
+		enT := en.New() // 英文翻译器
+		// 第一个参数是备用的语言环境，后面的参数是应该支持的语言环境
 		uni := ut.New(enT, zhT, enT)
 		trans, ok = uni.GetTranslator(locale)
 		if !ok {
@@ -100,7 +100,6 @@ func InitTrans(locale string) (trans ut.Translator, err error) {
 			})
 			v.RegisterTranslation("uniqueName", trans, func(ut ut.Translator) error {
 				return ut.Add("uniqueName", "{0} can be empty, or must be unique, and can only contain letters, numbers, and colons", true)
-
 			}, func(ut ut.Translator, fe validator.FieldError) string {
 				t, _ := ut.T("uniqueName", fe.Field())
 				return t

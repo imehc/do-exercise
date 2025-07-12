@@ -18,7 +18,7 @@ import (
 func InitLogger() {
 	// 创建日志目录
 	logConfig := global.Config.Logger
-	if err := os.MkdirAll(logConfig.Directory, 0755); err != nil {
+	if err := os.MkdirAll(logConfig.Directory, 0o755); err != nil {
 		util.Exit("创建日志目录失败: ", err)
 	}
 

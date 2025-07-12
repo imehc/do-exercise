@@ -214,7 +214,6 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 			isSet: false,
 		},
 	)
-
 	if err != nil {
 		log.Error("Failed to delete token", zap.Error(err))
 		return errors.New("deleteFailed")

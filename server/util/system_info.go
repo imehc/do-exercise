@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/imehc/do-exercise/server/global"
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/disk"
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
 const (

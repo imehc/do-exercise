@@ -18,12 +18,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm' 
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
 
       - name: Install dependencies
         run: |
           cd web
           pnpm install 
+
+      - name: Generate APIs
+        run: |
+          cd web
+          pnpm gen:apis-other
+
+      - name: Compile
+        run: |
+          cd web
+          pnpm compile
 
       - name: Run tests
         run: |

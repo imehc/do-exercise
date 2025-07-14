@@ -10,7 +10,6 @@ export function useCopyToClipboard(delay = 2000) {
       setCopied(true)
       setTimeout(() => setCopied(false), delay)
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Failed to copy:', err)
       toast.error('Failed to copy')
     }

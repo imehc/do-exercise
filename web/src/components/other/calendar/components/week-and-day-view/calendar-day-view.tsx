@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { parseISO, isWithinInterval } from 'date-fns'
-import { Trans } from '@lingui/react/macro'
 import { IconCalendar, IconClock, IconUser } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Calendar } from '~/components/ui/calendar'
 import { ScrollArea } from '~/components/ui/scroll-area'

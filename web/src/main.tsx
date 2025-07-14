@@ -9,6 +9,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { i18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
 import { Provider } from 'jotai'
+import { scan } from 'react-scan'
 import { messages as enMessages } from '~/locales/en-US/messages'
 import { messages as zhMessages } from '~/locales/zh-CN/messages'
 import { languageAtom, originTokenAtom, store } from './atoms'
@@ -17,6 +18,13 @@ import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
+
+if (typeof window !== 'undefined') {
+  scan({
+    enabled: import.meta.env.DEV,
+    log: import.meta.env.DEV,
+  })
+}
 
 i18n.load({
   'en-US': enMessages,

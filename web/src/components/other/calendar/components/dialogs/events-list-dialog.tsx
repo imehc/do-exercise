@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { format } from 'date-fns'
+import { i18n } from '@lingui/core'
 import { Trans } from '@lingui/react/macro'
 import { cn } from '~/lib/utils'
 import {
@@ -32,6 +32,8 @@ export function EventListDialog({
   const hiddenEventsCount = Math.max(cellEvents.length - maxVisibleEvents, 0)
   const { badgeVariant, use24HourFormat } = useCalendar()
 
+  const dateStr = i18n.date(date, { dateStyle: 'full' })
+
   const defaultTrigger = (
     <span className='cursor-pointer'>
       <span className='sm:hidden'>+{hiddenEventsCount}</span>
@@ -53,7 +55,7 @@ export function EventListDialog({
             <div className='flex items-center gap-2'>
               <EventBullet color={cellEvents[0]?.color} className='' />
               <p className='text-sm font-medium'>
-                <Trans>{format(date, 'EEEE, MMMM d, yyyy')} 的事件</Trans>
+                <Trans>{dateStr} 的事件</Trans>
               </p>
             </div>
           </DialogTitle>

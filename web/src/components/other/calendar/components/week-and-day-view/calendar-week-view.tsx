@@ -1,8 +1,8 @@
 import { startOfWeek, addDays, parseISO, isSameDay } from 'date-fns'
-import { motion } from 'framer-motion'
 import { Trans } from '@lingui/react/macro'
-import { ScrollArea } from '~/components/ui/scroll-area'
+import { motion } from 'framer-motion'
 import { useDateFormat } from '~/hooks/use-date-locale'
+import { ScrollArea } from '~/components/ui/scroll-area'
 import { fadeIn, staggerContainer, transition } from '../../animations'
 import { AddEditEventDialog } from '../../components/dialogs/add-edit-event-dialog'
 import { DroppableArea } from '../../components/dnd/droppable-area'
@@ -40,8 +40,12 @@ export function CalendarWeekView({ singleDayEvents, multiDayEvents }: IProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={transition}
       >
-        <p><Trans>周视图在较小设备上不可用。</Trans></p>
-        <p><Trans>请切换到日视图或月视图。</Trans></p>
+        <p>
+          <Trans>周视图在较小设备上不可用。</Trans>
+        </p>
+        <p>
+          <Trans>请切换到日视图或月视图。</Trans>
+        </p>
       </motion.div>
 
       <motion.div

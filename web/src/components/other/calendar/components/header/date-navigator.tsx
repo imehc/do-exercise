@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { motion, AnimatePresence } from 'framer-motion'
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'

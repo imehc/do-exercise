@@ -2,9 +2,14 @@
 
 import { ReactNode } from 'react'
 import { parseISO } from 'date-fns'
+import {
+  IconCalendar,
+  IconClock,
+  IconAlignLeft,
+  IconUser,
+} from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
-import { IconCalendar, IconClock, IconAlignLeft, IconUser } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { useDateFormat } from '~/hooks/use-date-locale'
 import { Button } from '~/components/ui/button'

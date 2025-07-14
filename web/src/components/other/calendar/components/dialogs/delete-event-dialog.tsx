@@ -1,7 +1,7 @@
 import { IconTrash } from '@tabler/icons-react'
-import { toast } from 'sonner'
-import { Trans } from '@lingui/react/macro'
 import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,14 +46,22 @@ export default function DeleteEventDialog({ eventId }: DeleteEventDialogProps) {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle><Trans>您确定要删除吗？</Trans></AlertDialogTitle>
+          <AlertDialogTitle>
+            <Trans>您确定要删除吗？</Trans>
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            <Trans>此操作不可撤销。这将永久删除您的事件，并从我们的服务器中移除事件数据。</Trans>
+            <Trans>
+              此操作不可撤销。这将永久删除您的事件，并从我们的服务器中移除事件数据。
+            </Trans>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel><Trans>取消</Trans></AlertDialogCancel>
-          <AlertDialogAction onClick={deleteEvent}><Trans>继续</Trans></AlertDialogAction>
+          <AlertDialogCancel>
+            <Trans>取消</Trans>
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={deleteEvent}>
+            <Trans>继续</Trans>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

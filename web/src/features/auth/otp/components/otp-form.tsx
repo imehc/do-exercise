@@ -33,11 +33,11 @@ type OtpFormProps = HTMLAttributes<HTMLFormElement>
 
 const getFormSchema = () =>
   z.object({
-    code: z.string().min(1, { message: t`请输入邮箱验证码` }),
-    email: z
-      .string()
-      .min(1, { message: t`请输入邮箱` })
-      .email({ message: t`邮箱无效` }),
+    code: z.string().min(1, { error: t`请输入邮箱验证码` }),
+    email: z.email({
+      error: (issue) =>
+        issue.input === undefined ? t`请输入您的邮箱` : t`邮箱无效`,
+    }),
   })
 
 type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>

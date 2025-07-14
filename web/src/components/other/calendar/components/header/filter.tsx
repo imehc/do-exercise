@@ -1,5 +1,5 @@
-import { Trans } from '@lingui/react/macro'
 import { IconCheck, IconFilter, IconRefresh } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import {
   DropdownMenu,
   DropdownMenuContent,

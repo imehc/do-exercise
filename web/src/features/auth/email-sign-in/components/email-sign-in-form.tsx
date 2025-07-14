@@ -26,12 +26,11 @@ type ForgotFormProps = HTMLAttributes<HTMLFormElement>
 
 const getFormSchema = () =>
   z.object({
-    email: z
-      .string()
-      .min(1, { message: t`请输入您的邮箱` })
-      .email({ message: t`邮箱无效` }),
+    email: z.email({
+      error: (issue) =>
+        issue.input === undefined ? t`请输入您的邮箱` : t`邮箱无效`,
+    }),
   })
-
 type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>
 
 export function EmailSignInForm({ className, ...props }: ForgotFormProps) {

@@ -1,5 +1,5 @@
-import { Trans } from '@lingui/react/macro'
 import { IconPoint, IconPalette } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import {
   Tooltip,
   TooltipContent,

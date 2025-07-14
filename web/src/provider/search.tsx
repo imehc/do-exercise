@@ -36,7 +36,6 @@ export function SearchProvider({ children, navGroups }: Props) {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useSearch = () => {
   const searchContext = React.useContext(SearchContext)
 

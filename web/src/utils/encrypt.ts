@@ -20,7 +20,6 @@ export function encryptPassword(
     const encrypted = encrypt.encrypt(password)
     return encrypted || null
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('Error during encryption:', error)
     return null
   }

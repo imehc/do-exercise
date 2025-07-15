@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver as resolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
@@ -41,12 +40,13 @@ export default function EmailForm() {
   const form = useChan(
     useForm<EmailSchemaFormValues>({
       resolver: resolver(
-        getEmailSchema().superRefine(({ email }, ctx) => {
-          if (userProfile?.email === email.trim()) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ['email'],
+        getEmailSchema().check(({ issues, value }) => {
+          if (userProfile?.email === value.email.trim()) {
+            issues.push({
+              code: 'custom',
               message: t`邮箱不能与当前邮箱相同`,
+              path: ['email'],
+              input: value,
             })
           }
         })

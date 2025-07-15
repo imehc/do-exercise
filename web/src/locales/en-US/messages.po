@@ -17,14 +17,13 @@ msgstr ""
 msgid "(选择全部)"
 msgstr "(Select all)"
 
-#. placeholder {0}: format(date, 'EEEE, MMMM d, yyyy')
-#: src/components/other/calendar/components/dialogs/events-list-dialog.tsx:56
-msgid "{0} 的事件"
-msgstr "Events on {0}"
-
 #: src/components/other/transfer-list/index.tsx:137
 msgid "{count} 项已选"
 msgstr "{count} items have been selected"
+
+#: src/components/other/calendar/components/dialogs/events-list-dialog.tsx:58
+msgid "{dateStr} 的事件"
+msgstr "Events on {dateStr}"
 
 #: src/components/other/calendar/components/header/date-navigator.tsx:56
 msgid "{eventCount} 事件"
@@ -118,9 +117,9 @@ msgstr "Below is the detailed request body sent with the operation. You can chec
 msgid "下面是随该请求发送的参数和查询数据。"
 msgstr "The following are the parameters and query data sent with this request."
 
-#: src/features/user/schemas/action-schema.ts:96
-#: src/features/user/schemas/action-schema.ts:115
-#: src/features/settings/password/schemas/action-schema.ts:24
+#: src/features/user/schemas/action-schema.ts:104
+#: src/features/user/schemas/action-schema.ts:124
+#: src/features/settings/password/schemas/action-schema.ts:25
 msgid "两次输入的密码不一致"
 msgstr "The passwords entered twice are inconsistent."
 
@@ -134,7 +133,7 @@ msgid "为您的日历创建新事件。"
 msgstr "Create a new event for your calendar."
 
 #: src/components/command-menu.tsx:82
-#: src/features/settings/appearance/appearance-form.tsx:104
+#: src/features/settings/appearance/appearance-form.tsx:103
 msgid "主题"
 msgstr "Theme"
 
@@ -245,7 +244,7 @@ msgstr "Login with email"
 #: src/features/task/components/task-action-dialog.tsx:394
 #: src/features/settings/profile/profile-form.tsx:144
 #: src/features/settings/password/email-form.tsx:156
-#: src/features/settings/appearance/appearance-form.tsx:182
+#: src/features/settings/appearance/appearance-form.tsx:181
 #: src/features/role/components/role-action-dialog.tsx:200
 #: src/features/menu/components/menu-action-dialog.tsx:572
 #: src/features/api/components/api-action.tsx:237
@@ -257,7 +256,7 @@ msgstr "Save"
 #: src/features/task/components/task-action-dialog.tsx:389
 #: src/features/settings/profile/profile-form.tsx:139
 #: src/features/settings/password/email-form.tsx:151
-#: src/features/settings/appearance/appearance-form.tsx:177
+#: src/features/settings/appearance/appearance-form.tsx:176
 #: src/features/role/components/role-action-dialog.tsx:195
 #: src/features/menu/components/menu-action-dialog.tsx:567
 #: src/features/api/components/api-action.tsx:232
@@ -293,8 +292,8 @@ msgstr "All"
 msgid "八月"
 msgstr "Aug"
 
-#: src/features/auth/sign-in/schemas/action-schema.ts:16
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:48
+#: src/features/auth/sign-in/schemas/action-schema.ts:21
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:52
 msgid "公钥不能为空"
 msgstr "The public key cannot be empty"
 
@@ -338,7 +337,7 @@ msgstr "Close"
 msgid "内存使用情况"
 msgstr "Memory usage"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:214
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:219
 msgid "再次输入您的新密码。"
 msgstr "Enter your new password again."
 
@@ -471,17 +470,21 @@ msgstr "Goroutine quantity"
 msgid "原密码"
 msgstr "Original password"
 
+#: src/features/settings/email/schemas/action-schema.ts:9
+msgid "参数不合法"
+msgstr "Illegal parameters"
+
 #: src/features/auth/otp/index.tsx:20
 msgid "双因素认证"
 msgstr "two-factor authentication"
 
 #: src/features/settings/email/email-form.tsx:88
 #: src/features/settings/email/email-form.tsx:98
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:82
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:87
 msgid "发送成功"
 msgstr "Sent successfully"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:148
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:153
 msgid "发送验证码"
 msgstr "Send code"
 
@@ -592,7 +595,7 @@ msgstr "Fail"
 msgid "头像"
 msgstr "Avatar"
 
-#: src/features/settings/appearance/appearance-form.tsx:75
+#: src/features/settings/appearance/appearance-form.tsx:74
 msgid "字体"
 msgstr "Font"
 
@@ -618,27 +621,27 @@ msgstr "Scheduled task info"
 #: src/features/user/components/user-action-dialog.tsx:260
 #: src/features/settings/index.tsx:44
 #: src/features/auth/sign-in/components/user-auth-form.tsx:145
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:181
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:186
 msgid "密码"
 msgstr "Password"
 
-#: src/features/user/schemas/action-schema.ts:6
+#: src/features/user/schemas/action-schema.ts:7
 msgid "密码不能为空"
 msgstr "Password cannot be empty"
 
-#: src/features/user/schemas/action-schema.ts:8
+#: src/features/user/schemas/action-schema.ts:10
 msgid "密码最多为16个字符"
 msgstr "Password up to 16 characters"
 
-#: src/features/user/schemas/action-schema.ts:9
+#: src/features/user/schemas/action-schema.ts:11
 msgid "密码必须包含至少一个字母"
 msgstr "Passwords must contain at least one letter"
 
-#: src/features/user/schemas/action-schema.ts:10
+#: src/features/user/schemas/action-schema.ts:12
 msgid "密码必须包含至少一个数字"
 msgstr "The password must contain at least one number"
 
-#: src/features/user/schemas/action-schema.ts:13
+#: src/features/user/schemas/action-schema.ts:15
 msgid "密码必须包含至少一个特殊字符"
 msgstr "Passwords must contain at least one special character"
 
@@ -646,7 +649,7 @@ msgstr "Passwords must contain at least one special character"
 msgid "密码登录"
 msgstr "Password login"
 
-#: src/features/user/schemas/action-schema.ts:7
+#: src/features/user/schemas/action-schema.ts:9
 msgid "密码至少为6个字符"
 msgstr "Password at least 6 characters"
 
@@ -663,7 +666,7 @@ msgstr "Expand"
 msgid "已使用"
 msgstr "Used"
 
-#: src/features/settings/appearance/appearance-form.tsx:62
+#: src/features/settings/appearance/appearance-form.tsx:61
 msgid "已成功更新外观设置"
 msgstr "Appearance settings have been updated successfully"
 
@@ -816,8 +819,8 @@ msgstr "Rebind Email"
 msgid "排序"
 msgstr "Sort"
 
-#: src/features/menu/schemas/action-schema.ts:24
-#: src/features/menu/schemas/action-schema.ts:33
+#: src/features/menu/schemas/action-schema.ts:25
+#: src/features/menu/schemas/action-schema.ts:34
 msgid "排序值必须大于等于0"
 msgstr "Sorting value must be greater than or equal to 0."
 
@@ -920,7 +923,7 @@ msgstr "Is it a mobile terminal?"
 msgid "昵称"
 msgstr "Nickname"
 
-#: src/features/user/schemas/action-schema.ts:37
+#: src/features/user/schemas/action-schema.ts:41
 #: src/features/settings/profile/schemas/action-schema.ts:8
 msgid "昵称长度不能超过10个字符"
 msgstr "Nicknames cannot exceed 10 characters in length"
@@ -936,7 +939,7 @@ msgstr "Pause"
 msgid "更喜欢使用密码？"
 msgstr "Prefer to use passwords?"
 
-#: src/components/other/calendar/components/dialogs/events-list-dialog.tsx:41
+#: src/components/other/calendar/components/dialogs/events-list-dialog.tsx:43
 msgid "更多..."
 msgstr "More..."
 
@@ -1065,7 +1068,7 @@ msgstr "Number of articles per page"
 msgid "没有内容."
 msgstr "No content."
 
-#: src/features/settings/appearance/appearance-form.tsx:137
+#: src/features/settings/appearance/appearance-form.tsx:136
 msgid "浅色模式"
 msgstr "Light Mode"
 
@@ -1078,7 +1081,7 @@ msgstr "Browser"
 msgid "浏览器版本"
 msgstr "Browser version"
 
-#: src/features/settings/appearance/appearance-form.tsx:163
+#: src/features/settings/appearance/appearance-form.tsx:162
 msgid "深色模式"
 msgstr "Dark Mode"
 
@@ -1184,23 +1187,23 @@ msgstr "User list"
 msgid "用户名"
 msgstr "Username"
 
-#: src/features/user/schemas/action-schema.ts:21
+#: src/features/user/schemas/action-schema.ts:25
 msgid "用户名不能包含特殊字符"
 msgstr "Username cannot contain special characters"
 
-#: src/features/user/schemas/action-schema.ts:22
+#: src/features/user/schemas/action-schema.ts:26
 msgid "用户名必须以字母开头"
 msgstr "Username must start with a letter"
 
-#: src/features/user/schemas/action-schema.ts:23
+#: src/features/user/schemas/action-schema.ts:27
 msgid "用户名必须包含字母"
 msgstr "Username must contain letters"
 
-#: src/features/user/schemas/action-schema.ts:20
+#: src/features/user/schemas/action-schema.ts:24
 msgid "用户名长度不能大于10个字符"
 msgstr "Username length cannot be greater than 10 characters"
 
-#: src/features/user/schemas/action-schema.ts:19
+#: src/features/user/schemas/action-schema.ts:23
 msgid "用户名长度不能小于2个字符"
 msgstr "The username must not be less than 2 characters long"
 
@@ -1226,7 +1229,7 @@ msgstr "Directory"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:160
 #: src/features/user/components/user-action-dialog.tsx:281
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:204
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:209
 msgid "确认密码"
 msgstr "Confirm"
 
@@ -1323,7 +1326,7 @@ msgstr "End date is required"
 
 #: src/components/confirm-dialog.tsx:64
 #: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:56
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:222
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:227
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:87
 msgid "继续"
 msgstr "Continue"
@@ -1426,7 +1429,7 @@ msgstr "Role details"
 msgid "警告！"
 msgstr "Warning!"
 
-#: src/features/settings/appearance/appearance-form.tsx:92
+#: src/features/settings/appearance/appearance-form.tsx:91
 msgid "设定您想要在系统中使用的字体。"
 msgstr "Set the font you want to use in the system."
 
@@ -1444,7 +1447,7 @@ msgstr "Click Save after setting the new password."
 msgid "详情"
 msgstr "Details"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:208
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:213
 msgid "请再次输入密码"
 msgstr "Please enter your password again"
 
@@ -1510,20 +1513,20 @@ msgstr "Request Path"
 msgid "请求返回了一个错误，响应详细信息如下。"
 msgstr "The request returned an error, and the response details are as follows."
 
-#: src/features/task/schemas/action-schema.ts:15
-#: src/features/task/schemas/action-schema.ts:16
+#: src/features/task/schemas/action-schema.ts:20
+#: src/features/task/schemas/action-schema.ts:22
 #: src/features/task/components/task-action-dialog.tsx:208
 msgid "请输入cron表达式"
 msgstr "Please enter cron expression"
 
-#: src/features/task/schemas/action-schema.ts:12
-#: src/features/task/schemas/action-schema.ts:13
+#: src/features/task/schemas/action-schema.ts:15
+#: src/features/task/schemas/action-schema.ts:17
 #: src/features/task/components/task-action-dialog.tsx:187
 msgid "请输入任务分组"
 msgstr "Please enter a task group"
 
-#: src/features/task/schemas/action-schema.ts:9
 #: src/features/task/schemas/action-schema.ts:10
+#: src/features/task/schemas/action-schema.ts:12
 #: src/features/task/components/task-action-dialog.tsx:167
 msgid "请输入任务名称"
 msgstr "Please enter a task name"
@@ -1532,11 +1535,11 @@ msgstr "Please enter a task name"
 msgid "请输入原密码"
 msgstr "Please enter the original password"
 
-#: src/features/user/schemas/action-schema.ts:63
+#: src/features/user/schemas/action-schema.ts:69
 #: src/features/user/components/user-reset-password-dialog.tsx:143
 #: src/features/user/components/user-action-dialog.tsx:264
 #: src/features/auth/sign-in/components/user-auth-form.tsx:148
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:185
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:190
 msgid "请输入密码"
 msgstr "Please enter your password"
 
@@ -1544,11 +1547,13 @@ msgstr "Please enter your password"
 msgid "请输入您在电子邮件中收到的验证码。"
 msgstr "Please enter the verification code you received in the email."
 
+#: src/features/user/schemas/action-schema.ts:46
 #: src/features/settings/email/email-form.tsx:143
 #: src/features/settings/email/email-form.tsx:165
-#: src/features/settings/email/schemas/action-schema.ts:7
-#: src/features/settings/email/schemas/action-schema.ts:8
-#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:31
+#: src/features/settings/email/schemas/action-schema.ts:9
+#: src/features/auth/otp/components/otp-form.tsx:40
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:42
+#: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:32
 msgid "请输入您的邮箱"
 msgstr "Please enter your email address"
 
@@ -1556,8 +1561,8 @@ msgstr "Please enter your email address"
 msgid "请输入您的邮箱地址，我们将向您的邮箱发送一个验证码，请使用验证码登录。"
 msgstr "Please enter your email address, and we will send you a verification code. Please log in with the verification code."
 
-#: src/features/task/schemas/action-schema.ts:21
-#: src/features/task/schemas/action-schema.ts:22
+#: src/features/task/schemas/action-schema.ts:28
+#: src/features/task/schemas/action-schema.ts:30
 #: src/features/task/components/task-action-dialog.tsx:229
 msgid "请输入执行命令"
 msgstr "Please enter the execute command"
@@ -1582,12 +1587,12 @@ msgstr "Please enter a new password"
 msgid "请输入昵称"
 msgstr "Please enter a nickname"
 
-#: src/features/task/schemas/action-schema.ts:18
+#: src/features/task/schemas/action-schema.ts:24
 msgid "请输入有效的cron表达式"
 msgstr "Please enter a valid cron expression"
 
-#: src/features/menu/schemas/action-schema.ts:48
-#: src/features/menu/schemas/action-schema.ts:49
+#: src/features/menu/schemas/action-schema.ts:58
+#: src/features/menu/schemas/action-schema.ts:60
 #: src/features/menu/components/menu-action-dialog.tsx:461
 msgid "请输入权限标识"
 msgstr "Please enter the permission ID"
@@ -1596,11 +1601,10 @@ msgstr "Please enter the permission ID"
 msgid "请输入标题"
 msgstr "Please enter a title"
 
-#: src/features/user/schemas/action-schema.ts:41
-msgid "请输入正确的邮箱地址"
-msgstr "Please enter the correct email address"
+#~ msgid "请输入正确的邮箱地址"
+#~ msgstr "Please enter the correct email address"
 
-#: src/features/user/schemas/action-schema.ts:18
+#: src/features/user/schemas/action-schema.ts:21
 #: src/features/user/components/user-reset-password-dialog.tsx:123
 #: src/features/user/components/user-action-dialog.tsx:149
 #: src/features/settings/profile/profile-form.tsx:77
@@ -1608,7 +1612,7 @@ msgstr "Please enter the correct email address"
 msgid "请输入用户名"
 msgstr "Please enter your user name"
 
-#: src/features/user/schemas/action-schema.ts:83
+#: src/features/user/schemas/action-schema.ts:90
 #: src/features/user/components/user-reset-password-dialog.tsx:164
 #: src/features/user/components/user-action-dialog.tsx:285
 msgid "请输入确认密码"
@@ -1619,19 +1623,19 @@ msgid "请输入菜单"
 msgstr "Please enter the menu"
 
 #: src/features/menu/schemas/action-schema.ts:14
-#: src/features/menu/schemas/action-schema.ts:15
+#: src/features/menu/schemas/action-schema.ts:16
 #: src/features/menu/components/menu-action-dialog.tsx:339
 msgid "请输入菜单名称"
 msgstr "Please enter a menu name"
 
-#: src/features/role/schemas/action-schema.ts:7
 #: src/features/role/schemas/action-schema.ts:8
+#: src/features/role/schemas/action-schema.ts:10
 #: src/features/role/components/role-action-dialog.tsx:123
 msgid "请输入角色名称"
 msgstr "Please enter a role name"
 
-#: src/features/role/schemas/action-schema.ts:10
-#: src/features/role/schemas/action-schema.ts:11
+#: src/features/role/schemas/action-schema.ts:13
+#: src/features/role/schemas/action-schema.ts:15
 #: src/features/role/components/role-action-dialog.tsx:146
 msgid "请输入角色编码"
 msgstr "Please enter the role code"
@@ -1648,8 +1652,8 @@ msgstr "Please enter the request path"
 msgid "请输入超时时间(秒)"
 msgstr "Please enter the timeout (seconds)"
 
-#: src/features/menu/schemas/action-schema.ts:37
-#: src/features/menu/schemas/action-schema.ts:38
+#: src/features/menu/schemas/action-schema.ts:43
+#: src/features/menu/schemas/action-schema.ts:45
 msgid "请输入路由地址"
 msgstr "Please enter a routing address"
 
@@ -1658,16 +1662,14 @@ msgid "请输入身份验证代码。<0/>我们已经发送了 验证码到您�
 msgstr "Please enter the authentication code. <0/> We have sent a verification code to your email."
 
 #: src/features/user/components/user-action-dialog.tsx:192
-#: src/features/auth/otp/components/otp-form.tsx:39
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:41
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:130
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:135
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:80
 msgid "请输入邮箱"
 msgstr "Please enter your email address"
 
 #: src/features/settings/email/email-form.tsx:208
-#: src/features/settings/email/schemas/action-schema.ts:11
-#: src/features/settings/email/schemas/action-schema.ts:12
+#: src/features/settings/email/schemas/action-schema.ts:13
+#: src/features/settings/email/schemas/action-schema.ts:15
 #: src/features/auth/otp/components/otp-form.tsx:36
 msgid "请输入邮箱验证码"
 msgstr "Please enter the email verification code"
@@ -1680,11 +1682,11 @@ msgstr "Please enter the number of retries"
 msgid "请输入重试间隔(秒)"
 msgstr "Please enter the retry interval (seconds)"
 
-#: src/features/auth/sign-in/schemas/action-schema.ts:14
-#: src/features/auth/sign-in/schemas/action-schema.ts:15
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:46
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:47
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:165
+#: src/features/auth/sign-in/schemas/action-schema.ts:17
+#: src/features/auth/sign-in/schemas/action-schema.ts:19
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:48
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:50
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:170
 msgid "请输入验证码"
 msgstr "Please enter the verification code"
 
@@ -1692,45 +1694,43 @@ msgstr "Please enter the verification code"
 msgid "请选择一个主题"
 msgstr "Please select a theme."
 
-#: src/features/settings/appearance/appearance-form.tsx:33
-msgid "请选择一种字体"
-msgstr "Please select a font"
+#~ msgid "请选择一种字体"
+#~ msgstr "Please select a font"
 
-#: src/features/menu/schemas/action-schema.ts:52
-#: src/features/menu/schemas/action-schema.ts:54
+#: src/features/menu/schemas/action-schema.ts:63
+#: src/features/menu/schemas/action-schema.ts:65
 msgid "请选择关联的API"
 msgstr "Please select the associated API"
 
-#: src/features/role/schemas/action-schema.ts:14
-#: src/features/role/schemas/action-schema.ts:16
+#: src/features/role/schemas/action-schema.ts:18
+#: src/features/role/schemas/action-schema.ts:20
 msgid "请选择关联的菜单"
 msgstr "Please select the associated menu"
 
-#: src/features/user/schemas/action-schema.ts:47
-#: src/features/user/schemas/action-schema.ts:49
+#: src/features/user/schemas/action-schema.ts:53
+#: src/features/user/schemas/action-schema.ts:55
 #: src/features/user/components/user-action-dialog.tsx:243
 msgid "请选择关联角色"
 msgstr "Please select the associated role"
 
-#: src/features/menu/schemas/action-schema.ts:35
-#: src/features/menu/schemas/action-schema.ts:35
+#: src/features/menu/schemas/action-schema.ts:38
+#: src/features/menu/schemas/action-schema.ts:40
 #: src/features/menu/components/menu-action-dialog.tsx:437
 msgid "请选择图标"
 msgstr "Please select the icon"
 
 #: src/features/menu/schemas/action-schema.ts:9
-#: src/features/menu/schemas/action-schema.ts:10
-#: src/features/menu/schemas/action-schema.ts:12
+#: src/features/menu/schemas/action-schema.ts:11
 #: src/features/menu/components/menu-action-dialog.tsx:302
 msgid "请选择父级菜单"
 msgstr "Please select the parent menu"
 
-#: src/features/task/schemas/action-schema.ts:23
+#: src/features/task/schemas/action-schema.ts:32
 msgid "请选择状态"
 msgstr "Please select a status"
 
-#: src/features/menu/schemas/action-schema.ts:40
-#: src/features/menu/schemas/action-schema.ts:41
+#: src/features/menu/schemas/action-schema.ts:48
+#: src/features/menu/schemas/action-schema.ts:50
 #: src/features/menu/components/menu-action-dialog.tsx:402
 msgid "请选择组件路径"
 msgstr "Please select a component path"
@@ -1757,7 +1757,7 @@ msgstr "Route"
 msgid "输入名称以确认删除"
 msgstr "Enter a name to confirm deletion"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:191
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:196
 msgid "输入您的新密码。"
 msgstr "Enter your new password."
 
@@ -1818,7 +1818,7 @@ msgstr "Select a color"
 msgid "选择一种字体"
 msgstr "Select a font "
 
-#: src/features/settings/appearance/appearance-form.tsx:107
+#: src/features/settings/appearance/appearance-form.tsx:106
 msgid "选择您想要在系统中使用的主题。"
 msgstr "Select the theme you want to use in the system."
 
@@ -1836,18 +1836,18 @@ msgstr "By clicking Login, you agree to our <0>Terms of Service</0> and <1>Priva
 #: src/features/settings/index.tsx:39
 #: src/features/settings/email/email-form.tsx:139
 #: src/features/auth/sign-in/components/user-auth-form.tsx:231
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:127
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:132
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:77
 msgid "邮箱"
 msgstr "Email"
 
-#: src/features/settings/email/email-form.tsx:49
+#: src/features/settings/email/email-form.tsx:47
 msgid "邮箱不能与当前邮箱相同"
 msgstr "The email cannot be the same as the current email"
 
-#: src/features/settings/email/schemas/action-schema.ts:9
+#: src/features/user/schemas/action-schema.ts:46
 #: src/features/auth/otp/components/otp-form.tsx:40
-#: src/features/auth/otp/components/otp-form.tsx:56
+#: src/features/auth/otp/components/otp-form.tsx:57
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:42
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:32
 msgid "邮箱无效"
@@ -1857,7 +1857,7 @@ msgstr "Invalid email address"
 msgid "邮箱设置"
 msgstr "Email settings"
 
-#: src/features/auth/otp/components/otp-form.tsx:95
+#: src/features/auth/otp/components/otp-form.tsx:96
 msgid "邮箱验证码"
 msgstr "Captcha"
 
@@ -1866,7 +1866,7 @@ msgid "重置"
 msgstr "Reset"
 
 #: src/features/user/components/user-reset-password-dialog.tsx:65
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:92
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:97
 msgid "重置密码成功"
 msgstr "Reset password successfully"
 
@@ -1919,18 +1919,18 @@ msgstr "Color is required"
 msgid "首页"
 msgstr "Dashboard"
 
-#: src/features/auth/otp/components/otp-form.tsx:128
+#: src/features/auth/otp/components/otp-form.tsx:129
 msgid "验证"
 msgstr "Validate"
 
 #: src/features/settings/email/email-form.tsx:204
 #: src/features/auth/sign-in/components/user-auth-form.tsx:166
 #: src/features/auth/sign-in/components/user-auth-form.tsx:172
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:161
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:166
 msgid "验证码"
 msgstr "Captcha"
 
-#: src/features/auth/sign-in/schemas/action-schema.ts:12
+#: src/features/auth/sign-in/schemas/action-schema.ts:13
 msgid "验证码ID不能为空"
 msgstr "Captcha ID cannot be empty"
 

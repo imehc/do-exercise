@@ -126,7 +126,6 @@ const handleRefreshToken = async () => {
       }
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('Token refresh failed:', error)
     redirectToLogin()
   } finally {

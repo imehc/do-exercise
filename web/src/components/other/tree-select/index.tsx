@@ -13,7 +13,6 @@ import { getTreeValueLabelMap } from './tree-utils'
 import { TreeView } from './tree-view'
 import { TreeSelectProps } from './types'
 
-// eslint-disable-next-line react-refresh/only-export-components
 export { transformData } from './transfer'
 
 export type AriaInvalidProps = Pick<

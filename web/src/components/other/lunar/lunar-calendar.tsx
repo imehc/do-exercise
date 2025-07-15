@@ -186,11 +186,11 @@ export function LunarCalendar() {
   return (
     <div className='bg-background grid h-full w-full grid-rows-[auto_1fr] rounded-xl font-sans shadow-sm select-none'>
       {/* 星期栏 */}
-      <motion.div 
+      <motion.div
         className='bg-muted grid h-16 grid-cols-7'
         variants={staggerContainer}
-        initial="initial"
-        animate="animate"
+        initial='initial'
+        animate='animate'
       >
         {weekDays.map((w, i) => (
           <motion.div
@@ -267,7 +267,7 @@ export function LunarCalendar() {
                     key={idx}
                     variants={fadeIn}
                     transition={{ ...transition, delay: idx * 0.01 }}
-                    className='bg-primary relative flex h-full min-h-[64px] w-full flex-col items-center justify-center px-1 py-2 shadow-lg cursor-pointer'
+                    className='bg-primary relative flex h-full min-h-[64px] w-full cursor-pointer flex-col items-center justify-center px-1 py-2 shadow-lg'
                     onClick={() => {
                       setSelectedCell(cell)
                       setShowDrawer(true)
@@ -276,14 +276,14 @@ export function LunarCalendar() {
                     whileTap={{ scale: 0.98 }}
                   >
                     {/* 右上角“今”徽标 */}
-                    <motion.span 
+                    <motion.span
                       variants={badgeAnimation}
                       transition={{ ...transition, delay: idx * 0.01 + 0.2 }}
                       className='bg-primary-foreground text-primary absolute top-1 right-1 rounded-full px-1 text-xs leading-tight font-bold shadow md:top-2 md:right-2 md:px-2 md:text-sm'
                     >
                       今
                     </motion.span>
-                    <motion.div 
+                    <motion.div
                       className='text-primary-foreground mb-1 text-2xl leading-none font-extrabold md:text-3xl'
                       initial={{ scale: 0.8 }}
                       animate={{ scale: 1 }}
@@ -291,7 +291,7 @@ export function LunarCalendar() {
                     >
                       {cell.solar.day}
                     </motion.div>
-                    <motion.div 
+                    <motion.div
                       className='text-primary-foreground flex min-h-4 w-full items-center justify-center gap-x-2 text-xs'
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -330,7 +330,7 @@ export function LunarCalendar() {
                     key={idx}
                     variants={fadeIn}
                     transition={{ ...transition, delay: idx * 0.01 }}
-                    className={`group relative flex h-full min-h-[64px] w-full flex-col items-center justify-center px-1 py-2 transition-all cursor-pointer ${getCellBgClass(cell)} ${
+                    className={`group relative flex h-full min-h-[64px] w-full cursor-pointer flex-col items-center justify-center px-1 py-2 transition-all ${getCellBgClass(cell)} ${
                       cell.solar.week === 6 || cell.solar.week === 0
                         ? cell.isOtherMonth
                           ? 'text-muted-foreground/60'
@@ -353,7 +353,10 @@ export function LunarCalendar() {
                       !cell.isOtherMonth && (
                         <motion.div
                           variants={badgeAnimation}
-                          transition={{ ...transition, delay: idx * 0.01 + 0.2 }}
+                          transition={{
+                            ...transition,
+                            delay: idx * 0.01 + 0.2,
+                          }}
                         >
                           <Badge
                             variant={

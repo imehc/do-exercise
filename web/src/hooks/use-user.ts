@@ -1,18 +1,23 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useSetAtom } from 'jotai'
-import { originTokenAtom } from '~/atoms'
+import { originTokenAtom, routeTabCacheAtom } from '~/atoms'
 import { AuthApi, ResponseError, UserApi } from '~/do-exercise-api'
 import { useApi } from './use-api'
 
 /** 退出登录 */
 export const useLogout = () => {
   const setOriginToken = useSetAtom(originTokenAtom)
+  const setRouteTabCache = useSetAtom(routeTabCacheAtom)
   const navigate = useNavigate()
   const authApi = useApi(AuthApi)
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
+      setRouteTabCache({
+        activeTab: '',
+        tabs: [],
+      })
       setOriginToken({
         accessToken: '',
         expireTime: 0,

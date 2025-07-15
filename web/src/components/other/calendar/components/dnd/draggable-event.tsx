@@ -29,10 +29,10 @@ export function DraggableEvent({
     <EventDetailsDialog event={event}>
       <motion.div
         className={`${className || ''} ${
-          readonly 
-            ? 'cursor-pointer' 
-            : isCurrentlyDragged 
-              ? 'cursor-grabbing opacity-50' 
+          readonly
+            ? 'cursor-pointer'
+            : isCurrentlyDragged
+              ? 'cursor-grabbing opacity-50'
               : 'cursor-grab'
         }`}
         draggable={!readonly}

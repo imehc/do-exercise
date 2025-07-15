@@ -7,7 +7,7 @@ export const Route = createFileRoute('/(auth)/otp')({
   validateSearch: z.object({
     email: z
       .string()
-      .email({ message: 'Invalid email address' })
+      .email({ error: 'Invalid email address' })
       .catch('')
       .optional(),
   }),

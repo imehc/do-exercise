@@ -9,11 +9,17 @@ export const getSignInActionSchema = () =>
   z.object({
     username: getUsernameRule(),
     password: getPasswordRule(),
-    captchaId: z.string({ required_error: t`验证码ID不能为空` }),
+    captchaId: z.string({
+      error: t`验证码ID不能为空`,
+    }),
     captcha: z
-      .string({ required_error: t`请输入验证码` })
-      .min(1, { message: t`请输入验证码` }),
-    publicKey: z.string({ required_error: t`公钥不能为空` }),
+      .string({
+        error: t`请输入验证码`,
+      })
+      .min(1, { error: t`请输入验证码` }),
+    publicKey: z.string({
+      error: t`公钥不能为空`,
+    }),
   })
 
 export type SignInActionFormValues = z.infer<

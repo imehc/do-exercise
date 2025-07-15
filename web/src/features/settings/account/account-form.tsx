@@ -47,16 +47,16 @@ const accountFormSchema = z.object({
   name: z
     .string()
     .min(2, {
-      message: 'Name must be at least 2 characters.',
+      error: 'Name must be at least 2 characters.',
     })
     .max(30, {
-      message: 'Name must not be longer than 30 characters.',
+      error: 'Name must not be longer than 30 characters.',
     }),
   dob: z.date({
-    required_error: 'A date of birth is required.',
+    error: () => 'A date of birth is required.',
   }),
   language: z.string({
-    required_error: 'Please select a language.',
+    error: () => 'Please select a language.',
   }),
 })
 

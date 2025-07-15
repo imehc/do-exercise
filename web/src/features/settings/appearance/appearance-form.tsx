@@ -26,11 +26,10 @@ import { SelectDropdown } from '~/components/select-dropdown'
 const getAppearanceFormSchema = () =>
   z.object({
     theme: z.enum(['light', 'dark'], {
-      required_error: t`请选择一个主题`,
+      error: t`请选择一个主题`,
     }),
     font: z.enum(fonts, {
-      invalid_type_error: t`选择一种字体`,
-      required_error: t`请选择一种字体`,
+      error: t`选择一种字体`,
     }),
   })
 

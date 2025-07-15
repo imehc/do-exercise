@@ -48,7 +48,6 @@ export function FormDialogProvider({ children }: Props) {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useFormDialog<T>() {
   const usersContext = React.useContext(FormDialogContext)
 

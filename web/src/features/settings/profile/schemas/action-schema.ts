@@ -5,7 +5,7 @@ export const getProfileSchema = () =>
   z.object({
     nickname: z
       .string()
-      .max(10, { message: t`昵称长度不能超过10个字符` })
+      .max(10, { error: t`昵称长度不能超过10个字符` })
       .optional(),
     avatar: z.string().optional(),
   })

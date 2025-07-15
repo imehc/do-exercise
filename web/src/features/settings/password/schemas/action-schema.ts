@@ -9,19 +9,21 @@ export const getPasswordSchema = () =>
       password: getPasswordRule(),
       confirmPassword: getPasswordRule(),
     })
-    .superRefine(({ oldPassword, password, confirmPassword }, ctx) => {
-      if (oldPassword.trim() === password.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+    .check(({ issues, value }) => {
+      if (value.oldPassword.trim() === value.password.trim()) {
+        issues.push({
+          code: 'custom',
           path: ['password'],
           message: t`新密码不能与旧密码相同`,
+          input: value,
         })
       }
-      if (password.trim() !== confirmPassword.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+      if (value.password.trim() !== value.confirmPassword.trim()) {
+        issues.push({
+          code: 'custom',
           path: ['confirmPassword'],
           message: t`两次输入的密码不一致`,
+          input: value,
         })
       }
     })

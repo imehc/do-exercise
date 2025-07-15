@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { differenceInCalendarDays } from 'date-fns'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { enUS } from 'date-fns/locale/en-US'
 import { zhCN } from 'date-fns/locale/zh-CN'
 import { useAtomValue } from 'jotai'
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import {
   DayPicker,
   labelNext,
@@ -211,7 +211,8 @@ function Calendar({
       }}
       components={{
         Chevron: ({ orientation }) => {
-          const Icon = orientation === 'left' ? IconChevronLeft : IconChevronRight
+          const Icon =
+            orientation === 'left' ? IconChevronLeft : IconChevronRight
           return <Icon className='h-4 w-4' />
         },
         Nav: ({ className }) => (

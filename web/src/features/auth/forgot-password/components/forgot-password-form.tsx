@@ -36,16 +36,20 @@ type ForgotFormProps = HTMLAttributes<HTMLFormElement>
 
 const getFormSchema = () =>
   z.object({
-    email: z
-      .string()
-      .min(1, { message: t`请输入邮箱` })
-      .email({ message: t`邮箱无效` }),
+    email: z.email({
+      error: (issue) =>
+        issue.input === undefined ? t`请输入您的邮箱` : t`邮箱无效`,
+    }),
     password: getPasswordRule(),
     confirmPassword: getPasswordRule(),
     code: z
-      .string({ required_error: t`请输入验证码` })
-      .min(1, { message: t`请输入验证码` }),
-    publicKey: z.string({ required_error: t`公钥不能为空` }),
+      .string({
+        error: t`请输入验证码`,
+      })
+      .min(1, { error: t`请输入验证码` }),
+    publicKey: z.string({
+      error: t`公钥不能为空`,
+    }),
   })
 
 type FormSchemaValues = z.infer<ReturnType<typeof getFormSchema>>

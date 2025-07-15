@@ -1,8 +1,5 @@
 'use client'
 
-import { t } from '@lingui/core/macro'
-import { Trans } from '@lingui/react/macro'
-import { motion } from 'framer-motion'
 import {
   IconCalendarEvent,
   IconColumns,
@@ -12,6 +9,9 @@ import {
   IconList,
   IconPlus,
 } from '@tabler/icons-react'
+import { t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
+import { motion } from 'framer-motion'
 import { Button } from '~/components/ui/button'
 import { ButtonGroup } from '~/components/ui/button-group'
 import { Toggle } from '~/components/ui/toggle'

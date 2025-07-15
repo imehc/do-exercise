@@ -3,24 +3,28 @@ import { t } from '@lingui/core/macro'
 
 export const getPasswordRule = () =>
   z
-    .string({ required_error: t`密码不能为空` })
-    .min(6, { message: t`密码至少为6个字符` })
-    .max(16, { message: t`密码最多为16个字符` })
-    .regex(/[a-zA-Z]/, { message: t`密码必须包含至少一个字母` })
-    .regex(/[0-9]/, { message: t`密码必须包含至少一个数字` })
+    .string({
+      error: t`密码不能为空`,
+    })
+    .min(6, { error: t`密码至少为6个字符` })
+    .max(16, { error: t`密码最多为16个字符` })
+    .regex(/[a-zA-Z]/, { error: t`密码必须包含至少一个字母` })
+    .regex(/[0-9]/, { error: t`密码必须包含至少一个数字` })
     // eslint-disable-next-line no-useless-escape
     .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, {
-      message: t`密码必须包含至少一个特殊字符`,
+      error: t`密码必须包含至少一个特殊字符`,
     })
 
 export const getUsernameRule = () =>
   z
-    .string({ required_error: t`请输入用户名` })
-    .min(2, { message: t`用户名长度不能小于2个字符` })
-    .max(10, { message: t`用户名长度不能大于10个字符` })
-    .regex(/^[a-zA-Z0-9]+$/, { message: t`用户名不能包含特殊字符` })
-    .regex(/^[a-zA-Z]/, { message: t`用户名必须以字母开头` })
-    .regex(/[a-zA-Z]/, { message: t`用户名必须包含字母` })
+    .string({
+      error: t`请输入用户名`,
+    })
+    .min(2, { error: t`用户名长度不能小于2个字符` })
+    .max(10, { error: t`用户名长度不能大于10个字符` })
+    .regex(/^[a-zA-Z0-9]+$/, { error: t`用户名不能包含特殊字符` })
+    .regex(/^[a-zA-Z]/, { error: t`用户名必须以字母开头` })
+    .regex(/[a-zA-Z]/, { error: t`用户名必须包含字母` })
 
 export const getBaseSchema = () =>
   z.object({
@@ -34,40 +38,43 @@ export const getSchema = () =>
       username: getUsernameRule(),
       nickname: z
         .string()
-        .max(10, { message: t`昵称长度不能超过10个字符` })
+        .max(10, { error: t`昵称长度不能超过10个字符` })
         .optional(),
       email: z
-        .string()
-        .email({ message: t`请输入正确的邮箱地址` })
+        .email({
+          error: (issue) =>
+            issue.input === undefined ? t`请输入您的邮箱` : t`邮箱无效`,
+        })
         .optional()
         .or(z.literal('')),
       avatar: z.string().optional(),
       roleIds: z
         .array(z.number(), {
-          required_error: t`请选择关联角色`,
+          error: t`请选择关联角色`,
         })
         .min(1, t`请选择关联角色`),
 
       isEdit: z.boolean().default(false).optional(),
     })
-    .superRefine((data, ctx) => {
-      if (data.isEdit) {
-        return true
+    .check(({ issues, value }) => {
+      if (value.isEdit) {
+        return
       }
 
       // 校验密码是否填写并符合规则
-      if (!data.password || data.password.trim() === '') {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+      if (!value.password || value.password.trim() === '') {
+        issues.push({
+          code: 'custom',
           path: ['password'],
           message: t`请输入密码`,
+          input: value,
         })
       } else {
         // 手动触发所有密码规则
-        const passwordResult = getPasswordRule().safeParse(data.password)
+        const passwordResult = getPasswordRule().safeParse(value.password)
         if (!passwordResult.success) {
           passwordResult.error.issues.forEach((issue) => {
-            ctx.addIssue({
+            issues.push({
               ...issue,
               path: ['password'], // 强制绑定到 password 字段
             })
@@ -76,24 +83,26 @@ export const getSchema = () =>
       }
 
       // 校验确认密码是否填写
-      if (!data.confirmPassword || data.confirmPassword.trim() === '') {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+      if (!value.confirmPassword || value.confirmPassword.trim() === '') {
+        issues.push({
+          code: 'custom',
           path: ['confirmPassword'],
           message: t`请输入确认密码`,
+          input: value,
         })
       }
 
       // 校验两次密码是否一致
       if (
-        data.password &&
-        data.confirmPassword &&
-        data.password !== data.confirmPassword
+        value.password &&
+        value.confirmPassword &&
+        value.password !== value.confirmPassword
       ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+        issues.push({
+          code: 'custom',
           path: ['confirmPassword'],
           message: t`两次输入的密码不一致`,
+          input: value,
         })
       }
     })
@@ -103,16 +112,17 @@ export const resetPasswordSchema = z
     password: getPasswordRule(),
     confirmPassword: getPasswordRule(),
   })
-  .superRefine((data, ctx) => {
+  .check(({ issues, value }) => {
     if (
-      data.password &&
-      data.confirmPassword &&
-      data.password !== data.confirmPassword
+      value.password &&
+      value.confirmPassword &&
+      value.password !== value.confirmPassword
     ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+      issues.push({
+        code: 'custom',
         path: ['confirmPassword'],
         message: t`两次输入的密码不一致`,
+        input: value,
       })
     }
   })

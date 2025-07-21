@@ -59,6 +59,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
@@ -85,7 +86,7 @@ require (
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/casbin/gorm-adapter/v3 v3.33.0
+	github.com/casbin/gorm-adapter/v3 v3.34.0
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect

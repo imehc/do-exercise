@@ -86,7 +86,7 @@ require (
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
-	github.com/casbin/gorm-adapter/v3 v3.35.0
+	github.com/casbin/gorm-adapter/v3 v3.36.0
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect

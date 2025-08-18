@@ -98,7 +98,7 @@ require (
 	github.com/mojocn/base64Captcha v1.3.8
 	github.com/mssola/user_agent v0.6.0
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	github.com/redis/go-redis/v9 v9.12.0
+	github.com/redis/go-redis/v9 v9.12.1
 	github.com/sagikazarmark/locafero v0.8.0 // indirect
 	github.com/samber/lo v1.51.0
 	github.com/sourcegraph/conc v0.3.0 // indirect

@@ -202,8 +202,8 @@ importers:
         specifier: ^5.3.2
         version: 5.3.2(typescript@5.8.3)
       '@lingui/swc-plugin':
-        specifier: ^5.6.0
-        version: 5.6.0(@lingui/core@5.3.2(@lingui/babel-plugin-lingui-macro@5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3))(babel-plugin-macros@3.1.0))
+        specifier: ^5.6.1
+        version: 5.6.1(@lingui/core@5.3.2(@lingui/babel-plugin-lingui-macro@5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3))(babel-plugin-macros@3.1.0))
       '@lingui/vite-plugin':
         specifier: ^5.3.3
         version: 5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3)(vite@6.3.5(@types/node@24.2.0)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.19.3))
@@ -1071,8 +1071,8 @@ packages:
       babel-plugin-macros:
         optional: true
 
-  '@lingui/swc-plugin@5.6.0':
-    resolution: {integrity: sha512-NNj9wI6QvU6r4xtd4gulrDDrt22Az3cmAA5stgDIrIWjkdhnLz/m/nYxkcEAxBaCl5CFxaaNwpibv7aqB+1idw==}
+  '@lingui/swc-plugin@5.6.1':
+    resolution: {integrity: sha512-kT/ghCKMlTa+SJZU/xn2vvU1QE3/NO3m3Feg6r2OVOovAB6VHKShVElU5truBC2KXn/cPqE9Kz2Yj0+jUmO6xQ==}
     peerDependencies:
       '@lingui/core': '5'
       '@swc/core': '*'
@@ -5804,7 +5804,7 @@ snapshots:
       '@lingui/babel-plugin-lingui-macro': 5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3)
       babel-plugin-macros: 3.1.0
 
-  '@lingui/swc-plugin@5.6.0(@lingui/core@5.3.2(@lingui/babel-plugin-lingui-macro@5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3))(babel-plugin-macros@3.1.0))':
+  '@lingui/swc-plugin@5.6.1(@lingui/core@5.3.2(@lingui/babel-plugin-lingui-macro@5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3))(babel-plugin-macros@3.1.0))':
     dependencies:
       '@lingui/core': 5.3.2(@lingui/babel-plugin-lingui-macro@5.3.3(babel-plugin-macros@3.1.0)(typescript@5.8.3))(babel-plugin-macros@3.1.0)
 

@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
-    "@lingui/cli": "^5.3.2",
+    "@lingui/cli": "^5.4.1",
     "@lingui/swc-plugin": "^5.6.1",
     "@lingui/vite-plugin": "^5.3.3",
     "@openapitools/openapi-generator-cli": "^2.22.0",

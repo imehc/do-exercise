@@ -87,7 +87,7 @@
     "@eslint/js": "^9.26.0",
     "@lingui/cli": "^5.4.1",
     "@lingui/swc-plugin": "^5.6.1",
-    "@lingui/vite-plugin": "^5.3.3",
+    "@lingui/vite-plugin": "^5.4.1",
     "@openapitools/openapi-generator-cli": "^2.23.1",
     "@tanstack/eslint-plugin-query": "^5.83.1",
     "@tanstack/react-query-devtools": "^5.84.1",

@@ -192,8 +192,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.1.5(@types/react@19.1.12))(@types/react@19.1.12)(react-dom@19.1.0(react@19.1.1))(react@19.1.1)
       zod:
-        specifier: ^4.0.5
-        version: 4.0.5
+        specifier: ^4.1.5
+        version: 4.1.5
     devDependencies:
       '@eslint/js':
         specifier: ^9.35.0
@@ -4805,14 +4805,11 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  zod@3.24.4:
-    resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
-
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.0.5:
-    resolution: {integrity: sha512-/5UuuRPStvHXu7RS+gmvRf4NXrNxpSllGwDnCBcJZtQsKrviYXm54yDGV2KYNLT5kq0lHGcl7lqWJLgSaG+tgA==}
+  zod@4.1.5:
+    resolution: {integrity: sha512-rcUUZqlLJgBC33IT3PNMgsCq6TzLQEG/Ei/KTCU0PedSWRMAXoOUN+4t/0H+Q8bdnLPdqUYnvboJT0bn/229qg==}
 
 snapshots:
 
@@ -5565,8 +5562,8 @@ snapshots:
       express-rate-limit: 7.5.0(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.0
-      zod: 3.24.4
-      zod-to-json-schema: 3.24.5(zod@3.24.4)
+      zod: 3.25.76
+      zod-to-json-schema: 3.24.5(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
 
@@ -6667,7 +6664,7 @@ snapshots:
       '@tanstack/virtual-file-routes': 1.115.0
       prettier: 3.6.2
       tsx: 4.19.3
-      zod: 3.24.4
+      zod: 3.25.76
     optionalDependencies:
       '@tanstack/react-router': 1.131.36(react-dom@19.1.0(react@19.1.1))(react@19.1.1)
 
@@ -6689,7 +6686,7 @@ snapshots:
       babel-dead-code-elimination: 1.0.10
       chokidar: 3.6.0
       unplugin: 2.3.2
-      zod: 3.24.4
+      zod: 3.25.76
     optionalDependencies:
       '@tanstack/react-router': 1.131.36(react-dom@19.1.0(react@19.1.1))(react@19.1.1)
       vite: 7.1.5(@types/node@24.3.1)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.19.3)
@@ -7600,7 +7597,7 @@ snapshots:
       minimatch: 3.1.2
       natural-compare: 1.4.0
       optionator: 0.9.4
-      zod: 3.24.4
+      zod: 3.25.76
     optionalDependencies:
       jiti: 2.5.1
     transitivePeerDependencies:
@@ -9233,16 +9230,14 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-to-json-schema@3.24.5(zod@3.24.4):
+  zod-to-json-schema@3.24.5(zod@3.25.76):
     dependencies:
-      zod: 3.24.4
+      zod: 3.25.76
 
   zod-validation-error@3.5.3(zod@3.25.76):
     dependencies:
       zod: 3.25.76
 
-  zod@3.24.4: {}
-
   zod@3.25.76: {}
 
-  zod@4.0.5: {}
+  zod@4.1.5: {}

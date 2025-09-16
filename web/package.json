@@ -94,7 +94,7 @@
     "@tanstack/react-router-devtools": "^1.120.3",
     "@tanstack/router-plugin": "^1.120.3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/node": "^24.3.1",
+    "@types/node": "^24.5.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@types/react-syntax-highlighter": "^15.5.13",

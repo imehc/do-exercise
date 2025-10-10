@@ -32,8 +32,8 @@ github.com/bytedance/sonic/loader v0.3.0 h1:dskwH8edlzNMctoruo8FPTJDF3vLtDT0sXZw
 github.com/bytedance/sonic/loader v0.3.0/go.mod h1:N8A3vUdtUebEY2/VQC0MyhYeKUFosQU6FxH2JmUe6VI=
 github.com/casbin/casbin/v2 v2.127.0 h1:UGK3uO/8cOslnNqFUJ4xzm/bh+N+o45U7cSolaFk38c=
 github.com/casbin/casbin/v2 v2.127.0/go.mod h1:n4uZK8+tCMvcD6EVQZI90zKAok8iHAvEypcMJVKhGF0=
-github.com/casbin/gorm-adapter/v3 v3.36.0 h1:CeW9R9SeWTnf7JZQ4zlOWBXKcspT1VoSf4ojeFX2IbM=
-github.com/casbin/gorm-adapter/v3 v3.36.0/go.mod h1:BbCzTy5CLP/vA8S9KA5e4rPpJQGTt4COzukmKq6KHFA=
+github.com/casbin/gorm-adapter/v3 v3.37.0 h1:ykZnI91vvzf2jTEKuxEOV7WT/euBDADSkoJTgTu6gKM=
+github.com/casbin/gorm-adapter/v3 v3.37.0/go.mod h1:kjXoK8MqA3E/CcqEF2l3SCkhJj1YiHVR6SF0LMvJoH4=
 github.com/casbin/govaluate v1.3.0 h1:VA0eSY0M2lA86dYd5kPPuNZMUD9QkWnOCnavGrw9myc=
 github.com/casbin/govaluate v1.3.0/go.mod h1:G/UnbIjZk/0uMNaLwZZmFQrR72tYRZWQkO70si/iR7A=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

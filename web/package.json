@@ -89,7 +89,7 @@
     "@lingui/swc-plugin": "^5.6.1",
     "@lingui/vite-plugin": "^5.5.1",
     "@openapitools/openapi-generator-cli": "^2.25.0",
-    "@tanstack/eslint-plugin-query": "^5.91.0",
+    "@tanstack/eslint-plugin-query": "^5.91.2",
     "@tanstack/react-query-devtools": "^5.90.1",
     "@tanstack/react-router-devtools": "^1.133.1",
     "@tanstack/router-plugin": "^1.120.3",

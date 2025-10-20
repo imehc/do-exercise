@@ -91,7 +91,7 @@
     "@openapitools/openapi-generator-cli": "^2.25.0",
     "@tanstack/eslint-plugin-query": "^5.91.0",
     "@tanstack/react-query-devtools": "^5.90.1",
-    "@tanstack/react-router-devtools": "^1.120.3",
+    "@tanstack/react-router-devtools": "^1.133.1",
     "@tanstack/router-plugin": "^1.120.3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^24.8.1",

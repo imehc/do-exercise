@@ -3,8 +3,9 @@ package internal
 import (
 	"fmt"
 
-	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/model"
+	"github.com/casbin/casbin/v3"
+	casbinlog "github.com/casbin/casbin/v3/log"
+	"github.com/casbin/casbin/v3/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/util"
@@ -50,7 +51,7 @@ func InitCasbin() {
 
 	// 启用日志
 	if !util.IsRelease {
-		enforcer.EnableLog(true)
+		enforcer.SetLogger(casbinlog.NewDefaultLogger())
 	}
 
 	// 加载策略

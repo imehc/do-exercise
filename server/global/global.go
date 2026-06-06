@@ -1,7 +1,7 @@
 package global
 
 import (
-	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v3"
 	"github.com/imehc/do-exercise/server/config"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/minio/minio-go/v7"

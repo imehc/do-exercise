@@ -1,12 +1,13 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # 安装 openjdk
 RUN apk add --no-cache openjdk17-jre
 
 # 复制依赖文件并安装依赖
-COPY web/package.json web/pnpm-lock.yaml ./
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
+ENV CI=true
 RUN corepack enable && \
     corepack prepare pnpm@latest --activate && \
     pnpm install --frozen-lockfile

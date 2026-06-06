@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { IconArrowRightDashed } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { themeList } from '~/commons/theme'
 import { useSearch } from '~/provider/search'
 import { useTheme } from '~/provider/theme'
@@ -24,6 +24,7 @@ interface Props {
 export function CommandMenu({ navGroups }: Props) {
   const navigate = useNavigate()
   const { setTheme } = useTheme()
+  const { t: translate } = useLingui()
   const { open, setOpen } = useSearch()
 
   const runCommand = React.useCallback(
@@ -80,14 +81,19 @@ export function CommandMenu({ navGroups }: Props) {
           ))}
           <CommandSeparator />
           <CommandGroup heading={t`主题`}>
-            {themeList.map((item) => (
-              <CommandItem
-                key={item.value}
-                onSelect={() => runCommand(() => setTheme(item.value))}
-              >
-                {item.icon} <span>{item.label}</span>
-              </CommandItem>
-            ))}
+            {themeList.map((item) => {
+              const label = translate(item.label)
+
+              return (
+                <CommandItem
+                  key={item.value}
+                  value={label}
+                  onSelect={() => runCommand(() => setTheme(item.value))}
+                >
+                  {item.icon} <span>{label}</span>
+                </CommandItem>
+              )
+            })}
           </CommandGroup>
         </ScrollArea>
       </CommandList>

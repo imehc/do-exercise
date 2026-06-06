@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { IconCheck, IconMoon, IconSun } from '@tabler/icons-react'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { themeList } from '~/commons/theme'
 import { useTheme } from '~/provider/theme'
 import { cn } from '~/lib/utils'
@@ -14,6 +14,7 @@ import {
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()
+  const { t } = useLingui()
 
   /* Update theme-color meta tag
    * when theme is updated */
@@ -35,19 +36,23 @@ export function ThemeSwitch() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        {themeList.map((item) => (
-          <DropdownMenuItem
-            key={item.value}
-            onClick={() => setTheme(item.value)}
-          >
-            {item.icon}
-            {item.label}
-            <IconCheck
-              size={14}
-              className={cn('ml-auto', theme !== item.value && 'hidden')}
-            />
-          </DropdownMenuItem>
-        ))}
+        {themeList.map((item) => {
+          const label = t(item.label)
+
+          return (
+            <DropdownMenuItem
+              key={item.value}
+              onClick={() => setTheme(item.value)}
+            >
+              {item.icon}
+              {label}
+              <IconCheck
+                size={14}
+                className={cn('ml-auto', theme !== item.value && 'hidden')}
+              />
+            </DropdownMenuItem>
+          )
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   )

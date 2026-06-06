@@ -1,20 +1,20 @@
 import { IconDeviceLaptop, IconMoon, IconSun } from '@tabler/icons-react'
-import { Trans } from '@lingui/react/macro'
+import { msg } from '@lingui/core/macro'
 
 export const themeList = [
   {
     value: 'light',
     icon: <IconSun />,
-    label: <Trans>亮色模式</Trans>,
+    label: msg`亮色模式`,
   },
   {
     value: 'dark',
     icon: <IconMoon />,
-    label: <Trans>暗色模式</Trans>,
+    label: msg`暗色模式`,
   },
   {
     value: 'system',
     icon: <IconDeviceLaptop />,
-    label: <Trans>跟随系统</Trans>,
+    label: msg`跟随系统`,
   },
 ] as const

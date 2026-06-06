@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,11 +41,15 @@ func (s *OssService) GetPresignedUrl(req model.OssReq) (*model.OssRes, error) {
 	// 	return nil, errors.New("getFailed")
 	// }
 
-	host := putUrl.Host
-	if gin.Mode() == gin.ReleaseMode {
-		host = global.Config.Minio.PresignedHost
+	url := fmt.Sprintf("%s://%s%s", putUrl.Scheme, putUrl.Host, putUrl.Path)
+	presignedHost := strings.TrimRight(global.Config.Minio.PresignedHost, "/")
+	if gin.Mode() == gin.ReleaseMode && presignedHost != "" {
+		if strings.HasPrefix(presignedHost, "/") {
+			url = fmt.Sprintf("%s%s", presignedHost, putUrl.Path)
+		} else {
+			url = fmt.Sprintf("%s://%s%s", putUrl.Scheme, presignedHost, putUrl.Path)
+		}
 	}
-	url := fmt.Sprintf("%s://%s%s", putUrl.Scheme, host, putUrl.Path)
 
 	return &model.OssRes{
 		PutObjectUrl: fmt.Sprintf("%s?%s", url, putUrl.RawQuery),

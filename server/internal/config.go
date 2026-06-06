@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/util"
@@ -21,6 +22,25 @@ func InitConfig(configFile string) {
 
 	// 设置配置文件
 	v.SetConfigFile(configFile)
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
+	bindEnv(v, map[string]string{
+		"minio.bucket_name":    "MINIO_BUCKET_NAME",
+		"minio.host":           "MINIO_HOST",
+		"minio.port":           "MINIO_PORT",
+		"minio.access_key":     "MINIO_APP_ACCESS_KEY",
+		"minio.secret_key":     "MINIO_APP_SECRET_KEY",
+		"minio.presigned_host": "MINIO_PRESIGNED_HOST",
+		"database.host":        "POSTGRES_HOST",
+		"database.username":    "POSTGRES_USER",
+		"database.password":    "POSTGRES_PASSWORD",
+		"database.database":    "POSTGRES_DB",
+		"database.port":        "POSTGRES_PORT",
+		"redis.host":           "REDIS_HOST",
+		"redis.port":           "REDIS_PORT",
+		"redis.password":       "REDIS_PASSWORD",
+		"redis.database":       "REDIS_DATABASE",
+	})
 
 	// 读取配置文件
 	if err := v.ReadInConfig(); err != nil {
@@ -38,4 +58,12 @@ func InitConfig(configFile string) {
 		util.Exit("配置映射失败: ", err)
 	}
 	fmt.Println("配置初始化完成")
+}
+
+func bindEnv(v *viper.Viper, envs map[string]string) {
+	for key, env := range envs {
+		if err := v.BindEnv(key, env); err != nil {
+			util.Exit("环境变量绑定失败: ", err)
+		}
+	}
 }

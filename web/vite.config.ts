@@ -27,13 +27,15 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/apis/, ''),
       },
+      '/oss': {
+        target: 'http://127.0.0.1:9000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/oss/, ''),
+      },
     },
   },
   build: {
     sourcemap: true,
-    terserOptions: {
-      format: { comments: false },
-    },
   },
   esbuild: {
     legalComments: 'none',

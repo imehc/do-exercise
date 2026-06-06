@@ -13,9 +13,11 @@ services:
     container_name: postgres_data
     image: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - .env
+      - postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     # ports:
     #   - "5432:5432"
     restart: on-failure:3
@@ -35,12 +37,13 @@ services:
         ipv4_address: 166.6.0.22
   minio:
     container_name: minio_data
-    image: bitnami/minio:2024.7.4
+    image: bitnamilegacy/minio:2024.7.4
     ports:
       # - "9000:9000"
       - "9001:9001"
-    env_file:
-      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/bitnami/minio/data
     restart: on-failure:3
@@ -48,6 +51,26 @@ services:
     networks:
       network:
         ipv4_address: 166.6.0.23
+  minio-init:
+    container_name: minio_init
+    image: minio/mc:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_HOST: ${MINIO_HOST}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      MINIO_APP_ACCESS_KEY: ${MINIO_APP_ACCESS_KEY}
+      MINIO_APP_SECRET_KEY: ${MINIO_APP_SECRET_KEY}
+    depends_on:
+      - minio
+    entrypoint: ["/bin/sh", "/init-minio.sh"]
+    volumes:
+      - ./minio/init-minio.sh:/init-minio.sh:ro
+    restart: on-failure:3
+    networks:
+      network:
+        ipv4_address: 166.6.0.25
   server:
     container_name: server_data
     volumes:
@@ -55,10 +78,25 @@ services:
     build:
       context: ../../server
       dockerfile: ./Dockerfile
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      MINIO_HOST: ${MINIO_HOST}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      MINIO_APP_ACCESS_KEY: ${MINIO_APP_ACCESS_KEY}
+      MINIO_APP_SECRET_KEY: ${MINIO_APP_SECRET_KEY}
+      MINIO_PRESIGNED_HOST: ${MINIO_PRESIGNED_HOST}
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
     # ports:
     #   - "6020:6020"
     restart: on-failure:3

@@ -15,7 +15,17 @@ func init() {
 		fmt.Printf("加载数据库数据失败 `%s`: %s\n", dbFile, err)
 		return
 	}
-	searcher, err := xdb.NewWithBuffer(ipBuff)
+	header, err := xdb.LoadHeaderFromBuff(ipBuff)
+	if err != nil {
+		fmt.Printf("读取数据库头信息失败 `%s`: %s\n", dbFile, err)
+		return
+	}
+	version, err := xdb.VersionFromHeader(header)
+	if err != nil {
+		fmt.Printf("识别数据库IP版本失败 `%s`: %s\n", dbFile, err)
+		return
+	}
+	searcher, err := xdb.NewWithBuffer(version, ipBuff)
 	if err != nil {
 		fmt.Printf("创建searcher失败: %s\n", err.Error())
 		return
@@ -30,9 +40,9 @@ func IPToRegion(ip string) string {
 		global.Log.Error("searcher初始化失败")
 		return "-"
 	}
-	region, err := searcher.SearchByStr(ip)
+	region, err := searcher.Search(ip)
 	if err != nil {
-		global.Log.Error("解析IP地址失败: %s", zap.Error(err))
+		global.Log.Error("解析IP地址失败", zap.Error(err))
 		return "-"
 	}
 	return region

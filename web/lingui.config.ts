@@ -6,7 +6,7 @@ export default defineConfig({
   catalogs: [
     {
       path: "src/locales/{locale}/messages",
-      include: ["src/components/**", "src/features/**", "src/hooks/**"],
+      include: ["src/components/**", "src/features/**", "src/hooks/**", "src/commons/**"],
       exclude: ["**/node_modules/**"],
     },
   ],

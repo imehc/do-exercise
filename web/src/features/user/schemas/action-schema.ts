@@ -75,8 +75,10 @@ export const getSchema = () =>
         if (!passwordResult.success) {
           passwordResult.error.issues.forEach((issue) => {
             issues.push({
-              ...issue,
+              code: 'custom',
               path: ['password'], // 强制绑定到 password 字段
+              message: issue.message,
+              input: value.password,
             })
           })
         }

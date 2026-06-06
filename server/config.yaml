@@ -59,8 +59,8 @@ minio:
 email:
   host: smtp.qq.com
   port: 587
-  user: xxxxxx@foxmail.com
-  pass: xxxxxxxx
+  user: xxxxxx@example.com
+  pass: REDACTED-ROTATED-CREDENTIAL
 
 # 磁盘路径
 disk_list:

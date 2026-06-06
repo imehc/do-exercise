@@ -5,8 +5,16 @@
  */
 export function ensureHttpPrefix(url?: string) {
   if (!url) return
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('data:') ||
+    url.startsWith('blob:')
+  ) {
     return url
   }
-  return `http://127.0.0.1:9000/oss${url}`
+  if (url.startsWith('/oss/')) {
+    return url
+  }
+  return `/oss${url.startsWith('/') ? url : `/${url}`}`
 }

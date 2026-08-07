@@ -5,6 +5,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cast"
 )
 
@@ -24,7 +25,7 @@ func (s *SysApiApi) Update(ctx *gin.Context) {
 	}
 	req.Id = id
 
-	if err := apiService.Update(req); err != nil {
+	if err := apiService.Update(util.DB(ctx), req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -38,7 +39,7 @@ func (s *SysApiApi) Get(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	api, err := apiService.Get(id)
+	api, err := apiService.Get(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -53,7 +54,7 @@ func (s *SysApiApi) GetList(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	data, err := apiService.GetList(req)
+	data, err := apiService.GetList(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -63,7 +64,7 @@ func (s *SysApiApi) GetList(ctx *gin.Context) {
 
 // GetAll 获取所有api
 func (s *SysApiApi) GetAll(ctx *gin.Context) {
-	data, err := apiService.GetAll()
+	data, err := apiService.GetAll(util.DB(ctx))
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -73,7 +74,7 @@ func (s *SysApiApi) GetAll(ctx *gin.Context) {
 
 // GetGroupType 获取分组类型
 func (s *SysApiApi) GetGroupType(ctx *gin.Context) {
-	data, err := apiService.GroupType()
+	data, err := apiService.GroupType(util.DB(ctx))
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

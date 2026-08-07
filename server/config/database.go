@@ -12,8 +12,7 @@ type Database struct {
 
 // Pool 数据库连接池配置
 type Pool struct {
-	MaxConnections    int `yaml:"max_connections" mapstructure:"max_connections"`       // 最大连接数
-	MinConnections    int `yaml:"min_connections" mapstructure:"min_connections"`       // 最小连接数
-	MaxIdleTime       int `yaml:"max_idle_time" mapstructure:"max_idle_time"`           // 最大空闲时间(秒)
-	ConnectionTimeout int `yaml:"connection_timeout" mapstructure:"connection_timeout"` // 连接超时时间(秒)
+	MaxConnections int `yaml:"max_connections" mapstructure:"max_connections"` // 最大连接数
+	MinConnections int `yaml:"min_connections" mapstructure:"min_connections"` // 最小连接数
+	MaxIdleTime    int `yaml:"max_idle_time" mapstructure:"max_idle_time"`     // 最大空闲时间(秒)
 }

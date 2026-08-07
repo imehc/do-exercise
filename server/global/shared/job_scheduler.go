@@ -285,11 +285,23 @@ func (js *JobScheduler) runJob(job *system.SysJob) error {
 	}
 
 	// 支持执行shell命令
-	cmd := exec.Command("/bin/sh", "-c", job.Command)
+	// 当设置了Timeout时在上下文中施加超时，避免命令永久卡死；Timeout为0保持原有行为
+	ctx := context.Background()
+	cancel := func() {}
+	if job.Timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(job.Timeout)*time.Second)
+	}
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "/bin/sh", "-c", job.Command)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("任务执行失败：%s, 命令：%s, 错误：%s, 输出：%s\n",
-			job.Name, job.Command, err.Error(), string(output))
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			fmt.Printf("任务执行超时：%s, 命令：%s\n", job.Name, job.Command)
+		} else {
+			fmt.Printf("任务执行失败：%s, 命令：%s, 错误：%s, 输出：%s\n",
+				job.Name, job.Command, err.Error(), string(output))
+		}
 		return err
 	}
 	fmt.Printf("任务执行成功：%s, 命令：%s, 输出：%s\n",

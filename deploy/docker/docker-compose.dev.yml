@@ -1,0 +1,73 @@
+# 开发环境依赖（数据库 / Redis / MinIO）
+# 用法：
+#   1. 复制环境变量：cp deploy/docker/.env.dev.example deploy/docker/.env.dev
+#   2. 启动依赖：    docker compose -f deploy/docker/docker-compose.dev.yml up -d
+#   3. 本地运行后端：cd server && make dev
+# 所有端口已映射到宿主机，便于本地进程直接连接（默认端口 5432/6379/9000/9001）。
+volumes:
+  dev_postgres_data:
+    name: dev_postgres_data
+  dev_redis_data:
+    name: dev_redis_data
+  dev_minio_data:
+    name: dev_minio_data
+
+services:
+  postgres:
+    container_name: postgres-dev
+    image: postgres
+    env_file:
+      - .env.dev
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: on-failure:3
+
+  redis:
+    container_name: redis-dev
+    image: redis
+    env_file:
+      - .env.dev
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - dev_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: on-failure:3
+
+  minio:
+    container_name: minio-dev
+    image: bitnamilegacy/minio:2024.7.4
+    ports:
+      - "9000:9000" # API（本地服务 / 浏览器预签名访问）
+      - "9001:9001" # Web 控制台
+    env_file:
+      - .env.dev
+    volumes:
+      - dev_minio_data:/bitnami/minio/data
+    restart: on-failure:3
+
+  minio-init:
+    container_name: minio-init-dev
+    image: minio/mc:latest
+    env_file:
+      - .env.dev
+    environment:
+      # 容器内部通过服务名访问 MinIO
+      MINIO_HOST: minio
+    depends_on:
+      - minio
+    entrypoint: ["/bin/sh", "/init-minio.sh"]
+    volumes:
+      - ./minio/init-minio.sh:/init-minio.sh:ro
+    restart: "no"

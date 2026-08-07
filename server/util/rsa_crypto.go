@@ -54,7 +54,7 @@ func (r *RSACrypto) GenerateAndStoreKeys(count int) error {
 	ctx := context.Background()
 
 	for i := 0; i < count; i++ {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
+		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return err
 		}

@@ -58,7 +58,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Wait for Web CI to pass
-        uses: lewagon/wait-on-check-action@v1.3.1
+        uses: lewagon/wait-on-check-action@v1.9.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'web-build-and-test'
@@ -74,7 +74,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Wait for Server CI to pass
-        uses: lewagon/wait-on-check-action@v1.3.1
+        uses: lewagon/wait-on-check-action@v1.9.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'server-build-and-test'
@@ -96,9 +96,12 @@ jobs:
         run: echo "All required checks for this PR have passed."
 
   # Auto-merge Dependabot PRs after the relevant checks pass.
+  # NOTE: use pull_request.user.login, NOT github.actor, because under
+  # pull_request_target github.actor may be a maintainer who re-ran the
+  # workflow rather than Dependabot itself.
   auto-merge:
     needs: [detect, wait-web-ci, wait-server-ci]
-    if: ${{ github.actor == 'dependabot[bot]' && !cancelled() && !contains(needs.*.result, 'failure') }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'imehc/do-exercise' && !cancelled() && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

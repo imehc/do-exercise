@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
@@ -10,6 +11,10 @@ import (
 
 func init() {
 	dbFile := "./ip2region.xdb"
+	// 文件不存在时静默跳过，避免测试或非部署环境下刷噪音。
+	if _, err := os.Stat(dbFile); err != nil {
+		return
+	}
 	ipBuff, err := xdb.LoadContentFromFile(dbFile)
 	if err != nil {
 		fmt.Printf("加载数据库数据失败 `%s`: %s\n", dbFile, err)

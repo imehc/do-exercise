@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cast"
 )
 
@@ -16,7 +17,7 @@ func (s *SysRoleApi) Create(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	_, err := roleService.Create(req)
+	_, err := roleService.Create(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -32,7 +33,7 @@ func (s *SysRoleApi) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := roleService.Delete(id); err != nil {
+	if err := roleService.Delete(util.DB(ctx), id); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -53,7 +54,7 @@ func (s *SysRoleApi) Update(ctx *gin.Context) {
 	}
 	req.Id = id
 
-	if err := roleService.Update(req); err != nil {
+	if err := roleService.Update(util.DB(ctx), req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -67,7 +68,7 @@ func (s *SysRoleApi) Get(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	user, err := roleService.Get(id)
+	user, err := roleService.Get(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -82,7 +83,7 @@ func (s *SysRoleApi) GetList(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	data, err := roleService.GetList(req)
+	data, err := roleService.GetList(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -92,7 +93,7 @@ func (s *SysRoleApi) GetList(ctx *gin.Context) {
 
 // GetAll 获取所有角色
 func (s *SysRoleApi) GetAll(ctx *gin.Context) {
-	data, err := roleService.GetAll()
+	data, err := roleService.GetAll(util.DB(ctx))
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

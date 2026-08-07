@@ -14,7 +14,14 @@
 #
 # 4. 格式化前建议先提交当前更改，格式化会修改文件内容
 
-.PHONY: format import help lint lint-fix install-lint pprof dev dev-install
+.PHONY: format import help lint lint-fix install-lint pprof dev dev-install gen
+
+# 代码生成器参数（详见 cmd/gen/README.md）
+# 用法: make gen NAME=SysDevice DESC=设备 ROUTE=devices FIELDS="code:string:设备编码 name:string:设备名称"
+NAME ?=
+DESC ?=
+ROUTE ?=
+FIELDS ?=
 
 # 显示帮助信息
 help:
@@ -27,6 +34,7 @@ help:
 	@echo "  make dev        - 使用 air 启动开发服务器（热重载）"
 	@echo "  make dev-install - 安装 air 开发工具"
 	@echo "  make pprof      - 启动 pprof 性能分析服务并显示常用分析命令"
+	@echo "  make gen        - 使用代码生成器生成实体 CRUD 六件套"
 	@echo "  make help       - 显示此帮助信息"
 	@echo ""
 	@echo "注意事项："
@@ -88,3 +96,14 @@ pprof:
 	@echo "  内存分析: go tool pprof http://localhost:6060/debug/pprof/heap"
 	@echo "  协程分析: go tool pprof http://localhost:6060/debug/pprof/goroutine"
 	@echo "访问 http://localhost:6060/debug/pprof/ 查看更多分析入口"
+
+# 代码生成器（详见 cmd/gen/README.md）
+gen:
+	@if [ -z "$(NAME)" ]; then \
+		echo "用法: make gen NAME=SysDevice DESC=设备 ROUTE=devices FIELDS='code:string:设备编码 name:string:设备名称'"; \
+		echo "更多说明见 cmd/gen/README.md"; \
+		exit 1; \
+	fi
+	@echo "正在为 $(NAME) 生成实体代码..."
+	@go run ./cmd/gen -name="$(NAME)" -desc="$(DESC)" -path="$(ROUTE)" $(foreach f,$(FIELDS),-field="$(f)")
+	@echo "生成完成，请执行 go build ./... 验证编译"

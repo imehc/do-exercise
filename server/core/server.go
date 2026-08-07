@@ -1,7 +1,9 @@
 package core
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
@@ -9,6 +11,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/router"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type server interface {
@@ -26,7 +29,10 @@ func RunServer() {
 	addr := fmt.Sprintf(":%d", global.Config.System.Port)
 	s := initServer(addr, r)
 
-	global.Log.Error(s.ListenAndServe().Error())
+	// 监听失败（端口占用等）时以非零码退出；优雅关闭时 err 为 nil 或 ErrServerClosed，正常返回
+	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		global.Log.Fatal("server listen failed", zap.Error(err))
+	}
 }
 
 // syncApi 同步api到数据库

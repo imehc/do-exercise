@@ -2,6 +2,8 @@
 auth:
   access_expire_time: 2h
   refresh_expire_time: 7d
+  login_max_attempts: 5   # 登录失败锁定阈值（0 使用默认 5）
+  login_lock_minutes: 5   # 登录失败锁定时长（分钟，0 使用默认 5）
 
 # 系统
 system:

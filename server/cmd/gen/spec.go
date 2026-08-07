@@ -36,7 +36,7 @@ func parseField(raw string) (Field, error) {
 
 	field := Field{
 		Name:    name,
-		Pascal: pascal(name),
+		Pascal:  pascal(name),
 		Kind:    kind,
 		Comment: comment,
 	}
@@ -67,7 +67,7 @@ func parseField(raw string) (Field, error) {
 }
 
 // KeyField 是否为时间/删除等由骨架自动生成的字段
-func (spec *Spec) structName() string { return spec.Name }
+func (spec *Spec) structName() string    { return spec.Name }
 func (spec *Spec) serviceStruct() string { return spec.Name + "Service" }
 func (spec *Spec) apiStruct() string     { return spec.Name + "Api" }
 func (spec *Spec) routerStruct() string  { return spec.Name + "Router" }

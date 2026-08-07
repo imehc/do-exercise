@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -80,8 +81,10 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			log.Error("Failed to create menu: %v")
-			tx.Rollback()
+			log.Error("Failed to create menu", zap.Any("panic", r))
+			if tx != nil {
+				_ = tx.Rollback().Error
+			}
 		}
 	}()
 
@@ -282,7 +285,7 @@ func (s *SysMenuService) GetTree() ([]response.SysMenuTreeResp, error) {
 	buildSubTree = func(parentId uint) []response.SysMenuTreeResp {
 		children := make([]response.SysMenuTreeResp, 0)
 		for _, m := range menus {
-			if *m.ParentId == parentId && !processed[m.Id] {
+			if m.ParentId != nil && *m.ParentId == parentId && !processed[m.Id] {
 				node := *menuMap[m.Id]
 				// 递归获取子节点
 				node.Children = buildSubTree(m.Id) // 递归调用buildSubTree获取子节点

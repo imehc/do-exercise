@@ -149,7 +149,7 @@ func (u *UserService) GetMenu(id string) (*[]response.UserMenu, error) {
 	for len(toCheck) > 0 {
 		var nextToCheck []system.SysMenu
 		for _, menu := range toCheck {
-			if *menu.ParentId != 0 {
+			if menu.ParentId != nil && *menu.ParentId != 0 {
 				if _, exists := menuMap[*menu.ParentId]; !exists {
 					var parentMenu system.SysMenu
 					if err := db.First(&parentMenu, menu.ParentId).Error; err == nil {

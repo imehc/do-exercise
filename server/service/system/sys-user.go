@@ -263,12 +263,7 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 		Model(&system.SysUser{})
 	db.
 		Count(&total)
-	if req.Page < 1 {
-		req.Page = 1
-	}
-	if req.PageSize < 1 {
-		req.PageSize = 10
-	}
+	req.Normalize()
 	db = db.
 		Preload("Roles").
 		Scopes(util.Paginate(req.PageSize, req.Page)).

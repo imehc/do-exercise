@@ -64,15 +64,24 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
+	// 登录爆破防护：按IP与用户名计数，失败次数达到阈值后临时锁定
+	ip := ctx.ClientIP()
+	if loginIsLocked(ip, req.Username) {
+		response.BadRequest(ctx, "loginLocked")
+		return
+	}
+
 	user, err := authService.Login(util.DB(ctx), common.Login{
 		Username: req.Username,
 		Password: password,
 	})
 	if err != nil {
+		registerLoginFailure(ip, req.Username)
 		response.BadRequest(ctx, err.Error())
 		return
 	}
 
+	clearLoginFailures(ip, req.Username)
 	s.generateToken(ctx, user)
 }
 
@@ -183,7 +192,7 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 		return
 	}
 
-user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
+	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
 		response.BadRequest(ctx, "emailNotBound")
 		return
@@ -252,7 +261,7 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 		response.BadRequest(ctx, err.Error())
 	}
 
-user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
+	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
 		response.BadRequest(ctx, "emailNotBound")
 		return

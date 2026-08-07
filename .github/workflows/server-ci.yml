@@ -3,8 +3,14 @@ name: Server CI
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
 
 jobs:
   server-build-and-test:

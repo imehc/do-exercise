@@ -11,9 +11,9 @@ on:
       - main
 
 jobs:
-  # Determine which part of the repo the dependency update touches.
+  # Determine which part of the repo the PR touches. Runs for every PR
+  # (both Dependabot and regular) so we can enforce the right CI.
   detect:
-    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -21,15 +21,15 @@ jobs:
       is-frontend: ${{ steps.set.outputs.is-frontend }}
       is-backend: ${{ steps.set.outputs.is-backend }}
     steps:
-      - name: Classify dependency update
+      - name: Classify pull request scope
         id: set
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Dependabot update paths can be derived from the PR.
-          # npm updates target /web, gomod updates target /server.
+          # npm updates target /web, gomod updates target /server,
+          # github-actions updates target /.github/workflows.
           FRONTEND=false
           BACKEND=false
 
@@ -49,7 +49,7 @@ jobs:
           echo "is-frontend=$FRONTEND" >> "$GITHUB_OUTPUT"
           echo "is-backend=$BACKEND" >> "$GITHUB_OUTPUT"
 
-  # Frontend dependency updates require the Web CI (build + test) to pass.
+  # Frontend changes require the Web CI (build + test) to pass.
   wait-web-ci:
     needs: detect
     if: needs.detect.outputs.is-frontend == 'true'
@@ -65,7 +65,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
 
-  # Backend dependency updates require the Server CI (build + test) to pass.
+  # Backend changes require the Server CI (build + test) to pass.
   wait-server-ci:
     needs: detect
     if: needs.detect.outputs.is-backend == 'true'
@@ -81,12 +81,24 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
 
-  # Only enable auto-merge after the relevant checks have passed.
+  # Merge gate. This job is the single required status check in branch
+  # protection, so it runs for ALL pull requests (Dependabot and regular).
+  # It only succeeds after the CI relevant to the PR's scope has passed:
+  #   - frontend PR -> waits for Web CI
+  #   - backend PR  -> waits for Server CI
+  #   - github-actions/other -> no build/test required, passes directly
+  check-required:
+    needs: [detect, wait-web-ci, wait-server-ci]
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Required checks passed
+        run: echo "All required checks for this PR have passed."
+
+  # Auto-merge Dependabot PRs after the relevant checks pass.
   auto-merge:
     needs: [detect, wait-web-ci, wait-server-ci]
-    # Always run, but the wait jobs are conditional on scope, so this job
-    # effectively only proceeds once the required CI has succeeded.
-    if: github.actor == 'dependabot[bot]'
+    if: ${{ github.actor == 'dependabot[bot]' && !cancelled() && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

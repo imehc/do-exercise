@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cast"
 )
 
@@ -17,7 +18,7 @@ func (s *SysJobApi) Create(ctx *gin.Context) {
 		return
 	}
 
-	_, err := jobService.Create(req)
+	_, err := jobService.Create(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -33,7 +34,7 @@ func (s *SysJobApi) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := jobService.Delete(id); err != nil {
+	if err := jobService.Delete(util.DB(ctx), id); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -54,7 +55,7 @@ func (s *SysJobApi) Update(ctx *gin.Context) {
 	}
 	req.Id = id
 
-	if err := jobService.Update(req); err != nil {
+	if err := jobService.Update(util.DB(ctx), req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -68,7 +69,7 @@ func (s *SysJobApi) Get(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	menu, err := jobService.Get(id)
+	menu, err := jobService.Get(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -83,7 +84,7 @@ func (s *SysJobApi) GetList(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	data, err := jobService.GetList(req)
+	data, err := jobService.GetList(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -98,7 +99,7 @@ func (s *SysJobApi) Start(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	err := jobService.Start(id)
+	err := jobService.Start(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -113,7 +114,7 @@ func (s *SysJobApi) Stop(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	err := jobService.Stop(id)
+	err := jobService.Stop(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -128,7 +129,7 @@ func (s *SysJobApi) Execute(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	err := jobService.Execute(id)
+	err := jobService.Execute(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

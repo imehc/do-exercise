@@ -161,7 +161,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 		return
 	}
 
-	if err = userService.BindEmail(request.BindEmailReq{
+	if err = userService.BindEmail(util.DB(ctx), request.BindEmailReq{
 		Id:    userId,
 		Email: req.Email,
 	}); err != nil {
@@ -232,7 +232,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 	req.OldPassword = oldPassword
 	req.Password = password
 
-	if err := userService.UpdatePassword(*req); err != nil {
+	if err := userService.UpdatePassword(util.DB(ctx), *req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -251,7 +251,7 @@ func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 
 	req.Id = userId
 
-	err := userService.UpdateProfile(req)
+	err := userService.UpdateProfile(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -263,7 +263,7 @@ func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 func (s *UserApi) GetProfile(ctx *gin.Context) {
 	userId := ctx.MustGet("userId").(string)
 
-	user, err := userService.GetProfile(userId)
+	user, err := userService.GetProfile(util.DB(ctx), userId)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -275,7 +275,7 @@ func (s *UserApi) GetProfile(ctx *gin.Context) {
 func (s *UserApi) GetMenu(ctx *gin.Context) {
 	userId := ctx.MustGet("userId").(string)
 
-	menu, err := userService.GetMenu(userId)
+	menu, err := userService.GetMenu(util.DB(ctx), userId)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

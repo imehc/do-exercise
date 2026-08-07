@@ -6,12 +6,21 @@
 
 version: 2
 updates:
+  - package-ecosystem: "github-actions" 
+    directory: "/" 
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
   - package-ecosystem: "npm"
     versioning-strategy: increase
     directory: "/web"
     schedule:
       interval: "weekly"
+      day: "monday"
+      
   - package-ecosystem: "gomod"
     directory: "/server"
     schedule:
       interval: "weekly"
+      day: "monday"

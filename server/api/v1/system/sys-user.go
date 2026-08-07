@@ -5,6 +5,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cast"
 )
 
@@ -17,7 +18,7 @@ func (s *SysUserApi) Create(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	_, err := userService.Create(req)
+	_, err := userService.Create(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -33,7 +34,7 @@ func (s *SysUserApi) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := userService.Delete(id); err != nil {
+	if err := userService.Delete(util.DB(ctx), id); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -59,7 +60,7 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 		RoleIds:  req.RoleIds,
 	}
 
-	if err := userService.Update(user); err != nil {
+	if err := userService.Update(util.DB(ctx), user); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -73,7 +74,7 @@ func (s *SysUserApi) Get(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	user, err := userService.Get(id)
+	user, err := userService.Get(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -88,7 +89,7 @@ func (s *SysUserApi) GetList(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	data, err := userService.GetList(req)
+	data, err := userService.GetList(util.DB(ctx), req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -110,7 +111,7 @@ func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
 	}
 	req.Id = id
 
-	err := userService.ResetPassword(req, nil)
+	err := userService.ResetPassword(util.DB(ctx), req, nil)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

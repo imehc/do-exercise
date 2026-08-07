@@ -73,12 +73,7 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 	var total int64
 	db := global.DB.Model(&system.SysApi{})
 	db.Count(&total)
-	if req.Page < 1 {
-		req.Page = 1
-	}
-	if req.PageSize < 1 {
-		req.PageSize = 10
-	}
+	req.Normalize()
 	db = db.
 		Scopes(util.Paginate(req.PageSize, req.Page)).
 		Order("disabled ASC").

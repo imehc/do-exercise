@@ -153,6 +153,7 @@ func (s *SysJobService) GetList(req request.QuerySysJobReq) (*common.PageResult[
 		return nil, errors.New("job.getJobListFailed")
 	}
 
+	req.Normalize()
 	// 获取分页数据
 	if err := query.
 		Scopes(util.Paginate(req.PageSize, req.Page)).

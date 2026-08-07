@@ -96,9 +96,9 @@ func (s *SysRoleService) checkRoleExist(db *gorm.DB, roleId uint) (*system.SysRo
 }
 
 // checkCodeDuplicate 检查角色编码是否重复
-func (s *SysRoleService) checkCodeDuplicate(code string) error {
+func (s *SysRoleService) checkCodeDuplicate(db *gorm.DB, code string) error {
 	var count int64
-	err := global.DB.Model(&system.SysRole{}).
+	err := db.Model(&system.SysRole{}).
 		Where("code = ?", code).
 		Count(&count).
 		Error
@@ -109,9 +109,8 @@ func (s *SysRoleService) checkCodeDuplicate(code string) error {
 }
 
 // Create 创建角色
-func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRoleResp, error) {
-	db := global.DB
-	if err := s.checkCodeDuplicate(req.Code); err != nil {
+func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*response.SysRoleResp, error) {
+	if err := s.checkCodeDuplicate(db, req.Code); err != nil {
 		return nil, err
 	}
 
@@ -161,8 +160,7 @@ func (s *SysRoleService) Create(req request.CreateSysRoleReq) (*response.SysRole
 }
 
 // Delete 删除角色
-func (s *SysRoleService) Delete(id uint) error {
-	db := global.DB
+func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 	// 先检查角色是否存在
 	existRole, err := s.checkRoleExist(db, id)
 	if err != nil {
@@ -185,8 +183,7 @@ func (s *SysRoleService) Delete(id uint) error {
 }
 
 // Update 更新角色
-func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
-	db := global.DB
+func (s *SysRoleService) Update(db *gorm.DB, req request.UpdateSysRoleReq) error {
 	role, err := s.checkRoleExist(db, req.Id)
 	if err != nil {
 		return err
@@ -224,9 +221,7 @@ func (s *SysRoleService) Update(req request.UpdateSysRoleReq) error {
 }
 
 // Get 查询单个角色
-func (s *SysRoleService) Get(id uint) (*response.SysRoleResp, error) {
-	db := global.DB
-
+func (s *SysRoleService) Get(db *gorm.DB, id uint) (*response.SysRoleResp, error) {
 	_, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return nil, err
@@ -261,10 +256,10 @@ func (s *SysRoleService) Get(id uint) (*response.SysRoleResp, error) {
 }
 
 // GetList 查询角色列表
-func (s *SysRoleService) GetList(req request.QuerySysRoleReq) (common.PageResult[response.SysRoleResp], error) {
+func (s *SysRoleService) GetList(db *gorm.DB, req request.QuerySysRoleReq) (common.PageResult[response.SysRoleResp], error) {
 	var roles []system.SysRole
 	var total int64
-	db := global.DB.Model(&system.SysRole{})
+	db = db.Model(&system.SysRole{})
 
 	// 添加模糊查询条件
 	if req.Name != "" {
@@ -318,9 +313,9 @@ func (s *SysRoleService) GetList(req request.QuerySysRoleReq) (common.PageResult
 }
 
 // GetAll 获取所有角色
-func (s *SysRoleService) GetAll() ([]response.SysRoleShortResp, error) {
+func (s *SysRoleService) GetAll(db *gorm.DB) ([]response.SysRoleShortResp, error) {
 	var roles []system.SysRole
-	db := global.DB.Model(&system.SysRole{})
+	db = db.Model(&system.SysRole{})
 	err := db.
 		Order("id ASC").
 		Find(&roles).

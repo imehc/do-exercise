@@ -3,20 +3,19 @@ package system
 import (
 	"errors"
 
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
+	"gorm.io/gorm"
 )
 
 type SysApiService struct{}
 
 // Update 更新api
-func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
-	db := global.DB
+func (s *SysApiService) Update(db *gorm.DB, req request.UpdateSysApiReq) error {
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
 	err := db.
@@ -43,8 +42,7 @@ func (s *SysApiService) Update(req request.UpdateSysApiReq) error {
 }
 
 // Get 查询单个api
-func (s *SysApiService) Get(id uint) (*response.SysApiResp, error) {
-	db := global.DB
+func (s *SysApiService) Get(db *gorm.DB, id uint) (*response.SysApiResp, error) {
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
 	err := db.
@@ -68,17 +66,12 @@ func (s *SysApiService) Get(id uint) (*response.SysApiResp, error) {
 }
 
 // GetList 查询api列表
-func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[response.SysApiResp], error) {
+func (s *SysApiService) GetList(db *gorm.DB, req common.Pagination) (*common.PageResult[response.SysApiResp], error) {
 	var apis []system.SysApi
 	var total int64
-	db := global.DB.Model(&system.SysApi{})
+	db = db.Model(&system.SysApi{})
 	db.Count(&total)
-	if req.Page < 1 {
-		req.Page = 1
-	}
-	if req.PageSize < 1 {
-		req.PageSize = 10
-	}
+	req.Normalize()
 	db = db.
 		Scopes(util.Paginate(req.PageSize, req.Page)).
 		Order("disabled ASC").
@@ -112,9 +105,9 @@ func (s *SysApiService) GetList(req common.Pagination) (*common.PageResult[respo
 }
 
 // GetAll 查询所有api
-func (s *SysApiService) GetAll() ([]response.SysApiResp, error) {
+func (s *SysApiService) GetAll(db *gorm.DB) ([]response.SysApiResp, error) {
 	var apis []system.SysApi
-	err := global.DB.
+	err := db.
 		Order("disabled ASC").
 		Order("sort DESC").
 		Order("id ASC").
@@ -139,9 +132,9 @@ func (s *SysApiService) GetAll() ([]response.SysApiResp, error) {
 }
 
 // GroupType 查询api分组类型
-func (s *SysApiService) GroupType() ([]string, error) {
+func (s *SysApiService) GroupType(db *gorm.DB) ([]string, error) {
 	var groups []string
-	err := global.DB.
+	err := db.
 		Model(&system.SysApi{}).
 		Select("COALESCE(\"group\", 'Default') as group").
 		Distinct().

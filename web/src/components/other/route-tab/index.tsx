@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useLocation } from '@tanstack/react-router'
 import { Trans } from '@lingui/react/macro'
 import { useAtom } from 'jotai'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { AutoSizer } from 'react-virtualized-auto-sizer'
 import { routeTabCacheAtom } from '~/atoms'
 import { Menu } from '~/do-exercise-api'
 import { useMenus } from '~/provider'
@@ -39,17 +39,12 @@ const FIXED_PAGES: Record<'dashboard' | 'settings', TabItem> = {
 export function RouteTab() {
   const router = useRouter()
   const location = useLocation()
-  const [tabs, setTabs] = useState<TabItem[]>([FIXED_PAGES.dashboard])
-  const [activeTab, setActiveTab] = useState(FIXED_PAGES.dashboard.id)
   const [cacheTab, setCacheTab] = useAtom(routeTabCacheAtom)
   const originMenus = useMenus()
+  const [tabs, setTabs] = useState<TabItem[]>(() => {
+    if (!cacheTab.tabs.length) return [FIXED_PAGES.dashboard]
 
-  useEffect(() => {
-    if (!cacheTab.tabs.length) {
-      setTabs([FIXED_PAGES.dashboard])
-      return
-    }
-    const tempCacheTabs = cacheTab.tabs
+    return cacheTab.tabs
       .filter(
         (item) =>
           originMenus.some((menu) => menu.id.toString() === item.id) ||
@@ -82,12 +77,8 @@ export function RouteTab() {
           route: menu.route,
         } as TabItem
       })
-    setTabs(tempCacheTabs)
-
-    return () => {
-      setTabs([])
-    }
-  }, [cacheTab.tabs, cacheTab.tabs.length, originMenus])
+  })
+  const [activeTab, setActiveTab] = useState(FIXED_PAGES.dashboard.id)
 
   useEffect(() => {
     const handler = () => {
@@ -101,38 +92,36 @@ export function RouteTab() {
     }
   }, [activeTab, setCacheTab, tabs])
 
-  // 监听路由变化，自动添加标签页
-  useEffect(() => {
-    const currentPath = location.pathname
+  // 监听路由变化，自动添加标签页（在渲染期间调整状态）
+  const [prevPathname, setPrevPathname] = useState(location.pathname)
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname)
 
     // 检查是否是固定页面
     const fixedPage = Object.values(FIXED_PAGES).find(
-      (page) => page.route === currentPath
+      (page) => page.route === location.pathname
     )
     if (fixedPage) {
-      if (!tabs.find((tab) => tab.id.toString() === fixedPage.id)) {
-        setTabs((prev) => {
-          const filtered = prev.filter((tab) => tab.id !== fixedPage.id)
-
-          // Dashboard 始终在第一位
-          if (fixedPage.id === 'dashboard') {
-            return [fixedPage, ...filtered]
-          }
-
-          // 其他固定页面（如 Settings）添加到最后
-          return [...filtered, fixedPage]
-        })
-      }
-      setActiveTab(fixedPage.id)
-      return
-    }
-
-    // 检查是否是菜单页面
-    const menuTab = originMenus.find((tab) => tab.route === currentPath)
-    if (menuTab) {
       setTabs((prev) => {
-        const exists = prev.find((tab) => tab.id === menuTab.id.toString())
-        if (!exists) {
+        if (prev.find((tab) => tab.id.toString() === fixedPage.id)) return prev
+        const filtered = prev.filter((tab) => tab.id !== fixedPage.id)
+
+        // Dashboard 始终在第一位
+        if (fixedPage.id === 'dashboard') {
+          return [fixedPage, ...filtered]
+        }
+
+        // 其他固定页面（如 Settings）添加到最后
+        return [...filtered, fixedPage]
+      })
+      setActiveTab(fixedPage.id)
+    } else {
+      // 检查是否是菜单页面
+      const menuTab = originMenus.find((tab) => tab.route === location.pathname)
+      if (menuTab) {
+        setTabs((prev) => {
+          const exists = prev.find((tab) => tab.id === menuTab.id.toString())
+          if (exists) return prev
           return [
             ...prev,
             {
@@ -143,12 +132,11 @@ export function RouteTab() {
               icon: menuTab.icon!,
             } satisfies TabItem,
           ]
-        }
-        return prev
-      })
-      setActiveTab(menuTab.id.toString())
+        })
+        setActiveTab(menuTab.id.toString())
+      }
     }
-  }, [location.pathname, originMenus, tabs])
+  }
 
   const handleTabClose = (id: string) => {
     // 不能删除固定页面
@@ -265,8 +253,8 @@ export function RouteTab() {
   }
 
   return (
-    <AutoSizer>
-      {({ width }) => (
+    <AutoSizer
+      renderProp={({ width }) => (
         <div
           className={cn(
             'border-border bg-background/80 grid w-full min-w-0 grid-cols-[1fr_auto]'
@@ -295,6 +283,6 @@ export function RouteTab() {
           />
         </div>
       )}
-    </AutoSizer>
+    />
   )
 }

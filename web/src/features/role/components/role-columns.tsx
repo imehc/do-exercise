@@ -10,6 +10,7 @@ import {
   createColumn,
   createDateColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 
 const columnTitleMap = {
   id: (): string => t`序号`,
@@ -22,7 +23,7 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (): ColumnDef<SysRole>[] => {
+export const useColumns = (): ColumnDef<DataTableFeatures, SysRole>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasMore = basicMoreOptions.some((p) => permissions.includes(p))
@@ -32,7 +33,7 @@ export const useColumns = (): ColumnDef<SysRole>[] => {
       accessorKey: 'id',
       header: () => columnTitleMap.id(),
       cell: ({ row, table }) => {
-        const pagination = table.getState().pagination
+        const pagination = table.atoms.pagination.get()
         return (
           (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
           row.index +
@@ -43,14 +44,14 @@ export const useColumns = (): ColumnDef<SysRole>[] => {
     createColumn<SysRole>({
       key: 'name',
       title: columnTitleMap.name,
-      cell: ({ row }: CellContext<SysRole, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysRole, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.name}</div>
       ),
     }),
     createColumn<SysRole>({
       key: 'code',
       title: columnTitleMap.code,
-      cell: ({ row }: CellContext<SysRole, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysRole, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.code}</div>
       ),
     }),

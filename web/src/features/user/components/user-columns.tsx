@@ -17,6 +17,7 @@ import {
   createDateColumn,
   createActionColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 import { ResetPassword } from './user-reset-password-dialog'
 
 const columnTitleMap = {
@@ -32,7 +33,7 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (): ColumnDef<SysUser>[] => {
+export const useColumns = (): ColumnDef<DataTableFeatures, SysUser>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasMore = (
@@ -44,7 +45,7 @@ export const useColumns = (): ColumnDef<SysUser>[] => {
       accessorKey: 'id',
       header: () => columnTitleMap.id(),
       cell: ({ row, table }) => {
-        const pagination = table.getState().pagination
+        const pagination = table.atoms.pagination.get()
         return (
           (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
           row.index +
@@ -55,28 +56,28 @@ export const useColumns = (): ColumnDef<SysUser>[] => {
     createColumn<SysUser>({
       key: 'username',
       title: columnTitleMap.username,
-      cell: ({ row }: CellContext<SysUser, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysUser, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.username}</div>
       ),
     }),
     createColumn<SysUser>({
       key: 'nickname',
       title: columnTitleMap.nickname,
-      cell: ({ row }: CellContext<SysUser, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysUser, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.nickname || '-'}</div>
       ),
     }),
     createColumn<SysUser>({
       key: 'email',
       title: columnTitleMap.email,
-      cell: ({ row }: CellContext<SysUser, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysUser, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.email || '-'}</div>
       ),
     }),
     createColumn<SysUser>({
       key: 'avatar',
       title: columnTitleMap.avatar,
-      cell: ({ row }: CellContext<SysUser, unknown>) => {
+      cell: ({ row }: CellContext<DataTableFeatures, SysUser, unknown>) => {
         const avatar = row.original.avatar
         if (!avatar) {
           return '-'

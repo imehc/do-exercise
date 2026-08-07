@@ -8,469 +8,182 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as authEmailSignInRouteImport } from './routes/(auth)/email-sign-in'
+import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
+import { Route as authOtpRouteImport } from './routes/(auth)/otp'
+import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as errors401RouteImport } from './routes/(errors)/401'
+import { Route as errors403RouteImport } from './routes/(errors)/403'
+import { Route as errors404RouteImport } from './routes/(errors)/404'
+import { Route as errors500RouteImport } from './routes/(errors)/500'
+import { Route as errors503RouteImport } from './routes/(errors)/503'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedApiIndexRouteImport } from './routes/_authenticated/api/index'
+import { Route as AuthenticatedMenuIndexRouteImport } from './routes/_authenticated/menu/index'
+import { Route as AuthenticatedOperationLogIndexRouteImport } from './routes/_authenticated/operation-log/index'
+import { Route as AuthenticatedRoleIndexRouteImport } from './routes/_authenticated/role/index'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
+import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
+import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
+import { Route as AuthenticatedSettingsEmailRouteImport } from './routes/_authenticated/settings/email'
+import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
+import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/_authenticated/settings/password'
+import { Route as AuthenticatedSystemInfoIndexRouteImport } from './routes/_authenticated/system-info/index'
+import { Route as AuthenticatedTaskIndexRouteImport } from './routes/_authenticated/task/index'
+import { Route as AuthenticatedTokenIndexRouteImport } from './routes/_authenticated/token/index'
+import { Route as AuthenticatedUserIndexRouteImport } from './routes/_authenticated/user/index'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
-import { Route as errors503Import } from './routes/(errors)/503'
-import { Route as errors500Import } from './routes/(errors)/500'
-import { Route as errors404Import } from './routes/(errors)/404'
-import { Route as errors403Import } from './routes/(errors)/403'
-import { Route as errors401Import } from './routes/(errors)/401'
-import { Route as authSignInImport } from './routes/(auth)/sign-in'
-import { Route as authOtpImport } from './routes/(auth)/otp'
-import { Route as authForgotPasswordImport } from './routes/(auth)/forgot-password'
-import { Route as authEmailSignInImport } from './routes/(auth)/email-sign-in'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings/route'
-import { Route as AuthenticatedUserIndexImport } from './routes/_authenticated/user/index'
-import { Route as AuthenticatedTokenIndexImport } from './routes/_authenticated/token/index'
-import { Route as AuthenticatedTaskIndexImport } from './routes/_authenticated/task/index'
-import { Route as AuthenticatedSystemInfoIndexImport } from './routes/_authenticated/system-info/index'
-import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedRoleIndexImport } from './routes/_authenticated/role/index'
-import { Route as AuthenticatedOperationLogIndexImport } from './routes/_authenticated/operation-log/index'
-import { Route as AuthenticatedMenuIndexImport } from './routes/_authenticated/menu/index'
-import { Route as AuthenticatedApiIndexImport } from './routes/_authenticated/api/index'
-import { Route as AuthenticatedSettingsPasswordImport } from './routes/_authenticated/settings/password'
-import { Route as AuthenticatedSettingsNotificationsImport } from './routes/_authenticated/settings/notifications'
-import { Route as AuthenticatedSettingsEmailImport } from './routes/_authenticated/settings/email'
-import { Route as AuthenticatedSettingsDisplayImport } from './routes/_authenticated/settings/display'
-import { Route as AuthenticatedSettingsAppearanceImport } from './routes/_authenticated/settings/appearance'
-import { Route as AuthenticatedSettingsAccountImport } from './routes/_authenticated/settings/account'
-
-// Create/Update Routes
-
-const AuthenticatedRouteRoute = AuthenticatedRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
+const authEmailSignInRoute = authEmailSignInRouteImport.update({
+  id: '/(auth)/email-sign-in',
+  path: '/email-sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
+  id: '/(auth)/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authOtpRoute = authOtpRouteImport.update({
+  id: '/(auth)/otp',
+  path: '/otp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authSignInRoute = authSignInRouteImport.update({
+  id: '/(auth)/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors401Route = errors401RouteImport.update({
+  id: '/(errors)/401',
+  path: '/401',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors403Route = errors403RouteImport.update({
+  id: '/(errors)/403',
+  path: '/403',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors404Route = errors404RouteImport.update({
+  id: '/(errors)/404',
+  path: '/404',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors500Route = errors500RouteImport.update({
+  id: '/(errors)/500',
+  path: '/500',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors503Route = errors503RouteImport.update({
+  id: '/(errors)/503',
+  path: '/503',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-
-const errors503Route = errors503Import.update({
-  id: '/(errors)/503',
-  path: '/503',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const errors500Route = errors500Import.update({
-  id: '/(errors)/500',
-  path: '/500',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const errors404Route = errors404Import.update({
-  id: '/(errors)/404',
-  path: '/404',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const errors403Route = errors403Import.update({
-  id: '/(errors)/403',
-  path: '/403',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const errors401Route = errors401Import.update({
-  id: '/(errors)/401',
-  path: '/401',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const authSignInRoute = authSignInImport.update({
-  id: '/(auth)/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const authOtpRoute = authOtpImport.update({
-  id: '/(auth)/otp',
-  path: '/otp',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const authForgotPasswordRoute = authForgotPasswordImport.update({
-  id: '/(auth)/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const authEmailSignInRoute = authEmailSignInImport.update({
-  id: '/(auth)/email-sign-in',
-  path: '/email-sign-in',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthenticatedSettingsRouteRoute = AuthenticatedSettingsRouteImport.update(
-  {
+const AuthenticatedSettingsRouteRoute =
+  AuthenticatedSettingsRouteRouteImport.update({
     id: '/settings',
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any,
-)
-
-const AuthenticatedUserIndexRoute = AuthenticatedUserIndexImport.update({
+  } as any)
+const AuthenticatedApiIndexRoute = AuthenticatedApiIndexRouteImport.update({
+  id: '/api/',
+  path: '/api/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMenuIndexRoute = AuthenticatedMenuIndexRouteImport.update({
+  id: '/menu/',
+  path: '/menu/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOperationLogIndexRoute =
+  AuthenticatedOperationLogIndexRouteImport.update({
+    id: '/operation-log/',
+    path: '/operation-log/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRoleIndexRoute = AuthenticatedRoleIndexRouteImport.update({
+  id: '/role/',
+  path: '/role/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsAccountRoute =
+  AuthenticatedSettingsAccountRouteImport.update({
+    id: '/account',
+    path: '/account',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceRoute =
+  AuthenticatedSettingsAppearanceRouteImport.update({
+    id: '/appearance',
+    path: '/appearance',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsDisplayRoute =
+  AuthenticatedSettingsDisplayRouteImport.update({
+    id: '/display',
+    path: '/display',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsEmailRoute =
+  AuthenticatedSettingsEmailRouteImport.update({
+    id: '/email',
+    path: '/email',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsNotificationsRoute =
+  AuthenticatedSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsPasswordRoute =
+  AuthenticatedSettingsPasswordRouteImport.update({
+    id: '/password',
+    path: '/password',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSystemInfoIndexRoute =
+  AuthenticatedSystemInfoIndexRouteImport.update({
+    id: '/system-info/',
+    path: '/system-info/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTaskIndexRoute = AuthenticatedTaskIndexRouteImport.update({
+  id: '/task/',
+  path: '/task/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTokenIndexRoute = AuthenticatedTokenIndexRouteImport.update({
+  id: '/token/',
+  path: '/token/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUserIndexRoute = AuthenticatedUserIndexRouteImport.update({
   id: '/user/',
   path: '/user/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
-const AuthenticatedTokenIndexRoute = AuthenticatedTokenIndexImport.update({
-  id: '/token/',
-  path: '/token/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedTaskIndexRoute = AuthenticatedTaskIndexImport.update({
-  id: '/task/',
-  path: '/task/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedSystemInfoIndexRoute =
-  AuthenticatedSystemInfoIndexImport.update({
-    id: '/system-info/',
-    path: '/system-info/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-
-const AuthenticatedSettingsIndexRoute = AuthenticatedSettingsIndexImport.update(
-  {
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any,
-)
-
-const AuthenticatedRoleIndexRoute = AuthenticatedRoleIndexImport.update({
-  id: '/role/',
-  path: '/role/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedOperationLogIndexRoute =
-  AuthenticatedOperationLogIndexImport.update({
-    id: '/operation-log/',
-    path: '/operation-log/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-
-const AuthenticatedMenuIndexRoute = AuthenticatedMenuIndexImport.update({
-  id: '/menu/',
-  path: '/menu/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedApiIndexRoute = AuthenticatedApiIndexImport.update({
-  id: '/api/',
-  path: '/api/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedSettingsPasswordRoute =
-  AuthenticatedSettingsPasswordImport.update({
-    id: '/password',
-    path: '/password',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-
-const AuthenticatedSettingsNotificationsRoute =
-  AuthenticatedSettingsNotificationsImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-
-const AuthenticatedSettingsEmailRoute = AuthenticatedSettingsEmailImport.update(
-  {
-    id: '/email',
-    path: '/email',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any,
-)
-
-const AuthenticatedSettingsDisplayRoute =
-  AuthenticatedSettingsDisplayImport.update({
-    id: '/display',
-    path: '/display',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-
-const AuthenticatedSettingsAppearanceRoute =
-  AuthenticatedSettingsAppearanceImport.update({
-    id: '/appearance',
-    path: '/appearance',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-
-const AuthenticatedSettingsAccountRoute =
-  AuthenticatedSettingsAccountImport.update({
-    id: '/account',
-    path: '/account',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/(auth)/email-sign-in': {
-      id: '/(auth)/email-sign-in'
-      path: '/email-sign-in'
-      fullPath: '/email-sign-in'
-      preLoaderRoute: typeof authEmailSignInImport
-      parentRoute: typeof rootRoute
-    }
-    '/(auth)/forgot-password': {
-      id: '/(auth)/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof authForgotPasswordImport
-      parentRoute: typeof rootRoute
-    }
-    '/(auth)/otp': {
-      id: '/(auth)/otp'
-      path: '/otp'
-      fullPath: '/otp'
-      preLoaderRoute: typeof authOtpImport
-      parentRoute: typeof rootRoute
-    }
-    '/(auth)/sign-in': {
-      id: '/(auth)/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof authSignInImport
-      parentRoute: typeof rootRoute
-    }
-    '/(errors)/401': {
-      id: '/(errors)/401'
-      path: '/401'
-      fullPath: '/401'
-      preLoaderRoute: typeof errors401Import
-      parentRoute: typeof rootRoute
-    }
-    '/(errors)/403': {
-      id: '/(errors)/403'
-      path: '/403'
-      fullPath: '/403'
-      preLoaderRoute: typeof errors403Import
-      parentRoute: typeof rootRoute
-    }
-    '/(errors)/404': {
-      id: '/(errors)/404'
-      path: '/404'
-      fullPath: '/404'
-      preLoaderRoute: typeof errors404Import
-      parentRoute: typeof rootRoute
-    }
-    '/(errors)/500': {
-      id: '/(errors)/500'
-      path: '/500'
-      fullPath: '/500'
-      preLoaderRoute: typeof errors500Import
-      parentRoute: typeof rootRoute
-    }
-    '/(errors)/503': {
-      id: '/(errors)/503'
-      path: '/503'
-      fullPath: '/503'
-      preLoaderRoute: typeof errors503Import
-      parentRoute: typeof rootRoute
-    }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/settings/account': {
-      id: '/_authenticated/settings/account'
-      path: '/account'
-      fullPath: '/settings/account'
-      preLoaderRoute: typeof AuthenticatedSettingsAccountImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/settings/appearance': {
-      id: '/_authenticated/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/settings/display': {
-      id: '/_authenticated/settings/display'
-      path: '/display'
-      fullPath: '/settings/display'
-      preLoaderRoute: typeof AuthenticatedSettingsDisplayImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/settings/email': {
-      id: '/_authenticated/settings/email'
-      path: '/email'
-      fullPath: '/settings/email'
-      preLoaderRoute: typeof AuthenticatedSettingsEmailImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/settings/notifications': {
-      id: '/_authenticated/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AuthenticatedSettingsNotificationsImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/settings/password': {
-      id: '/_authenticated/settings/password'
-      path: '/password'
-      fullPath: '/settings/password'
-      preLoaderRoute: typeof AuthenticatedSettingsPasswordImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/api/': {
-      id: '/_authenticated/api/'
-      path: '/api'
-      fullPath: '/api'
-      preLoaderRoute: typeof AuthenticatedApiIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/menu/': {
-      id: '/_authenticated/menu/'
-      path: '/menu'
-      fullPath: '/menu'
-      preLoaderRoute: typeof AuthenticatedMenuIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/operation-log/': {
-      id: '/_authenticated/operation-log/'
-      path: '/operation-log'
-      fullPath: '/operation-log'
-      preLoaderRoute: typeof AuthenticatedOperationLogIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/role/': {
-      id: '/_authenticated/role/'
-      path: '/role'
-      fullPath: '/role'
-      preLoaderRoute: typeof AuthenticatedRoleIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/settings/': {
-      id: '/_authenticated/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthenticatedSettingsIndexImport
-      parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/system-info/': {
-      id: '/_authenticated/system-info/'
-      path: '/system-info'
-      fullPath: '/system-info'
-      preLoaderRoute: typeof AuthenticatedSystemInfoIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/task/': {
-      id: '/_authenticated/task/'
-      path: '/task'
-      fullPath: '/task'
-      preLoaderRoute: typeof AuthenticatedTaskIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/token/': {
-      id: '/_authenticated/token/'
-      path: '/token'
-      fullPath: '/token'
-      preLoaderRoute: typeof AuthenticatedTokenIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/user/': {
-      id: '/_authenticated/user/'
-      path: '/user'
-      fullPath: '/user'
-      preLoaderRoute: typeof AuthenticatedUserIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface AuthenticatedSettingsRouteRouteChildren {
-  AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
-  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
-  AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
-  AuthenticatedSettingsEmailRoute: typeof AuthenticatedSettingsEmailRoute
-  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
-  AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
-  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
-}
-
-const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
-  {
-    AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
-    AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
-    AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
-    AuthenticatedSettingsEmailRoute: AuthenticatedSettingsEmailRoute,
-    AuthenticatedSettingsNotificationsRoute:
-      AuthenticatedSettingsNotificationsRoute,
-    AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
-    AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
-  }
-
-const AuthenticatedSettingsRouteRouteWithChildren =
-  AuthenticatedSettingsRouteRoute._addFileChildren(
-    AuthenticatedSettingsRouteRouteChildren,
-  )
-
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedApiIndexRoute: typeof AuthenticatedApiIndexRoute
-  AuthenticatedMenuIndexRoute: typeof AuthenticatedMenuIndexRoute
-  AuthenticatedOperationLogIndexRoute: typeof AuthenticatedOperationLogIndexRoute
-  AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
-  AuthenticatedSystemInfoIndexRoute: typeof AuthenticatedSystemInfoIndexRoute
-  AuthenticatedTaskIndexRoute: typeof AuthenticatedTaskIndexRoute
-  AuthenticatedTokenIndexRoute: typeof AuthenticatedTokenIndexRoute
-  AuthenticatedUserIndexRoute: typeof AuthenticatedUserIndexRoute
-}
-
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedApiIndexRoute: AuthenticatedApiIndexRoute,
-  AuthenticatedMenuIndexRoute: AuthenticatedMenuIndexRoute,
-  AuthenticatedOperationLogIndexRoute: AuthenticatedOperationLogIndexRoute,
-  AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
-  AuthenticatedSystemInfoIndexRoute: AuthenticatedSystemInfoIndexRoute,
-  AuthenticatedTaskIndexRoute: AuthenticatedTaskIndexRoute,
-  AuthenticatedTokenIndexRoute: AuthenticatedTokenIndexRoute,
-  AuthenticatedUserIndexRoute: AuthenticatedUserIndexRoute,
-}
-
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
 export interface FileRoutesByFullPath {
-  '': typeof AuthenticatedRouteRouteWithChildren
+  '/': typeof AuthenticatedIndexRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/email-sign-in': typeof authEmailSignInRoute
   '/forgot-password': typeof authForgotPasswordRoute
@@ -481,24 +194,22 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/': typeof AuthenticatedIndexRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/email': typeof AuthenticatedSettingsEmailRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/password': typeof AuthenticatedSettingsPasswordRoute
-  '/api': typeof AuthenticatedApiIndexRoute
-  '/menu': typeof AuthenticatedMenuIndexRoute
-  '/operation-log': typeof AuthenticatedOperationLogIndexRoute
-  '/role': typeof AuthenticatedRoleIndexRoute
+  '/api/': typeof AuthenticatedApiIndexRoute
+  '/menu/': typeof AuthenticatedMenuIndexRoute
+  '/operation-log/': typeof AuthenticatedOperationLogIndexRoute
+  '/role/': typeof AuthenticatedRoleIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/system-info': typeof AuthenticatedSystemInfoIndexRoute
-  '/task': typeof AuthenticatedTaskIndexRoute
-  '/token': typeof AuthenticatedTokenIndexRoute
-  '/user': typeof AuthenticatedUserIndexRoute
+  '/system-info/': typeof AuthenticatedSystemInfoIndexRoute
+  '/task/': typeof AuthenticatedTaskIndexRoute
+  '/token/': typeof AuthenticatedTokenIndexRoute
+  '/user/': typeof AuthenticatedUserIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/email-sign-in': typeof authEmailSignInRoute
   '/forgot-password': typeof authForgotPasswordRoute
@@ -526,9 +237,8 @@ export interface FileRoutesByTo {
   '/token': typeof AuthenticatedTokenIndexRoute
   '/user': typeof AuthenticatedUserIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/(auth)/email-sign-in': typeof authEmailSignInRoute
@@ -557,11 +267,10 @@ export interface FileRoutesById {
   '/_authenticated/token/': typeof AuthenticatedTokenIndexRoute
   '/_authenticated/user/': typeof AuthenticatedUserIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | ''
+    | '/'
     | '/settings'
     | '/email-sign-in'
     | '/forgot-password'
@@ -572,22 +281,21 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
-    | '/'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/email'
     | '/settings/notifications'
     | '/settings/password'
-    | '/api'
-    | '/menu'
-    | '/operation-log'
-    | '/role'
+    | '/api/'
+    | '/menu/'
+    | '/operation-log/'
+    | '/role/'
     | '/settings/'
-    | '/system-info'
-    | '/task'
-    | '/token'
-    | '/user'
+    | '/system-info/'
+    | '/task/'
+    | '/token/'
+    | '/user/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/email-sign-in'
@@ -646,7 +354,6 @@ export interface FileRouteTypes {
     | '/_authenticated/user/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   authEmailSignInRoute: typeof authEmailSignInRoute
@@ -660,6 +367,256 @@ export interface RootRouteChildren {
   errors503Route: typeof errors503Route
 }
 
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/email-sign-in': {
+      id: '/(auth)/email-sign-in'
+      path: '/email-sign-in'
+      fullPath: '/email-sign-in'
+      preLoaderRoute: typeof authEmailSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/forgot-password': {
+      id: '/(auth)/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof authForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/otp': {
+      id: '/(auth)/otp'
+      path: '/otp'
+      fullPath: '/otp'
+      preLoaderRoute: typeof authOtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/sign-in': {
+      id: '/(auth)/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof authSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/401': {
+      id: '/(errors)/401'
+      path: '/401'
+      fullPath: '/401'
+      preLoaderRoute: typeof errors401RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/403': {
+      id: '/(errors)/403'
+      path: '/403'
+      fullPath: '/403'
+      preLoaderRoute: typeof errors403RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/404': {
+      id: '/(errors)/404'
+      path: '/404'
+      fullPath: '/404'
+      preLoaderRoute: typeof errors404RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/500': {
+      id: '/(errors)/500'
+      path: '/500'
+      fullPath: '/500'
+      preLoaderRoute: typeof errors500RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/503': {
+      id: '/(errors)/503'
+      path: '/503'
+      fullPath: '/503'
+      preLoaderRoute: typeof errors503RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/api/': {
+      id: '/_authenticated/api/'
+      path: '/api'
+      fullPath: '/api/'
+      preLoaderRoute: typeof AuthenticatedApiIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/menu/': {
+      id: '/_authenticated/menu/'
+      path: '/menu'
+      fullPath: '/menu/'
+      preLoaderRoute: typeof AuthenticatedMenuIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/operation-log/': {
+      id: '/_authenticated/operation-log/'
+      path: '/operation-log'
+      fullPath: '/operation-log/'
+      preLoaderRoute: typeof AuthenticatedOperationLogIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/role/': {
+      id: '/_authenticated/role/'
+      path: '/role'
+      fullPath: '/role/'
+      preLoaderRoute: typeof AuthenticatedRoleIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/account': {
+      id: '/_authenticated/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/appearance': {
+      id: '/_authenticated/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/display': {
+      id: '/_authenticated/settings/display'
+      path: '/display'
+      fullPath: '/settings/display'
+      preLoaderRoute: typeof AuthenticatedSettingsDisplayRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/email': {
+      id: '/_authenticated/settings/email'
+      path: '/email'
+      fullPath: '/settings/email'
+      preLoaderRoute: typeof AuthenticatedSettingsEmailRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/notifications': {
+      id: '/_authenticated/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/password': {
+      id: '/_authenticated/settings/password'
+      path: '/password'
+      fullPath: '/settings/password'
+      preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/system-info/': {
+      id: '/_authenticated/system-info/'
+      path: '/system-info'
+      fullPath: '/system-info/'
+      preLoaderRoute: typeof AuthenticatedSystemInfoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/task/': {
+      id: '/_authenticated/task/'
+      path: '/task'
+      fullPath: '/task/'
+      preLoaderRoute: typeof AuthenticatedTaskIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/token/': {
+      id: '/_authenticated/token/'
+      path: '/token'
+      fullPath: '/token/'
+      preLoaderRoute: typeof AuthenticatedTokenIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/user/': {
+      id: '/_authenticated/user/'
+      path: '/user'
+      fullPath: '/user/'
+      preLoaderRoute: typeof AuthenticatedUserIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+  }
+}
+
+interface AuthenticatedSettingsRouteRouteChildren {
+  AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
+  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
+  AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
+  AuthenticatedSettingsEmailRoute: typeof AuthenticatedSettingsEmailRoute
+  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+}
+
+const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
+  {
+    AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
+    AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
+    AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
+    AuthenticatedSettingsEmailRoute: AuthenticatedSettingsEmailRoute,
+    AuthenticatedSettingsNotificationsRoute:
+      AuthenticatedSettingsNotificationsRoute,
+    AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
+    AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+  }
+
+const AuthenticatedSettingsRouteRouteWithChildren =
+  AuthenticatedSettingsRouteRoute._addFileChildren(
+    AuthenticatedSettingsRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedApiIndexRoute: typeof AuthenticatedApiIndexRoute
+  AuthenticatedMenuIndexRoute: typeof AuthenticatedMenuIndexRoute
+  AuthenticatedOperationLogIndexRoute: typeof AuthenticatedOperationLogIndexRoute
+  AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
+  AuthenticatedSystemInfoIndexRoute: typeof AuthenticatedSystemInfoIndexRoute
+  AuthenticatedTaskIndexRoute: typeof AuthenticatedTaskIndexRoute
+  AuthenticatedTokenIndexRoute: typeof AuthenticatedTokenIndexRoute
+  AuthenticatedUserIndexRoute: typeof AuthenticatedUserIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedApiIndexRoute: AuthenticatedApiIndexRoute,
+  AuthenticatedMenuIndexRoute: AuthenticatedMenuIndexRoute,
+  AuthenticatedOperationLogIndexRoute: AuthenticatedOperationLogIndexRoute,
+  AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
+  AuthenticatedSystemInfoIndexRoute: AuthenticatedSystemInfoIndexRoute,
+  AuthenticatedTaskIndexRoute: AuthenticatedTaskIndexRoute,
+  AuthenticatedTokenIndexRoute: AuthenticatedTokenIndexRoute,
+  AuthenticatedUserIndexRoute: AuthenticatedUserIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   authEmailSignInRoute: authEmailSignInRoute,
@@ -672,148 +629,6 @@ const rootRouteChildren: RootRouteChildren = {
   errors500Route: errors500Route,
   errors503Route: errors503Route,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/_authenticated",
-        "/(auth)/email-sign-in",
-        "/(auth)/forgot-password",
-        "/(auth)/otp",
-        "/(auth)/sign-in",
-        "/(errors)/401",
-        "/(errors)/403",
-        "/(errors)/404",
-        "/(errors)/500",
-        "/(errors)/503"
-      ]
-    },
-    "/_authenticated": {
-      "filePath": "_authenticated/route.tsx",
-      "children": [
-        "/_authenticated/settings",
-        "/_authenticated/",
-        "/_authenticated/api/",
-        "/_authenticated/menu/",
-        "/_authenticated/operation-log/",
-        "/_authenticated/role/",
-        "/_authenticated/system-info/",
-        "/_authenticated/task/",
-        "/_authenticated/token/",
-        "/_authenticated/user/"
-      ]
-    },
-    "/_authenticated/settings": {
-      "filePath": "_authenticated/settings/route.tsx",
-      "parent": "/_authenticated",
-      "children": [
-        "/_authenticated/settings/account",
-        "/_authenticated/settings/appearance",
-        "/_authenticated/settings/display",
-        "/_authenticated/settings/email",
-        "/_authenticated/settings/notifications",
-        "/_authenticated/settings/password",
-        "/_authenticated/settings/"
-      ]
-    },
-    "/(auth)/email-sign-in": {
-      "filePath": "(auth)/email-sign-in.tsx"
-    },
-    "/(auth)/forgot-password": {
-      "filePath": "(auth)/forgot-password.tsx"
-    },
-    "/(auth)/otp": {
-      "filePath": "(auth)/otp.tsx"
-    },
-    "/(auth)/sign-in": {
-      "filePath": "(auth)/sign-in.tsx"
-    },
-    "/(errors)/401": {
-      "filePath": "(errors)/401.tsx"
-    },
-    "/(errors)/403": {
-      "filePath": "(errors)/403.tsx"
-    },
-    "/(errors)/404": {
-      "filePath": "(errors)/404.tsx"
-    },
-    "/(errors)/500": {
-      "filePath": "(errors)/500.tsx"
-    },
-    "/(errors)/503": {
-      "filePath": "(errors)/503.tsx"
-    },
-    "/_authenticated/": {
-      "filePath": "_authenticated/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/settings/account": {
-      "filePath": "_authenticated/settings/account.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/appearance": {
-      "filePath": "_authenticated/settings/appearance.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/display": {
-      "filePath": "_authenticated/settings/display.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/email": {
-      "filePath": "_authenticated/settings/email.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/notifications": {
-      "filePath": "_authenticated/settings/notifications.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/settings/password": {
-      "filePath": "_authenticated/settings/password.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/api/": {
-      "filePath": "_authenticated/api/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/menu/": {
-      "filePath": "_authenticated/menu/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/operation-log/": {
-      "filePath": "_authenticated/operation-log/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/role/": {
-      "filePath": "_authenticated/role/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/settings/": {
-      "filePath": "_authenticated/settings/index.tsx",
-      "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/system-info/": {
-      "filePath": "_authenticated/system-info/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/task/": {
-      "filePath": "_authenticated/task/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/token/": {
-      "filePath": "_authenticated/token/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/user/": {
-      "filePath": "_authenticated/user/index.tsx",
-      "parent": "/_authenticated"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

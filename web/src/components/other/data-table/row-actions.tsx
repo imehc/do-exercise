@@ -1,4 +1,4 @@
-import { Row } from '@tanstack/react-table'
+import { Row, RowData } from '@tanstack/react-table'
 import {
   IconEdit,
   IconInfoHexagon,
@@ -10,6 +10,7 @@ import { Trans } from '@lingui/react/macro'
 import { DialogType, useFormDialog } from '~/provider'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
+import { DataTableFeatures } from './features'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,8 +54,8 @@ type MenuOption = {
   disable?: boolean
 }
 
-interface DataTableRowActionsProps<T> {
-  row: Row<T>
+interface DataTableRowActionsProps<T extends RowData> {
+  row: Row<DataTableFeatures, T>
   showEdit?: boolean
   editOptions?: MenuOption
   showDelete?: boolean
@@ -66,7 +67,7 @@ interface DataTableRowActionsProps<T> {
   children?: ((data: T) => React.ReactNode) | React.ReactNode
 }
 
-export function DataTableRowActions<T>({
+export function DataTableRowActions<T extends RowData>({
   row,
   showEdit = false,
   editOptions,

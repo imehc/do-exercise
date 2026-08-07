@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react'
+import { Suspense, lazy, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { Main } from '~/components/layout/main'
-import { Calendar, LunarCalendar } from '~/components/other'
+
+// 两者按语言互斥渲染，懒加载避免日历与农历库进入首屏包
+const Calendar = lazy(() =>
+  import('~/components/other/calendar').then((m) => ({ default: m.Calendar }))
+)
+const LunarCalendar = lazy(() =>
+  import('~/components/other/lunar').then((m) => ({ default: m.LunarCalendar }))
+)
 
 export default function Dashboard() {
   const lang = useAtomValue(languageAtom)
-  const [isLoading, setIsLoading] = useState(false)
-  const [currentComponent, setCurrentComponent] = useState<
-    'lunar' | 'calendar'
-  >(lang === 'zh-CN' ? 'lunar' : 'calendar')
+  const newComponent = lang === 'zh-CN' ? 'lunar' : 'calendar'
+  const [currentComponent, setCurrentComponent] = useState(newComponent)
+  const isLoading = currentComponent !== newComponent
 
   useEffect(() => {
-    const newComponent = lang === 'zh-CN' ? 'lunar' : 'calendar'
-    if (newComponent !== currentComponent) {
-      setIsLoading(true)
-      const timer = setTimeout(() => {
-        setCurrentComponent(newComponent)
-        setIsLoading(false)
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [lang, currentComponent])
+    if (!isLoading) return
+    const timer = setTimeout(() => setCurrentComponent(newComponent), 300)
+    return () => clearTimeout(timer)
+  }, [isLoading, newComponent])
 
   return (
     <Main fixed>
@@ -47,11 +47,19 @@ export default function Dashboard() {
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className='h-full w-full'
           >
-            {currentComponent === 'lunar' ? (
-              <LunarCalendar />
-            ) : (
-              <Calendar events={[]} users={[]} readonly />
-            )}
+            <Suspense
+              fallback={
+                <div className='flex h-full w-full items-center justify-center'>
+                  <div className='border-primary h-8 w-8 animate-spin rounded-full border-b-2'></div>
+                </div>
+              }
+            >
+              {currentComponent === 'lunar' ? (
+                <LunarCalendar />
+              ) : (
+                <Calendar events={[]} users={[]} readonly />
+              )}
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>

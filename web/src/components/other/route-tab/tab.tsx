@@ -28,7 +28,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { toIconComponent } from '~/utils/icon'
+import { renderIcon } from '~/utils/icon'
 import { Button } from '~/components/ui/button'
 import {
   ContextMenu,
@@ -195,14 +195,13 @@ export function Tab({
 }
 
 function DragPreview({ tab, isActive }: { tab: TabItem; isActive: boolean }) {
-  const Icon = toIconComponent(tab.icon)
   return (
     <div
       className={`flex items-center gap-x-1 rounded-md border px-2 py-1 shadow-lg ${
         isActive ? 'bg-background' : 'bg-muted text-muted-foreground'
       }`}
     >
-      {Icon && <Icon className='size-4' />}
+      {renderIcon(tab.icon, 'size-4')}
       {tab.name}
     </div>
   )
@@ -264,7 +263,7 @@ function TabItemComponent({
     onClick?.(id)
   }
 
-  const Icon = toIconComponent(icon)
+  const Icon = renderIcon(icon, 'size-4')
 
   return (
     <ContextMenu>
@@ -289,7 +288,7 @@ function TabItemComponent({
             asChild
           >
             <p>
-              {Icon && <Icon className='size-4' />}
+              {Icon}
               {name}
               {closable && (
                 <Button

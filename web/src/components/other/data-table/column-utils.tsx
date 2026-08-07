@@ -1,34 +1,44 @@
 import React from 'react'
-import { ColumnDef, CellContext, HeaderContext } from '@tanstack/react-table'
+import {
+  CellContext,
+  ColumnDef,
+  HeaderContext,
+  RowData,
+} from '@tanstack/react-table'
 import { i18n } from '@lingui/core'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
+import { DataTableFeatures } from './features'
 import { DataTableColumnHeader } from './column-header'
 
-type BaseColumnConfig<TData> = {
+type BaseColumnConfig<TData extends RowData> = {
   id?: string
   title?: () => string
-  header?: (props: HeaderContext<TData, unknown>) => React.ReactNode
-  cell?: (props: CellContext<TData, unknown>) => React.ReactNode
-  options?: Partial<ColumnDef<TData>>
+  header?: (
+    props: HeaderContext<DataTableFeatures, TData, unknown>
+  ) => React.ReactNode
+  cell?: (
+    props: CellContext<DataTableFeatures, TData, unknown>
+  ) => React.ReactNode
+  options?: Partial<ColumnDef<DataTableFeatures, TData>>
 }
 
-type AccessorColumnConfig<TData> = BaseColumnConfig<TData> & {
+type AccessorColumnConfig<TData extends RowData> = BaseColumnConfig<TData> & {
   key: keyof TData
 }
 
-type IdColumnConfig<TData> = BaseColumnConfig<TData> & {
+type IdColumnConfig<TData extends RowData> = BaseColumnConfig<TData> & {
   id: string
 }
 
-export type ColumnConfig<TData> =
+export type ColumnConfig<TData extends RowData> =
   | AccessorColumnConfig<TData>
   | IdColumnConfig<TData>
 
-export const createColumn = <TData,>(
+export const createColumn = <TData extends RowData,>(
   config: ColumnConfig<TData>
-): ColumnDef<TData> => {
-  const baseConfig: Partial<ColumnDef<TData>> = {
+): ColumnDef<DataTableFeatures, TData> => {
+  const baseConfig: Partial<ColumnDef<DataTableFeatures, TData>> = {
     enableSorting: false,
     ...config.options,
   }
@@ -47,7 +57,7 @@ export const createColumn = <TData,>(
       cell:
         config.cell ??
         (({ row }) => <div>{String(row.original[config.key])}</div>),
-    } as ColumnDef<TData>
+    } as ColumnDef<DataTableFeatures, TData>
   }
 
   return {
@@ -61,23 +71,23 @@ export const createColumn = <TData,>(
           )
         : undefined),
     cell: config.cell,
-  } as ColumnDef<TData>
+  } as ColumnDef<DataTableFeatures, TData>
 }
 
-export const createActionColumn = <TData,>(
-  cell: (props: CellContext<TData, unknown>) => React.ReactNode,
-  options: Partial<ColumnDef<TData>> = {}
-): ColumnDef<TData> => ({
+export const createActionColumn = <TData extends RowData,>(
+  cell: (props: CellContext<DataTableFeatures, TData, unknown>) => React.ReactNode,
+  options: Partial<ColumnDef<DataTableFeatures, TData>> = {}
+): ColumnDef<DataTableFeatures, TData> => ({
   id: 'actions',
   cell,
   ...options,
 })
 
-export const createDateColumn = <TData,>(
+export const createDateColumn = <TData extends RowData,>(
   key: keyof TData,
   title: () => string,
-  options: Partial<ColumnDef<TData>> = {}
-): ColumnDef<TData> => ({
+  options: Partial<ColumnDef<DataTableFeatures, TData>> = {}
+): ColumnDef<DataTableFeatures, TData> => ({
   accessorKey: key,
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title={title()} />
@@ -94,13 +104,13 @@ export const createDateColumn = <TData,>(
   ...options,
 })
 
-export const createBadgeColumn = <TData,>(
+export const createBadgeColumn = <TData extends RowData,>(
   key: keyof TData,
   title: () => string,
   getBadgeColor: (value: unknown) => string | undefined,
   getBadgeText: (value: unknown) => React.ReactNode,
-  options: Partial<ColumnDef<TData>> = {}
-): ColumnDef<TData> => ({
+  options: Partial<ColumnDef<DataTableFeatures, TData>> = {}
+): ColumnDef<DataTableFeatures, TData> => ({
   accessorKey: key,
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title={title()} />

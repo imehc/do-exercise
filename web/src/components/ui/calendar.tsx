@@ -33,7 +33,6 @@ export type CalendarProps = DayPickerProps & {
   weekdaysClassName?: string
   weekdayClassName?: string
   monthClassName?: string
-  captionClassName?: string
   captionLabelClassName?: string
   buttonNextClassName?: string
   buttonPreviousClassName?: string
@@ -99,7 +98,7 @@ function Calendar({
 
   const _monthsClassName = cn('relative flex', props.monthsClassName)
   const _monthCaptionClassName = cn(
-    'relative mx-10 flex h-7 items-center justify-center',
+    'relative mx-10 flex h-7 items-center justify-center pt-1',
     props.monthCaptionClassName
   )
   const _weekdaysClassName = cn('flex flex-row', props.weekdaysClassName)
@@ -108,10 +107,6 @@ function Calendar({
     props.weekdayClassName
   )
   const _monthClassName = cn('w-full', props.monthClassName)
-  const _captionClassName = cn(
-    'relative flex items-center justify-center pt-1',
-    props.captionClassName
-  )
   const _captionLabelClassName = cn(
     'truncate text-sm font-medium',
     props.captionLabelClassName
@@ -191,7 +186,6 @@ function Calendar({
         weekdays: _weekdaysClassName,
         weekday: _weekdayClassName,
         month: _monthClassName,
-        caption: _captionClassName,
         caption_label: _captionLabelClassName,
         button_next: _buttonNextClassName,
         button_previous: _buttonPreviousClassName,

@@ -10,6 +10,7 @@ import {
   createDateColumn,
   createActionColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 import { ToggleDisabledSwitch } from './token-toggle-disabled-switch'
 
 const columnTitleMap = {
@@ -25,7 +26,7 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (): ColumnDef<TokenInfo>[] => {
+export const useColumns = (): ColumnDef<DataTableFeatures, TokenInfo>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasUpdate = permissions.some((p) => p === 'update')
@@ -72,7 +73,7 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
       accessorKey: 'id',
       header: () => columnTitleMap.id(),
       cell: ({ row, table }) => {
-        const pagination = table.getState().pagination
+        const pagination = table.atoms.pagination.get()
         return (
           (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
           row.index +
@@ -83,21 +84,21 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
     createColumn<TokenInfo>({
       key: 'userId',
       title: columnTitleMap.userId,
-      cell: ({ row }: CellContext<TokenInfo, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, TokenInfo, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.userId}</div>
       ),
     }),
     createColumn<TokenInfo>({
       key: 'username',
       title: columnTitleMap.username,
-      cell: ({ row }: CellContext<TokenInfo, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, TokenInfo, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.username}</div>
       ),
     }),
     createColumn<TokenInfo>({
       key: 'accessToken',
       title: columnTitleMap.accessToken,
-      cell: ({ row }: CellContext<TokenInfo, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, TokenInfo, unknown>) => (
         <InlineCopy
           className='w-fit text-nowrap'
           text={row.original.accessToken}
@@ -109,7 +110,7 @@ export const useColumns = (): ColumnDef<TokenInfo>[] => {
         ? createColumn<TokenInfo>({
             key: 'disabled',
             title: columnTitleMap.disabled,
-            cell: ({ row }: CellContext<TokenInfo, unknown>) => {
+            cell: ({ row }: CellContext<DataTableFeatures, TokenInfo, unknown>) => {
               const token = row.original
               return (
                 <ToggleDisabledSwitch

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { SolarDay } from 'tyme4ts'
 import { Badge } from '../../ui/badge'
@@ -109,9 +109,8 @@ export function LunarCalendar() {
   const [cur, setCur] = useState({
     year: now.getFullYear(),
     month: now.getMonth() + 1,
+    direction: 0,
   })
-  // 记录切换方向（-1: 上个月，1: 下个月，0: 首次）
-  const direction = useRef(0)
 
   // 新增：详情抽屉状态
   const [selectedCell, setSelectedCell] = useState<LunarCell | null>(null)
@@ -164,8 +163,7 @@ export function LunarCalendar() {
       m = 1
       y++
     }
-    direction.current = offset
-    setCur({ year: y, month: m })
+    setCur({ year: y, month: m, direction: offset })
   }
 
   function getCellBgClass(cell: (typeof cells)[number]) {
@@ -211,12 +209,12 @@ export function LunarCalendar() {
             className='pointer-events-none absolute top-1/2 left-1/2 z-1 -translate-x-1/2 -translate-y-1/2 text-9xl font-bold whitespace-nowrap select-none'
             initial={{
               opacity: 0,
-              x: direction.current === 0 ? 0 : direction.current > 0 ? 40 : -40,
+              x: cur.direction === 0 ? 0 : cur.direction > 0 ? 40 : -40,
             }}
             animate={{ opacity: 0.05, x: 0 }}
             exit={{
               opacity: 0,
-              x: direction.current === 0 ? 0 : direction.current > 0 ? -40 : 40,
+              x: cur.direction === 0 ? 0 : cur.direction > 0 ? -40 : 40,
             }}
             transition={{ ...transition, duration: 0.3 }}
           >
@@ -251,12 +249,12 @@ export function LunarCalendar() {
             variants={staggerContainer}
             initial={{
               opacity: 0,
-              x: direction.current === 0 ? 0 : direction.current > 0 ? 40 : -40,
+              x: cur.direction === 0 ? 0 : cur.direction > 0 ? 40 : -40,
             }}
             animate={{ opacity: 1, x: 0 }}
             exit={{
               opacity: 0,
-              x: direction.current === 0 ? 0 : direction.current > 0 ? -40 : 40,
+              x: cur.direction === 0 ? 0 : cur.direction > 0 ? -40 : 40,
             }}
             transition={{ ...transition, duration: 0.3 }}
           >

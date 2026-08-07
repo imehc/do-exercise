@@ -10,6 +10,7 @@ import (
 	sysReq "github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/imehc/do-exercise/server/model/system"
 	sysService "github.com/imehc/do-exercise/server/service/system"
@@ -18,8 +19,7 @@ import (
 type UserService struct{}
 
 // 通过邮箱查询用户
-func (u *UserService) FindUserByEmail(email string) (*system.SysUser, error) {
-	db := global.DB
+func (u *UserService) FindUserByEmail(db *gorm.DB, email string) (*system.SysUser, error) {
 	var user *system.SysUser
 	error := db.
 		Where("email = ?", email).
@@ -36,25 +36,23 @@ func (u *UserService) FindUserByEmail(email string) (*system.SysUser, error) {
 }
 
 // BindEmail 绑定邮箱
-func (u *UserService) BindEmail(req request.BindEmailReq) error {
-	db := global.DB
-	log := global.Log
-
+func (u *UserService) BindEmail(db *gorm.DB, req request.BindEmailReq) error {
 	if err := db.
 		Model(&system.SysUser{}).
 		Where("id = ?", req.Id).
 		Update("email", req.Email).
-		Error; err != nil {
-		log.Error("绑定邮箱失败", zap.String("id", req.Id), zap.String("email", req.Email), zap.Error(err))
+Error; err != nil {
+		global.Log.Error("绑定邮箱失败", zap.String("id", req.Id), zap.String("email", req.Email), zap.Error(err))
 		return errors.New("bindEmailFailed")
 	}
 	return nil
 }
 
 // UpdatePassword 修改密码
-func (u *UserService) UpdatePassword(req request.UserModifyPasswordReq) error {
+func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPasswordReq) error {
 	var sysUserService sysService.SysUserService
 	return sysUserService.ResetPassword(
+		db,
 		sysReq.UpdateSysUserPasswordReq{
 			Id:       req.Id,
 			Password: req.Password,
@@ -64,8 +62,7 @@ func (u *UserService) UpdatePassword(req request.UserModifyPasswordReq) error {
 }
 
 // UpdateProfile 修改用户基本信息
-func (u *UserService) UpdateProfile(req request.UserModifyProfileReq) error {
-	db := global.DB
+func (u *UserService) UpdateProfile(db *gorm.DB, req request.UserModifyProfileReq) error {
 	var user *system.SysUser
 	error := db.
 		First(&user, req.Id).
@@ -88,8 +85,7 @@ func (u *UserService) UpdateProfile(req request.UserModifyProfileReq) error {
 }
 
 // GetProfile 获取用户基本信息
-func (u *UserService) GetProfile(id string) (*response.UserProfile, error) {
-	db := global.DB
+func (u *UserService) GetProfile(db *gorm.DB, id string) (*response.UserProfile, error) {
 	var user *system.SysUser
 	error := db.
 		Preload("Roles").
@@ -116,8 +112,7 @@ func (u *UserService) GetProfile(id string) (*response.UserProfile, error) {
 
 // GetMenu 获取用户菜单
 
-func (u *UserService) GetMenu(id string) (*[]response.UserMenu, error) {
-	db := global.DB
+func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, error) {
 	var user *system.SysUser
 
 	// 查询用户及角色菜单

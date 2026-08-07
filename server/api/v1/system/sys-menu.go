@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cast"
 )
 
@@ -17,7 +18,7 @@ func (s *SysMenuApi) Create(ctx *gin.Context) {
 		return
 	}
 
-	_, err := menuService.Create(req)
+	_, err := menuService.Create(util.DB(ctx), req)
 	if err != nil {
 		// TODO: 处理具体错误
 		response.BadRequest(ctx, err.Error())
@@ -34,7 +35,7 @@ func (s *SysMenuApi) Delete(ctx *gin.Context) {
 		return
 	}
 
-	if err := menuService.Delete(id); err != nil {
+	if err := menuService.Delete(util.DB(ctx), id); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -55,7 +56,7 @@ func (s *SysMenuApi) Update(ctx *gin.Context) {
 	}
 	req.Id = id
 
-	if err := menuService.Update(req); err != nil {
+	if err := menuService.Update(util.DB(ctx), req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -69,7 +70,7 @@ func (s *SysMenuApi) Get(ctx *gin.Context) {
 		response.BadRequest(ctx, "idCannotBeEmpty")
 		return
 	}
-	menu, err := menuService.Get(id)
+	menu, err := menuService.Get(util.DB(ctx), id)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -79,7 +80,7 @@ func (s *SysMenuApi) Get(ctx *gin.Context) {
 
 // GetList 获取菜单树
 func (s *SysMenuApi) GetTree(ctx *gin.Context) {
-	tree, err := menuService.GetTree()
+	tree, err := menuService.GetTree(util.DB(ctx))
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

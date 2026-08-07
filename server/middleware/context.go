@@ -12,8 +12,8 @@ func ContextMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId := c.MustGet("userId").(string)
 		ctx := context.WithValue(c.Request.Context(), global.ContextUserIDKey, userId)
-		global.DB = global.DB.WithContext(ctx)
-
+		// 请求范围内派生 DB，避免并发写全局 global.DB 造成数据竞争
+		c.Set(global.ContextDBKey, global.DB.WithContext(ctx))
 		c.Next()
 	}
 }
@@ -21,7 +21,7 @@ func ContextMiddleware() gin.HandlerFunc {
 // RequestContextMiddleware 设置请求上下文
 func RequestContextMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		global.DB = global.DB.WithContext(c.Request.Context())
+		c.Set(global.ContextDBKey, global.DB.WithContext(c.Request.Context()))
 		c.Next()
 	}
 }

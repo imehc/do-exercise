@@ -97,8 +97,7 @@ func (s *SysUserService) checkEmailDuplication(db *gorm.DB, email string) error 
 }
 
 // Create 创建用户
-func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUserResp, error) {
-	db := global.DB
+func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*response.SysUserResp, error) {
 	err := s.checkUserNameDuplication(db, req.Username)
 	if err != nil {
 		return nil, err
@@ -161,8 +160,7 @@ func (s *SysUserService) Create(req request.CreateSysUserReq) (*response.SysUser
 }
 
 // Delete 删除用户
-func (s *SysUserService) Delete(id string) error {
-	db := global.DB
+func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 	// 先检查用户是否存在
 	user, err := s.checkUserExist(db, id)
 	if err != nil {
@@ -178,8 +176,7 @@ func (s *SysUserService) Delete(id string) error {
 }
 
 // Update 更新用户
-func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
-	db := global.DB
+func (s *SysUserService) Update(db *gorm.DB, req request.UpdateSysUserReq) error {
 	var existUser *system.SysUser
 	existUser, err := s.checkUserExist(db, req.Id)
 	if err != nil {
@@ -220,8 +217,7 @@ func (s *SysUserService) Update(req request.UpdateSysUserReq) error {
 }
 
 // Get 查询单个用户
-func (s *SysUserService) Get(id string) (*response.SysUserResp, error) {
-	db := global.DB
+func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, error) {
 	// 先检查用户是否存在
 	_, err := s.checkUserExist(db, id)
 	if err != nil {
@@ -256,12 +252,11 @@ func (s *SysUserService) Get(id string) (*response.SysUserResp, error) {
 }
 
 // GetList 查询用户列表
-func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[response.SysUserResp], error) {
+func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.PageResult[response.SysUserResp], error) {
 	var users []system.SysUser
 	var total int64
-	db := global.DB.
-		Model(&system.SysUser{})
-	db.
+	db = db.
+		Model(&system.SysUser{}).
 		Count(&total)
 	req.Normalize()
 	db = db.
@@ -305,8 +300,7 @@ func (s *SysUserService) GetList(req common.Pagination) (common.PageResult[respo
 }
 
 // ResetPassword 重置密码
-func (s *SysUserService) ResetPassword(req request.UpdateSysUserPasswordReq, oldPassword *string) error {
-	db := global.DB
+func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPasswordReq, oldPassword *string) error {
 	var existUser *system.SysUser
 	existUser, err := s.checkUserExist(db, req.Id)
 	if err != nil {

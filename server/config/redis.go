@@ -14,7 +14,6 @@ type Redis struct {
 type RedisPool struct {
 	MaxConnections     int `yaml:"max_connections" mapstructure:"max_connections"`           // 最大连接数
 	MinIdleConnections int `yaml:"min_idle_connections" mapstructure:"min_idle_connections"` // 最小空闲连接数
-	MaxIdleTime        int `yaml:"max_idle_time" mapstructure:"max_idle_time"`               // 最大空闲时间(秒)
 }
 
 // RedisTimeout Redis超时配置

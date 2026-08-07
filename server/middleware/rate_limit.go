@@ -19,36 +19,64 @@ var (
 	mutex          = &sync.Mutex{}                 // 用于保护requestInfoMap的互斥锁
 	maxRequests    = 10                            // 允许的最大请求数
 	timeWindow     = 1 * time.Second               // 时间窗口
+	cleanupOnce    sync.Once                       // 清理协程只启动一次
 )
+
+// startCleanup 定期清理过期IP记录，防止requestInfoMap无限增长导致内存泄漏
+func startCleanup() {
+	cleanupOnce.Do(func() {
+		go func() {
+			ticker := time.NewTicker(timeWindow)
+			defer ticker.Stop()
+			for range ticker.C {
+				threshold := time.Now().Add(-2 * timeWindow)
+				mutex.Lock()
+				for ip, info := range requestInfoMap {
+					if info.LastAccessTime.Before(threshold) {
+						delete(requestInfoMap, ip)
+					}
+				}
+				mutex.Unlock()
+			}
+		}()
+	})
+}
 
 // IpLimitMiddleware IP限流器
 func IpLimitMiddleware(c *gin.Context) {
+	startCleanup()
+
 	ip := c.ClientIP()
 	mutex.Lock()
-	defer mutex.Unlock()
-	// 检查IP是否在map中
+
 	info, exists := requestInfoMap[ip]
 	// 如果IP不存在，初始化并添加到map中
 	if !exists {
 		requestInfoMap[ip] = &RequestInfo{LastAccessTime: time.Now(), RequestNum: 1}
+		mutex.Unlock()
+		c.Next()
 		return
 	}
-	// 如果IP存在，检查时间窗口
+	// 如果超过时间窗口，重置请求计数
 	if time.Since(info.LastAccessTime) > timeWindow {
-		// 如果超过时间窗口，重置请求计数
 		info.RequestNum = 1
 		info.LastAccessTime = time.Now()
+		mutex.Unlock()
+		c.Next()
 		return
 	}
-	info.RequestNum++ // 如果在时间窗口内，增加请求计数
+	// 在时间窗口内，增加请求计数
+	info.RequestNum++
 	// 如果请求计数超过限制，禁止访问
 	if info.RequestNum > maxRequests {
+		mutex.Unlock()
 		response.StatusTooManyRequests(c)
 		c.Abort()
 		return
 	}
 	// 更新最后访问时间
 	info.LastAccessTime = time.Now()
+	mutex.Unlock()
 	c.Next()
 }
 

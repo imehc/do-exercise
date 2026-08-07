@@ -15,6 +15,9 @@ import (
 	"github.com/mssola/user_agent"
 )
 
+// 操作日志中请求体/响应体的最大存储长度，防止大请求撑爆日志表
+const maxStoredBodyLength = 2 * 1024
+
 type bodyLogWriter struct {
 	gin.ResponseWriter
 	body *bytes.Buffer
@@ -73,8 +76,8 @@ func OperationLogMiddleware() gin.HandlerFunc {
 			Method:         c.Request.Method,
 			Path:           c.Request.URL.Path,
 			Params:         c.Request.URL.RawQuery,
-			Body:           string(body),
-			Result:         blw.body.String(),
+			Body:           truncateString(string(body), maxStoredBodyLength),
+			Result:         truncateString(blw.body.String(), maxStoredBodyLength),
 			Success:        c.Writer.Status() >= 200 && c.Writer.Status() < 400,
 			Code:           c.Writer.Status(),
 			Message:        c.Errors.String(), // 获取错误信息
@@ -94,6 +97,13 @@ func OperationLogMiddleware() gin.HandlerFunc {
 			logService.WithContext(ctx).Create(operationLog)
 		}()
 	}
+}
+
+func truncateString(s string, max int) string {
+	if len(s) > max {
+		return s[:max]
+	}
+	return s
 }
 
 // 判断是否为内网IP

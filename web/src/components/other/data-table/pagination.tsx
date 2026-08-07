@@ -1,5 +1,5 @@
 import { UseNavigateResult } from '@tanstack/react-router'
-import { Table } from '@tanstack/react-table'
+import { ReactTable, RowData } from '@tanstack/react-table'
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -9,6 +9,7 @@ import {
 import { Trans } from '@lingui/react/macro'
 import { Pagination } from '~/do-exercise-api'
 import { Button } from '~/components/ui/button'
+import { DataTableFeatures } from './features'
 import {
   Select,
   SelectContent,
@@ -17,28 +18,28 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 
-export interface DataTablePaginationProps<TData> {
-  navigate?: UseNavigateResult<'/api'>
-  table: Table<TData>
+export interface DataTablePaginationProps<TData extends RowData> {
+  navigate?: UseNavigateResult<'/api/'>
+  table: ReactTable<DataTableFeatures, TData>
   enableClientPagination?: boolean
   meta?: Pagination
 }
-export function DataTablePagination<TData>({
+export function DataTablePagination<TData extends RowData>({
   table,
   enableClientPagination = false,
   navigate,
   meta,
 }: DataTablePaginationProps<TData>) {
-  const pageIndex = table.getState().pagination.pageIndex
-  const pageSize = table.getState().pagination.pageSize
+  const pageIndex = table.state.pagination.pageIndex
+  const pageSize = table.state.pagination.pageSize
   const pageCount = table.getPageCount()
   const total = enableClientPagination
-    ? table.getPrePaginationRowModel().rows.length
+    ? table.getPrePaginatedRowModel().rows.length
     : (meta?.total ?? 0)
 
   const selectRow = table.getFilteredSelectedRowModel().rows.length
   const selectTotalRow = table.getFilteredRowModel().rows.length
-  const currentPage = table.getState().pagination.pageIndex + 1
+  const currentPage = table.state.pagination.pageIndex + 1
   const totalPage = table.getPageCount()
 
   return (
@@ -77,7 +78,7 @@ export function DataTablePagination<TData>({
             }}
           >
             <SelectTrigger className='h-8 w-[70px]'>
-              <SelectValue placeholder={table.getState().pagination.pageSize} />
+              <SelectValue placeholder={table.state.pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side='top'>
               {[10, 20, 30, 40, 50].map((pageSize) => (

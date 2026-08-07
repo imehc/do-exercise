@@ -17,12 +17,25 @@ interface IProps {
   multiDayEvents: IEvent[]
 }
 
+type EventPosition = 'first' | 'middle' | 'last' | 'none'
+
+function getEventPosition(
+  dayIndex: number,
+  startIndex: number,
+  endIndex: number
+): EventPosition {
+  if (dayIndex === startIndex && dayIndex === endIndex) return 'none'
+  if (dayIndex === startIndex) return 'first'
+  if (dayIndex === endIndex) return 'last'
+  return 'middle'
+}
+
 export function WeekViewMultiDayEventsRow({
   selectedDate,
   multiDayEvents,
 }: IProps) {
-  const weekStart = startOfWeek(selectedDate)
-  const weekEnd = endOfWeek(selectedDate)
+  const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate])
+  const weekEnd = useMemo(() => endOfWeek(selectedDate), [selectedDate])
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   const processedEvents = useMemo(() => {
@@ -109,20 +122,11 @@ export function WeekViewMultiDayEventsRow({
                 return <div key={`${rowIndex}-${dayIndex}`} className='h-6.5' />
               }
 
-              let position: 'first' | 'middle' | 'last' | 'none' = 'none'
-
-              if (
-                dayIndex === event.startIndex &&
-                dayIndex === event.endIndex
-              ) {
-                position = 'none'
-              } else if (dayIndex === event.startIndex) {
-                position = 'first'
-              } else if (dayIndex === event.endIndex) {
-                position = 'last'
-              } else {
-                position = 'middle'
-              }
+              const position = getEventPosition(
+                dayIndex,
+                event.startIndex,
+                event.endIndex
+              )
 
               return (
                 <MonthEventBadge

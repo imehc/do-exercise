@@ -2,17 +2,10 @@ import { useEffect, useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
+  ColumnVisibilityState,
+  RowData,
   SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
 } from '@tanstack/react-table'
 import { Trans } from '@lingui/react/macro'
 import { Pagination } from '~/do-exercise-api'
@@ -26,6 +19,7 @@ import {
   TableRow,
 } from '~/components/ui/table'
 import { LoadingSpinner } from '..'
+import { DataTableFeatures, dataTableFeatures } from './features'
 import { DataTablePagination } from './pagination'
 import { DataTableToolbar, DataTableToolbarProps } from './toolbar'
 
@@ -38,12 +32,12 @@ export interface StickyColumnConfig {
   right?: string[] // 右侧固定列的 accessorKey
 }
 
-interface DataTableProps<T>
+interface DataTableProps<T extends RowData>
   extends Pick<
     DataTableToolbarProps<T>,
     'serchOptions' | 'search' | 'enableClientPagination' | 'navigate'
   > {
-  columns: ColumnDef<T>[]
+  columns: ColumnDef<DataTableFeatures, T>[]
   data: T[]
   meta?: Pagination
   isLoading?: boolean
@@ -51,7 +45,7 @@ interface DataTableProps<T>
   stickyColumns?: StickyColumnConfig // 新的固定列配置
 }
 
-export function DataTable<T>({
+export function DataTable<T extends RowData>({
   columns,
   data,
   meta,
@@ -64,7 +58,8 @@ export function DataTable<T>({
   stickyColumns,
 }: DataTableProps<T>) {
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
   const [expanded, setExpanded] = useState({})
@@ -89,7 +84,8 @@ export function DataTable<T>({
   const pageSize = meta?.pageSize || 10
   const total = meta?.total || 0
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns,
     state: {
@@ -117,13 +113,6 @@ export function DataTable<T>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getExpandedRowModel: getExpandedRowModel(),
     onPaginationChange: enableClientPagination
       ? (updater) =>
           setClientPagination((old) =>
@@ -218,12 +207,9 @@ export function DataTable<T>({
                             : undefined
                         }
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                        {header.isPlaceholder ? null : (
+                          <table.FlexRender header={header} />
+                        )}
                       </TableHead>
                     )
                   })}
@@ -285,10 +271,7 @@ export function DataTable<T>({
                               : undefined
                           }
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          <table.FlexRender cell={cell} />
                         </TableCell>
                       )
                     })}

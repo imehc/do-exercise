@@ -12,6 +12,7 @@ import {
   createDateColumn,
   createBadgeColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 import { callDisabledTypes, callMethodTypes } from '../data/data'
 
 export type Row = { getValue(id: string): string }
@@ -31,7 +32,7 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (): ColumnDef<SysApi>[] => {
+export const useColumns = (): ColumnDef<DataTableFeatures, SysApi>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasMore = permissions.some((p) => p === 'update')
@@ -41,7 +42,7 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
       accessorKey: 'id',
       header: () => columnTitleMap.id(),
       cell: ({ row, table }) => {
-        const pagination = table.getState().pagination
+        const pagination = table.atoms.pagination.get()
         return (
           (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
           row.index +
@@ -52,14 +53,14 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
     createColumn<SysApi>({
       key: 'path',
       title: columnTitleMap.path,
-      cell: ({ row }: CellContext<SysApi, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysApi, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.path}</div>
       ),
     }),
     createColumn<SysApi>({
       key: 'description',
       title: columnTitleMap.description,
-      cell: ({ row }: CellContext<SysApi, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysApi, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.description}</div>
       ),
     }),
@@ -94,7 +95,7 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
     createColumn<SysApi>({
       key: 'sort',
       title: columnTitleMap.sort,
-      cell: ({ row }: CellContext<SysApi, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysApi, unknown>) => (
         <div>{row.original.sort ?? 0}</div>
       ),
     }),
@@ -103,7 +104,7 @@ export const useColumns = (): ColumnDef<SysApi>[] => {
     ...[
       hasMore
         ? createActionColumn<SysApi>(
-            ({ row }: CellContext<SysApi, unknown>) => (
+            ({ row }: CellContext<DataTableFeatures, SysApi, unknown>) => (
               <DataTableRowActions
                 row={row}
                 showEdit={permissions.some((p) => p === 'update')}

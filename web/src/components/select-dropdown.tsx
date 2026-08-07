@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { IconLoader } from '@tabler/icons-react'
 import { cn } from '~/lib/utils'
 import { FormControl } from '~/components/ui/form'
@@ -33,6 +34,16 @@ export function SelectDropdown({
   const defaultState = isControlled
     ? { value: defaultValue, onValueChange }
     : { defaultValue, onValueChange }
+  // Radix 用 value 作为内部原生 option 的 key，且不接受空串，
+  // 因此这里剔除空值并按 value 去重，避免上游脏数据触发 key 警告
+  const validItems = useMemo(() => {
+    const seen = new Set<string>()
+    return (items ?? []).filter(({ value }) => {
+      if (!value || seen.has(value)) return false
+      seen.add(value)
+      return true
+    })
+  }, [items])
   return (
     <Select {...defaultState}>
       <FormControl>
@@ -51,9 +62,9 @@ export function SelectDropdown({
               Loading...
             </div>
           </SelectItem>
-        ) : items?.length ? (
-          items.map(({ label, value }, idx) => (
-            <SelectItem key={value + idx} value={value}>
+        ) : validItems.length ? (
+          validItems.map(({ label, value }) => (
+            <SelectItem key={value} value={value}>
               {label}
             </SelectItem>
           ))

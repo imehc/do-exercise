@@ -89,7 +89,7 @@ export function MenuActionDialog({
   const { open: openType } = useFormDialog()
   const routes = useMemo<Array<string>>(
     () =>
-      router.flatRoutes
+      Object.values(router.routesByPath)
         .map((item) => item.fullPath.trim())
         .map((item) => (item.length > 1 ? item.replace(/\/+$/, '') : item)),
     []
@@ -370,17 +370,16 @@ export function MenuActionDialog({
                               label: route,
                               value: route,
                             })),
-                            ...(routes.includes(currentRow?.route ?? '')
-                              ? []
-                              : [
+                            ...(currentRow?.route &&
+                            !routes.includes(currentRow.route)
+                              ? [
                                   {
-                                    label: currentRow?.route as string,
-                                    value: currentRow?.route as string,
+                                    label: currentRow.route,
+                                    value: currentRow.route,
                                   },
-                                ]),
-                          ]
-                            .flat()
-                            .sort((a, b) => a.label?.localeCompare(b.label))}
+                                ]
+                              : []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />
@@ -406,17 +405,16 @@ export function MenuActionDialog({
                               label: item,
                               value: item,
                             })),
-                            modules.some(
-                              (item) => item === currentRow?.component
-                            )
-                              ? []
-                              : {
-                                  label: currentRow?.component as string,
-                                  value: currentRow?.component as string,
-                                },
-                          ]
-                            .flat()
-                            .sort((a, b) => a.label?.localeCompare(b.label))}
+                            ...(currentRow?.component &&
+                            !modules.includes(currentRow.component)
+                              ? [
+                                  {
+                                    label: currentRow.component,
+                                    value: currentRow.component,
+                                  },
+                                ]
+                              : []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />

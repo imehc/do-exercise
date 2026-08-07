@@ -11,7 +11,81 @@ on:
       - main
 
 jobs:
+  # Determine which part of the repo the dependency update touches.
+  detect:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      is-frontend: ${{ steps.set.outputs.is-frontend }}
+      is-backend: ${{ steps.set.outputs.is-backend }}
+    steps:
+      - name: Classify dependency update
+        id: set
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Dependabot update paths can be derived from the PR.
+          # npm updates target /web, gomod updates target /server.
+          FRONTEND=false
+          BACKEND=false
+
+          # Inspect the files changed by this PR to decide scope.
+          FILES=$(gh pr view "$PR_NUMBER" --json files --jq '.files[].path' || echo "")
+          if echo "$FILES" | grep -q '^web/'; then FRONTEND=true; fi
+          if echo "$FILES" | grep -q '^server/'; then BACKEND=true; fi
+
+          # Fallback to title heuristic (e.g. "Bump <pkg> in /web").
+          if [ "$FRONTEND" = "false" ] && [ "$BACKEND" = "false" ]; then
+            case "$PR_TITLE" in
+              *"/web"*) FRONTEND=true ;;
+              *"/server"*) BACKEND=true ;;
+            esac
+          fi
+
+          echo "is-frontend=$FRONTEND" >> "$GITHUB_OUTPUT"
+          echo "is-backend=$BACKEND" >> "$GITHUB_OUTPUT"
+
+  # Frontend dependency updates require the Web CI (build + test) to pass.
+  wait-web-ci:
+    needs: detect
+    if: needs.detect.outputs.is-frontend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Wait for Web CI to pass
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'web-build-and-test'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+  # Backend dependency updates require the Server CI (build + test) to pass.
+  wait-server-ci:
+    needs: detect
+    if: needs.detect.outputs.is-backend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Wait for Server CI to pass
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'server-build-and-test'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+  # Only enable auto-merge after the relevant checks have passed.
   auto-merge:
+    needs: [detect, wait-web-ci, wait-server-ci]
+    # Always run, but the wait jobs are conditional on scope, so this job
+    # effectively only proceeds once the required CI has succeeded.
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:

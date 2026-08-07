@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -54,8 +55,7 @@ func (s *SysMenuService) checkMenuExist(db *gorm.DB, menuId uint, isParent bool)
 }
 
 // Create 创建菜单
-func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
-	db := global.DB
+func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
 	log := global.Log
 	if *req.ParentId != 0 {
 		_, err := s.checkMenuExist(db, *req.ParentId, false)
@@ -80,8 +80,10 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			log.Error("Failed to create menu: %v")
-			tx.Rollback()
+			log.Error("Failed to create menu", zap.Any("panic", r))
+			if tx != nil {
+				_ = tx.Rollback().Error
+			}
 		}
 	}()
 
@@ -130,8 +132,7 @@ func (s *SysMenuService) Create(req request.CreateSysMenuReq) (*response.SysMenu
 }
 
 // Delete 删除菜单
-func (s *SysMenuService) Delete(id uint) error {
-	db := global.DB
+func (s *SysMenuService) Delete(db *gorm.DB, id uint) error {
 	var menu *system.SysMenu
 	menu, err := s.checkMenuExist(db, id, false)
 	if err != nil {
@@ -148,9 +149,7 @@ func (s *SysMenuService) Delete(id uint) error {
 }
 
 // Update 更新菜单
-func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
-	db := global.DB
-
+func (s *SysMenuService) Update(db *gorm.DB, req request.UpdateSysMenuReq) error {
 	var menu *system.SysMenu
 	menu, err := s.checkMenuExist(db, req.Id, false)
 	if err != nil {
@@ -203,8 +202,7 @@ func (s *SysMenuService) Update(req request.UpdateSysMenuReq) error {
 }
 
 // Get 查询单个菜单
-func (s *SysMenuService) Get(id uint) (*response.SysMenuResp, error) {
-	db := global.DB
+func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error) {
 	_, err := s.checkMenuExist(db, id, false)
 	if err != nil {
 		return nil, err
@@ -248,9 +246,9 @@ func (s *SysMenuService) Get(id uint) (*response.SysMenuResp, error) {
 }
 
 // GetTree 获取菜单树
-func (s *SysMenuService) GetTree() ([]response.SysMenuTreeResp, error) {
+func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error) {
 	var menus []system.SysMenu
-	if err := global.DB.Find(&menus).Error; err != nil {
+	if err := db.Find(&menus).Error; err != nil {
 		return nil, errors.New("getMenuListFailed")
 	}
 
@@ -282,7 +280,7 @@ func (s *SysMenuService) GetTree() ([]response.SysMenuTreeResp, error) {
 	buildSubTree = func(parentId uint) []response.SysMenuTreeResp {
 		children := make([]response.SysMenuTreeResp, 0)
 		for _, m := range menus {
-			if *m.ParentId == parentId && !processed[m.Id] {
+			if m.ParentId != nil && *m.ParentId == parentId && !processed[m.Id] {
 				node := *menuMap[m.Id]
 				// 递归获取子节点
 				node.Children = buildSubTree(m.Id) // 递归调用buildSubTree获取子节点

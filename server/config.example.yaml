@@ -1,16 +1,11 @@
 # 授权
 auth:
-  domain: server:6020
-  access_secret: access_secret
   access_expire_time: 2h
-  refresh_secret: refresh_secret
   refresh_expire_time: 7d
 
 # 系统
 system:
-  host: server
   port: 6020
-  info_interval: 10
 
 # 日志
 logger:
@@ -27,7 +22,6 @@ database:
     max_connections: 100
     min_connections: 10
     max_idle_time: 300
-    connection_timeout: 5
 
 # redis
 redis:
@@ -38,7 +32,6 @@ redis:
   pool:
     max_connections: 50
     min_idle_connections: 10
-    max_idle_time: 300
   timeout:
     connect: 5
     read: 3
@@ -46,7 +39,6 @@ redis:
 
 # captcha
 captcha:
-  key_long: 6
   img_width: 240
   img_height: 80
   captcha_timeout: 60 # open-captcha大于0时才生效

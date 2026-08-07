@@ -64,7 +64,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := authService.Login(common.Login{
+	user, err := authService.Login(util.DB(ctx), common.Login{
 		Username: req.Username,
 		Password: password,
 	})
@@ -137,7 +137,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	user, err := userService.FindUserByEmail(req.Email)
+	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
 		response.BadRequest(ctx, "emailNotBound")
 		return
@@ -165,7 +165,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := authService.ResetPassword(request.UserResetPasswordReq{
+	if err := authService.ResetPassword(util.DB(ctx), request.UserResetPasswordReq{
 		Id:       user.UserId,
 		Password: password,
 	}); err != nil {
@@ -183,9 +183,9 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 		return
 	}
 
-	user, err := userService.FindUserByEmail(req.Email)
+user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
-		response.BadRequest(ctx, err.Error())
+		response.BadRequest(ctx, "emailNotBound")
 		return
 	}
 
@@ -231,7 +231,7 @@ func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 		_ = userApi.clearEmailCache(context, iRedis, LoginWithEmailPrefix, req.Email)
 	}()
 
-	user, err := userService.FindUserByEmail(req.Email)
+	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
 		response.BadRequest(ctx, "emailNotBound")
 		return
@@ -252,9 +252,9 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 		response.BadRequest(ctx, err.Error())
 	}
 
-	user, err := userService.FindUserByEmail(req.Email)
+user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
-		response.BadRequest(ctx, err.Error())
+		response.BadRequest(ctx, "emailNotBound")
 		return
 	}
 

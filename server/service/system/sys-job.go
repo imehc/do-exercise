@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
@@ -29,8 +28,7 @@ func (s *SysJobService) checkJobExist(db *gorm.DB, jobId uint) (*system.SysJob, 
 }
 
 // Create 创建定时任务
-func (s *SysJobService) Create(req request.CreateSysJobReq) (*response.SysJobResp, error) {
-	db := global.DB
+func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*response.SysJobResp, error) {
 	job := &system.SysJob{
 		Name:           req.Name,
 		JobGroup:       req.JobGroup,
@@ -57,8 +55,7 @@ func (s *SysJobService) Create(req request.CreateSysJobReq) (*response.SysJobRes
 }
 
 // Update 更新定时任务
-func (s *SysJobService) Update(req request.UpdateSysJobReq) error {
-	db := global.DB
+func (s *SysJobService) Update(db *gorm.DB, req request.UpdateSysJobReq) error {
 	job, err := s.checkJobExist(db, req.Id)
 	if err != nil {
 		return err
@@ -91,8 +88,7 @@ func (s *SysJobService) Update(req request.UpdateSysJobReq) error {
 }
 
 // Delete 删除定时任务
-func (s *SysJobService) Delete(id uint) error {
-	db := global.DB
+func (s *SysJobService) Delete(db *gorm.DB, id uint) error {
 	job, err := s.checkJobExist(db, id)
 	if err != nil {
 		return err
@@ -109,8 +105,7 @@ func (s *SysJobService) Delete(id uint) error {
 }
 
 // Get 获取单个定时任务
-func (s *SysJobService) Get(id uint) (*response.SysJobResp, error) {
-	db := global.DB
+func (s *SysJobService) Get(db *gorm.DB, id uint) (*response.SysJobResp, error) {
 	job, err := s.checkJobExist(db, id)
 	if err != nil {
 		return nil, err
@@ -131,8 +126,7 @@ func (s *SysJobService) Get(id uint) (*response.SysJobResp, error) {
 }
 
 // GetList 获取定时任务列表
-func (s *SysJobService) GetList(req request.QuerySysJobReq) (*common.PageResult[response.SysJobResp], error) {
-	db := global.DB
+func (s *SysJobService) GetList(db *gorm.DB, req request.QuerySysJobReq) (*common.PageResult[response.SysJobResp], error) {
 	var jobs []system.SysJob
 	var total int64
 
@@ -153,6 +147,7 @@ func (s *SysJobService) GetList(req request.QuerySysJobReq) (*common.PageResult[
 		return nil, errors.New("job.getJobListFailed")
 	}
 
+	req.Normalize()
 	// 获取分页数据
 	if err := query.
 		Scopes(util.Paginate(req.PageSize, req.Page)).
@@ -177,8 +172,7 @@ func (s *SysJobService) GetList(req request.QuerySysJobReq) (*common.PageResult[
 }
 
 // Start 启动任务
-func (s *SysJobService) Start(id uint) error {
-	db := global.DB
+func (s *SysJobService) Start(db *gorm.DB, id uint) error {
 	job, err := s.checkJobExist(db, id)
 	if err != nil {
 		return err
@@ -206,8 +200,7 @@ func (s *SysJobService) Start(id uint) error {
 }
 
 // Stop 停止任务
-func (s *SysJobService) Stop(id uint) error {
-	db := global.DB
+func (s *SysJobService) Stop(db *gorm.DB, id uint) error {
 	job, err := s.checkJobExist(db, id)
 	if err != nil {
 		return err
@@ -238,8 +231,7 @@ func (s *SysJobService) Stop(id uint) error {
 }
 
 // Execute 立即执行一次任务
-func (s *SysJobService) Execute(id uint) error {
-	db := global.DB
+func (s *SysJobService) Execute(db *gorm.DB, id uint) error {
 	job, err := s.checkJobExist(db, id)
 	if err != nil {
 		return err
@@ -266,9 +258,8 @@ func (s *SysJobService) Execute(id uint) error {
 }
 
 // GetJobStats 获取任务统计信息
-func (s *SysJobService) GetJobStats(id uint) (*shared.JobStats, error) {
+func (s *SysJobService) GetJobStats(db *gorm.DB, id uint) (*shared.JobStats, error) {
 	// 检查任务是否存在
-	db := global.DB
 	_, err := s.checkJobExist(db, id)
 	if err != nil {
 		return nil, err

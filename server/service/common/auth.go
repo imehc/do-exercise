@@ -14,15 +14,16 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/util"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type AuthService struct{}
 
-func (s *AuthService) Login(req common.Login) (*system.SysUser, error) {
+func (s *AuthService) Login(db *gorm.DB, req common.Login) (*system.SysUser, error) {
 	existUser := &system.SysUser{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	err := global.DB.WithContext(ctx).
+	err := db.WithContext(ctx).
 		Preload("Roles").
 		Where("username = ?", req.Username).
 		First(existUser).
@@ -42,10 +43,7 @@ func (s *AuthService) Login(req common.Login) (*system.SysUser, error) {
 	return existUser, nil
 }
 
-func (s *AuthService) ResetPassword(req request.UserResetPasswordReq) error {
-	db := global.DB
-	log := global.Log
-
+func (s *AuthService) ResetPassword(db *gorm.DB, req request.UserResetPasswordReq) error {
 	hash := util.Hash{Value: req.Password}
 	password, err := hash.Hash()
 	if err != nil {
@@ -55,7 +53,7 @@ func (s *AuthService) ResetPassword(req request.UserResetPasswordReq) error {
 	// user.Password=pa
 	err = db.Model(&system.SysUser{}).Where("id = ?", req.Id).Update("Password", password).Error
 	if err != nil {
-		log.Error("reset password failed", zap.String("userId", req.Id), zap.Error(err))
+		global.Log.Error("reset password failed", zap.String("userId", req.Id), zap.Error(err))
 		return err
 	}
 

@@ -1,7 +1,7 @@
 import { HTMLAttributes, useEffect } from 'react'
 import { z } from 'zod'
 import { addSeconds } from 'date-fns'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { t } from '@lingui/core/macro'
@@ -58,6 +58,8 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
     }
     form.setValue('email', email)
   })
+
+  const code = useWatch({ control: form.control, name: 'code' })
 
   const authApi = useApi(AuthApi)
   const { mutate: loginWithEmail, isPending } = useMutation({
@@ -121,10 +123,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
             </FormItem>
           )}
         />
-        <Button
-          className='mt-2'
-          disabled={form.watch('code').length < 6 || isPending}
-        >
+        <Button className='mt-2' disabled={code.length < 6 || isPending}>
           <Trans>验证</Trans>
         </Button>
       </form>

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver as resolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
@@ -54,6 +54,8 @@ export default function EmailForm() {
       mode: 'onChange',
     })
   )
+
+  const email = useWatch({ control: form.control, name: 'email' })
 
   const userApi = useApi(UserApi)
   const { mutate: bindEmail, isPending: bindEmailIspending } = useMutation({
@@ -168,14 +170,13 @@ export default function EmailForm() {
                   className='w-1/3'
                   variant='outline'
                   disabled={
-                    !form.watch('email') ||
-                    form.watch('email')?.trim() === userProfile?.email ||
+                    !email ||
+                    email?.trim() === userProfile?.email ||
                     isCounting ||
                     bindEmailCodeIspending ||
                     rebindEmailCodeIspending
                   }
                   onClick={() => {
-                    const email = form.watch('email')
                     if (!email) return
                     if (hasBind) {
                       getBindEmailCode({ email })

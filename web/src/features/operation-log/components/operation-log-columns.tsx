@@ -11,6 +11,7 @@ import {
   createBadgeColumn,
   createDateColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 import type { Row } from '~/features/api/components/api-columns'
 import { callMethodTypes } from '~/features/api/data/data'
 import { callCodeTypes } from '../data/data'
@@ -41,7 +42,10 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (): ColumnDef<SysOperationLog>[] => {
+export const useColumns = (): ColumnDef<
+  DataTableFeatures,
+  SysOperationLog
+>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasMore = permissions.some((p) => p === 'info')
@@ -50,7 +54,7 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
       accessorKey: 'id',
       header: () => columnTitleMap.id(),
       cell: ({ row, table }) => {
-        const pagination = table.getState().pagination
+        const pagination = table.atoms.pagination.get()
         return (
           (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
           row.index +
@@ -61,21 +65,27 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
     createColumn<SysOperationLog>({
       key: 'username',
       title: columnTitleMap.username,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.username || '-'}</div>
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'ip',
       title: columnTitleMap.ip,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.ip}</div>
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'address',
       title: columnTitleMap.address,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div className='w-fit text-nowrap'>
           {row.original.address
             ?.split('|')
@@ -88,21 +98,27 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
     createColumn<SysOperationLog>({
       key: 'os',
       title: columnTitleMap.os,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.os}</div>
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'browser',
       title: columnTitleMap.browser,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.browser}</div>
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'path',
       title: columnTitleMap.path,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.path}</div>
       ),
     }),
@@ -118,7 +134,9 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
     createColumn<SysOperationLog>({
       key: 'success',
       title: columnTitleMap.success,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => {
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => {
         const { success } = row.original
         return (
           <div className='flex space-x-2'>
@@ -149,28 +167,36 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
     createColumn<SysOperationLog>({
       key: 'message',
       title: columnTitleMap.message,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <OperationLogViewDialog data={row.original} type='view-msg' />
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'params',
       title: columnTitleMap.params,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <OperationLogViewDialog data={row.original} type='view-params' />
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'body',
       title: columnTitleMap.body,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <OperationLogViewDialog data={row.original} type='view-body' />
       ),
     }),
     createColumn<SysOperationLog>({
       key: 'result',
       title: columnTitleMap.result,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <OperationLogViewDialog data={row.original} type='view-result' />
       ),
     }),
@@ -179,7 +205,9 @@ export const useColumns = (): ColumnDef<SysOperationLog>[] => {
     createColumn<SysOperationLog>({
       key: 'latency',
       title: columnTitleMap.latency,
-      cell: ({ row }: CellContext<SysOperationLog, unknown>) => (
+      cell: ({
+        row,
+      }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
         <div>{row.original.latency}ms</div>
       ),
     }),

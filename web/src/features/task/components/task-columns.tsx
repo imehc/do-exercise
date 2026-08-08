@@ -12,6 +12,7 @@ import {
   createActionColumn,
   createBadgeColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 import { Row } from '~/features/api/components/api-columns'
 import { scheduleStatusTypes } from '../data/data'
 import { TaskActionButton } from './task-action-button'
@@ -31,7 +32,9 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
+export const useColumns = (
+  refresh?: () => void
+): ColumnDef<DataTableFeatures, SysJob>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasMore = basicMoreOptions.some((p) => permissions.includes(p))
@@ -41,7 +44,7 @@ export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
       accessorKey: 'id',
       header: () => columnTitleMap.id(),
       cell: ({ row, table }) => {
-        const pagination = table.getState().pagination
+        const pagination = table.atoms.pagination.get()
         return (
           (pagination.pageIndex ?? 0) * (pagination.pageSize ?? 0) +
           row.index +
@@ -52,21 +55,21 @@ export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
     createColumn<SysJob>({
       key: 'name',
       title: columnTitleMap.name,
-      cell: ({ row }: CellContext<SysJob, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysJob, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.name}</div>
       ),
     }),
     createColumn<SysJob>({
       key: 'jobGroup',
       title: columnTitleMap.jobGroup,
-      cell: ({ row }: CellContext<SysJob, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysJob, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.jobGroup || '-'}</div>
       ),
     }),
     createColumn<SysJob>({
       key: 'cronExpression',
       title: columnTitleMap.cronExpression,
-      cell: ({ row }: CellContext<SysJob, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysJob, unknown>) => (
         <InlineCopy
           className='w-fit text-nowrap'
           text={row.original.cronExpression}
@@ -76,7 +79,7 @@ export const useColumns = (refresh?: () => void): ColumnDef<SysJob>[] => {
     createColumn<SysJob>({
       key: 'command',
       title: columnTitleMap.command,
-      cell: ({ row }: CellContext<SysJob, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysJob, unknown>) => (
         <div className='w-fit text-nowrap'>{row.original.command || '-'}</div>
       ),
     }),

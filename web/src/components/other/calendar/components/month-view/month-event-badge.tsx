@@ -49,11 +49,10 @@ const eventBadgeVariants = cva(
   }
 )
 
-interface IProps
-  extends Omit<
-    VariantProps<typeof eventBadgeVariants>,
-    'color' | 'multiDayPosition'
-  > {
+interface IProps extends Omit<
+  VariantProps<typeof eventBadgeVariants>,
+  'color' | 'multiDayPosition'
+> {
   event: IEvent
   cellDate: Date
   eventCurrentDay?: number

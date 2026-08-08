@@ -1,5 +1,5 @@
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import { Table } from '@tanstack/react-table'
+import { ReactTable, RowData } from '@tanstack/react-table'
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { Button } from '~/components/ui/button'
@@ -10,13 +10,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu'
+import { DataTableFeatures } from './features'
 
-interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>
+interface DataTableViewOptionsProps<TData extends RowData> {
+  table: ReactTable<DataTableFeatures, TData>
   getColumnTitle?: (columnId: string) => string
 }
 
-export function DataTableViewOptions<TData>({
+export function DataTableViewOptions<TData extends RowData>({
   table,
   getColumnTitle,
 }: DataTableViewOptionsProps<TData>) {

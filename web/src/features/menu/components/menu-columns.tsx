@@ -13,6 +13,7 @@ import {
   createActionColumn,
   createBadgeColumn,
 } from '~/components/other/data-table/column-utils'
+import { DataTableFeatures } from '~/components/other/data-table/features'
 import {
   getCallMenuMapping,
   callMenuTypes,
@@ -44,7 +45,7 @@ export const useColumns = () => {
     createColumn<SysMenuTree>({
       id: 'expander',
       header: () => null,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => {
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => {
         return row.getCanExpand() ? (
           <Button
             variant='ghost'
@@ -68,7 +69,7 @@ export const useColumns = () => {
     createColumn<SysMenuTree>({
       key: 'name',
       title: translations.menuName,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
         <div
           className='w-fit text-nowrap'
           style={{
@@ -82,7 +83,7 @@ export const useColumns = () => {
     createColumn<SysMenuTree>({
       key: 'permission',
       title: translations.permission,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
         <div className='w-fit text-nowrap'>
           {row.original.permission || '-'}
         </div>
@@ -91,7 +92,7 @@ export const useColumns = () => {
     createColumn<SysMenuTree>({
       key: 'icon',
       title: translations.icon,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => {
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => {
         const SelectedIcon =
           row.original.icon && row.original.type === MenuType.menu
             ? toIconComponent(row.original.icon)
@@ -111,21 +112,21 @@ export const useColumns = () => {
     createColumn<SysMenuTree>({
       key: 'route',
       title: translations.route,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
         <div>{row.original.route || '-'}</div>
       ),
     }),
     createColumn<SysMenuTree>({
       key: 'component',
       title: translations.component,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
         <div>{row.original.component || '-'}</div>
       ),
     }),
     createColumn<SysMenuTree>({
       key: 'sort',
       title: translations.sort,
-      cell: ({ row }: CellContext<SysMenuTree, unknown>) => (
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
         <div>{row.original.sort ?? '-'}</div>
       ),
     }),
@@ -148,5 +149,5 @@ export const useColumns = () => {
           ))
         : [],
     ].flat(),
-  ] satisfies ColumnDef<SysMenuTree>[]
+  ] satisfies ColumnDef<DataTableFeatures, SysMenuTree>[]
 }

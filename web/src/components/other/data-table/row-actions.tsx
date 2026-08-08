@@ -1,4 +1,4 @@
-import { Row } from '@tanstack/react-table'
+import { Row, RowData } from '@tanstack/react-table'
 import {
   IconEdit,
   IconInfoHexagon,
@@ -18,6 +18,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { DataTableFeatures } from './features'
 
 type Action = {
   type: DialogType | 'split-line'
@@ -53,8 +54,8 @@ type MenuOption = {
   disable?: boolean
 }
 
-interface DataTableRowActionsProps<T> {
-  row: Row<T>
+interface DataTableRowActionsProps<T extends RowData> {
+  row: Row<DataTableFeatures, T>
   showEdit?: boolean
   editOptions?: MenuOption
   showDelete?: boolean
@@ -66,7 +67,7 @@ interface DataTableRowActionsProps<T> {
   children?: ((data: T) => React.ReactNode) | React.ReactNode
 }
 
-export function DataTableRowActions<T>({
+export function DataTableRowActions<T extends RowData>({
   row,
   showEdit = false,
   editOptions,

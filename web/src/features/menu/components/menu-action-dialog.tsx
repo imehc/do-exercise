@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { SwitchThumb } from '@radix-ui/react-switch'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -89,7 +89,7 @@ export function MenuActionDialog({
   const { open: openType } = useFormDialog()
   const routes = useMemo<Array<string>>(
     () =>
-      router.flatRoutes
+      Object.values(router.routesByPath)
         .map((item) => item.fullPath.trim())
         .map((item) => (item.length > 1 ? item.replace(/\/+$/, '') : item)),
     []
@@ -103,21 +103,21 @@ export function MenuActionDialog({
     resolver: zodResolver(getActionSysMenuSchema()),
   })
 
+  const menuType = useWatch({ control: form.control, name: 'type' })
+  const isButtonType = menuType === MenuType.button
+  const isActionOpen =
+    openType === 'add' || openType === 'edit' || openType === 'add-child'
+
   const { data: apis = [], isLoading: isLoadingApis } = useQuery({
     queryKey: ['findAllApis'],
     queryFn: () => sysApi.findAllApis(),
-    enabled:
-      form.watch('type') === MenuType.button &&
-      (openType === 'add' || openType === 'edit' || openType === 'add-child'),
+    enabled: isButtonType && isActionOpen,
   })
 
   const { data: menu, isLoading: isLoadingMenu } = useQuery({
     queryKey: ['findMenu', currentRow?.id],
     queryFn: () => sysMenuApi.findMenu({ id: currentRow?.id as number }),
-    enabled:
-      form.watch('type') === MenuType.button &&
-      isEdit &&
-      (openType === 'add' || openType === 'edit' || openType === 'add-child'),
+    enabled: isButtonType && isEdit && isActionOpen,
   })
 
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
@@ -271,7 +271,7 @@ export function MenuActionDialog({
             className='space-y-4 p-0.5'
           >
             <Tabs
-              value={form.watch('type')?.toString()}
+              value={menuType?.toString()}
               onValueChange={(value) =>
                 form.setValue('type', +value as MenuType)
               }
@@ -370,17 +370,16 @@ export function MenuActionDialog({
                               label: route,
                               value: route,
                             })),
-                            ...(routes.includes(currentRow?.route ?? '')
-                              ? []
-                              : [
+                            ...(currentRow?.route &&
+                            !routes.includes(currentRow.route)
+                              ? [
                                   {
-                                    label: currentRow?.route as string,
-                                    value: currentRow?.route as string,
+                                    label: currentRow.route,
+                                    value: currentRow.route,
                                   },
-                                ]),
-                          ]
-                            .flat()
-                            .sort((a, b) => a.label?.localeCompare(b.label))}
+                                ]
+                              : []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />
@@ -406,17 +405,16 @@ export function MenuActionDialog({
                               label: item,
                               value: item,
                             })),
-                            modules.some(
-                              (item) => item === currentRow?.component
-                            )
-                              ? []
-                              : {
-                                  label: currentRow?.component as string,
-                                  value: currentRow?.component as string,
-                                },
-                          ]
-                            .flat()
-                            .sort((a, b) => a.label?.localeCompare(b.label))}
+                            ...(currentRow?.component &&
+                            !modules.includes(currentRow.component)
+                              ? [
+                                  {
+                                    label: currentRow.component,
+                                    value: currentRow.component,
+                                  },
+                                ]
+                              : []),
+                          ].sort((a, b) => a.label.localeCompare(b.label))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />

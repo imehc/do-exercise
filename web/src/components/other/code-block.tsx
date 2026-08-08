@@ -1,15 +1,12 @@
-import React, { useState } from 'react'
+import React, { Suspense, lazy, useState } from 'react'
 import { IconCheck, IconCopy, IconSelector } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { useTheme } from 'next-themes'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import {
-  oneDark,
-  oneLight,
-} from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { cn } from '~/lib/utils'
 import { useCopyToClipboard } from '~/hooks/use-copy-to-clipboard'
 import { Button } from '~/components/ui/button'
+
+const CodeBlockHighlighter = lazy(() => import('./code-block-highlighter'))
 
 interface CodeBlockProps {
   content: string | object
@@ -83,18 +80,19 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             : `${collapsedHeight} translate-y-2 opacity-95 shadow-md`
         )}
       >
-        <SyntaxHighlighter
-          language={language}
-          style={theme === 'dark' ? oneDark : oneLight}
-          customStyle={{
-            background: 'transparent',
-            padding: '1rem',
-            margin: 0,
-            borderRadius: '0.5rem',
-          }}
+        <Suspense
+          fallback={
+            <pre className='m-0 overflow-x-auto rounded-md p-4 font-mono text-sm'>
+              {formatted}
+            </pre>
+          }
         >
-          {formatted}
-        </SyntaxHighlighter>
+          <CodeBlockHighlighter
+            formatted={formatted}
+            language={language}
+            dark={theme === 'dark'}
+          />
+        </Suspense>
       </div>
     </div>
   )

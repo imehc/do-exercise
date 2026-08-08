@@ -5,7 +5,7 @@ export default defineConfig({
   locales: ["zh-CN", "en-US"],
   catalogs: [
     {
-      path: "src/locales/{locale}/messages",
+      path: "<rootDir>/src/locales/{locale}/messages",
       include: ["src/components/**", "src/features/**", "src/hooks/**", "src/commons/**"],
       exclude: ["**/node_modules/**"],
     },

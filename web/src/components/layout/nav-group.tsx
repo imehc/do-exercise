@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { IconChevronRight } from '@tabler/icons-react'
-import { toIconComponent } from '~/utils/icon'
+import { renderIcon } from '~/utils/icon'
 import {
   Collapsible,
   CollapsibleContent,
@@ -60,7 +60,6 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 
 const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
   const { setOpenMobile } = useSidebar()
-  const SelectedIcon = toIconComponent(item.icon)
 
   return (
     <SidebarMenuItem>
@@ -70,7 +69,7 @@ const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
         tooltip={item.title}
       >
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
-          {SelectedIcon && <SelectedIcon />}
+          {renderIcon(item.icon)}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
         </Link>
@@ -87,7 +86,6 @@ const SidebarMenuCollapsible = ({
   href: string
 }) => {
   const { setOpenMobile } = useSidebar()
-  const SelectedIcon = toIconComponent(item.icon)
 
   return (
     <Collapsible
@@ -98,7 +96,7 @@ const SidebarMenuCollapsible = ({
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton tooltip={item.title}>
-            {SelectedIcon && <SelectedIcon />}
+            {renderIcon(item.icon)}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
@@ -134,8 +132,6 @@ const SidebarMenuCollapsedDropdown = ({
   item: NavCollapsible
   href: string
 }) => {
-  const SelectedIcon = toIconComponent(item.icon)
-
   return (
     <SidebarMenuItem>
       <DropdownMenu>
@@ -144,7 +140,7 @@ const SidebarMenuCollapsedDropdown = ({
             tooltip={item.title}
             isActive={checkIsActive(href, item)}
           >
-            {SelectedIcon && <SelectedIcon />}
+            {renderIcon(item.icon)}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />

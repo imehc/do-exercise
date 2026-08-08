@@ -1,6 +1,6 @@
 import { HTMLAttributes, useEffect } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -63,6 +63,8 @@ export function ForgotPasswordForm({ className, ...props }: ForgotFormProps) {
       defaultValues: { email: '' },
     })
   )
+
+  const email = useWatch({ control: form.control, name: 'email' })
 
   const {
     data: publicKeyData,
@@ -137,14 +139,13 @@ export function ForgotPasswordForm({ className, ...props }: ForgotFormProps) {
                   variant='outline'
                   className='w-1/3 max-sm:w-full'
                   disabled={
-                    !form.watch('email') ||
+                    !email ||
                     isCounting ||
                     forgetPasswordCodeIsPending ||
                     forgetPasswordIsPending ||
                     publicKeyDataIsLoading
                   }
                   onClick={() => {
-                    const email = form.watch('email')
                     if (!email) return
                     getForgetPasswordCode({ email })
                   }}

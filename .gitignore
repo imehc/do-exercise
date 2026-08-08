@@ -23,6 +23,7 @@ go.work.sum
 
 # env file
 .env
+.env.dev
 
 # other
 *.DS_Store

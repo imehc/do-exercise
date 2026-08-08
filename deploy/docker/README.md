@@ -50,13 +50,25 @@ Docker 部署时，`.env` 是运行环境入口，`server/config.yaml` 只保留
 
 ### 开发模式
 
-如果只用 Docker 启动数据库和 MinIO，后端在本机运行，需要让本机能直连依赖服务：
+如果只用 Docker 启动数据库和 MinIO，后端在本机运行，推荐使用专用开发环境 compose（已把 PostgreSQL/Redis/MinIO 的端口映射到宿主机，并自动初始化 MinIO）：
 
-- PostgreSQL 暴露到宿主机 `5432`
-- MinIO API 暴露到宿主机 `9000`
-- 不启动 `web` 服务，避免它占用宿主机 `9000`
+```bash
+# 一键开发：首次自动生成 .env.dev 并启动依赖容器 + 后端热重载
+make dev
+# 说明：后端热重载依赖 air，未安装时先执行 make dev-install
 
-可临时取消 `docker-compose.yml` 中 `postgres` 的 `5432:5432` 和 `minio` 的 `9000:9000` 端口注释，然后只启动依赖服务：
+# 仅启动依赖容器（不带后端）
+docker compose -f deploy/docker/docker-compose.dev.yml up -d
+
+# 停止依赖容器
+make dev-down
+```
+
+开发依赖端口（默认）：PostgreSQL `5432`、Redis `6379`、MinIO API `9000` / 控制台 `9001`。
+
+`.env.dev` 与生产 `.env` 的差异在于主机名指向宿主机（`POSTGRES_HOST/REDIS_HOST/MINIO_HOST=localhost`），`minio-init` 容器内部会自动改用容器服务名访问 MinIO。
+
+也可继续用旧的临时方式：取消 `docker-compose.yml` 中 `postgres` 的 `5432:5432` 和 `minio` 的 `9000:9000` 端口注释，然后只启动依赖服务：
 
 ```bash
 docker compose -f deploy/docker/docker-compose.yml up -d postgres redis minio minio-init

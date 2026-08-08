@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { RowData } from '@tanstack/react-table'
 import { IconX } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
@@ -8,11 +9,10 @@ import { Input } from '~/components/ui/input'
 import { DataTablePaginationProps } from './pagination'
 import { DataTableViewOptions } from './view-options'
 
-export interface DataTableToolbarProps<TData>
-  extends Pick<
-    DataTablePaginationProps<TData>,
-    'enableClientPagination' | 'navigate' | 'table'
-  > {
+export interface DataTableToolbarProps<TData extends RowData> extends Pick<
+  DataTablePaginationProps<TData>,
+  'enableClientPagination' | 'navigate' | 'table'
+> {
   search?: Record<string, unknown>
   serchOptions?: {
     key: keyof TData
@@ -21,7 +21,7 @@ export interface DataTableToolbarProps<TData>
   getColumnTitle?: (columnId: string) => string
 }
 
-export function DataTableToolbar<TData>({
+export function DataTableToolbar<TData extends RowData>({
   table,
   enableClientPagination,
   search,
@@ -29,7 +29,7 @@ export function DataTableToolbar<TData>({
   serchOptions,
   getColumnTitle,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.state.columnFilters.length > 0
   // 🔍 保存搜索字段值（服务端模式）由于需要防抖，所以必须在这里临时存放，而不是直接使用search
   const [rawSearchParams, setRawSearchParams] = useState<
     Record<string, string>

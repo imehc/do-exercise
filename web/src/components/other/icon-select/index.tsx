@@ -2,7 +2,7 @@ import { useRef, useState, useDeferredValue, useMemo, useEffect } from 'react'
 import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '~/lib/utils'
-import { getIconComponentList, toIconComponent } from '~/utils/icon'
+import { getIconComponentList, renderIcon } from '~/utils/icon'
 import { useGridColumnCount } from '~/hooks/use-grid-column-count'
 import { Button } from '~/components/ui/button'
 import {
@@ -35,8 +35,6 @@ export const IconSelect = ({
 }: IconSelectProps) => {
   const ref = useRef<HTMLButtonElement>(null)
 
-  const SelectedIcon = toIconComponent(value)
-
   return (
     <Popover modal>
       <PopoverTrigger asChild>
@@ -49,9 +47,9 @@ export const IconSelect = ({
           ref={ref}
         >
           <div className='relative flex grow flex-wrap items-center gap-[6px] overflow-hidden'>
-            {value && SelectedIcon ? (
+            {value ? (
               <div className='ml-1.5 flex items-center justify-start gap-x-3'>
-                <SelectedIcon className='scale-150' />
+                {renderIcon(value, 'scale-150')}
                 <p>{value}</p>
               </div>
             ) : (

@@ -3,8 +3,10 @@ import { cn } from '~/lib/utils'
 import { useCopyToClipboard } from '~/hooks/use-copy-to-clipboard'
 import { Button } from '~/components/ui/button'
 
-interface InlineCopyProps
-  extends Pick<React.HTMLAttributes<HTMLDivElement>, 'className'> {
+interface InlineCopyProps extends Pick<
+  React.HTMLAttributes<HTMLDivElement>,
+  'className'
+> {
   text: string
 }
 

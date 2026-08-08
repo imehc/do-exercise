@@ -169,11 +169,10 @@ export const TreeSelect = ({
   )
 }
 
-interface TreeSelectPanelProps
-  extends Pick<
-    TreeSelectComponentProps,
-    'loading' | 'data' | 'onChange' | 'multiple' | 'value' | 'readonly' | 'mode'
-  > {
+interface TreeSelectPanelProps extends Pick<
+  TreeSelectComponentProps,
+  'loading' | 'data' | 'onChange' | 'multiple' | 'value' | 'readonly' | 'mode'
+> {
   search?: string
   setSearch: React.Dispatch<React.SetStateAction<string | undefined>>
   deferredSearch?: string

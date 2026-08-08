@@ -9,11 +9,10 @@ import { Input } from '~/components/ui/input'
 import { DataTablePaginationProps } from './pagination'
 import { DataTableViewOptions } from './view-options'
 
-export interface DataTableToolbarProps<TData extends RowData>
-  extends Pick<
-    DataTablePaginationProps<TData>,
-    'enableClientPagination' | 'navigate' | 'table'
-  > {
+export interface DataTableToolbarProps<TData extends RowData> extends Pick<
+  DataTablePaginationProps<TData>,
+  'enableClientPagination' | 'navigate' | 'table'
+> {
   search?: Record<string, unknown>
   serchOptions?: {
     key: keyof TData

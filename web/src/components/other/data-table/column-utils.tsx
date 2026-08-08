@@ -8,8 +8,8 @@ import {
 import { i18n } from '@lingui/core'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
-import { DataTableFeatures } from './features'
 import { DataTableColumnHeader } from './column-header'
+import { DataTableFeatures } from './features'
 
 type BaseColumnConfig<TData extends RowData> = {
   id?: string
@@ -32,10 +32,9 @@ type IdColumnConfig<TData extends RowData> = BaseColumnConfig<TData> & {
 }
 
 export type ColumnConfig<TData extends RowData> =
-  | AccessorColumnConfig<TData>
-  | IdColumnConfig<TData>
+  AccessorColumnConfig<TData> | IdColumnConfig<TData>
 
-export const createColumn = <TData extends RowData,>(
+export const createColumn = <TData extends RowData>(
   config: ColumnConfig<TData>
 ): ColumnDef<DataTableFeatures, TData> => {
   const baseConfig: Partial<ColumnDef<DataTableFeatures, TData>> = {
@@ -74,8 +73,10 @@ export const createColumn = <TData extends RowData,>(
   } as ColumnDef<DataTableFeatures, TData>
 }
 
-export const createActionColumn = <TData extends RowData,>(
-  cell: (props: CellContext<DataTableFeatures, TData, unknown>) => React.ReactNode,
+export const createActionColumn = <TData extends RowData>(
+  cell: (
+    props: CellContext<DataTableFeatures, TData, unknown>
+  ) => React.ReactNode,
   options: Partial<ColumnDef<DataTableFeatures, TData>> = {}
 ): ColumnDef<DataTableFeatures, TData> => ({
   id: 'actions',
@@ -83,7 +84,7 @@ export const createActionColumn = <TData extends RowData,>(
   ...options,
 })
 
-export const createDateColumn = <TData extends RowData,>(
+export const createDateColumn = <TData extends RowData>(
   key: keyof TData,
   title: () => string,
   options: Partial<ColumnDef<DataTableFeatures, TData>> = {}
@@ -104,7 +105,7 @@ export const createDateColumn = <TData extends RowData,>(
   ...options,
 })
 
-export const createBadgeColumn = <TData extends RowData,>(
+export const createBadgeColumn = <TData extends RowData>(
   key: keyof TData,
   title: () => string,
   getBadgeColor: (value: unknown) => string | undefined,

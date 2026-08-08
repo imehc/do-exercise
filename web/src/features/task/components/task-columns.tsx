@@ -32,7 +32,9 @@ const columnTitleMap = {
 export const getColumnTitle = (columnId: string): string =>
   columnTitleMap[columnId as keyof typeof columnTitleMap]?.() ?? columnId
 
-export const useColumns = (refresh?: () => void): ColumnDef<DataTableFeatures, SysJob>[] => {
+export const useColumns = (
+  refresh?: () => void
+): ColumnDef<DataTableFeatures, SysJob>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
   const hasMore = basicMoreOptions.some((p) => permissions.includes(p))

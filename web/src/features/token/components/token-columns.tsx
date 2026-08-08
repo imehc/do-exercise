@@ -110,7 +110,9 @@ export const useColumns = (): ColumnDef<DataTableFeatures, TokenInfo>[] => {
         ? createColumn<TokenInfo>({
             key: 'disabled',
             title: columnTitleMap.disabled,
-            cell: ({ row }: CellContext<DataTableFeatures, TokenInfo, unknown>) => {
+            cell: ({
+              row,
+            }: CellContext<DataTableFeatures, TokenInfo, unknown>) => {
               const token = row.original
               return (
                 <ToggleDisabledSwitch

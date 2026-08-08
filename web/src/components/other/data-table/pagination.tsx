@@ -9,7 +9,6 @@ import {
 import { Trans } from '@lingui/react/macro'
 import { Pagination } from '~/do-exercise-api'
 import { Button } from '~/components/ui/button'
-import { DataTableFeatures } from './features'
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { DataTableFeatures } from './features'
 
 export interface DataTablePaginationProps<TData extends RowData> {
   navigate?: UseNavigateResult<'/api/'>

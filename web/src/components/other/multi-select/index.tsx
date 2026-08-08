@@ -49,7 +49,8 @@ type Value = string | number
  * @description https://github.com/sersavan/shadcn-multi-select-component
  */
 interface MultiSelectProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'defaultValue'>,
+  extends
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'defaultValue'>,
     VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.

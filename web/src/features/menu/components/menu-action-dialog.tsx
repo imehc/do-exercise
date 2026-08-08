@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { SwitchThumb } from '@radix-ui/react-switch'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -103,21 +103,21 @@ export function MenuActionDialog({
     resolver: zodResolver(getActionSysMenuSchema()),
   })
 
+  const menuType = useWatch({ control: form.control, name: 'type' })
+  const isButtonType = menuType === MenuType.button
+  const isActionOpen =
+    openType === 'add' || openType === 'edit' || openType === 'add-child'
+
   const { data: apis = [], isLoading: isLoadingApis } = useQuery({
     queryKey: ['findAllApis'],
     queryFn: () => sysApi.findAllApis(),
-    enabled:
-      form.watch('type') === MenuType.button &&
-      (openType === 'add' || openType === 'edit' || openType === 'add-child'),
+    enabled: isButtonType && isActionOpen,
   })
 
   const { data: menu, isLoading: isLoadingMenu } = useQuery({
     queryKey: ['findMenu', currentRow?.id],
     queryFn: () => sysMenuApi.findMenu({ id: currentRow?.id as number }),
-    enabled:
-      form.watch('type') === MenuType.button &&
-      isEdit &&
-      (openType === 'add' || openType === 'edit' || openType === 'add-child'),
+    enabled: isButtonType && isEdit && isActionOpen,
   })
 
   const { isPending: isPendingCreate, mutate: saveCreate } = useMutation({
@@ -271,7 +271,7 @@ export function MenuActionDialog({
             className='space-y-4 p-0.5'
           >
             <Tabs
-              value={form.watch('type')?.toString()}
+              value={menuType?.toString()}
               onValueChange={(value) =>
                 form.setValue('type', +value as MenuType)
               }

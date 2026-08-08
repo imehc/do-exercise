@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
   ColumnVisibilityState,
+  ExpandedState,
   RowData,
   SortingState,
   useTable,
@@ -45,6 +46,18 @@ interface DataTableProps<T extends RowData>
   stickyColumns?: StickyColumnConfig // 新的固定列配置
 }
 
+// 默认展开一级菜单
+function getDefaultExpanded<T>(rows: T[]): ExpandedState {
+  const defaultExpanded: Record<string, boolean> = {}
+
+  rows.forEach((_, index) => {
+    const rowId = String(index)
+    defaultExpanded[rowId] = true // 展开一级菜单
+  })
+
+  return defaultExpanded
+}
+
 export function DataTable<T extends RowData>({
   columns,
   data,
@@ -62,23 +75,20 @@ export function DataTable<T extends RowData>({
     useState<ColumnVisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
-  const [expanded, setExpanded] = useState({})
+  const [expanded, setExpanded] = useState<ExpandedState>(() =>
+    getDefaultExpanded(data)
+  )
   const [clientPagination, setClientPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   })
 
-  // 默认展开展开一级菜单
-  useEffect(() => {
-    const defaultExpanded: Record<string, boolean> = {}
-
-    data.forEach((_, index) => {
-      const rowId = String(index)
-      defaultExpanded[rowId] = true // 展开一级菜单
-    })
-
-    setExpanded(defaultExpanded)
-  }, [data])
+  // data 变化时重置为默认展开状态：在渲染期间调整状态，避免 effect 引发的级联渲染
+  const [prevData, setPrevData] = useState(data)
+  if (prevData !== data) {
+    setPrevData(data)
+    setExpanded(getDefaultExpanded(data))
+  }
 
   const page = meta?.page || 1
   const pageSize = meta?.pageSize || 10

@@ -33,11 +33,10 @@ export interface StickyColumnConfig {
   right?: string[] // 右侧固定列的 accessorKey
 }
 
-interface DataTableProps<T extends RowData>
-  extends Pick<
-    DataTableToolbarProps<T>,
-    'serchOptions' | 'search' | 'enableClientPagination' | 'navigate'
-  > {
+interface DataTableProps<T extends RowData> extends Pick<
+  DataTableToolbarProps<T>,
+  'serchOptions' | 'search' | 'enableClientPagination' | 'navigate'
+> {
   columns: ColumnDef<DataTableFeatures, T>[]
   data: T[]
   meta?: Pagination

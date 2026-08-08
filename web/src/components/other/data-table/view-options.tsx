@@ -3,7 +3,6 @@ import { ReactTable, RowData } from '@tanstack/react-table'
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
 import { Button } from '~/components/ui/button'
-import { DataTableFeatures } from './features'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,6 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu'
+import { DataTableFeatures } from './features'
 
 interface DataTableViewOptionsProps<TData extends RowData> {
   table: ReactTable<DataTableFeatures, TData>

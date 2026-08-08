@@ -8,7 +8,6 @@ import {
 import { Trans } from '@lingui/react/macro'
 import { cn } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
-import { DataTableFeatures } from './features'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { DataTableFeatures } from './features'
 
-interface DataTableColumnHeaderProps<TData extends RowData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableColumnHeaderProps<
+  TData extends RowData,
+  TValue,
+> extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<DataTableFeatures, TData, TValue>
   title: string
 }

@@ -199,7 +199,9 @@ INSERT INTO sys_role_menu VALUES(1, 176);
 INSERT INTO sys_role_menu VALUES(1, 177);
 INSERT INTO sys_role_menu VALUES(1, 178);
 -- 用户数据;
-INSERT INTO sys_user VALUES('12345678910', 'admin', '我是管理员', NULL, NULL, '$2a$10$gI7PJi4gyTc.sG2m5ZgbcO/I0E8nLkW2AHhWFxGMaCogU2H/E3YzC', '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+-- 默认管理员使用公开口令（README.md），必须设置 must_change_password 强制首登改密；
+INSERT INTO sys_user (id, username, nickname, email, avatar, password, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, must_change_password)
+VALUES ('12345678910', 'admin', '我是管理员', NULL, NULL, '$2a$10$gI7PJi4gyTc.sG2m5ZgbcO/I0E8nLkW2AHhWFxGMaCogU2H/E3YzC', '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL, TRUE);
 
 -- 用户关联角色数据;
 INSERT INTO sys_user_role VALUES('12345678910', 1);

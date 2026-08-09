@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/other/multi-select/index.tsx:293
+#: src/components/other/multi-select/index.tsx:294
 msgid "(选择全部)"
 msgstr "(选择全部)"
 
@@ -244,7 +244,7 @@ msgid "使用邮箱登录"
 msgstr "使用邮箱登录"
 
 #: src/features/api/components/api-action.tsx:237
-#: src/features/menu/components/menu-action-dialog.tsx:572
+#: src/features/menu/components/menu-action-dialog.tsx:570
 #: src/features/role/components/role-action-dialog.tsx:200
 #: src/features/settings/appearance/appearance-form.tsx:181
 #: src/features/settings/password/email-form.tsx:156
@@ -256,7 +256,7 @@ msgid "保存"
 msgstr "保存"
 
 #: src/features/api/components/api-action.tsx:232
-#: src/features/menu/components/menu-action-dialog.tsx:567
+#: src/features/menu/components/menu-action-dialog.tsx:565
 #: src/features/role/components/role-action-dialog.tsx:195
 #: src/features/settings/appearance/appearance-form.tsx:176
 #: src/features/settings/password/email-form.tsx:151
@@ -309,7 +309,7 @@ msgstr "六"
 msgid "六月"
 msgstr "六月"
 
-#: src/features/menu/components/menu-action-dialog.tsx:478
+#: src/features/menu/components/menu-action-dialog.tsx:476
 #: src/features/menu/components/menu-view-info.tsx:159
 msgid "关联接口"
 msgstr "关联接口"
@@ -341,7 +341,7 @@ msgstr "关闭"
 msgid "内存使用情况"
 msgstr "内存使用情况"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:218
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:219
 msgid "再次输入您的新密码。"
 msgstr "再次输入您的新密码。"
 
@@ -462,7 +462,7 @@ msgstr "十二月"
 msgid "十月"
 msgstr "十月"
 
-#: src/components/other/data-table/column-header.tsx:56
+#: src/components/other/data-table/column-header.tsx:58
 msgid "升序"
 msgstr "升序"
 
@@ -482,13 +482,13 @@ msgstr "参数不合法"
 msgid "双因素认证"
 msgstr "双因素认证"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:86
-#: src/features/settings/email/email-form.tsx:88
-#: src/features/settings/email/email-form.tsx:98
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:88
+#: src/features/settings/email/email-form.tsx:90
+#: src/features/settings/email/email-form.tsx:100
 msgid "发送成功"
 msgstr "发送成功"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:152
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:153
 msgid "发送验证码"
 msgstr "发送验证码"
 
@@ -560,13 +560,13 @@ msgstr "四"
 msgid "四月"
 msgstr "四月"
 
-#: src/features/menu/components/menu-action-dialog.tsx:432
+#: src/features/menu/components/menu-action-dialog.tsx:430
 #: src/features/menu/components/menu-columns.tsx:26
 #: src/features/menu/components/menu-view-info.tsx:113
 msgid "图标"
 msgstr "图标"
 
-#: src/features/settings/password/index.tsx:9
+#: src/features/settings/password/index.tsx:15
 msgid "在此管理您的密码设置。"
 msgstr "在此管理您的密码设置。"
 
@@ -620,8 +620,8 @@ msgstr "定时任务名称"
 msgid "定时任务详情"
 msgstr "定时任务详情"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:185
-#: src/features/auth/sign-in/components/user-auth-form.tsx:145
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:186
+#: src/features/auth/sign-in/components/user-auth-form.tsx:148
 #: src/features/settings/index.tsx:44
 #: src/features/user/components/user-action-dialog.tsx:260
 #: src/features/user/components/user-reset-password-dialog.tsx:104
@@ -657,7 +657,7 @@ msgstr "密码登录"
 msgid "密码至少为6个字符"
 msgstr "密码至少为6个字符"
 
-#: src/features/settings/password/index.tsx:8
+#: src/features/settings/password/index.tsx:14
 msgid "密码设置"
 msgstr "密码设置"
 
@@ -713,6 +713,10 @@ msgstr "开始日期"
 msgid "开始日期是必需的"
 msgstr "开始日期是必需的"
 
+#: src/features/settings/password/index.tsx:25
+msgid "当前使用的是系统默认密码，请立即设置新密码后才能继续使用其他功能。"
+msgstr "当前使用的是系统默认密码，请立即设置新密码后才能继续使用其他功能。"
+
 #: src/components/other/calendar/components/change-badge-variant-input.tsx:39
 msgid "徽章样式"
 msgstr "徽章样式"
@@ -721,7 +725,7 @@ msgstr "徽章样式"
 msgid "忘记密码"
 msgstr "忘记密码"
 
-#: src/features/auth/sign-in/components/user-auth-form.tsx:155
+#: src/features/auth/sign-in/components/user-auth-form.tsx:158
 msgid "忘记密码?"
 msgstr "忘记密码?"
 
@@ -750,7 +754,7 @@ msgstr "您确定要删除这个{text}吗?"
 msgid "成功"
 msgstr "成功"
 
-#: src/features/auth/sign-in/components/user-auth-form.tsx:217
+#: src/features/auth/sign-in/components/user-auth-form.tsx:220
 msgid "或"
 msgstr "或"
 
@@ -804,21 +808,21 @@ msgstr "按日查看"
 msgid "按月查看"
 msgstr "按月查看"
 
-#: src/features/settings/email/email-form.tsx:238
+#: src/features/settings/email/email-form.tsx:239
 msgid "换绑"
 msgstr "换绑"
 
-#: src/features/settings/email/email-form.tsx:232
+#: src/features/settings/email/email-form.tsx:233
 msgid "换绑中"
 msgstr "换绑中"
 
-#: src/features/settings/email/email-form.tsx:162
+#: src/features/settings/email/email-form.tsx:164
 msgid "换绑邮箱"
 msgstr "换绑邮箱"
 
 #: src/features/api/components/api-action.tsx:208
 #: src/features/api/components/api-columns.tsx:27
-#: src/features/menu/components/menu-action-dialog.tsx:541
+#: src/features/menu/components/menu-action-dialog.tsx:539
 #: src/features/menu/components/menu-columns.tsx:30
 msgid "排序"
 msgstr "排序"
@@ -897,7 +901,7 @@ msgstr "是"
 msgid "是否内网IP"
 msgstr "是否内网IP"
 
-#: src/features/menu/components/menu-action-dialog.tsx:519
+#: src/features/menu/components/menu-action-dialog.tsx:517
 #: src/features/menu/components/menu-columns.tsx:31
 #: src/features/menu/components/menu-view-info.tsx:121
 msgid "是否可见"
@@ -933,7 +937,7 @@ msgid "昵称长度不能超过10个字符"
 msgstr "昵称长度不能超过10个字符"
 
 #: src/features/task/components/task-action-dialog.tsx:263
-#: src/features/task/components/task-columns.tsx:89
+#: src/features/task/components/task-columns.tsx:91
 #: src/features/task/components/task-view-info.tsx:104
 msgid "暂停"
 msgstr "暂停"
@@ -951,7 +955,7 @@ msgstr "更喜欢使用密码？"
 msgid "更多..."
 msgstr "更多..."
 
-#: src/features/settings/email/email-form.tsx:74
+#: src/features/settings/email/email-form.tsx:76
 msgid "更换成功"
 msgstr "更换成功"
 
@@ -989,7 +993,7 @@ msgstr "未找到结果。"
 msgid "未选择文件"
 msgstr "未选择文件"
 
-#: src/features/menu/components/menu-action-dialog.tsx:457
+#: src/features/menu/components/menu-action-dialog.tsx:455
 #: src/features/menu/components/menu-columns.tsx:25
 #: src/features/menu/components/menu-view-info.tsx:153
 msgid "权限标识"
@@ -1053,7 +1057,7 @@ msgstr "正在进行"
 
 #: src/features/api/components/api-columns.tsx:87
 #: src/features/task/components/task-action-dialog.tsx:261
-#: src/features/task/components/task-columns.tsx:89
+#: src/features/task/components/task-columns.tsx:91
 #: src/features/task/components/task-view-info.tsx:102
 #: src/features/token/components/token-view-info.tsx:135
 msgid "正常"
@@ -1072,7 +1076,7 @@ msgid "每页条数"
 msgstr "每页条数"
 
 #: src/components/command-menu.tsx:44
-#: src/components/other/data-table/index.tsx:286
+#: src/components/other/data-table/index.tsx:295
 msgid "没有内容."
 msgstr "没有内容."
 
@@ -1182,8 +1186,8 @@ msgstr "用户ID"
 msgid "用户列表"
 msgstr "用户列表"
 
-#: src/features/auth/sign-in/components/user-auth-form.tsx:130
-#: src/features/settings/email/email-form.tsx:120
+#: src/features/auth/sign-in/components/user-auth-form.tsx:133
+#: src/features/settings/email/email-form.tsx:122
 #: src/features/settings/profile/profile-form.tsx:73
 #: src/features/token/components/token-columns.tsx:19
 #: src/features/token/components/token-view-info.tsx:64
@@ -1220,9 +1224,9 @@ msgid "用户详情"
 msgstr "用户详情"
 
 #: src/features/auth/forgot-password/index.tsx:61
-#: src/features/auth/sign-in/components/user-auth-form.tsx:201
-#: src/features/auth/sign-in/components/user-auth-form.tsx:206
-#: src/features/auth/sign-in/components/user-auth-form.tsx:232
+#: src/features/auth/sign-in/components/user-auth-form.tsx:204
+#: src/features/auth/sign-in/components/user-auth-form.tsx:209
+#: src/features/auth/sign-in/components/user-auth-form.tsx:235
 #: src/features/auth/sign-in/index.tsx:46
 msgid "登录"
 msgstr "登录"
@@ -1235,7 +1239,7 @@ msgstr "目前没有预约或咨询"
 msgid "目录"
 msgstr "目录"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:208
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:209
 #: src/features/user/components/user-action-dialog.tsx:281
 #: src/features/user/components/user-reset-password-dialog.tsx:160
 msgid "确认密码"
@@ -1260,7 +1264,7 @@ msgstr "禁用状态"
 msgid "第{currentPage}页，共{totalPage}页"
 msgstr "第{currentPage}页，共{totalPage}页"
 
-#: src/components/other/calendar/components/month-view/month-event-badge.tsx:127
+#: src/components/other/calendar/components/month-view/month-event-badge.tsx:126
 msgid "第{eventCurrentDay}天, 共{eventTotalDays}天"
 msgstr "第{eventCurrentDay}天, 共{eventTotalDays}天"
 
@@ -1268,7 +1272,7 @@ msgstr "第{eventCurrentDay}天, 共{eventTotalDays}天"
 msgid "第一页"
 msgstr "第一页"
 
-#: src/components/other/data-table/toolbar.tsx:88
+#: src/components/other/data-table/toolbar.tsx:87
 msgid "筛选 {key}..."
 msgstr "筛选 {key}..."
 
@@ -1301,25 +1305,25 @@ msgstr "红色"
 msgid "紫色"
 msgstr "紫色"
 
-#: src/features/menu/components/menu-action-dialog.tsx:396
+#: src/features/menu/components/menu-action-dialog.tsx:395
 #: src/features/menu/components/menu-columns.tsx:29
 #: src/features/menu/components/menu-view-info.tsx:107
 msgid "组件"
 msgstr "组件"
 
-#: src/features/settings/email/email-form.tsx:238
+#: src/features/settings/email/email-form.tsx:239
 msgid "绑定"
 msgstr "绑定"
 
-#: src/features/settings/email/email-form.tsx:228
+#: src/features/settings/email/email-form.tsx:229
 msgid "绑定中"
 msgstr "绑定中"
 
-#: src/features/settings/email/email-form.tsx:62
+#: src/features/settings/email/email-form.tsx:64
 msgid "绑定成功"
 msgstr "绑定成功"
 
-#: src/features/settings/email/email-form.tsx:162
+#: src/features/settings/email/email-form.tsx:164
 msgid "绑定邮箱"
 msgstr "绑定邮箱"
 
@@ -1335,7 +1339,7 @@ msgstr "结束日期是必需的"
 #: src/components/confirm-dialog.tsx:64
 #: src/components/other/calendar/components/dialogs/delete-event-dialog.tsx:63
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:86
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:226
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:227
 msgid "继续"
 msgstr "继续"
 
@@ -1369,7 +1373,7 @@ msgstr "耗时"
 msgid "自定义应用程序的外观。自动切换日期 和夜晚主题"
 msgstr "自定义应用程序的外观。自动切换日期 和夜晚主题"
 
-#: src/features/settings/email/email-form.tsx:187
+#: src/features/settings/email/email-form.tsx:188
 msgid "获取验证码"
 msgstr "获取验证码"
 
@@ -1451,7 +1455,7 @@ msgstr "设置新密码完成后点击保存。"
 msgid "详情"
 msgstr "详情"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:212
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:213
 msgid "请再次输入密码"
 msgstr "请再次输入密码"
 
@@ -1539,23 +1543,23 @@ msgstr "请输入任务名称"
 msgid "请输入原密码"
 msgstr "请输入原密码"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:189
-#: src/features/auth/sign-in/components/user-auth-form.tsx:148
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:190
+#: src/features/auth/sign-in/components/user-auth-form.tsx:151
 #: src/features/user/components/user-action-dialog.tsx:264
 #: src/features/user/components/user-reset-password-dialog.tsx:143
 #: src/features/user/schemas/action-schema.ts:69
 msgid "请输入密码"
 msgstr "请输入密码"
 
-#: src/features/settings/email/email-form.tsx:214
+#: src/features/settings/email/email-form.tsx:215
 msgid "请输入您在电子邮件中收到的验证码。"
 msgstr "请输入您在电子邮件中收到的验证码。"
 
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:31
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:41
 #: src/features/auth/otp/components/otp-form.tsx:39
-#: src/features/settings/email/email-form.tsx:143
-#: src/features/settings/email/email-form.tsx:165
+#: src/features/settings/email/email-form.tsx:145
+#: src/features/settings/email/email-form.tsx:167
 #: src/features/settings/email/schemas/action-schema.ts:8
 #: src/features/user/schemas/action-schema.ts:46
 msgid "请输入您的邮箱"
@@ -1572,7 +1576,7 @@ msgid "请输入执行命令"
 msgstr "请输入执行命令"
 
 #: src/features/api/components/api-action.tsx:213
-#: src/features/menu/components/menu-action-dialog.tsx:546
+#: src/features/menu/components/menu-action-dialog.tsx:544
 msgid "请输入排序值"
 msgstr "请输入排序值"
 
@@ -1595,7 +1599,7 @@ msgstr "请输入昵称"
 msgid "请输入有效的cron表达式"
 msgstr "请输入有效的cron表达式"
 
-#: src/features/menu/components/menu-action-dialog.tsx:461
+#: src/features/menu/components/menu-action-dialog.tsx:459
 #: src/features/menu/schemas/action-schema.ts:58
 #: src/features/menu/schemas/action-schema.ts:60
 msgid "请输入权限标识"
@@ -1609,7 +1613,7 @@ msgstr "请输入标题"
 #~ msgid "请输入正确的邮箱地址"
 #~ msgstr "请输入正确的邮箱地址"
 
-#: src/features/auth/sign-in/components/user-auth-form.tsx:133
+#: src/features/auth/sign-in/components/user-auth-form.tsx:136
 #: src/features/settings/profile/profile-form.tsx:77
 #: src/features/user/components/user-action-dialog.tsx:149
 #: src/features/user/components/user-reset-password-dialog.tsx:123
@@ -1667,13 +1671,13 @@ msgid "请输入身份验证代码。<0/>我们已经发送了 验证码到您�
 msgstr "请输入身份验证代码。<0/>我们已经发送了 验证码到您的电子邮件。"
 
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:79
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:134
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:136
 #: src/features/user/components/user-action-dialog.tsx:192
 msgid "请输入邮箱"
 msgstr "请输入邮箱"
 
 #: src/features/auth/otp/components/otp-form.tsx:36
-#: src/features/settings/email/email-form.tsx:208
+#: src/features/settings/email/email-form.tsx:209
 #: src/features/settings/email/schemas/action-schema.ts:12
 #: src/features/settings/email/schemas/action-schema.ts:14
 msgid "请输入邮箱验证码"
@@ -1689,7 +1693,7 @@ msgstr "请输入重试间隔(秒)"
 
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:47
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:49
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:169
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:170
 #: src/features/auth/sign-in/schemas/action-schema.ts:17
 #: src/features/auth/sign-in/schemas/action-schema.ts:19
 msgid "请输入验证码"
@@ -1719,7 +1723,7 @@ msgstr "请选择关联的菜单"
 msgid "请选择关联角色"
 msgstr "请选择关联角色"
 
-#: src/features/menu/components/menu-action-dialog.tsx:437
+#: src/features/menu/components/menu-action-dialog.tsx:435
 #: src/features/menu/schemas/action-schema.ts:38
 #: src/features/menu/schemas/action-schema.ts:40
 msgid "请选择图标"
@@ -1735,7 +1739,7 @@ msgstr "请选择父级菜单"
 msgid "请选择状态"
 msgstr "请选择状态"
 
-#: src/features/menu/components/menu-action-dialog.tsx:402
+#: src/features/menu/components/menu-action-dialog.tsx:401
 #: src/features/menu/schemas/action-schema.ts:48
 #: src/features/menu/schemas/action-schema.ts:50
 msgid "请选择组件路径"
@@ -1771,7 +1775,7 @@ msgstr "路由"
 msgid "输入名称以确认删除"
 msgstr "输入名称以确认删除"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:195
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:196
 msgid "输入您的新密码。"
 msgstr "输入您的新密码。"
 
@@ -1793,7 +1797,7 @@ msgstr "返回首页"
 msgid "这是您之前的设置的密码"
 msgstr "这是您之前的设置的密码"
 
-#: src/features/settings/email/email-form.tsx:131
+#: src/features/settings/email/email-form.tsx:133
 #: src/features/settings/profile/profile-form.tsx:84
 msgid "这是您的公开显示名称。"
 msgstr "这是您的公开显示名称。"
@@ -1806,11 +1810,11 @@ msgstr "这是您的头像。"
 msgid "这是您的昵称。"
 msgstr "这是您的昵称。"
 
-#: src/features/settings/email/email-form.tsx:150
+#: src/features/settings/email/email-form.tsx:152
 msgid "这是您的邮箱。"
 msgstr "这是您的邮箱。"
 
-#: src/features/settings/email/email-form.tsx:191
+#: src/features/settings/email/email-form.tsx:192
 msgid "这是您绑定的新电子邮件地址。"
 msgstr "这是您绑定的新电子邮件地址。"
 
@@ -1845,9 +1849,9 @@ msgid "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>
 msgstr "通过点击登录，代表您同意我们的 <0>服务条款</0> 和 <1>隐私政策</1>"
 
 #: src/features/auth/email-sign-in/components/email-sign-in-form.tsx:76
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:131
-#: src/features/auth/sign-in/components/user-auth-form.tsx:231
-#: src/features/settings/email/email-form.tsx:139
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:133
+#: src/features/auth/sign-in/components/user-auth-form.tsx:234
+#: src/features/settings/email/email-form.tsx:141
 #: src/features/settings/index.tsx:39
 #: src/features/user/components/user-action-dialog.tsx:188
 #: src/features/user/components/user-columns.tsx:27
@@ -1871,15 +1875,15 @@ msgstr "邮箱无效"
 msgid "邮箱设置"
 msgstr "邮箱设置"
 
-#: src/features/auth/otp/components/otp-form.tsx:95
+#: src/features/auth/otp/components/otp-form.tsx:100
 msgid "邮箱验证码"
 msgstr "邮箱验证码"
 
-#: src/components/other/data-table/toolbar.tsx:101
+#: src/components/other/data-table/toolbar.tsx:100
 msgid "重置"
 msgstr "重置"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:96
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:98
 #: src/features/user/components/user-reset-password-dialog.tsx:65
 msgid "重置密码成功"
 msgstr "重置密码成功"
@@ -1909,11 +1913,11 @@ msgstr "错误信息"
 msgid "键入命令或搜索..."
 msgstr "键入命令或搜索..."
 
-#: src/components/other/data-table/column-header.tsx:60
+#: src/components/other/data-table/column-header.tsx:62
 msgid "降序"
 msgstr "降序"
 
-#: src/components/other/data-table/column-header.tsx:67
+#: src/components/other/data-table/column-header.tsx:69
 msgid "隐藏"
 msgstr "隐藏"
 
@@ -1929,18 +1933,22 @@ msgstr "颜色"
 msgid "颜色是必需的"
 msgstr "颜色是必需的"
 
+#: src/features/settings/password/index.tsx:22
+msgid "首次登录必须修改密码"
+msgstr "首次登录必须修改密码"
+
 #: src/components/other/route-tab/index.tsx:25
 msgid "首页"
 msgstr "首页"
 
-#: src/features/auth/otp/components/otp-form.tsx:128
+#: src/features/auth/otp/components/otp-form.tsx:130
 msgid "验证"
 msgstr "验证"
 
-#: src/features/auth/forgot-password/components/forgot-password-form.tsx:165
-#: src/features/auth/sign-in/components/user-auth-form.tsx:166
-#: src/features/auth/sign-in/components/user-auth-form.tsx:172
-#: src/features/settings/email/email-form.tsx:204
+#: src/features/auth/forgot-password/components/forgot-password-form.tsx:166
+#: src/features/auth/sign-in/components/user-auth-form.tsx:169
+#: src/features/auth/sign-in/components/user-auth-form.tsx:175
+#: src/features/settings/email/email-form.tsx:205
 msgid "验证码"
 msgstr "验证码"
 

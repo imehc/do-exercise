@@ -65,7 +65,12 @@ const middleware = {
           handleRefreshToken()
         })
       } else if (response.status === 403) {
-        redirectToForbidden()
+        // 默认口令强制轮换——未改密时非白名单接口返回 403，强制回到改密页
+        if (store.get(originTokenAtom).mustChangePassword) {
+          redirectToChangePassword()
+        } else {
+          redirectToForbidden()
+        }
       } else if (response.status === 429) {
         const text = await response.text()
         toast.error(text || 'Too many requests, please try again later.')
@@ -158,6 +163,7 @@ const redirectToLogin = () => {
     expireTime: 0,
     refreshToken: '',
     refreshExpireTime: 0,
+    mustChangePassword: false,
   })
   router.navigate({ to: '/sign-in', replace: true })
 }
@@ -166,4 +172,11 @@ const redirectToForbidden = () => {
   rejectQueued('Forbidden')
   refreshTokenFlag = false
   window.location.href = '/403' // 跳转到forbidden页
+}
+
+// redirectToChangePassword 未完成强制改密时，把用户送回改密页
+const redirectToChangePassword = () => {
+  rejectQueued('Password change required')
+  refreshTokenFlag = false
+  window.location.href = '/settings/password'
 }

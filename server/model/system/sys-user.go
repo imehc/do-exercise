@@ -15,6 +15,9 @@ type SysUser struct {
 	Avatar   string    `json:"avatar" gorm:"comment:头像"`
 	Password string    `json:"-" gorm:"not null;comment:密码"`
 	Roles    []SysRole `json:"roles" gorm:"many2many:sys_user_role;comment:用户角色"`
+	// MustChangePassword 标记账号是否需要在下次登录时强制修改密码。
+	// 用于默认管理员口令的强制轮换：播种的默认口令是公开的，首次登录后必须改密。
+	MustChangePassword bool `json:"must_change_password" gorm:"column:must_change_password;type:boolean;default:false;comment:是否需要在下次登录时强制修改密码"`
 	model.ControlWrapper
 }
 

@@ -232,7 +232,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 	req.OldPassword = oldPassword
 	req.Password = password
 
-	if err := userService.UpdatePassword(util.DB(ctx), *req); err != nil {
+	if err := userService.UpdatePassword(util.DB(ctx), *req, ctx.GetString("accessToken")); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}

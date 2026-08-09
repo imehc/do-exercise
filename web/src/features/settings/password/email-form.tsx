@@ -6,6 +6,7 @@ import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { ModifyPasswordRequest, UserApi } from '~/do-exercise-api'
+import { originTokenAtom, store } from '~/atoms'
 import { encryptPassword } from '~/utils/encrypt'
 import { useApi } from '~/hooks/use-api'
 import { usePublicKey } from '~/hooks/use-public-key'
@@ -44,6 +45,10 @@ export default function PasswordForm() {
         userApi.modifyPassword(value),
       onSuccess: () => {
         toast.success(t`更改密码成功`)
+        // 改密成功后后端保留当前会话并清除了强制改密标记，前端同步清除本地标记，
+        // 否则 use-api 的 403 处理仍会把用户拽回改密页。
+        const token = store.get(originTokenAtom)
+        store.set(originTokenAtom, { ...token, mustChangePassword: false })
         refetchPublicKey()
       },
       onError: () => {

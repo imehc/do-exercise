@@ -1,5 +1,6 @@
 tooManyRequests: "请求过于频繁，请稍后再试！"
 loginLocked: "登录失败次数过多，账号或IP已被临时锁定，请稍后再试"
+passwordMustChange: "首次登录必须先修改默认密码"
 badRequest: "请求无效"
 serverError: "服务器错误"
 notFound: "未找到"

@@ -337,7 +337,7 @@ func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.Pag
 }
 
 // ResetPassword 重置密码
-func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPasswordReq, oldPassword *string) error {
+func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPasswordReq, oldPassword *string, accessToken string) error {
 	var existUser *system.SysUser
 	existUser, err := s.checkUserExist(db, req.Id)
 	if err != nil {
@@ -358,19 +358,35 @@ func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPas
 	}
 	existUser.Password = password
 
+	// 管理员代改（不知道原密码）时置 must_change_password，强制用户下次登录改密；
+	// 用户自己验证原密码改密时清除该标记。
+	if oldPassword == nil {
+		existUser.MustChangePassword = true
+	} else {
+		existUser.MustChangePassword = false
+	}
+
 	// 更新密码
 	if err := db.
 		Model(existUser).
-		Select("Password").
+		Select("Password", "MustChangePassword").
 		Updates(existUser).
 		Error; err != nil {
 		return errors.New("resetPasswordFailed")
 	}
 
-	// 改密后吊销全部会话。AuthMiddleware 只查 Redis，不清理的话旧密码泄露后
-	// 攻击者手上的 token 依然可用，"改密码止损"这个用户预期会落空。
-	if err := util.RevokeAllUserTokens(existUser.UserId); err != nil {
-		return errors.New("resetPasswordFailed")
+	// 改密后处理既有会话：
+	// - 用户自己验证原密码改密：保留当前会话（免重新登录），吊销其他会话，并清除
+	//   保留会话上的强制改密标记，避免 AuthMiddleware 继续拦截。
+	// - 管理员代改（不知道原密码）：无法证明是本人操作，吊销全部会话。
+	if oldPassword == nil {
+		if err := util.RevokeAllUserTokens(existUser.UserId); err != nil {
+			return errors.New("resetPasswordFailed")
+		}
+	} else {
+		if err := util.RevokeAllUserTokensExcept(existUser.UserId, accessToken); err != nil {
+			return errors.New("resetPasswordFailed")
+		}
 	}
 
 	return nil

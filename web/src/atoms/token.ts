@@ -8,6 +8,7 @@ export const originTokenAtom = atomWithStorage<Token>('tokenAtom', {
   expireTime: 0,
   refreshToken: '',
   refreshExpireTime: 0,
+  mustChangePassword: false,
 })
 
 const store = createStore()

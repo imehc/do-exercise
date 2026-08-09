@@ -51,7 +51,10 @@ func (s *AuthService) ResetPassword(db *gorm.DB, req request.UserResetPasswordRe
 	}
 
 	// user.Password=pa
-	err = db.Model(&system.SysUser{}).Where("id = ?", req.Id).Update("Password", password).Error
+	err = db.Model(&system.SysUser{}).Where("id = ?", req.Id).Updates(map[string]interface{}{
+		"Password":           password,
+		"MustChangePassword": false,
+	}).Error
 	if err != nil {
 		global.Log.Error("reset password failed", zap.String("userId", req.Id), zap.Error(err))
 		return err

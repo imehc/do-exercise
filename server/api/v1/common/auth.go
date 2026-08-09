@@ -35,10 +35,11 @@ func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
 		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
 			return item.Id
 		}),
-		ExpireTime:        accessExpire,
-		RefreshExpireTime: refreshExpire,
-		Disabled:          false, // TODO: 在数据库中添加字段获取禁用状态
-		CreatedTime:       time.Now(),
+		ExpireTime:         accessExpire,
+		RefreshExpireTime:  refreshExpire,
+		Disabled:           false, // TODO: 在数据库中添加字段获取禁用状态
+		CreatedTime:        time.Now(),
+		MustChangePassword: user.MustChangePassword,
 	}
 	token, err := baseConf.GenerateToken()
 	if err != nil {

@@ -87,7 +87,10 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           data.refreshExpireTime
         ).getTime(),
       })
-      window.location.href = '/'
+      // 默认口令强制轮换——首次登录成功后强制跳转到改密页
+      window.location.href = data.mustChangePassword
+        ? '/settings/password'
+        : '/'
     },
     onError: () => {
       refetchPublicKey()

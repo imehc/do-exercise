@@ -1,5 +1,6 @@
 tooManyRequests: "Too many requests"
 loginLocked: "Too many login failures, account or IP temporarily locked"
+passwordMustChange: "You must change your password before continuing"
 badRequest: "Failed to process request"
 serverError: "Failed to process server operation"
 notFound: "Failed to find resource"

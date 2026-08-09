@@ -27,6 +27,8 @@ type Token struct {
 	RefreshExpireTime time.Duration
 	Disabled          bool
 	CreatedTime       time.Time
+	// MustChangePassword 标记该账号仍需强制修改密码
+	MustChangePassword bool
 }
 
 func (t *Token) GenerateToken() (*common.Token, error) {
@@ -41,24 +43,26 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 
 	ctx := context.Background()
 	tokenInfoJson, err := json.Marshal(model.TokenInfo{
-		UserId:       t.UserId,
-		Username:     t.Username,
-		RoleIds:      t.RoleIds,
-		RefreshToken: refreshToken,
-		Disabled:     t.Disabled,
-		CreatedTime:  t.CreatedTime,
-		ExpiredTime:  t.CreatedTime.Add(t.ExpireTime),
+		UserId:             t.UserId,
+		Username:           t.Username,
+		RoleIds:            t.RoleIds,
+		RefreshToken:       refreshToken,
+		Disabled:           t.Disabled,
+		CreatedTime:        t.CreatedTime,
+		ExpiredTime:        t.CreatedTime.Add(t.ExpireTime),
+		MustChangePassword: t.MustChangePassword,
 	})
 	if err != nil {
 		return nil, err
 	}
 	refreshTokenInfoJson, err := json.Marshal(model.RefreshTokenInfo{
-		UserId:      t.UserId,
-		Username:    t.Username,
-		RoleIds:     t.RoleIds,
-		Disabled:    t.Disabled,
-		CreatedTime: t.CreatedTime,
-		ExpiredTime: t.CreatedTime.Add(t.RefreshExpireTime),
+		UserId:             t.UserId,
+		Username:           t.Username,
+		RoleIds:            t.RoleIds,
+		Disabled:           t.Disabled,
+		CreatedTime:        t.CreatedTime,
+		ExpiredTime:        t.CreatedTime.Add(t.RefreshExpireTime),
+		MustChangePassword: t.MustChangePassword,
 	})
 	if err != nil {
 		return nil, err
@@ -79,10 +83,11 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 	}
 
 	return &common.Token{
-		AccessToken:       accessToken,
-		ExpireTime:        int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
-		RefreshToken:      refreshToken,
-		RefreshExpireTime: int64(t.RefreshExpireTime.Seconds()), // 将毫秒转换为秒
+		AccessToken:        accessToken,
+		ExpireTime:         int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
+		RefreshToken:       refreshToken,
+		RefreshExpireTime:  int64(t.RefreshExpireTime.Seconds()), // 将毫秒转换为秒
+		MustChangePassword: t.MustChangePassword,
 	}, nil
 }
 
@@ -117,13 +122,14 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	}
 
 	tokenInfoJson, err := json.Marshal(model.TokenInfo{
-		UserId:       refreshTokenInfo.UserId,
-		Username:     refreshTokenInfo.Username,
-		RoleIds:      refreshTokenInfo.RoleIds,
-		RefreshToken: refreshToken,
-		Disabled:     refreshTokenInfo.Disabled,
-		CreatedTime:  refreshTokenInfo.CreatedTime,
-		ExpiredTime:  refreshTokenInfo.ExpiredTime.Add(t.ExpireTime),
+		UserId:             refreshTokenInfo.UserId,
+		Username:           refreshTokenInfo.Username,
+		RoleIds:            refreshTokenInfo.RoleIds,
+		RefreshToken:       refreshToken,
+		Disabled:           refreshTokenInfo.Disabled,
+		CreatedTime:        refreshTokenInfo.CreatedTime,
+		ExpiredTime:        refreshTokenInfo.ExpiredTime.Add(t.ExpireTime),
+		MustChangePassword: refreshTokenInfo.MustChangePassword,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
@@ -140,10 +146,11 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	}
 
 	return &common.Token{
-		AccessToken:       newAccessToken,
-		ExpireTime:        int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
-		RefreshToken:      refreshToken,
-		RefreshExpireTime: int64(refreshExpire.Seconds()), // 将毫秒转换为秒
+		AccessToken:        newAccessToken,
+		ExpireTime:         int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
+		RefreshToken:       refreshToken,
+		RefreshExpireTime:  int64(refreshExpire.Seconds()), // 将毫秒转换为秒
+		MustChangePassword: refreshTokenInfo.MustChangePassword,
 	}, nil
 }
 
@@ -255,6 +262,97 @@ func RevokeAllUserTokens(userId string) error {
 	}
 
 	return firstErr
+}
+
+// RevokeAllUserTokensExcept 吊销某用户除当前会话外的全部会话，并清除保留会话的强制改密标记。
+// 用户自己验证原密码改密后调用：当前会话保留（免重新登录），其余设备全部下线；
+// 同时清除保留会话上的 must_change_password，否则 AuthMiddleware 仍会拦截该会话。
+func RevokeAllUserTokensExcept(userId string, keepAccessToken string) error {
+	if userId == "" || keepAccessToken == "" {
+		return RevokeAllUserTokens(userId)
+	}
+	ctx := context.Background()
+
+	// 找到与保留的 access token 配对的 refresh token（access token 记录里存了它）
+	var keepRefreshToken string
+	tokenInfoString, err := global.Redis.Get(ctx, fmt.Sprintf("%s%s", PrefixAccessToken, keepAccessToken)).Result()
+	if err == nil {
+		var tokenInfo model.TokenInfo
+		if json.Unmarshal([]byte(tokenInfoString), &tokenInfo) == nil {
+			keepRefreshToken = tokenInfo.RefreshToken
+		}
+	}
+
+	var firstErr error
+	for _, pair := range []struct {
+		setPrefix   string
+		tokenPrefix string
+		keep        string
+	}{
+		{PrefixUserAcessToken, PrefixAccessToken, keepAccessToken},
+		{PrefixUserRefreshToken, PrefixRefreshToken, keepRefreshToken},
+	} {
+		setKey := fmt.Sprintf("%s%s", pair.setPrefix, userId)
+		tokens, err := global.Redis.SMembers(ctx, setKey).Result()
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+
+		pipe := global.Redis.Pipeline()
+		for _, token := range tokens {
+			if token != pair.keep {
+				pipe.Del(ctx, fmt.Sprintf("%s%s", pair.tokenPrefix, token))
+			}
+		}
+		// 重建集合，只保留当前会话的 token
+		pipe.Del(ctx, setKey)
+		if pair.keep != "" {
+			pipe.SAdd(ctx, setKey, pair.keep)
+		}
+		if _, err := pipe.Exec(ctx); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	// 清除保留会话上的强制改密标记
+	for _, key := range []string{
+		fmt.Sprintf("%s%s", PrefixAccessToken, keepAccessToken),
+		fmt.Sprintf("%s%s", PrefixRefreshToken, keepRefreshToken),
+	} {
+		if err := setTokenMustChangePassword(ctx, key, false); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return firstErr
+}
+
+// setTokenMustChangePassword 更新 Redis 中 token 记录的 must_change_password 字段，保留其余字段与 TTL。
+func setTokenMustChangePassword(ctx context.Context, key string, mustChange bool) error {
+	tokenString, err := global.Redis.Get(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(tokenString), &data); err != nil {
+		return err
+	}
+	data["must_change_password"] = mustChange
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	ttl, err := global.Redis.TTL(ctx, key).Result()
+	if err != nil {
+		return err
+	}
+	if ttl <= 0 {
+		return nil
+	}
+	return global.Redis.Set(ctx, key, b, ttl).Err()
 }
 
 // CleanUserTokenSet 清理 userAccessToken 或 userRefreshToken Set 中的无效 token

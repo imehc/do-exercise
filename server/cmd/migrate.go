@@ -14,6 +14,10 @@ import (
 
 var sqlFile string
 
+// defaultAdminHash 是 init.sql 播种的默认管理员口令对应的公开 bcrypt 哈希
+// （对应 README.md 记载的 @admin2025）。任何仍使用该哈希的账号都必须强制改密。
+const defaultAdminHash = "$2a$10$gI7PJi4gyTc.sG2m5ZgbcO/I0E8nLkW2AHhWFxGMaCogU2H/E3YzC"
+
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "执行数据库初始化",
@@ -37,6 +41,21 @@ var migrateCmd = &cobra.Command{
 		db := global.DB
 		if db == nil {
 			util.Exit("获取数据库连接失败", nil)
+		}
+
+		// 默认管理员口令强制轮换。
+		// 对存量数据库（已播种过 init.sql，sys_user 有数据）中的默认管理员打上
+		// must_change_password 标记，强制其在下次登录时修改公开的默认口令。
+		// 该 UPDATE 幂等：仅当密码仍等于公开的默认哈希时才生效，改密后哈希不再匹配。
+		result := db.Exec(
+			"UPDATE sys_user SET must_change_password = TRUE WHERE password = ? AND must_change_password = FALSE",
+			defaultAdminHash,
+		)
+		if result.Error != nil {
+			util.Exit("标记默认管理员强制改密失败: ", result.Error)
+		}
+		if rows := result.RowsAffected; rows > 0 {
+			fmt.Printf("已将 %d 个仍使用默认口令的账号标记为必须改密\n", rows)
 		}
 
 		// 检查表是否已有数据

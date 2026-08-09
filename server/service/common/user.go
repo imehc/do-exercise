@@ -49,7 +49,7 @@ Error; err != nil {
 }
 
 // UpdatePassword 修改密码
-func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPasswordReq) error {
+func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPasswordReq, accessToken string) error {
 	var sysUserService sysService.SysUserService
 	return sysUserService.ResetPassword(
 		db,
@@ -58,6 +58,7 @@ func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPassword
 			Password: req.Password,
 		},
 		&req.OldPassword,
+		accessToken,
 	)
 }
 

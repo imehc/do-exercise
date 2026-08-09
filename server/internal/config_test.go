@@ -37,6 +37,10 @@ minio:
 	t.Setenv("MINIO_APP_ACCESS_KEY", "env-access")
 	t.Setenv("MINIO_APP_SECRET_KEY", "env-secret")
 	t.Setenv("MINIO_PRESIGNED_HOST", "/env-oss")
+	t.Setenv("EMAIL_HOST", "env-smtp")
+	t.Setenv("EMAIL_PORT", "1587")
+	t.Setenv("EMAIL_USER", "env-mail-user")
+	t.Setenv("EMAIL_PASS", "env-mail-pass")
 
 	InitConfig(configPath)
 
@@ -75,5 +79,18 @@ minio:
 	}
 	if global.Config.Minio.Expires != 3600 {
 		t.Fatalf("expected minio expires from config, got %d", global.Config.Minio.Expires)
+	}
+	// 邮箱凭据必须可由环境变量注入，否则只能写进会被打进镜像层的 config.yaml
+	if global.Config.Email.Host != "env-smtp" {
+		t.Fatalf("expected email host from env, got %q", global.Config.Email.Host)
+	}
+	if global.Config.Email.Port != 1587 {
+		t.Fatalf("expected email port from env, got %d", global.Config.Email.Port)
+	}
+	if global.Config.Email.User != "env-mail-user" {
+		t.Fatalf("expected email user from env, got %q", global.Config.Email.User)
+	}
+	if global.Config.Email.Pass != "env-mail-pass" {
+		t.Fatalf("expected email pass from env, got %q", global.Config.Email.Pass)
 	}
 }

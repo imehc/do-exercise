@@ -15,47 +15,44 @@ import (
 
 type SysRoleService struct{}
 
-// assignMenus 分配菜单
+// assignMenus 分配菜单。
+// 空 menuIds、以及菜单未绑定任何 API 这两种情况，语义都是「撤销该角色的全部策略」。
+// 早期实现在这两处提前 return，跳过了 RemoveFilteredPolicy，
+// 导致解除权限的请求返回成功而 Casbin 策略原样保留。
 func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds []uint) ([]system.SysMenu, error) {
-	if len(menuIds) == 0 {
-		return []system.SysMenu{}, nil
-	}
 	var menus []system.SysMenu
-	// 检查菜单是否存在
-	if err := tx.Where("id IN ?", menuIds).Find(&menus).Error; err != nil {
-		return nil, errors.New("allMenusNotFound")
+	if len(menuIds) > 0 {
+		// 一次查出菜单及其绑定的 API（此前分两次查询同一批行，第二次只为补 Apis）
+		if err := tx.Preload("Apis").Where("id IN ?", menuIds).Find(&menus).Error; err != nil {
+			return nil, errors.New("allMenusNotFound")
+		}
+		if len(menus) != len(menuIds) {
+			return nil, errors.New("menuNotFound")
+		}
 	}
-	if len(menus) != len(menuIds) {
-		return nil, errors.New("menuNotFound")
-	}
-	// 建立角色菜单关联
-	if err := tx.Model(role).Association("Menus").Replace(menus); err != nil {
+
+	// 建立/清空角色菜单关联
+	if len(menus) == 0 {
+		if err := tx.Model(role).Association("Menus").Clear(); err != nil {
+			return nil, errors.New("menuAssignFailed")
+		}
+	} else if err := tx.Model(role).Association("Menus").Replace(menus); err != nil {
 		return nil, errors.New("menuAssignFailed")
 	}
 
-	// 获取菜单下绑定的api
-	if err := tx.Model(&system.SysMenu{}).
-		Preload("Apis").
-		Where("id IN ?", lo.Map(menus, func(item system.SysMenu, index int) uint {
-			return item.Id
-		})).
-		Find(&menus).
-		Error; err != nil {
+	// 无条件清空旧策略，再按新集合重建
+	enforcer := global.Enforcer
+	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
 		return nil, errors.New("menuAssignFailed")
 	}
+
 	// 将菜单下的APIs合并
 	apis := lo.FlatMap(menus, func(menu system.SysMenu, _ int) []system.SysApi {
 		return menu.Apis
 	})
-
-	if len(apis) == 0 { // 说明没有分配API
-		return []system.SysMenu{}, nil
-	}
-
-	enforcer := global.Enforcer
-
-	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
-		return nil, errors.New("menuAssignFailed")
+	if len(apis) == 0 {
+		// 菜单已分配但未绑定 API：策略为空，菜单列表仍需如实返回
+		return menus, nil
 	}
 
 	// 使用casbin批量添加策略
@@ -159,7 +156,10 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 	}, nil
 }
 
-// Delete 删除角色
+// Delete 删除角色。
+// 删除记录、解除用户关联、清理 Casbin 策略三步必须一致：
+// 早期实现无事务且不清理 g 规则，一旦策略删除失败，角色虽被软删，
+// 但持有该 role code 的用户仍保留全部权限。
 func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 	// 先检查角色是否存在
 	existRole, err := s.checkRoleExist(db, id)
@@ -167,15 +167,45 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 		return err
 	}
 
-	err = db.
-		Delete(existRole, id).
-		Error
-	if err != nil {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Where("id = ?", id).Delete(existRole).Error; err != nil {
+		tx.Rollback()
 		return errors.New("deleteRoleFailed")
 	}
 
+	// 解除角色与菜单的关联，避免留下悬空的中间表数据
+	if err := tx.Model(existRole).Association("Menus").Clear(); err != nil {
+		tx.Rollback()
+		return errors.New("deleteRoleFailed")
+	}
+	// SysRole 未声明 Users 反向关联，用户侧的中间表需直接清理。
+	// 列名 sys_role_id 由 GORM 命名策略生成（join table: sys_user_role）。
+	if err := tx.Table("sys_user_role").
+		Where("sys_role_id = ?", existRole.Id).
+		Delete(nil).Error; err != nil {
+		tx.Rollback()
+		return errors.New("deleteRoleFailed")
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return errors.New("deleteRoleFailed")
+	}
+
+	// Casbin 走独立适配器，不在上面的事务内，故放到提交成功之后
 	enforcer := global.Enforcer
+	// p 策略：该角色拥有的权限
 	if _, err := enforcer.RemoveFilteredPolicy(0, existRole.Code); err != nil {
+		return errors.New("deleteRoleFailed")
+	}
+	// g 规则：仍指向该角色的用户绑定，不清理会永久残留
+	if _, err := enforcer.RemoveFilteredGroupingPolicy(1, existRole.Code); err != nil {
 		return errors.New("deleteRoleFailed")
 	}
 

@@ -216,6 +216,47 @@ func UpdateUserRoleInCache(userId string, roleIds []uint) error {
 	return nil
 }
 
+// RevokeAllUserTokens 吊销某用户的全部会话。
+// 删除用户、禁用账号、修改密码后必须调用：AuthMiddleware 只校验 Redis、从不回查数据库，
+// 不清理的话已签发的 access token 会在 TTL 内继续有效，
+// refresh token 更可在其有效期内持续换发新的 access token。
+func RevokeAllUserTokens(userId string) error {
+	if userId == "" {
+		return nil
+	}
+	ctx := context.Background()
+
+	var firstErr error
+	for _, pair := range []struct {
+		setPrefix   string
+		tokenPrefix string
+	}{
+		{PrefixUserAcessToken, PrefixAccessToken},
+		{PrefixUserRefreshToken, PrefixRefreshToken},
+	} {
+		setKey := fmt.Sprintf("%s%s", pair.setPrefix, userId)
+		tokens, err := global.Redis.SMembers(ctx, setKey).Result()
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+
+		pipe := global.Redis.Pipeline()
+		for _, token := range tokens {
+			pipe.Del(ctx, fmt.Sprintf("%s%s", pair.tokenPrefix, token))
+		}
+		// 连同索引集合一起删除，避免留下悬空成员
+		pipe.Del(ctx, setKey)
+		if _, err := pipe.Exec(ctx); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return firstErr
+}
+
 // CleanUserTokenSet 清理 userAccessToken 或 userRefreshToken Set 中的无效 token
 func CleanUserTokenSet(userId string, tokenType string, prefix string) error {
 	ctx := context.Background()

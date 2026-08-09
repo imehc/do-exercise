@@ -67,14 +67,14 @@ func (s *AuthService) Logout(userId string, accessToken string) error {
 	ctx := context.Background()
 	tokenInfo, err := redis.Get(ctx, accesskey).Result()
 	if err != nil {
-		log.Error("Failed to get token info from Redis", zap.String("userId", userId), zap.String("accessToken", accessToken), zap.Error(err))
+		log.Error("Failed to get token info from Redis", zap.String("userId", userId), zap.Error(err))
 
 		return errors.New("operationFailed")
 	}
 
 	var tokenData model.TokenInfo
 	if err := json.Unmarshal([]byte(tokenInfo), &tokenData); err != nil {
-		log.Error("Failed to unmarshal token info", zap.String("userId", userId), zap.String("accessToken", accessToken), zap.Error(err))
+		log.Error("Failed to unmarshal token info", zap.String("userId", userId), zap.Error(err))
 		return errors.New("operationFailed")
 	}
 
@@ -82,11 +82,11 @@ func (s *AuthService) Logout(userId string, accessToken string) error {
 
 	pipe := redis.Pipeline()
 	if err := pipe.Del(ctx, accesskey).Err(); err != nil {
-		log.Error("Failed to delete access token", zap.String("userId", userId), zap.String("accessToken", accessToken), zap.Error(err))
+		log.Error("Failed to delete access token", zap.String("userId", userId), zap.Error(err))
 		return errors.New("operationFailed")
 	}
 	if err := pipe.Del(ctx, refreshKey).Err(); err != nil {
-		log.Error("Failed to delete refresh token", zap.String("userId", userId), zap.String("refreshToken", tokenData.RefreshToken), zap.Error(err))
+		log.Error("Failed to delete refresh token", zap.String("userId", userId), zap.Error(err))
 		return errors.New("operationFailed")
 	}
 	_, err = pipe.Exec(ctx)
@@ -96,14 +96,14 @@ func (s *AuthService) Logout(userId string, accessToken string) error {
 	}
 
 	// 清理该用户的无效 access/refresh token
-	err = util.CleanUserTokenSet(tokenData.UserId, util.PrefixUserAcessToken, accessToken)
+	err = util.CleanUserTokenSet(tokenData.UserId, util.PrefixUserAcessToken, util.PrefixAccessToken)
 	if err != nil {
-		log.Error("Failed to clean user accessToken set", zap.String("userId", userId), zap.String("accessToken", accessToken), zap.Error(err))
+		log.Error("Failed to clean user accessToken set", zap.String("userId", userId), zap.Error(err))
 		return errors.New("operationFailed")
 	}
-	err = util.CleanUserTokenSet(tokenData.UserId, util.PrefixUserRefreshToken, tokenData.RefreshToken)
+	err = util.CleanUserTokenSet(tokenData.UserId, util.PrefixUserRefreshToken, util.PrefixRefreshToken)
 	if err != nil {
-		log.Error("Failed to clean user refreshToken set", zap.String("userId", userId), zap.String("refreshToken", tokenData.RefreshToken), zap.Error(err))
+		log.Error("Failed to clean user refreshToken set", zap.String("userId", userId), zap.Error(err))
 		return errors.New("operationFailed")
 	}
 

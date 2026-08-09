@@ -15,20 +15,27 @@ import (
 
 type SysMenuService struct{}
 
-// assignApis 分配API
+// assignApis 分配API。
+// 空 apiIds 的语义是「解除该菜单的全部 API 绑定」，不能提前 return，
+// 否则解绑请求返回成功但关联表原样保留。
 func (s *SysMenuService) assignApis(tx *gorm.DB, menu *system.SysMenu, apiIds []uint) ([]system.SysApi, error) {
-	if len(apiIds) == 0 {
-		return []system.SysApi{}, nil
-	}
 	var apis []system.SysApi
-	// 检查菜单是否存在
-	if err := tx.Where("id IN ?", apiIds).Find(&apis).Error; err != nil {
-		return nil, errors.New("allApisNotFound")
+	if len(apiIds) > 0 {
+		// 检查API是否存在
+		if err := tx.Where("id IN ?", apiIds).Find(&apis).Error; err != nil {
+			return nil, errors.New("allApisNotFound")
+		}
+		if len(apis) != len(apiIds) {
+			return nil, errors.New("apiNotFound")
+		}
 	}
-	if len(apis) != len(apiIds) {
-		return nil, errors.New("apiNotFound")
+	// 建立/清空api菜单关联
+	if len(apis) == 0 {
+		if err := tx.Model(menu).Association("Apis").Clear(); err != nil {
+			return nil, errors.New("apiAssignFailed")
+		}
+		return apis, nil
 	}
-	// 建立api菜单关联
 	if err := tx.Model(menu).Association("Apis").Replace(apis); err != nil {
 		return nil, errors.New("apiAssignFailed")
 	}

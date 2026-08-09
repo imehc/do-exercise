@@ -65,7 +65,8 @@ func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPassword
 func (u *UserService) UpdateProfile(db *gorm.DB, req request.UserModifyProfileReq) error {
 	var user *system.SysUser
 	error := db.
-		First(&user, req.Id).
+		Where("id = ?", req.Id).
+		First(&user).
 		Error
 	if error != nil {
 		return errors.New("userNotFound")
@@ -89,7 +90,8 @@ func (u *UserService) GetProfile(db *gorm.DB, id string) (*response.UserProfile,
 	var user *system.SysUser
 	error := db.
 		Preload("Roles").
-		First(&user, id).
+		Where("id = ?", id).
+		First(&user).
 		Error
 	if error != nil {
 		return nil, errors.New("userNotFound")
@@ -118,7 +120,8 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 	// 查询用户及角色菜单
 	err := db.
 		Preload("Roles.Menus").
-		First(&user, id).
+		Where("id = ?", id).
+		First(&user).
 		Error
 	if err != nil {
 		return nil, errors.New("userNotFound")

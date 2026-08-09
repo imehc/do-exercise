@@ -21,6 +21,8 @@ func ValidaterMiddleware() gin.HandlerFunc {
 		trans, err := internal.InitTrans(lang)
 		if err != nil {
 			response.ServerError(c)
+			c.Abort()
+			return
 		}
 		c.Next()
 

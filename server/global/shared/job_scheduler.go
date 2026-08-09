@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os/exec"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -13,8 +13,40 @@ import (
 	"github.com/google/uuid"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/system"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
+
+// jobHandler 定时任务处理函数。ctx 用于传递超时，处理函数应当尊重其取消信号。
+type jobHandler func(ctx context.Context, js *JobScheduler) error
+
+// jobRegistry 是允许被调度执行的任务白名单。
+//
+// SysJob.Command 只能取本表中的 key。早期实现把该字段直接交给 `/bin/sh -c`，
+// 于是任何能创建定时任务的账号都等价于拿到容器内的 shell，
+// 且能挂在 cron 上周期执行——管理员账号被盗、后台 XSS、CSRF 任一路径都会升级为 RCE。
+// 新增任务请在此登记，不要恢复通用 shell 执行。
+var jobRegistry = map[string]jobHandler{
+	"clean_empty_username_operation_logs": func(ctx context.Context, js *JobScheduler) error {
+		return js.CleanEmptyUsernameOperationLogs(ctx)
+	},
+}
+
+// IsRegisteredCommand 判断任务命令是否在白名单内，供服务层在创建/更新时校验
+func IsRegisteredCommand(command string) bool {
+	_, ok := jobRegistry[command]
+	return ok
+}
+
+// RegisteredCommands 返回全部可执行的任务名，用于错误提示与前端选项
+func RegisteredCommands() []string {
+	commands := make([]string, 0, len(jobRegistry))
+	for name := range jobRegistry {
+		commands = append(commands, name)
+	}
+	sort.Strings(commands)
+	return commands
+}
 
 // JobScheduler 定时任务调度器
 type JobScheduler struct {
@@ -279,13 +311,16 @@ func (js *JobScheduler) runJob(job *system.SysJob) error {
 		js.updateJobStats(job.Id, now, nextTime, stats.Times+1)
 	}
 
-	// 执行任务
-	if job.Command == "clean_empty_username_operation_logs" {
-		return js.CleanEmptyUsernameOperationLogs()
+	// 执行任务：只允许白名单内已登记的处理函数，不再解释执行任意 shell 命令
+	handler, ok := jobRegistry[job.Command]
+	if !ok {
+		global.Log.Error("任务命令未登记，拒绝执行",
+			zap.String("job", job.Name),
+			zap.String("command", job.Command))
+		return fmt.Errorf("unregistered job command: %s", job.Command)
 	}
 
-	// 支持执行shell命令
-	// 当设置了Timeout时在上下文中施加超时，避免命令永久卡死；Timeout为0保持原有行为
+	// 当设置了Timeout时在上下文中施加超时，避免任务永久卡死；Timeout为0保持原有行为
 	ctx := context.Background()
 	cancel := func() {}
 	if job.Timeout > 0 {
@@ -293,25 +328,29 @@ func (js *JobScheduler) runJob(job *system.SysJob) error {
 	}
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "/bin/sh", "-c", job.Command)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
+	if err := handler(ctx, js); err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			fmt.Printf("任务执行超时：%s, 命令：%s\n", job.Name, job.Command)
+			global.Log.Error("任务执行超时",
+				zap.String("job", job.Name),
+				zap.String("command", job.Command))
 		} else {
-			fmt.Printf("任务执行失败：%s, 命令：%s, 错误：%s, 输出：%s\n",
-				job.Name, job.Command, err.Error(), string(output))
+			global.Log.Error("任务执行失败",
+				zap.String("job", job.Name),
+				zap.String("command", job.Command),
+				zap.Error(err))
 		}
 		return err
 	}
-	fmt.Printf("任务执行成功：%s, 命令：%s, 输出：%s\n",
-		job.Name, job.Command, string(output))
+
+	global.Log.Info("任务执行成功",
+		zap.String("job", job.Name),
+		zap.String("command", job.Command))
 	return nil
 }
 
 // CleanEmptyUsernameOperationLogs 清理sys_operation_log表中username为空的任务实现
-func (js *JobScheduler) CleanEmptyUsernameOperationLogs() error {
-	db := global.DB
+func (js *JobScheduler) CleanEmptyUsernameOperationLogs(ctx context.Context) error {
+	db := global.DB.WithContext(ctx)
 	return db.Unscoped().Where("username = '' OR username IS NULL").Delete(&system.SysOperationLog{}).Error
 }
 

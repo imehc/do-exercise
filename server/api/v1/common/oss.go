@@ -15,7 +15,9 @@ func (o *OssApi) GetPresignedUrl(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	data, err := ossService.GetPresignedUrl(req)
+	// 对象 key 由服务端按用户生成，客户端不能指定，避免覆盖他人对象
+	userId := ctx.MustGet("userId").(string)
+	data, err := ossService.GetPresignedUrl(userId, req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

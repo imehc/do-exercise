@@ -15,43 +15,48 @@ import (
 
 type SysUserService struct{}
 
-// assignRoles 分配角色
+// assignRoles 分配角色。
+// 空 roleIds 的语义是「撤销该用户的全部角色」，而不是「不做处理」——
+// 早期实现在此提前 return，导致 role_ids:[] 的解除权限请求返回成功，
+// 但 Casbin 中的 g 规则原样保留，用户实际权限不变。
 func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds []uint) ([]system.SysRole, error) {
-	if len(roleIds) == 0 {
-		return []system.SysRole{}, nil
-	}
 	var roles []system.SysRole
-	// 检查角色是否存在
-	if err := tx.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
-		return nil, errors.New("allRolesNotFound")
+	if len(roleIds) > 0 {
+		// 检查角色是否存在
+		if err := tx.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
+			return nil, errors.New("allRolesNotFound")
+		}
+		if len(roles) != len(roleIds) {
+			return nil, errors.New("roleNotFound")
+		}
 	}
-	if len(roles) != len(roleIds) {
-		return nil, errors.New("roleNotFound")
-	}
-	// 建立用户角色关联
-	if err := tx.Model(user).Association("Roles").Replace(roles); err != nil {
+
+	// 建立/清空用户角色关联
+	if len(roles) == 0 {
+		if err := tx.Model(user).Association("Roles").Clear(); err != nil {
+			return nil, errors.New("roleAssignFailed")
+		}
+	} else if err := tx.Model(user).Association("Roles").Replace(roles); err != nil {
 		return nil, errors.New("roleAssignFailed")
 	}
 
-	// 添加用户角色到Casbin
+	// 同步 Casbin：无条件先清空该用户的全部角色，再按新集合重建
 	enforcer := global.Enforcer
-	// 先清除用户现有的所有角色权限
-	_, err := enforcer.DeleteRolesForUser(user.UserId)
-	if err != nil {
+	if _, err := enforcer.DeleteRolesForUser(user.UserId); err != nil {
 		return nil, errors.New("roleAssignFailed")
 	}
 
-	_, err = enforcer.AddRolesForUser(user.UserId, lo.Map(roles, func(item system.SysRole, index int) string {
-		return item.Code
-	}))
-	if err != nil {
-		return nil, errors.New("roleAssignFailed")
+	if len(roles) > 0 {
+		if _, err := enforcer.AddRolesForUser(user.UserId, lo.Map(roles, func(item system.SysRole, index int) string {
+			return item.Code
+		})); err != nil {
+			return nil, errors.New("roleAssignFailed")
+		}
 	}
 
-	err = util.UpdateUserRoleInCache(user.UserId, lo.Map(roles, func(item system.SysRole, index int) uint {
+	if err := util.UpdateUserRoleInCache(user.UserId, lo.Map(roles, func(item system.SysRole, index int) uint {
 		return item.Id
-	}))
-	if err != nil {
+	})); err != nil {
 		return nil, errors.New("roleAssignFailed")
 	}
 
@@ -66,7 +71,8 @@ func (s *SysUserService) checkUserExist(db *gorm.DB, userId string) (*system.Sys
 	var user *system.SysUser
 	result := db.
 		Unscoped().
-		First(&user, userId)
+		Where("id = ?", userId).
+		First(&user)
 	if result.Error != nil {
 		return nil, errors.New(util.TranslateDBError(result.Error, "userNotFound"))
 	}
@@ -159,19 +165,50 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 	}, nil
 }
 
-// Delete 删除用户
+// Delete 删除用户。
+// 除软删除记录外，还必须解除 Casbin 角色绑定并吊销全部会话——
+// 否则被删用户的 access token 在 TTL 内仍然有效，refresh token 更能持续换发新令牌，
+// 且 casbin_rule 中的 g 规则会永久残留（用户 ID 复用时会泄漏给新用户）。
 func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 	// 先检查用户是否存在
 	user, err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}
-	err = db.
-		Delete(user, id).
-		Error
-	if err != nil {
+
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Where("id = ?", id).Delete(user).Error; err != nil {
+		tx.Rollback()
 		return errors.New("deleteUserFailed")
 	}
+
+	// 解除用户与角色的关联
+	if err := tx.Model(user).Association("Roles").Clear(); err != nil {
+		tx.Rollback()
+		return errors.New("deleteUserFailed")
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return errors.New("deleteUserFailed")
+	}
+
+	// 以下两步作用于 Casbin 与 Redis，不在上面的事务范围内，
+	// 因此放在提交成功之后执行，避免事务回滚后权限已被误撤销。
+	if _, err := global.Enforcer.DeleteRolesForUser(user.UserId); err != nil {
+		return errors.New("deleteUserFailed")
+	}
+
+	if err := util.RevokeAllUserTokens(user.UserId); err != nil {
+		return errors.New("deleteUserFailed")
+	}
+
 	return nil
 }
 
@@ -327,6 +364,12 @@ func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPas
 		Select("Password").
 		Updates(existUser).
 		Error; err != nil {
+		return errors.New("resetPasswordFailed")
+	}
+
+	// 改密后吊销全部会话。AuthMiddleware 只查 Redis，不清理的话旧密码泄露后
+	// 攻击者手上的 token 依然可用，"改密码止损"这个用户预期会落空。
+	if err := util.RevokeAllUserTokens(existUser.UserId); err != nil {
 		return errors.New("resetPasswordFailed")
 	}
 

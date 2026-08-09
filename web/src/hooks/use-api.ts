@@ -109,9 +109,14 @@ const handleRefreshToken = async () => {
     })
 
     // 重试之前失败的请求
-    for (const queued of requestQueue) {
-      const updatedInit = {
-        ...queued.init.headers,
+    // 注意：必须展开 queued.init（完整 RequestInit），而不是 queued.init.headers。
+    // 只展开 headers 会丢掉 method 与 body，导致刷新 token 后重试的
+    // POST/PUT/DELETE 全部退化成无 body 的 GET，请求静默失效。
+    const pending = requestQueue
+    requestQueue = []
+    for (const queued of pending) {
+      const updatedInit: RequestInit = {
+        ...queued.init,
         headers: {
           ...queued.init.headers,
           Authorization: token.accessToken,
@@ -129,13 +134,24 @@ const handleRefreshToken = async () => {
     console.error('Token refresh failed:', error)
     redirectToLogin()
   } finally {
-    requestQueue = []
+    // 兜底：刷新期间新入队的请求必须被拒绝，否则其 Promise 永远不会 settle，
+    // 调用方的 await 会一直挂起。
+    rejectQueued('Token refresh finished before this request was retried')
     refreshTokenFlag = false
   }
 }
 
+// rejectQueued 结算所有排队中的请求，避免 Promise 永久挂起
+const rejectQueued = (reason: string) => {
+  const pending = requestQueue
+  requestQueue = []
+  for (const queued of pending) {
+    queued.reject(new Error(reason))
+  }
+}
+
 const redirectToLogin = () => {
-  requestQueue = [] // 清空队列
+  rejectQueued('Session expired')
   refreshTokenFlag = false
   store.set(originTokenAtom, {
     accessToken: '',
@@ -147,7 +163,7 @@ const redirectToLogin = () => {
 }
 
 const redirectToForbidden = () => {
-  requestQueue = [] // 清空队列
+  rejectQueued('Forbidden')
   refreshTokenFlag = false
   window.location.href = '/403' // 跳转到forbidden页
 }

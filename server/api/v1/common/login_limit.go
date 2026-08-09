@@ -2,9 +2,12 @@ package common
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 // 登录失败计数相关常量与辅助方法，用于防爆破
@@ -32,31 +35,49 @@ func loginFailKeys(ip, username string) []string {
 	return keys
 }
 
-// loginIsLocked 判断当前 IP/用户名是否已被锁定
+// loginIsLocked 判断当前 IP/用户名是否已被锁定。
+//
+// Redis 异常时返回 true（失败关闭）。早期实现用 `err == nil && n >= max` 判断，
+// 于是任何 Redis 超时、驱逐或宕机都会让锁定失效——恰好在监控最嘈杂、
+// 最难察觉的时候放开了无限密码猜测。
 func loginIsLocked(ip, username string) bool {
 	ctx := context.Background()
 	max, _ := loginAttempts()
 	for _, key := range loginFailKeys(ip, username) {
 		n, err := global.Redis.Get(ctx, key).Int()
-		if err == nil && n >= max {
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				// 键不存在 = 尚无失败记录，属于正常路径
+				continue
+			}
+			global.Log.Error("登录失败计数读取异常，按锁定处理",
+				zap.String("key", key), zap.Error(err))
+			return true
+		}
+		if n >= max {
 			return true
 		}
 	}
 	return false
 }
 
-// registerLoginFailure 记录一次登录失败，首次失败时设定过期时间
+// registerLoginFailure 记录一次登录失败。
+// INCR 与 EXPIRE 通过管道一次发出，避免两次往返之间的竞态导致计数永不过期。
 func registerLoginFailure(ip, username string) {
 	ctx := context.Background()
 	_, lock := loginAttempts()
 	for _, key := range loginFailKeys(ip, username) {
-		n, err := global.Redis.Incr(ctx, key).Result()
-		if err != nil {
+		pipe := global.Redis.Pipeline()
+		incr := pipe.Incr(ctx, key)
+		// NX 保证只在没有 TTL 时设置，不会因后续失败而不断续期，
+		// 否则持续攻击可以把锁定窗口无限延长。
+		pipe.ExpireNX(ctx, key, lock)
+		if _, err := pipe.Exec(ctx); err != nil {
+			global.Log.Error("登录失败计数写入异常",
+				zap.String("key", key), zap.Error(err))
 			continue
 		}
-		if n == 1 {
-			global.Redis.Expire(ctx, key, lock)
-		}
+		_ = incr.Val()
 	}
 }
 

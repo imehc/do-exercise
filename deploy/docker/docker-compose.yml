@@ -11,7 +11,9 @@ volumes:
 services:
   postgres:
     container_name: postgres_data
-    image: postgres
+    # 锁定大版本：PG18 的 PGDATA 为 /var/lib/postgresql/18/docker，
+    # 浮动 tag 升到 19 后旧数据不被识别，会重新 initdb 成空库。
+    image: postgres:18
     volumes:
       - postgres_data:/var/lib/postgresql
     environment:
@@ -26,7 +28,7 @@ services:
         ipv4_address: 166.6.0.21
   redis:
     container_name: redis_data
-    image: redis
+    image: redis:8
     volumes:
       - redis_data:/data
     # ports:
@@ -53,6 +55,8 @@ services:
         ipv4_address: 166.6.0.23
   minio-init:
     container_name: minio_init
+    # TODO: 建议锁定具体 RELEASE tag（当前 registry 不可达，未能核实可用 tag）。
+    # mc 只在 init 阶段跑一次性初始化，不持有数据，浮动 tag 风险低于 postgres/redis。
     image: minio/mc:latest
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
@@ -90,6 +94,10 @@ services:
       MINIO_APP_ACCESS_KEY: ${MINIO_APP_ACCESS_KEY}
       MINIO_APP_SECRET_KEY: ${MINIO_APP_SECRET_KEY}
       MINIO_PRESIGNED_HOST: ${MINIO_PRESIGNED_HOST}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
     depends_on:
       postgres:
         condition: service_started

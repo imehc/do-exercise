@@ -22,10 +22,12 @@ func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
 	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	refreshExpire, err := util.ParseDurationString(global.Config.Auth.RefreshExpireTime)
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	baseConf := util.Token{
 		UserId:   user.UserId,
@@ -41,6 +43,7 @@ func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
 	token, err := baseConf.GenerateToken()
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	response.Success(ctx, token)
 }
@@ -227,6 +230,7 @@ func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 	var req common.LoginWithEmailReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(ctx, err.Error())
+		return
 	}
 
 	var userApi UserApi
@@ -259,6 +263,7 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 	req := &request.Email{}
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.BadRequest(ctx, err.Error())
+		return
 	}
 
 	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)

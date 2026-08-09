@@ -29,6 +29,10 @@ func (s *SysJobService) checkJobExist(db *gorm.DB, jobId uint) (*system.SysJob, 
 
 // Create 创建定时任务
 func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*response.SysJobResp, error) {
+	// 命令必须在白名单内。放行任意字符串等同于开放容器内的 shell。
+	if !shared.IsRegisteredCommand(req.Command) {
+		return nil, errors.New("job.unregisteredCommand")
+	}
 	job := &system.SysJob{
 		Name:           req.Name,
 		JobGroup:       req.JobGroup,
@@ -56,6 +60,10 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 
 // Update 更新定时任务
 func (s *SysJobService) Update(db *gorm.DB, req request.UpdateSysJobReq) error {
+	// 命令必须在白名单内，防止通过更新绕过创建时的校验
+	if !shared.IsRegisteredCommand(req.Command) {
+		return errors.New("job.unregisteredCommand")
+	}
 	job, err := s.checkJobExist(db, req.Id)
 	if err != nil {
 		return err

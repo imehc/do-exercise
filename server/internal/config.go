@@ -40,6 +40,10 @@ func InitConfig(configFile string) {
 		"redis.port":           "REDIS_PORT",
 		"redis.password":       "REDIS_PASSWORD",
 		"redis.database":       "REDIS_DATABASE",
+		"email.host":           "EMAIL_HOST",
+		"email.port":           "EMAIL_PORT",
+		"email.user":           "EMAIL_USER",
+		"email.pass":           "EMAIL_PASS",
 	})
 
 	// 读取配置文件

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/middleware"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/router"
@@ -20,6 +21,9 @@ type server interface {
 
 func RunServer() {
 	r := router.Run()
+
+	// 启动操作日志批量落库 worker
+	middleware.StartOperationLogWorker()
 
 	go func() {
 		syncApi(r.Routes())

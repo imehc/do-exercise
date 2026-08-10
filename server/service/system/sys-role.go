@@ -19,6 +19,8 @@ type SysRoleService struct{}
 // 空 menuIds、以及菜单未绑定任何 API 这两种情况，语义都是「撤销该角色的全部策略」。
 // 早期实现在这两处提前 return，跳过了 RemoveFilteredPolicy，
 // 导致解除权限的请求返回成功而 Casbin 策略原样保留。
+// 本函数只负责在事务内落库角色-菜单关联表；Casbin p 策略的同步
+// 放在事务提交之后由 syncRolePolicy 统一处理。
 func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds []uint) ([]system.SysMenu, error) {
 	var menus []system.SysMenu
 	if len(menuIds) > 0 {
@@ -40,10 +42,18 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 		return nil, errors.New("menuAssignFailed")
 	}
 
-	// 无条件清空旧策略，再按新集合重建
+	return menus, nil
+}
+
+// syncRolePolicy 在事务提交成功后同步 Casbin p 策略。
+// global.Enforcer 走独立 adapter，无法加入业务事务，必须等 Commit() 成功后再写，
+// 否则提交失败时角色行回滚、策略却已生效（幽灵授权）。
+// 此步失败则角色表现为无权限（fail closed），并尽量回退半成品规则。
+func (s *SysRoleService) syncRolePolicy(role *system.SysRole, menus []system.SysMenu) error {
 	enforcer := global.Enforcer
+	// 无条件清空旧策略，再按新集合重建
 	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
-		return nil, errors.New("menuAssignFailed")
+		return errors.New("menuAssignFailed")
 	}
 
 	// 将菜单下的APIs合并
@@ -52,7 +62,7 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 	})
 	if len(apis) == 0 {
 		// 菜单已分配但未绑定 API：策略为空，菜单列表仍需如实返回
-		return menus, nil
+		return nil
 	}
 
 	// 使用casbin批量添加策略
@@ -66,13 +76,12 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 
 	// 添加策略并检查结果
 	success, err := enforcer.AddPolicies(policies)
-	if err != nil {
-		return nil, errors.New("menuAssignFailed")
+	if err != nil || !success {
+		// 补偿：清掉可能已加入的部分策略，回退到无权限态
+		_, _ = enforcer.RemoveFilteredPolicy(0, role.Code)
+		return errors.New("menuAssignFailed")
 	}
-	if !success {
-		return nil, errors.New("menuAssignFailed")
-	}
-	return menus, nil
+	return nil
 }
 
 // checkRoleExist 检查角色是否存在
@@ -139,6 +148,11 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return nil, errors.New("createRoleFailed")
+	}
+
+	// Casbin 策略在事务提交成功之后同步
+	if err := s.syncRolePolicy(role, menus); err != nil {
+		return nil, err
 	}
 
 	return &response.SysRoleResp{
@@ -237,7 +251,8 @@ func (s *SysRoleService) Update(db *gorm.DB, req request.UpdateSysRoleReq) error
 		return errors.New("updateRoleFailed")
 	}
 
-	if _, err := s.assignMenus(tx, role, req.MenuIds); err != nil {
+	menus, err := s.assignMenus(tx, role, req.MenuIds)
+	if err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -247,23 +262,27 @@ func (s *SysRoleService) Update(db *gorm.DB, req request.UpdateSysRoleReq) error
 		tx.Rollback()
 		return errors.New("updateRoleFailed")
 	}
+
+	// 事务提交成功后在 Casbin 同步策略
+	if err := s.syncRolePolicy(role, menus); err != nil {
+		return err
+	}
 	return nil
 }
 
 // Get 查询单个角色
 func (s *SysRoleService) Get(db *gorm.DB, id uint) (*response.SysRoleResp, error) {
-	_, err := s.checkRoleExist(db, id)
-	if err != nil {
-		return nil, err
-	}
-
+	// 一次查询带出菜单，不再先查存在性再重查同一行
 	var role system.SysRole
-	err = db.
+	result := db.
+		Unscoped().
 		Preload("Menus").
-		First(&role, id).
-		Error
-	if err != nil {
-		return nil, errors.New("getRoleFailed")
+		First(&role, id)
+	if result.Error != nil {
+		return nil, errors.New("allRolesNotFound")
+	}
+	if !role.DeletedAt.Time.IsZero() {
+		return nil, errors.New("roleDeleted")
 	}
 
 	menus := make([]response.SysMenuShortResp, len(role.Menus))
@@ -289,23 +308,27 @@ func (s *SysRoleService) Get(db *gorm.DB, id uint) (*response.SysRoleResp, error
 func (s *SysRoleService) GetList(db *gorm.DB, req request.QuerySysRoleReq) (common.PageResult[response.SysRoleResp], error) {
 	var roles []system.SysRole
 	var total int64
-	db = db.Model(&system.SysRole{})
+
+	// Count 用独立 builder，避免污染后续 Find 的状态
+	countDB := db.Model(&system.SysRole{})
 
 	// 添加模糊查询条件
 	if req.Name != "" {
-		db = db.Where("name LIKE ?", "%"+req.Name+"%")
+		countDB = countDB.Where("name LIKE ?", "%"+req.Name+"%")
 	}
 	if req.Code != "" {
-		db = db.Where("code LIKE ?", "%"+req.Code+"%")
+		countDB = countDB.Where("code LIKE ?", "%"+req.Code+"%")
 	}
 
-	db.Count(&total)
+	if err := countDB.Count(&total).Error; err != nil {
+		return common.PageResult[response.SysRoleResp]{}, errors.New("getRoleListFailed")
+	}
 	req.Normalize()
-	db = db.
+	err := db.Model(&system.SysRole{}).
 		Scopes(util.Paginate(req.PageSize, req.Page)).
-		Order("id ASC")
-	// 添加预加载菜单数据
-	err := db.Preload("Menus").Find(&roles).Error
+		Order("id ASC").
+		Preload("Menus").
+		Find(&roles).Error
 	if err != nil {
 		return common.PageResult[response.SysRoleResp]{}, errors.New("getRoleListFailed")
 	}

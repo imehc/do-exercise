@@ -10,6 +10,7 @@ import (
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -95,7 +96,8 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	ctx := context.Background()
 
 	// 获取refreshToken对应的userId
-	refreshTokenString, err := global.Redis.Get(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken)).Result()
+	refreshKey := fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken)
+	refreshTokenString, err := global.Redis.Get(ctx, refreshKey).Result()
 	if err != nil {
 		return nil, errors.New("refreshTokenNotExist")
 	}
@@ -105,39 +107,103 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		return nil, errors.New("refreshTokenNotExist")
 	}
 
+	// 重放检测：已被轮转消费过的 refresh token 再次出现，意味着旧凭据可能已泄露，
+	// 判定整个 token 家族失陷，吊销该用户全部会话（此时即便攻击者持有新 token 也一起作废）。
+	if refreshTokenInfo.Rotated {
+		_ = RevokeAllUserTokens(refreshTokenInfo.UserId)
+		return nil, errors.New("refreshTokenNotExist")
+	}
+
+	// 已禁用或已过期的 refresh token 直接拒绝
+	if refreshTokenInfo.Disabled {
+		return nil, errors.New("refreshTokenNotExist")
+	}
+	if !refreshTokenInfo.ExpiredTime.IsZero() && time.Now().After(refreshTokenInfo.ExpiredTime) {
+		return nil, errors.New("refreshTokenExpired")
+	}
+	// 以 Redis TTL 兜底（过期即不可用）
+	remainingTTL, err := global.Redis.TTL(ctx, refreshKey).Result()
+	if err != nil || remainingTTL <= 0 {
+		return nil, errors.New("refreshTokenExpired")
+	}
+
 	// 清理该用户的无效 access/refresh token
 	_ = CleanUserTokenSet(refreshTokenInfo.UserId, PrefixUserAcessToken, PrefixAccessToken)
 	_ = CleanUserTokenSet(refreshTokenInfo.UserId, PrefixUserRefreshToken, PrefixRefreshToken)
 
-	// 生成新的accessToken
+	// 轮转：生成全新的 access 与 refresh token，旧 refresh 转为失陷哨兵
 	newAccessToken, err := Uuid()
 	if err != nil {
 		return nil, errors.New("refreshFailed")
 	}
-
-	// 获取refreshToken的剩余过期时间
-	refreshExpire, err := global.Redis.TTL(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, refreshToken)).Result()
-	if err != nil || refreshExpire <= 0 {
-		return nil, errors.New("refreshTokenExpired")
+	newRefreshToken, err := Uuid()
+	if err != nil {
+		return nil, errors.New("refreshFailed")
 	}
 
-	tokenInfoJson, err := json.Marshal(model.TokenInfo{
+	now := time.Now()
+	accessExpire := t.ExpireTime
+	if accessExpire <= 0 {
+		accessExpire = 2 * time.Hour
+	}
+	refreshExpire := t.RefreshExpireTime
+	if refreshExpire <= 0 {
+		refreshExpire = 7 * 24 * time.Hour
+	}
+
+	accessInfoJson, err := json.Marshal(model.TokenInfo{
 		UserId:             refreshTokenInfo.UserId,
 		Username:           refreshTokenInfo.Username,
 		RoleIds:            refreshTokenInfo.RoleIds,
-		RefreshToken:       refreshToken,
+		RefreshToken:       newRefreshToken, // 新 access 指向新 refresh
 		Disabled:           refreshTokenInfo.Disabled,
-		CreatedTime:        refreshTokenInfo.CreatedTime,
-		ExpiredTime:        refreshTokenInfo.ExpiredTime.Add(t.ExpireTime),
+		CreatedTime:        now,
+		ExpiredTime:        now.Add(accessExpire), // 从当前时间重新起算，不再累加原过期时间
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
 	}
-	// 保存新的token信息
+	refreshInfoJson, err := json.Marshal(model.RefreshTokenInfo{
+		UserId:             refreshTokenInfo.UserId,
+		Username:           refreshTokenInfo.Username,
+		RoleIds:            refreshTokenInfo.RoleIds,
+		Disabled:           refreshTokenInfo.Disabled,
+		CreatedTime:        now,
+		ExpiredTime:        now.Add(refreshExpire),
+		MustChangePassword: refreshTokenInfo.MustChangePassword,
+	})
+	if err != nil {
+		return nil, errors.New("refreshFailed")
+	}
+	// 旧 refresh token 记录改写为 rotated 哨兵，保留剩余 TTL 以便捕获重放；
+	// 下一次携带同一 token 到来时走上面的 family-revocation 分支。
+	rotatedJson, err := json.Marshal(model.RefreshTokenInfo{
+		UserId:             refreshTokenInfo.UserId,
+		Username:           refreshTokenInfo.Username,
+		RoleIds:            refreshTokenInfo.RoleIds,
+		Disabled:           true,
+		CreatedTime:        refreshTokenInfo.CreatedTime,
+		ExpiredTime:        refreshTokenInfo.ExpiredTime,
+		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		Rotated:            true,
+	})
+	if err != nil {
+		return nil, errors.New("refreshFailed")
+	}
+
 	pipe := global.Redis.Pipeline()
-	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixAccessToken, newAccessToken), tokenInfoJson, t.ExpireTime)
-	pipe.SAdd(ctx, fmt.Sprintf("%s%s", PrefixUserAcessToken, refreshTokenInfo.UserId), newAccessToken) // 添加到用户token集合
+	// 旧 refresh token 转失陷哨兵（保留原 TTL）
+	pipe.Set(ctx, refreshKey, rotatedJson, remainingTTL)
+	// 保存新 access / refresh
+	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixAccessToken, newAccessToken), accessInfoJson, accessExpire)
+	pipe.Set(ctx, fmt.Sprintf("%s%s", PrefixRefreshToken, newRefreshToken), refreshInfoJson, refreshExpire)
+	// 更新用户 token 集合：新 access 入集，旧 refresh 出集、新 refresh 入集
+	userAccessSetKey := fmt.Sprintf("%s%s", PrefixUserAcessToken, refreshTokenInfo.UserId)
+	userRefreshSetKey := fmt.Sprintf("%s%s", PrefixUserRefreshToken, refreshTokenInfo.UserId)
+	pipe.SAdd(ctx, userAccessSetKey, newAccessToken)
+	pipe.SRem(ctx, userRefreshSetKey, refreshToken)
+	pipe.SAdd(ctx, userRefreshSetKey, newRefreshToken)
 
 	// 执行管道操作
 	_, err = pipe.Exec(ctx)
@@ -147,23 +213,41 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 
 	return &common.Token{
 		AccessToken:        newAccessToken,
-		ExpireTime:         int64(t.ExpireTime.Seconds()), // 将毫秒转换为秒
-		RefreshToken:       refreshToken,
-		RefreshExpireTime:  int64(refreshExpire.Seconds()), // 将毫秒转换为秒
+		ExpireTime:         int64(accessExpire.Seconds()),
+		RefreshToken:       newRefreshToken,
+		RefreshExpireTime:  int64(refreshExpire.Seconds()),
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
 	}, nil
 }
 
 // updateTokenRoles 更新指定类型token的角色信息
 func updateTokenRoles(ctx context.Context, userId string, roleIds []uint, tokenType string, prefix string) error {
-	tokens, err := global.Redis.SMembers(ctx, fmt.Sprintf("%s%s", tokenType, userId)).Result()
+	setKey := fmt.Sprintf("%s%s", tokenType, userId)
+	tokens, err := global.Redis.SMembers(ctx, setKey).Result()
 	if err != nil {
 		return err
 	}
+	if len(tokens) == 0 {
+		return nil
+	}
 
-	for _, token := range tokens {
-		tokenKey := fmt.Sprintf("%s%s", prefix, token)
-		tokenInfo, err := global.Redis.Get(ctx, tokenKey).Result()
+	// 批量 GET（1 次往返），替代逐 token 串行 Get
+	tokenKeys := make([]string, len(tokens))
+	getPipe := global.Redis.Pipeline()
+	cmds := make([]*redis.StringCmd, len(tokens))
+	for i, token := range tokens {
+		tokenKeys[i] = fmt.Sprintf("%s%s", prefix, token)
+		cmds[i] = getPipe.Get(ctx, tokenKeys[i])
+	}
+	if _, err := getPipe.Exec(ctx); err != nil && err != redis.Nil {
+		return err
+	}
+
+	// 更新角色 ID 后批量回写，用 KeepTTL 保留原过期时间（省掉逐 token 的 TTL 往返）
+	setPipe := global.Redis.Pipeline()
+	updated := false
+	for i, cmd := range cmds {
+		tokenInfo, err := cmd.Result()
 		if err != nil {
 			continue
 		}
@@ -192,18 +276,17 @@ func updateTokenRoles(ctx context.Context, userId string, roleIds []uint, tokenT
 			continue
 		}
 
-		// 获取原有token的过期时间
-		ttl, err := global.Redis.TTL(ctx, tokenKey).Result()
-		if err != nil {
-			continue
-		}
-
-		// 使用原有的过期时间更新token
-		if err = global.Redis.Set(ctx, tokenKey, tokenInfoJson, ttl).Err(); err != nil {
-			continue
-		}
+		setPipe.SetArgs(ctx, tokenKeys[i], tokenInfoJson, redis.SetArgs{
+			TTL:     0,
+			KeepTTL: true, // 保留原过期时间，省掉逐 token 的 TTL 往返
+		})
+		updated = true
 	}
-	return nil
+	if !updated {
+		return nil
+	}
+	_, err = setPipe.Exec(ctx)
+	return err
 }
 
 // UpdateUserRoleInCache 更新用户角色缓存信息
@@ -367,22 +450,36 @@ func CleanUserTokenSet(userId string, tokenType string, prefix string) error {
 	if err != nil {
 		return err
 	}
+	if len(tokens) == 0 {
+		return nil
+	}
 
-	pipe := global.Redis.Pipeline()
-	for _, token := range tokens {
-		tokenKey := fmt.Sprintf("%s%s", prefix, token)
+	// 批量 EXISTS，一次往返判断哪些 token 已过期
+	tokenKeys := make([]string, len(tokens))
+	existPipe := global.Redis.Pipeline()
+	cmds := make([]*redis.IntCmd, len(tokens))
+	for i, token := range tokens {
+		tokenKeys[i] = fmt.Sprintf("%s%s", prefix, token)
+		cmds[i] = existPipe.Exists(ctx, tokenKeys[i])
+	}
+	if _, err := existPipe.Exec(ctx); err != nil {
+		return err
+	}
 
-		// 检查 token 对应的 Redis 键是否存在
-		exists, e := global.Redis.Exists(ctx, tokenKey).Result()
-		if e != nil {
+	// 只对已失效的 token 执行 SRem
+	rmPipe := global.Redis.Pipeline()
+	removed := false
+	for i, token := range tokens {
+		exists, e := cmds[i].Result()
+		if e != nil || exists != 0 {
 			continue
 		}
-
-		// 如果 token 已过期（Redis 中不存在），则从用户集合中移除
-		if exists == 0 {
-			pipe.SRem(ctx, setKey, token)
-		}
+		rmPipe.SRem(ctx, setKey, token)
+		removed = true
 	}
-	_, err = pipe.Exec(ctx)
+	if !removed {
+		return nil
+	}
+	_, err = rmPipe.Exec(ctx)
 	return err
 }

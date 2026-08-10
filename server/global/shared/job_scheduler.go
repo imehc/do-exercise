@@ -50,11 +50,13 @@ func RegisteredCommands() []string {
 
 // JobScheduler 定时任务调度器
 type JobScheduler struct {
-	scheduler   gocron.Scheduler
-	jobMap      map[uint]string // jobId -> gocron.Job.ID().String()
-	jobMapMutex sync.Mutex
-	syncTicker  *time.Ticker
-	stopChan    chan bool
+	scheduler     gocron.Scheduler
+	jobMap        map[uint]string // jobId -> gocron.Job.ID().String()
+	jobMapMutex   sync.Mutex
+	syncTicker    *time.Ticker
+	syncStop      chan struct{} // 关闭后通知同步 goroutine 退出
+	syncRunning   bool          // 防止 Start() 重复启动 ticker 造成泄漏
+	syncTickerMux sync.Mutex
 }
 
 // JobStats 任务统计信息
@@ -80,7 +82,6 @@ func GetJobScheduler() *JobScheduler {
 		schedulerInstance = &JobScheduler{
 			scheduler: scheduler,
 			jobMap:    make(map[uint]string),
-			stopChan:  make(chan bool),
 		}
 
 		// 启动定时同步任务
@@ -89,15 +90,23 @@ func GetJobScheduler() *JobScheduler {
 	return schedulerInstance
 }
 
-// startSyncTicker 启动定时同步任务
+// startSyncTicker 启动定时同步任务。
+// 用 syncRunning 标志防重入：Start() 反复调用不会反复新建 ticker。
 func (js *JobScheduler) startSyncTicker() {
+	js.syncTickerMux.Lock()
+	defer js.syncTickerMux.Unlock()
+	if js.syncRunning {
+		return
+	}
+	js.syncRunning = true
+	js.syncStop = make(chan struct{})
 	js.syncTicker = time.NewTicker(1 * time.Minute) // 每分钟同步一次
 	go func() {
 		for {
 			select {
 			case <-js.syncTicker.C:
 				js.SyncStatsToDatabase()
-			case <-js.stopChan:
+			case <-js.syncStop:
 				js.syncTicker.Stop()
 				return
 			}
@@ -105,11 +114,16 @@ func (js *JobScheduler) startSyncTicker() {
 	}()
 }
 
-// stopSyncTicker 停止定时同步任务
+// stopSyncTicker 停止定时同步任务。
+// 关闭 channel 而非无缓冲发送，避免接收方已退出时永久阻塞。
 func (js *JobScheduler) stopSyncTicker() {
-	if js.syncTicker != nil {
-		js.stopChan <- true
+	js.syncTickerMux.Lock()
+	defer js.syncTickerMux.Unlock()
+	if !js.syncRunning {
+		return
 	}
+	js.syncRunning = false
+	close(js.syncStop)
 }
 
 // getRedisKey 获取Redis键名
@@ -164,29 +178,21 @@ func (js *JobScheduler) getJobStats(jobId uint) (*JobStats, error) {
 	}, nil
 }
 
-// updateJobStatsToDB 封装累加并结构体更新逻辑
+// updateJobStatsToDB 封装原子累加并更新结构体。
+// 用 SQL 表达式 `times = times + ?` 而非读-改-写，避免并发同步丢次数。
 func (js *JobScheduler) updateJobStatsToDB(db *gorm.DB, jobId uint, stats *JobStats) error {
-	var job system.SysJob
-	if err := db.Where("id = ?", jobId).First(&job).Error; err != nil {
-		return err
-	}
-	newTimes := job.Times + stats.Times
 	return db.Model(&system.SysJob{}).
 		Where("id = ?", jobId).
-		Select("LastTime", "NextTime", "Times").
-		Updates(&system.SysJob{
-			LastTime: &stats.LastTime,
-			NextTime: &stats.NextTime,
-			Times:    newTimes,
+		Updates(map[string]interface{}{
+			"last_time": stats.LastTime,
+			"next_time": stats.NextTime,
+			"times":     gorm.Expr("times + ?", stats.Times),
 		}).Error
 }
 
 // SyncStatsToDatabase 同步统计信息到数据库
 func (js *JobScheduler) SyncStatsToDatabase() error {
 	db := global.DB.
-		// Session(&gorm.Session{
-		// 	Logger: logger.Default.LogMode(logger.Info),
-		// }).
 		WithContext(context.Background())
 	js.jobMapMutex.Lock()
 	jobIds := make([]uint, 0, len(js.jobMap))
@@ -200,11 +206,16 @@ func (js *JobScheduler) SyncStatsToDatabase() error {
 			continue // 跳过不存在的统计信息
 		}
 		if err := js.updateJobStatsToDB(db, jobId, stats); err != nil {
-			fmt.Printf("同步任务 %d 统计信息失败: %v\n", jobId, err)
+			global.Log.Error("同步任务统计信息失败",
+				zap.Uint("jobId", jobId),
+				zap.Error(err))
 			continue
 		}
-		js.updateJobStats(jobId, stats.LastTime, stats.NextTime, 0)
-		fmt.Printf("成功同步任务 %d 统计信息到数据库\n", jobId)
+		if err := js.updateJobStats(jobId, stats.LastTime, stats.NextTime, 0); err != nil {
+			global.Log.Error("重置任务统计计数失败",
+				zap.Uint("jobId", jobId),
+				zap.Error(err))
+		}
 	}
 	return nil
 }
@@ -227,7 +238,11 @@ func (js *JobScheduler) AddJob(job *system.SysJob) error {
 	// 初始化Redis统计信息
 	now := time.Now()
 	nextTime, _ := gocronJob.NextRun()
-	js.updateJobStats(job.Id, now, nextTime, 0)
+	if err := js.updateJobStats(job.Id, now, nextTime, 0); err != nil {
+		global.Log.Error("初始化任务统计信息失败",
+			zap.Uint("jobId", job.Id),
+			zap.Error(err))
+	}
 
 	return nil
 }
@@ -238,8 +253,11 @@ func (js *JobScheduler) RemoveJob(jobId uint) error {
 	defer js.jobMapMutex.Unlock()
 
 	if jobUUID, exists := js.jobMap[jobId]; exists {
-		u, err := uuid.Parse(jobUUID)
+		u, err := uuid.Parse(jobUUID) // 不再用 uuid.MustParse，畸形值不 panic
 		if err != nil {
+			global.Log.Error("解析任务UUID失败",
+				zap.Uint("jobId", jobId),
+				zap.Error(err))
 			return err
 		}
 		err = js.scheduler.RemoveJob(u)
@@ -268,7 +286,10 @@ func (js *JobScheduler) GetNextRunTime(jobId uint) (*time.Time, error) {
 	defer js.jobMapMutex.Unlock()
 
 	if jobUUID, exists := js.jobMap[jobId]; exists {
-		uid := uuid.MustParse(jobUUID)
+		uid, err := uuid.Parse(jobUUID) // 不再用 uuid.MustParse，畸形值不 panic
+		if err != nil {
+			return nil, err
+		}
 		for _, gocronJob := range js.scheduler.Jobs() {
 			if gocronJob.ID() == uid {
 				next, err := gocronJob.NextRun()
@@ -305,10 +326,18 @@ func (js *JobScheduler) runJob(job *system.SysJob) error {
 	stats, err := js.getJobStats(job.Id)
 	if err != nil {
 		// 如果Redis中没有统计信息，创建新的
-		js.updateJobStats(job.Id, now, nextTime, 1)
+		if err := js.updateJobStats(job.Id, now, nextTime, 1); err != nil {
+			global.Log.Error("初始化任务执行统计失败",
+				zap.Uint("jobId", job.Id),
+				zap.Error(err))
+		}
 	} else {
 		// 累加执行次数
-		js.updateJobStats(job.Id, now, nextTime, stats.Times+1)
+		if err := js.updateJobStats(job.Id, now, nextTime, stats.Times+1); err != nil {
+			global.Log.Error("累加任务执行统计失败",
+				zap.Uint("jobId", job.Id),
+				zap.Error(err))
+		}
 	}
 
 	// 执行任务：只允许白名单内已登记的处理函数，不再解释执行任意 shell 命令
@@ -377,10 +406,12 @@ func (js *JobScheduler) RestoreJobsFromDatabase() error {
 	// 将任务添加到调度器
 	for _, job := range jobs {
 		if err := js.AddJob(&job); err != nil {
-			fmt.Printf("恢复任务失败: %s, 错误: %v\n", job.Name, err)
+			global.Log.Error("恢复任务失败",
+				zap.String("job", job.Name),
+				zap.Error(err))
 			continue
 		}
-		fmt.Printf("成功恢复任务: %s\n", job.Name)
+		global.Log.Info("成功恢复任务", zap.String("job", job.Name))
 	}
 
 	return nil
@@ -405,9 +436,6 @@ func (js *JobScheduler) Start() {
 // SyncOneJobStatsToDatabase 同步单个任务统计信息到数据库
 func (js *JobScheduler) SyncOneJobStatsToDatabase(jobId uint) error {
 	db := global.DB.
-		// Session(&gorm.Session{
-		// 	Logger: logger.Default.LogMode(logger.Info),
-		// }).
 		WithContext(context.Background())
 	stats, err := js.getJobStats(jobId)
 	if err != nil {

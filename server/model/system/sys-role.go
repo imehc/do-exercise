@@ -1,7 +1,6 @@
 package system
 
 import (
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"gorm.io/gorm"
 )
@@ -17,7 +16,7 @@ type SysRole struct {
 }
 
 func (r *SysRole) BeforeCreate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
+	userId := model.CurrentUserID(tx)
 	r.CreatedBy = userId
 	r.UpdatedBy = userId
 
@@ -25,7 +24,10 @@ func (r *SysRole) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (r *SysRole) BeforeUpdate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
+	userId := model.CurrentUserID(tx)
+	if userId == "" {
+		return nil
+	}
 
 	if r.UpdatedBy != userId && r.Id != 0 {
 		r.UpdatedBy = userId
@@ -43,7 +45,10 @@ func (r *SysRole) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (r *SysRole) BeforeDelete(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
+	if r.Id == 0 {
+		return nil
+	}
+	userId := model.CurrentUserID(tx)
 	r.DeletedBy = userId
 	err = tx.
 		Model(r).

@@ -18,17 +18,21 @@ system:
 logger:
   level: "warn"
   directory: "logs"
-  max_size: 10240
+  max_size: 10 # 单位 MB（lumberjack 使用 MB；此前按 KB 填 10240 会让轮转阈值变成 10GB/文件）
   max_backups: 30
   max_age: 7
   compress: true
 
 # 数据库连接信息由环境变量注入，Docker 部署使用 deploy/docker/.env
 database:
+  # sslmode: disable/require/verify-full；生产建议 require 及以上
+  sslmode: disable
   pool:
     max_connections: 100
     min_connections: 10
-    max_idle_time: 300
+    max_idle_time: 300      # 最大空闲时间(秒)
+    max_conn_lifetime: 3600 # 连接最大存活时间(秒)，0 用默认 1 小时
+    connection_timeout: 5   # 建立连接超时(秒)
 
 # redis
 redis:
@@ -53,6 +57,7 @@ captcha:
 # MinIO 连接信息和访问凭据由环境变量注入，Docker 部署使用 deploy/docker/.env
 minio:
   expires: 3600
+  secure: false # 是否使用 HTTPS 访问 MinIO
 
 # email
 email:

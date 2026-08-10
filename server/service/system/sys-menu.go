@@ -210,17 +210,17 @@ func (s *SysMenuService) Update(db *gorm.DB, req request.UpdateSysMenuReq) error
 
 // Get 查询单个菜单
 func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error) {
-	_, err := s.checkMenuExist(db, id, false)
-	if err != nil {
-		return nil, err
-	}
-
-	var menu *system.SysMenu
-	if err := db.
+	// 一次查询带出 Apis，不再先查存在性再重查同一行
+	var menu system.SysMenu
+	result := db.
+		Unscoped().
 		Preload("Apis").
-		First(&menu, id).
-		Error; err != nil {
-		return nil, errors.New("getMenuFailed")
+		First(&menu, id)
+	if result.Error != nil {
+		return nil, errors.New("allMenusNotFound")
+	}
+	if !menu.DeletedAt.Time.IsZero() {
+		return nil, errors.New("menuDeleted")
 	}
 
 	return &response.SysMenuResp{
@@ -277,34 +277,35 @@ func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error
 		}
 	}
 
-	// 构建树结构
-	var rootMenus []response.SysMenuTreeResp
-	// 使用map记录已处理的节点，避免重复处理
-	processed := make(map[uint]bool)
+	// 构建树结构：先按父节点分组，避免每层重扫整个切片（O(N)）
+	childrenOf := make(map[uint][]response.SysMenuTreeResp)
+	for _, m := range menus {
+		if m.ParentId != nil && *m.ParentId != 0 {
+			childrenOf[*m.ParentId] = append(childrenOf[*m.ParentId], *menuMap[m.Id])
+		} else {
+			childrenOf[0] = append(childrenOf[0], *menuMap[m.Id])
+		}
+	}
+	for parentId := range childrenOf {
+		sortMenus(childrenOf[parentId])
+	}
 
-	// 递归构建子树的函数
+	// 递归构建子树
 	var buildSubTree func(uint) []response.SysMenuTreeResp
 	buildSubTree = func(parentId uint) []response.SysMenuTreeResp {
-		children := make([]response.SysMenuTreeResp, 0)
-		for _, m := range menus {
-			if m.ParentId != nil && *m.ParentId == parentId && !processed[m.Id] {
-				node := *menuMap[m.Id]
-				// 递归获取子节点
-				node.Children = buildSubTree(m.Id) // 递归调用buildSubTree获取子节点
-				// 对子节点排序
-				sortMenus(node.Children)
-				children = append(children, node)
-				processed[m.Id] = true
-			}
+		children := childrenOf[parentId]
+		// 叶子节点在 map 里取不到值，直接返回会是 nil，序列化成 null；
+		// 前端生成的解析器对 children 递归 map，null 会直接抛错，所以补成空数组。
+		if children == nil {
+			return []response.SysMenuTreeResp{}
 		}
-		// 对当前层级排序
-		sortMenus(children)
+		for i := range children {
+			children[i].Children = buildSubTree(children[i].Id)
+		}
 		return children
 	}
 
-	// 从根节点开始构建树
-	rootMenus = buildSubTree(0)
-
+	rootMenus := buildSubTree(0)
 	return rootMenus, nil
 }
 

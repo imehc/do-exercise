@@ -17,7 +17,7 @@ func InitMinio() {
 		fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		&minio.Options{
 			Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
-			Secure: false, // 是否使用https进行通信
+			Secure: cfg.Secure, // 是否使用https进行通信，由配置驱动
 		},
 	)
 	if err != nil {

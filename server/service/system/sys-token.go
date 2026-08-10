@@ -186,7 +186,7 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 	})
 	if err != nil {
 		if err == redis.Nil {
-			return errors.New("acccessTokenNotExist")
+			return errors.New("accessTokenNotExist")
 		}
 		return errors.New("getFailed")
 	}
@@ -237,7 +237,7 @@ func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) erro
 	})
 	if err != nil {
 		if err == redis.Nil {
-			return errors.New("acccessTokenNotExist")
+			return errors.New("accessTokenNotExist")
 		}
 		return errors.New("getFailed")
 	}
@@ -292,6 +292,11 @@ func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) erro
 	if err != nil {
 		log.Error("Failed to execute pipeline", zap.Error(err))
 		return errors.New("updateFailed")
+	}
+
+	// 停用 token 后其在线连接已失去凭证，推送强制下线让前端立即退出重登
+	if *req.Disabled {
+		notifySessionRevoked(tokenData.UserId, "您的会话已被管理员终止")
 	}
 
 	return nil

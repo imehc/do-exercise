@@ -7,12 +7,12 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model/system"
-	sysSevice "github.com/imehc/do-exercise/server/service/system"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/mssola/user_agent"
 	"go.uber.org/zap"
@@ -23,6 +23,72 @@ const maxStoredBodyLength = 2 * 1024
 
 // 敏感字段占位符
 const redactedPlaceholder = "[REDACTED]"
+
+// 批量落库参数：队列容量、单批条数、最大攒批时长。
+// 有界队列保证高并发下不会无界地开 goroutine 写库把连接池占满。
+const (
+	operationLogQueueSize   = 1024
+	operationLogBatchSize   = 100
+	operationLogFlushPeriod = 1 * time.Second
+)
+
+var (
+	operationLogQueue      = make(chan system.SysOperationLog, operationLogQueueSize)
+	operationLogWorkerOnce sync.Once
+)
+
+// StartOperationLogWorker 启动操作日志批量落库 worker，进程启动时调用一次。
+func StartOperationLogWorker() {
+	operationLogWorkerOnce.Do(func() {
+		go operationLogWorker()
+	})
+}
+
+// operationLogWorker 从有界队列取日志，攒满一批或超时后批量 INSERT。
+func operationLogWorker() {
+	batch := make([]system.SysOperationLog, 0, operationLogBatchSize)
+	ticker := time.NewTicker(operationLogFlushPeriod)
+	defer ticker.Stop()
+
+	flush := func() {
+		if len(batch) == 0 {
+			return
+		}
+		logs := batch
+		batch = make([]system.SysOperationLog, 0, operationLogBatchSize)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := global.DB.WithContext(ctx).Create(&logs).Error; err != nil {
+			global.Log.Error("批量写入操作日志失败",
+				zap.Int("count", len(logs)),
+				zap.Error(err))
+		}
+	}
+
+	for {
+		select {
+		case log := <-operationLogQueue:
+			batch = append(batch, log)
+			if len(batch) >= operationLogBatchSize {
+				flush()
+			}
+		case <-ticker.C:
+			flush()
+		}
+	}
+}
+
+// enqueueOperationLog 非阻塞入队。队列满时丢弃该条日志并告警，
+// 避免日志写入反过来拖垮业务请求。
+func enqueueOperationLog(log system.SysOperationLog) {
+	select {
+	case operationLogQueue <- log:
+	default:
+		global.Log.Warn("操作日志队列已满，丢弃日志",
+			zap.String("path", log.Path),
+			zap.String("method", log.Method))
+	}
+}
 
 // isSensitivePath 判断该路径的响应体/查询串是否含凭据。
 // /auth/* 的响应体是 access/refresh token，refresh_token 还会出现在查询串里，
@@ -52,9 +118,14 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		// 开始时间
 		startTime := time.Now()
 
-		// 获取请求体
+		// 获取请求体。
+		// 只在 body 体积可预知且不超过上限时才缓冲（供日志截取）：
+		// 超大 POST、上传（multipart）、未知长度的分块 body 一律不碰，
+		// 原样留给 handler，避免把整个请求体读进内存。
 		var body []byte
-		if c.Request.Body != nil {
+		contentLength := c.Request.ContentLength
+		if contentLength > 0 && contentLength <= maxStoredBodyLength &&
+			!strings.HasPrefix(c.ContentType(), "multipart/form-data") {
 			body, _ = io.ReadAll(c.Request.Body)
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
@@ -96,9 +167,15 @@ func OperationLogMiddleware() gin.HandlerFunc {
 
 		// 响应体在 /auth/login 等路径上就是 access/refresh token 本身。
 		// 请求体保留：登录口令由前端 RSA 加密后传输，且保留用户名对失败登录的溯源有价值。
+		// 未缓冲 body 的请求（大/上传/未知长度）用占位符表示。
 		result := redactedPlaceholder
 		if captureResponse {
 			result = truncateString(blw.body.String(), maxStoredBodyLength)
+		}
+
+		requestBody := redactedPlaceholder
+		if body != nil {
+			requestBody = truncateString(string(body), maxStoredBodyLength)
 		}
 
 		operationLog := system.SysOperationLog{
@@ -114,7 +191,7 @@ func OperationLogMiddleware() gin.HandlerFunc {
 			Method:         c.Request.Method,
 			Path:           c.Request.URL.Path,
 			Params:         params,
-			Body:           truncateString(string(body), maxStoredBodyLength),
+			Body:           requestBody,
 			Result:         result,
 			Success:        c.Writer.Status() >= 200 && c.Writer.Status() < 400,
 			Code:           c.Writer.Status(),
@@ -128,17 +205,8 @@ func OperationLogMiddleware() gin.HandlerFunc {
 			operationLog.Address = util.IPToRegion(clientIP)
 		}
 
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			var logService sysSevice.SysOperationLogService
-			if err := logService.WithContext(ctx).Create(operationLog); err != nil {
-				global.Log.Error("写入操作日志失败",
-					zap.String("path", operationLog.Path),
-					zap.String("method", operationLog.Method),
-					zap.Error(err))
-			}
-		}()
+		// 有界队列 + 批量落库，不再每请求 spawn 一个 goroutine 写库
+		enqueueOperationLog(operationLog)
 	}
 }
 

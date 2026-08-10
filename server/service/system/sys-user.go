@@ -19,6 +19,8 @@ type SysUserService struct{}
 // 空 roleIds 的语义是「撤销该用户的全部角色」，而不是「不做处理」——
 // 早期实现在此提前 return，导致 role_ids:[] 的解除权限请求返回成功，
 // 但 Casbin 中的 g 规则原样保留，用户实际权限不变。
+// 本函数只负责在事务内落库用户-角色关联表；Casbin 与 Redis 的同步
+// 放在事务提交之后由 syncRolePolicy 统一处理。
 func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds []uint) ([]system.SysRole, error) {
 	var roles []system.SysRole
 	if len(roleIds) > 0 {
@@ -40,27 +42,44 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 		return nil, errors.New("roleAssignFailed")
 	}
 
-	// 同步 Casbin：无条件先清空该用户的全部角色，再按新集合重建
-	enforcer := global.Enforcer
-	if _, err := enforcer.DeleteRolesForUser(user.UserId); err != nil {
-		return nil, errors.New("roleAssignFailed")
+	return roles, nil
+}
+
+// syncRolePolicy 在事务提交成功后同步 Casbin g 规则与 Redis 里的角色缓存。
+// global.Enforcer 走独立 adapter（EnableAutoSave 直写 global.DB），无法加入业务事务，
+// 因此必须等 Commit() 成功后执行——否则 Commit 失败时用户行回滚、权限却已生效，
+// 造成「从未创建成功的用户持有真实授权」的幽灵授权。
+// 此处后续若再失败，状态是「无权限 / 角色已过期」（fail closed）而非「越权」，
+// 并由补偿步骤将失效的半成品规则清掉，只把错误抛给上层提示人工介入。
+func (s *SysUserService) syncRolePolicy(user *system.SysUser, roles []system.SysRole) error {
+	roleCodes := make([]string, 0, len(roles))
+	roleIds := make([]uint, 0, len(roles))
+	for _, item := range roles {
+		roleCodes = append(roleCodes, item.Code)
+		roleIds = append(roleIds, item.Id)
 	}
 
-	if len(roles) > 0 {
-		if _, err := enforcer.AddRolesForUser(user.UserId, lo.Map(roles, func(item system.SysRole, index int) string {
-			return item.Code
-		})); err != nil {
-			return nil, errors.New("roleAssignFailed")
+	enforcer := global.Enforcer
+	// 无条件先清空该用户的全部角色，再按新集合重建
+	if _, err := enforcer.DeleteRolesForUser(user.UserId); err != nil {
+		return errors.New("roleAssignFailed")
+	}
+
+	if len(roleCodes) > 0 {
+		if _, err := enforcer.AddRolesForUser(user.UserId, roleCodes); err != nil {
+			// 补偿：清掉可能已加入的部分规则，回退到无权限态
+			_, _ = enforcer.DeleteRolesForUser(user.UserId)
+			return errors.New("roleAssignFailed")
 		}
 	}
 
-	if err := util.UpdateUserRoleInCache(user.UserId, lo.Map(roles, func(item system.SysRole, index int) uint {
-		return item.Id
-	})); err != nil {
-		return nil, errors.New("roleAssignFailed")
+	if err := util.UpdateUserRoleInCache(user.UserId, roleIds); err != nil {
+		// 补偿：撤销 Casbin 侧刚写入的规则，保持一致的无权限态
+		_, _ = enforcer.DeleteRolesForUser(user.UserId)
+		return errors.New("roleAssignFailed")
 	}
 
-	return roles, nil
+	return nil
 }
 
 // checkUserExist 检查用户是否存在
@@ -147,6 +166,12 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 		tx.Rollback()
 		return nil, errors.New("createUserFailed")
 	}
+
+	// Casbin 与 Redis 在事务提交成功之后同步
+	if err := s.syncRolePolicy(user, roles); err != nil {
+		return nil, err
+	}
+
 	return &response.SysUserResp{
 		Id:        user.UserId,
 		Username:  user.Username,
@@ -209,6 +234,9 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 		return errors.New("deleteUserFailed")
 	}
 
+	// 账号已被删除，其全部在线会话随 token 一并吊销，推送强制下线
+	notifySessionRevoked(user.UserId, "您的账号已被删除")
+
 	return nil
 }
 
@@ -240,7 +268,8 @@ func (s *SysUserService) Update(db *gorm.DB, req request.UpdateSysUserReq) error
 		return errors.New("updateUserFailed")
 	}
 
-	if _, err := s.assignRoles(tx, existUser, req.RoleIds); err != nil {
+	roles, err := s.assignRoles(tx, existUser, req.RoleIds)
+	if err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -250,24 +279,29 @@ func (s *SysUserService) Update(db *gorm.DB, req request.UpdateSysUserReq) error
 		tx.Rollback()
 		return errors.New("updateUserFailed")
 	}
+
+	// 事务提交成功后同步 Casbin 与 Redis 角色
+	if err := s.syncRolePolicy(existUser, roles); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Get 查询单个用户
 func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, error) {
-	// 先检查用户是否存在
-	_, err := s.checkUserExist(db, id)
-	if err != nil {
-		return nil, err
-	}
-
+	// 一次查询带出角色，不再先查存在性再重查同一行
 	var user system.SysUser
-	err = db.
+	result := db.
+		Unscoped().
 		Preload("Roles").
 		Where("id = ?", id).
-		First(&user).Error
-	if err != nil {
-		return nil, errors.New("getUserFailed")
+		First(&user)
+	if result.Error != nil {
+		return nil, errors.New(util.TranslateDBError(result.Error, "userNotFound"))
+	}
+	if !user.DeletedAt.Time.IsZero() {
+		return nil, errors.New("userDeleted")
 	}
 
 	return &response.SysUserResp{
@@ -292,15 +326,18 @@ func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, err
 func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.PageResult[response.SysUserResp], error) {
 	var users []system.SysUser
 	var total int64
-	db = db.
-		Model(&system.SysUser{}).
-		Count(&total)
+
+	// Count 用独立 builder，避免污染后续 Find 的状态
+	countDB := db.Model(&system.SysUser{})
+	if err := countDB.Count(&total).Error; err != nil {
+		return common.PageResult[response.SysUserResp]{}, errors.New("getUserListFailed")
+	}
 	req.Normalize()
-	db = db.
+	err := db.
+		Model(&system.SysUser{}).
 		Preload("Roles").
 		Scopes(util.Paginate(req.PageSize, req.Page)).
-		Order("id ASC")
-	err := db.
+		Order("id ASC").
 		Find(&users).
 		Error
 	if err != nil {
@@ -383,6 +420,8 @@ func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPas
 		if err := util.RevokeAllUserTokens(existUser.UserId); err != nil {
 			return errors.New("resetPasswordFailed")
 		}
+		// 管理员代改密码无法证明是本人操作，吊销全部会话并推送强制下线
+		notifySessionRevoked(existUser.UserId, "您的密码已被管理员重置，请重新登录")
 	} else {
 		if err := util.RevokeAllUserTokensExcept(existUser.UserId, accessToken); err != nil {
 			return errors.New("resetPasswordFailed")

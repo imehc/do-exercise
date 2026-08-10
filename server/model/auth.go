@@ -23,4 +23,7 @@ type RefreshTokenInfo struct {
 	ExpiredTime time.Time `json:"expired_time"`
 	// MustChangePassword 标记该账号仍需强制修改密码，刷新后的 token 继续携带
 	MustChangePassword bool `json:"must_change_password"`
+	// Rotated 标记该 refresh token 已被轮转消费。
+	// 轮转后旧值保留（仅标记），再次出现即判定为家族失陷并吊销该用户全部会话。
+	Rotated bool `json:"rotated"`
 }

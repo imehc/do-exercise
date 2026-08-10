@@ -43,6 +43,7 @@ func InitLogger() {
 	// 定义日志级别和对应的文件名
 	logLevels := map[string]zapcore.Level{
 		"info":  zapcore.InfoLevel,
+		"warn":  zapcore.WarnLevel,
 		"error": zapcore.ErrorLevel,
 		"debug": zapcore.DebugLevel,
 	}
@@ -54,13 +55,14 @@ func InitLogger() {
 			fileName := filepath.Join(logConfig.Directory, fmt.Sprintf("%s_%s.log",
 				levelName, time.Now().Format("20060102")))
 
-			// 配置日志切割
+			// 配置日志切割。lumberjack 的 MaxSize 单位是 MB（此前按 KB 配置，
+			// 10 万 KB 的写法让轮转阈值变成 10GB/文件，磁盘会被写满）
 			lumberJackLogger := &lumberjack.Logger{
 				Filename:   fileName,
-				MaxSize:    logConfig.MaxSize,    // 单个文件最大大小，单位KB
-				MaxBackups: logConfig.MaxBackups, // 最大保留文件数
-				MaxAge:     logConfig.MaxAge,     // 最大保留天数
-				Compress:   logConfig.Compress,   // 是否压缩
+				MaxSize:    logConfig.MaxSize,
+				MaxBackups: logConfig.MaxBackups,
+				MaxAge:     logConfig.MaxAge,
+				Compress:   logConfig.Compress,
 			}
 
 			// 编码器配置

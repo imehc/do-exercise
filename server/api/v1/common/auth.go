@@ -89,13 +89,15 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	s.generateToken(ctx, user)
 }
 
-// RefreshToken 刷新token
+// RefreshToken 刷新token。
+// refresh token 走请求体而不是查询串，避免进入访问日志、浏览器历史与 Referer；
+// 每次刷新都会轮转会刷新令牌本身（见 util/token.go 的 RefreshToken）。
 func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 	type RefreshTokenReq struct {
-		RefreshToken string `form:"refresh_token" binding:"required"`
+		RefreshToken string `json:"refresh_token" binding:"required"`
 	}
 	req := RefreshTokenReq{}
-	if err := ctx.ShouldBindQuery(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(ctx, "emptyRefreshToken")
 		return
 	}
@@ -104,8 +106,14 @@ func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 		response.ServerError(ctx)
 		return
 	}
+	refreshExpire, err := util.ParseDurationString(global.Config.Auth.RefreshExpireTime)
+	if err != nil {
+		response.ServerError(ctx)
+		return
+	}
 	baseConf := util.Token{
-		ExpireTime: accessExpire,
+		ExpireTime:        accessExpire,
+		RefreshExpireTime: refreshExpire,
 	}
 	token, err := baseConf.RefreshToken(req.RefreshToken)
 	if err != nil {

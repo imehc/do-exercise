@@ -1,10 +1,24 @@
 package model
 
 import (
+	"strings"
 	"time"
 
+	"github.com/imehc/do-exercise/server/global"
 	"gorm.io/gorm"
 )
+
+// CurrentUserID 从 GORM 事务上下文安全地取出当前操作人 ID。
+// 上下文可能没有值，或值不是 string（迁移、种子、定时任务等不经
+// ContextMiddleware 的写入路径），裸断言会 panic，这里做 ok 检查并兜底为空串。
+func CurrentUserID(tx *gorm.DB) string {
+	v := tx.Statement.Context.Value(global.ContextUserIDKey)
+	userId, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(userId)
+}
 
 type IdWrapper struct {
 	Id uint `json:"id" gorm:"primarykey;comment:主键"`

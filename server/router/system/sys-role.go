@@ -6,7 +6,7 @@ import (
 
 type SysRoleRouter struct{}
 
-func (s *SysUserRouter) InitSysRoleRouter(r *gin.RouterGroup) gin.IRoutes {
+func (s *SysRoleRouter) InitSysRoleRouter(r *gin.RouterGroup) gin.IRoutes {
 	router := r.Group("roles")
 	{
 		router.POST("", sysRoleApi.Create)      // 创建角色

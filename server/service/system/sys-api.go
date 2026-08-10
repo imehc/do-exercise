@@ -69,15 +69,19 @@ func (s *SysApiService) Get(db *gorm.DB, id uint) (*response.SysApiResp, error) 
 func (s *SysApiService) GetList(db *gorm.DB, req common.Pagination) (*common.PageResult[response.SysApiResp], error) {
 	var apis []system.SysApi
 	var total int64
-	db = db.Model(&system.SysApi{})
-	db.Count(&total)
+
+	// Count 用独立 builder，避免污染后续 Find 的状态
+	countDB := db.Model(&system.SysApi{})
+	if err := countDB.Count(&total).Error; err != nil {
+		return nil, errors.New("getApiListFailed")
+	}
 	req.Normalize()
-	db = db.
+	err := db.Model(&system.SysApi{}).
 		Scopes(util.Paginate(req.PageSize, req.Page)).
 		Order("disabled ASC").
 		Order("sort DESC").
-		Order("id ASC")
-	err := db.Find(&apis).Error
+		Order("id ASC").
+		Find(&apis).Error
 	if err != nil {
 		return nil, errors.New("getApiListFailed")
 	}

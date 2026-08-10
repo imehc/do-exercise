@@ -1,9 +1,12 @@
 package common
 
+// MaxPageSize 单页最大记录数，防止 page_size 过大导致内存与数据库压力
+const MaxPageSize = 100
+
 // Pagination 分页请求参数
 type Pagination struct {
-	Page     int `json:"page" form:"page" binding:"required,min=1"`           // 当前页码
-	PageSize int `json:"page_size" form:"page_size" binding:"required,min=1"` // 每页数量
+	Page     int `json:"page" form:"page" binding:"required,min=1"`                   // 当前页码
+	PageSize int `json:"page_size" form:"page_size" binding:"required,min=1,max=100"` // 每页数量
 }
 
 // Normalize 将分页参数规整到合法范围，避免越界请求产生非法查询
@@ -13,6 +16,9 @@ func (p *Pagination) Normalize() {
 	}
 	if p.PageSize < 1 {
 		p.PageSize = 10
+	}
+	if p.PageSize > MaxPageSize {
+		p.PageSize = MaxPageSize
 	}
 }
 

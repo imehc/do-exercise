@@ -51,13 +51,17 @@ func (s *SysOperationLogService) Delete(id int) error {
 func (s *SysOperationLogService) GetList(req common.Pagination) (*common.PageResult[system.SysOperationLog], error) {
 	var logs []system.SysOperationLog
 	var total int64
-	db := global.DB.Model(&system.SysOperationLog{})
-	db.Count(&total)
+
+	// Count 用独立 builder，避免污染后续 Find 的状态
+	countDB := global.DB.Model(&system.SysOperationLog{})
+	if err := countDB.Count(&total).Error; err != nil {
+		return nil, errors.New("getFailed")
+	}
 	req.Normalize()
-	db = db.
+	err := global.DB.Model(&system.SysOperationLog{}).
 		Scopes(util.Paginate(req.PageSize, req.Page)).
-		Order("id DESC")
-	err := db.Find(&logs).Error
+		Order("id DESC").
+		Find(&logs).Error
 	if err != nil {
 		return nil, errors.New("getFailed")
 	}

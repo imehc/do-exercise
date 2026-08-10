@@ -3,7 +3,6 @@ package system
 import (
 	"time"
 
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"gorm.io/gorm"
 )
@@ -30,7 +29,7 @@ type SysJob struct {
 }
 
 func (j *SysJob) BeforeCreate(tx *gorm.DB) (err error) {
-	userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
+	userId := model.CurrentUserID(tx)
 	j.CreatedBy = userId
 	j.UpdatedBy = userId
 
@@ -38,9 +37,8 @@ func (j *SysJob) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (j *SysJob) BeforeUpdate(tx *gorm.DB) (err error) {
-	v := tx.Statement.Context.Value(global.ContextUserIDKey)
-	userId, ok := v.(string)
-	if !ok || userId == "" {
+	userId := model.CurrentUserID(tx)
+	if userId == "" {
 		// 没有用户ID，直接跳过
 		return nil
 	}
@@ -61,8 +59,8 @@ func (j *SysJob) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (j *SysJob) BeforeDelete(tx *gorm.DB) (err error) {
-	if j.Id == 0 {
-		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
+	if j.Id != 0 {
+		userId := model.CurrentUserID(tx)
 		j.DeletedBy = userId
 		err = tx.
 			Model(j).

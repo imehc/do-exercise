@@ -111,7 +111,7 @@ func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
 	}
 	req.Id = id
 
-	err := userService.ResetPassword(util.DB(ctx), req, nil)
+	err := userService.ResetPassword(util.DB(ctx), req, nil, "")
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

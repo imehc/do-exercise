@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/middleware"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/router"
@@ -20,6 +21,9 @@ type server interface {
 
 func RunServer() {
 	r := router.Run()
+
+	// 启动操作日志批量落库 worker
+	middleware.StartOperationLogWorker()
 
 	go func() {
 		syncApi(r.Routes())
@@ -75,13 +79,16 @@ func syncApi(routes gin.RoutesInfo) {
 			}
 		})
 
+		// 失败必须回滚。原先是 defer tx.Commit()，即使 Create 报错也照样提交，
+		// 会把部分写入的路由记录持久化下来。
 		tx := db.Begin()
-		defer tx.Commit()
-
-		if err := tx.
-			Create(apis).
-			Error; err != nil {
-			global.Log.Error(fmt.Sprintf("同步api失败: %s", err.Error()))
+		if err := tx.Create(apis).Error; err != nil {
+			tx.Rollback()
+			global.Log.Error("同步api失败", zap.Error(err))
+			return
+		}
+		if err := tx.Commit().Error; err != nil {
+			global.Log.Error("同步api提交失败", zap.Error(err))
 		}
 	}
 }

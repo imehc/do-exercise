@@ -14,7 +14,7 @@ func (s *AuthRouter) InitAuthRouter(r *gin.RouterGroup) gin.IRoutes {
 		router.GET("code_with_email", authApi.SendLoginWithEmailCode)                                         // 获取使用邮箱登录验证码
 		router.POST("login_with_email", authApi.LoginWithEmail)                                               // 邮箱登录
 		router.POST("login", authApi.Login)                                                                   // 登录
-		router.GET("refresh_token", authApi.RefreshToken)                                                     // 刷新token
+		router.POST("refresh_token", authApi.RefreshToken)                                                    // 刷新token
 		router.GET("captcha", authApi.GetCaptcha)                                                             // 获取验证码
 		router.GET("public_key", authApi.PublicKey)                                                           // 获取公钥
 		router.PATCH("forget_password", authApi.ResetPassword)                                                // 忘记密码

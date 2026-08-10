@@ -41,7 +41,7 @@ func (u *UserService) BindEmail(db *gorm.DB, req request.BindEmailReq) error {
 		Model(&system.SysUser{}).
 		Where("id = ?", req.Id).
 		Update("email", req.Email).
-Error; err != nil {
+		Error; err != nil {
 		global.Log.Error("绑定邮箱失败", zap.String("id", req.Id), zap.String("email", req.Email), zap.Error(err))
 		return errors.New("bindEmailFailed")
 	}
@@ -49,7 +49,7 @@ Error; err != nil {
 }
 
 // UpdatePassword 修改密码
-func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPasswordReq) error {
+func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPasswordReq, accessToken string) error {
 	var sysUserService sysService.SysUserService
 	return sysUserService.ResetPassword(
 		db,
@@ -58,6 +58,7 @@ func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPassword
 			Password: req.Password,
 		},
 		&req.OldPassword,
+		accessToken,
 	)
 }
 
@@ -65,7 +66,8 @@ func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPassword
 func (u *UserService) UpdateProfile(db *gorm.DB, req request.UserModifyProfileReq) error {
 	var user *system.SysUser
 	error := db.
-		First(&user, req.Id).
+		Where("id = ?", req.Id).
+		First(&user).
 		Error
 	if error != nil {
 		return errors.New("userNotFound")
@@ -89,7 +91,8 @@ func (u *UserService) GetProfile(db *gorm.DB, id string) (*response.UserProfile,
 	var user *system.SysUser
 	error := db.
 		Preload("Roles").
-		First(&user, id).
+		Where("id = ?", id).
+		First(&user).
 		Error
 	if error != nil {
 		return nil, errors.New("userNotFound")
@@ -118,7 +121,8 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 	// 查询用户及角色菜单
 	err := db.
 		Preload("Roles.Menus").
-		First(&user, id).
+		Where("id = ?", id).
+		First(&user).
 		Error
 	if err != nil {
 		return nil, errors.New("userNotFound")
@@ -133,21 +137,31 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 		return menu.Id
 	})
 
+	// 一次加载全量菜单建内存索引，供父级回填用。
+	// 菜单表是小型参考表，这里 1 次 Find 替代原逐层 N 次 First。
+	allMenus := make(map[uint]system.SysMenu)
+	var all []system.SysMenu
+	if err := db.Find(&all).Error; err != nil {
+		return nil, errors.New("getMenuListFailed")
+	}
+	for _, m := range all {
+		allMenus[m.Id] = m
+	}
+
 	// 构建菜单map，避免重复查询
 	menuMap := make(map[uint]system.SysMenu)
 	for _, menu := range menus {
 		menuMap[menu.Id] = menu
 	}
 
-	// 递归向上查找父菜单
+	// 递归向上查找父菜单：直接从内存索引取，不再逐级打数据库
 	toCheck := menus
 	for len(toCheck) > 0 {
 		var nextToCheck []system.SysMenu
 		for _, menu := range toCheck {
 			if menu.ParentId != nil && *menu.ParentId != 0 {
 				if _, exists := menuMap[*menu.ParentId]; !exists {
-					var parentMenu system.SysMenu
-					if err := db.First(&parentMenu, menu.ParentId).Error; err == nil {
+					if parentMenu, ok := allMenus[*menu.ParentId]; ok {
 						menuMap[parentMenu.Id] = parentMenu
 						nextToCheck = append(nextToCheck, parentMenu)
 					}

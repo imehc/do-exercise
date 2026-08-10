@@ -23,6 +23,7 @@ export const useLogout = () => {
         expireTime: 0,
         refreshToken: '',
         refreshExpireTime: 0,
+        mustChangePassword: false,
       })
       navigate({ to: '/sign-in', replace: true })
     },

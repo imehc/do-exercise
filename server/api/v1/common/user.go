@@ -26,6 +26,9 @@ const (
 	LoginWithEmailPrefix = "login_with_email_"
 )
 
+// userNotFoundErr 与 service 层返回的错误标识保持一致，同时也是 i18n 的翻译 key。
+const userNotFoundErr = "userNotFound"
+
 // checkEmail 检查邮箱是否是本人或者已发送验证码
 func (s *UserApi) checkEmail(ctx *gin.Context, context context.Context, iRedis *redis.Client, userId string, emailType string) (*string, *string, error) {
 	req := &request.Email{}
@@ -232,7 +235,7 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 	req.OldPassword = oldPassword
 	req.Password = password
 
-	if err := userService.UpdatePassword(util.DB(ctx), *req); err != nil {
+	if err := userService.UpdatePassword(util.DB(ctx), *req, ctx.GetString("accessToken")); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -265,6 +268,12 @@ func (s *UserApi) GetProfile(ctx *gin.Context) {
 
 	user, err := userService.GetProfile(util.DB(ctx), userId)
 	if err != nil {
+		// userId 取自已验签的 token，查不到说明账号已被删除，属资源不存在而非参数错误。
+		// 不用 401：前端对 401 会刷新 token 后重试，对不存在的账号会陷入循环。
+		if err.Error() == userNotFoundErr {
+			response.NotFoundMessage(ctx, err.Error())
+			return
+		}
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -277,6 +286,10 @@ func (s *UserApi) GetMenu(ctx *gin.Context) {
 
 	menu, err := userService.GetMenu(util.DB(ctx), userId)
 	if err != nil {
+		if err.Error() == userNotFoundErr {
+			response.NotFoundMessage(ctx, err.Error())
+			return
+		}
 		response.BadRequest(ctx, err.Error())
 		return
 	}

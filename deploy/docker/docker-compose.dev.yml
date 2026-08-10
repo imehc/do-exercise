@@ -15,11 +15,15 @@ volumes:
 services:
   postgres:
     container_name: postgres-dev
-    image: postgres
+    # 必须锁定大版本：PG18 的 PGDATA 是 /var/lib/postgresql/18/docker，
+    # 镜像升到 19 后会变成 /19/docker，旧数据仍在卷里但不被识别，
+    # postgres 会当空目录重新 initdb —— 表现就是「数据凭空消失」。
+    image: postgres:18
     env_file:
       - .env.dev
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
+    # 挂载点与镜像自身声明的 VOLUME 一致（PG18 起是父目录，不是 /data）
     volumes:
       - dev_postgres_data:/var/lib/postgresql
     healthcheck:
@@ -31,7 +35,7 @@ services:
 
   redis:
     container_name: redis-dev
-    image: redis
+    image: redis:8
     env_file:
       - .env.dev
     ports:

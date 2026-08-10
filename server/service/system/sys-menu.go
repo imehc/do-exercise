@@ -15,20 +15,27 @@ import (
 
 type SysMenuService struct{}
 
-// assignApis 分配API
+// assignApis 分配API。
+// 空 apiIds 的语义是「解除该菜单的全部 API 绑定」，不能提前 return，
+// 否则解绑请求返回成功但关联表原样保留。
 func (s *SysMenuService) assignApis(tx *gorm.DB, menu *system.SysMenu, apiIds []uint) ([]system.SysApi, error) {
-	if len(apiIds) == 0 {
-		return []system.SysApi{}, nil
-	}
 	var apis []system.SysApi
-	// 检查菜单是否存在
-	if err := tx.Where("id IN ?", apiIds).Find(&apis).Error; err != nil {
-		return nil, errors.New("allApisNotFound")
+	if len(apiIds) > 0 {
+		// 检查API是否存在
+		if err := tx.Where("id IN ?", apiIds).Find(&apis).Error; err != nil {
+			return nil, errors.New("allApisNotFound")
+		}
+		if len(apis) != len(apiIds) {
+			return nil, errors.New("apiNotFound")
+		}
 	}
-	if len(apis) != len(apiIds) {
-		return nil, errors.New("apiNotFound")
+	// 建立/清空api菜单关联
+	if len(apis) == 0 {
+		if err := tx.Model(menu).Association("Apis").Clear(); err != nil {
+			return nil, errors.New("apiAssignFailed")
+		}
+		return apis, nil
 	}
-	// 建立api菜单关联
 	if err := tx.Model(menu).Association("Apis").Replace(apis); err != nil {
 		return nil, errors.New("apiAssignFailed")
 	}
@@ -203,17 +210,17 @@ func (s *SysMenuService) Update(db *gorm.DB, req request.UpdateSysMenuReq) error
 
 // Get 查询单个菜单
 func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error) {
-	_, err := s.checkMenuExist(db, id, false)
-	if err != nil {
-		return nil, err
-	}
-
-	var menu *system.SysMenu
-	if err := db.
+	// 一次查询带出 Apis，不再先查存在性再重查同一行
+	var menu system.SysMenu
+	result := db.
+		Unscoped().
 		Preload("Apis").
-		First(&menu, id).
-		Error; err != nil {
-		return nil, errors.New("getMenuFailed")
+		First(&menu, id)
+	if result.Error != nil {
+		return nil, errors.New("allMenusNotFound")
+	}
+	if !menu.DeletedAt.Time.IsZero() {
+		return nil, errors.New("menuDeleted")
 	}
 
 	return &response.SysMenuResp{
@@ -270,34 +277,35 @@ func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error
 		}
 	}
 
-	// 构建树结构
-	var rootMenus []response.SysMenuTreeResp
-	// 使用map记录已处理的节点，避免重复处理
-	processed := make(map[uint]bool)
+	// 构建树结构：先按父节点分组，避免每层重扫整个切片（O(N)）
+	childrenOf := make(map[uint][]response.SysMenuTreeResp)
+	for _, m := range menus {
+		if m.ParentId != nil && *m.ParentId != 0 {
+			childrenOf[*m.ParentId] = append(childrenOf[*m.ParentId], *menuMap[m.Id])
+		} else {
+			childrenOf[0] = append(childrenOf[0], *menuMap[m.Id])
+		}
+	}
+	for parentId := range childrenOf {
+		sortMenus(childrenOf[parentId])
+	}
 
-	// 递归构建子树的函数
+	// 递归构建子树
 	var buildSubTree func(uint) []response.SysMenuTreeResp
 	buildSubTree = func(parentId uint) []response.SysMenuTreeResp {
-		children := make([]response.SysMenuTreeResp, 0)
-		for _, m := range menus {
-			if m.ParentId != nil && *m.ParentId == parentId && !processed[m.Id] {
-				node := *menuMap[m.Id]
-				// 递归获取子节点
-				node.Children = buildSubTree(m.Id) // 递归调用buildSubTree获取子节点
-				// 对子节点排序
-				sortMenus(node.Children)
-				children = append(children, node)
-				processed[m.Id] = true
-			}
+		children := childrenOf[parentId]
+		// 叶子节点在 map 里取不到值，直接返回会是 nil，序列化成 null；
+		// 前端生成的解析器对 children 递归 map，null 会直接抛错，所以补成空数组。
+		if children == nil {
+			return []response.SysMenuTreeResp{}
 		}
-		// 对当前层级排序
-		sortMenus(children)
+		for i := range children {
+			children[i].Children = buildSubTree(children[i].Id)
+		}
 		return children
 	}
 
-	// 从根节点开始构建树
-	rootMenus = buildSubTree(0)
-
+	rootMenus := buildSubTree(0)
 	return rootMenus, nil
 }
 

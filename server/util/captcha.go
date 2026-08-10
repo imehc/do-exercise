@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -25,6 +26,7 @@ func NewCaptcha(redis *redis.Client, cacheTime time.Duration) *Captcha {
 	return &Captcha{
 		Redis:     redis,
 		CacheTime: cacheTime,
+		Log:       global.Log, // 此前从不赋值，Redis 抖动时 Get 里解引用 nil logger 会 panic
 	}
 }
 

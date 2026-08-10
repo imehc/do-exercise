@@ -1,2 +1,22 @@
 logs/
 .idea/
+.vscode/
+
+# 不要把版本历史带进构建上下文：
+# server/config.yaml 曾被提交（含 SMTP 凭据），历史至今可从 .git 中还原。
+.git/
+.gitignore
+
+# 本地环境变量文件绝不进镜像
+*.env
+.env
+.env.*
+!.env.example
+
+# 测试与临时产物
+tmp/
+*_test.go
+
+# 注意：config.yaml 未被忽略，因为 Dockerfile 需要它（应用启动时读取）。
+# 敏感项（数据库/MinIO/邮箱）一律通过环境变量覆盖，见 internal/config.go 的 bindEnv。
+# 请确保提交进镜像的 config.yaml 中不含任何真实凭据。

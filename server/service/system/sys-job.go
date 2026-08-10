@@ -22,13 +22,17 @@ func (s *SysJobService) checkJobExist(db *gorm.DB, jobId uint) (*system.SysJob, 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("job.notFound")
 		}
-		return nil, err
+		return nil, errors.New("job.getJobFailed")
 	}
 	return &job, nil
 }
 
 // Create 创建定时任务
 func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*response.SysJobResp, error) {
+	// 命令必须在白名单内。放行任意字符串等同于开放容器内的 shell。
+	if !shared.IsRegisteredCommand(req.Command) {
+		return nil, errors.New("job.unregisteredCommand")
+	}
 	job := &system.SysJob{
 		Name:           req.Name,
 		JobGroup:       req.JobGroup,
@@ -42,13 +46,13 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 		Timeout:        req.Timeout,
 	}
 	if err := db.Create(job).Error; err != nil {
-		return nil, err
+		return nil, errors.New("job.createJobFailed")
 	}
 	// 如果创建时状态为1，自动加入调度器
 	if job.Status == 1 {
 		jobScheduler := shared.GetJobScheduler()
 		if err := jobScheduler.AddJob(job); err != nil {
-			return nil, err
+			return nil, errors.New("job.createJobFailed")
 		}
 	}
 	return s.convertToResp(job), nil
@@ -56,6 +60,10 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 
 // Update 更新定时任务
 func (s *SysJobService) Update(db *gorm.DB, req request.UpdateSysJobReq) error {
+	// 命令必须在白名单内，防止通过更新绕过创建时的校验
+	if !shared.IsRegisteredCommand(req.Command) {
+		return errors.New("job.unregisteredCommand")
+	}
 	job, err := s.checkJobExist(db, req.Id)
 	if err != nil {
 		return err
@@ -76,12 +84,12 @@ func (s *SysJobService) Update(db *gorm.DB, req request.UpdateSysJobReq) error {
 	job.RetryInterval = req.RetryInterval
 	job.Timeout = req.Timeout
 	if err := db.Save(job).Error; err != nil {
-		return err
+		return errors.New("job.updateJobFailed")
 	}
 	// 如新状态为1，重加到调度器
 	if job.Status == 1 {
 		if err := jobScheduler.AddJob(job); err != nil {
-			return err
+			return errors.New("job.updateJobFailed")
 		}
 	}
 	return nil
@@ -99,7 +107,7 @@ func (s *SysJobService) Delete(db *gorm.DB, id uint) error {
 
 	// 再从数据库删除
 	if err := db.Delete(&system.SysJob{}, id).Error; err != nil {
-		return err
+		return errors.New("job.deleteJobFailed")
 	}
 	return nil
 }
@@ -188,7 +196,7 @@ func (s *SysJobService) Start(db *gorm.DB, id uint) error {
 	}
 
 	if err := jobScheduler.AddJob(job); err != nil {
-		return err
+		return errors.New("job.startJobFailed")
 	}
 
 	job.Status = 1
@@ -244,7 +252,7 @@ func (s *SysJobService) Execute(db *gorm.DB, id uint) error {
 	// 执行任务
 	err = jobScheduler.ExecuteJob(job)
 	if err != nil {
-		return err
+		return errors.New("job.executeJobFailed")
 	}
 
 	// 只更新last_time和times，不更新next_time
@@ -267,7 +275,11 @@ func (s *SysJobService) GetJobStats(db *gorm.DB, id uint) (*shared.JobStats, err
 
 	// 从Redis获取统计信息
 	jobScheduler := shared.GetJobScheduler()
-	return jobScheduler.GetJobStatsFromRedis(id)
+	stats, err := jobScheduler.GetJobStatsFromRedis(id)
+	if err != nil {
+		return nil, errors.New("job.getJobFailed")
+	}
+	return stats, nil
 }
 
 // SyncStatsToDatabase 手动同步统计信息到数据库

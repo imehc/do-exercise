@@ -2,12 +2,14 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/internal"
 	"github.com/imehc/do-exercise/server/middleware"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	sse "github.com/imehc/do-exercise/server/router/common"
 	"github.com/imehc/do-exercise/server/util"
+	"go.uber.org/zap"
 )
 
 func Run() *gin.Engine {
@@ -17,6 +19,16 @@ func Run() *gin.Engine {
 
 	internal.InitCaptcha()
 	r := gin.Default()
+
+	// 限定受信任的反向代理。
+	// gin 默认信任所有代理，此时任何客户端都能通过伪造 X-Forwarded-For 决定
+	// c.ClientIP() 的返回值，从而绕过 IP 限流与登录锁定，并污染审计日志。
+	if err := r.SetTrustedProxies(global.Config.System.TrustedProxies); err != nil {
+		global.Log.Error("配置受信任代理失败，将不信任任何代理",
+			zap.Strings("trustedProxies", global.Config.System.TrustedProxies),
+			zap.Error(err))
+		_ = r.SetTrustedProxies(nil)
+	}
 
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestContextMiddleware())

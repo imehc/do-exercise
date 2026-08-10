@@ -13,6 +13,7 @@ import { messages as enMessages } from '~/locales/en-US/messages'
 import { messages as zhMessages } from '~/locales/zh-CN/messages'
 import { languageAtom, originTokenAtom, store } from './atoms'
 import './index.css'
+import { SseBridge } from './hooks/use-sse'
 import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
 // Generated Routes
@@ -43,10 +44,6 @@ const queryClient = new QueryClient({
           return false
         }
 
-        // return !(
-        //   error instanceof ResponseError &&
-        //   [401, 403].includes(error.response?.status ?? 0)
-        // )
         return false
       },
       refetchOnWindowFocus: import.meta.env.PROD,
@@ -56,25 +53,9 @@ const queryClient = new QueryClient({
       onError: () => {},
     },
   },
-  queryCache: new QueryCache({
-    // onError: async (error) => {
-    // if (error instanceof ResponseError) {
-    // if (error.response?.status === 401) {
-    //   toast.error('Session expired!')
-    //   useAuthStore.getState().clearAuth()
-    //   const redirect = `${router.history.location.href}`
-    //   router.navigate({ to: '/sign-in', search: { redirect } })
-    // }
-    // if (error.response?.status === 500) {
-    //   toast.error('Internal Server Error!')
-    //   router.navigate({ to: '/500' })
-    // }
-    // if (error.response?.status === 403) {
-    //   // router.navigate("/forbidden", { replace: true });
-    // }
-    // }
-    // },
-  }),
+  // 401/403/429 等状态码统一在 ~/hooks/use-api.ts 的 fetch middleware 中处理，
+  // 那里能拿到原始请求以便刷新 token 后重试，这里不再重复拦截。
+  queryCache: new QueryCache({}),
 })
 
 // Create a new router instance
@@ -103,6 +84,7 @@ if (!rootElement.innerHTML) {
           <QueryClientProvider client={queryClient}>
             <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
               <FontProvider>
+                <SseBridge />
                 <RouterProvider router={router} />
               </FontProvider>
             </ThemeProvider>

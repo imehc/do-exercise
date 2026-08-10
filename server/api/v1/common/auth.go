@@ -22,10 +22,12 @@ func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
 	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	refreshExpire, err := util.ParseDurationString(global.Config.Auth.RefreshExpireTime)
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	baseConf := util.Token{
 		UserId:   user.UserId,
@@ -33,14 +35,16 @@ func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
 		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
 			return item.Id
 		}),
-		ExpireTime:        accessExpire,
-		RefreshExpireTime: refreshExpire,
-		Disabled:          false, // TODO: 在数据库中添加字段获取禁用状态
-		CreatedTime:       time.Now(),
+		ExpireTime:         accessExpire,
+		RefreshExpireTime:  refreshExpire,
+		Disabled:           false, // TODO: 在数据库中添加字段获取禁用状态
+		CreatedTime:        time.Now(),
+		MustChangePassword: user.MustChangePassword,
 	}
 	token, err := baseConf.GenerateToken()
 	if err != nil {
 		response.ServerError(ctx)
+		return
 	}
 	response.Success(ctx, token)
 }
@@ -85,13 +89,15 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	s.generateToken(ctx, user)
 }
 
-// RefreshToken 刷新token
+// RefreshToken 刷新token。
+// refresh token 走请求体而不是查询串，避免进入访问日志、浏览器历史与 Referer；
+// 每次刷新都会轮转会刷新令牌本身（见 util/token.go 的 RefreshToken）。
 func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 	type RefreshTokenReq struct {
-		RefreshToken string `form:"refresh_token" binding:"required"`
+		RefreshToken string `json:"refresh_token" binding:"required"`
 	}
 	req := RefreshTokenReq{}
-	if err := ctx.ShouldBindQuery(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(ctx, "emptyRefreshToken")
 		return
 	}
@@ -100,8 +106,14 @@ func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 		response.ServerError(ctx)
 		return
 	}
+	refreshExpire, err := util.ParseDurationString(global.Config.Auth.RefreshExpireTime)
+	if err != nil {
+		response.ServerError(ctx)
+		return
+	}
 	baseConf := util.Token{
-		ExpireTime: accessExpire,
+		ExpireTime:        accessExpire,
+		RefreshExpireTime: refreshExpire,
 	}
 	token, err := baseConf.RefreshToken(req.RefreshToken)
 	if err != nil {
@@ -227,6 +239,7 @@ func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 	var req common.LoginWithEmailReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(ctx, err.Error())
+		return
 	}
 
 	var userApi UserApi
@@ -259,6 +272,7 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 	req := &request.Email{}
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.BadRequest(ctx, err.Error())
+		return
 	}
 
 	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)

@@ -1,7 +1,6 @@
 package system
 
 import (
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/util"
 	"gorm.io/gorm"
@@ -15,6 +14,9 @@ type SysUser struct {
 	Avatar   string    `json:"avatar" gorm:"comment:头像"`
 	Password string    `json:"-" gorm:"not null;comment:密码"`
 	Roles    []SysRole `json:"roles" gorm:"many2many:sys_user_role;comment:用户角色"`
+	// MustChangePassword 标记账号是否需要在下次登录时强制修改密码。
+	// 用于默认管理员口令的强制轮换：播种的默认口令是公开的，首次登录后必须改密。
+	MustChangePassword bool `json:"must_change_password" gorm:"column:must_change_password;type:boolean;default:false;comment:是否需要在下次登录时强制修改密码"`
 	model.ControlWrapper
 }
 
@@ -30,19 +32,16 @@ func (u *SysUser) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	u.Password = password
 
-	ctx := tx.Statement.Context
-	userId := ctx.Value(global.ContextUserIDKey).(string)
-	u.CreatedBy = userId
-	u.UpdatedBy = userId
+	u.CreatedBy = model.CurrentUserID(tx)
+	u.UpdatedBy = u.CreatedBy
 
 	return nil
 }
 
 func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
-	val := tx.Statement.Context.Value(global.ContextUserIDKey)
-	userId, ok := val.(string)
+	userId := model.CurrentUserID(tx)
 
-	if ok && u.UpdatedBy != userId && u.UserId != "" {
+	if userId != "" && u.UpdatedBy != userId && u.UserId != "" {
 		u.UpdatedBy = userId
 		err = tx.
 			Model(u).
@@ -59,8 +58,7 @@ func (u *SysUser) BeforeUpdate(tx *gorm.DB) (err error) {
 
 func (u *SysUser) BeforeDelete(tx *gorm.DB) (err error) {
 	if u.UserId != "" {
-		userId := tx.Statement.Context.Value(global.ContextUserIDKey).(string)
-		u.DeletedBy = userId
+		u.DeletedBy = model.CurrentUserID(tx)
 		err = tx.
 			Model(u).
 			Select("DeletedBy").

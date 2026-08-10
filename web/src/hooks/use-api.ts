@@ -71,6 +71,11 @@ const middleware = {
         } else {
           redirectToForbidden()
         }
+      } else if (response.status === 404) {
+        // 目标记录不存在（如 token 指向的账号已被删除）。不触发 token 刷新——
+        // 刷新能成功但重试仍会 404，只会来回循环。
+        const data = (await response.json()) as ValidationError
+        toast.error(data.message)
       } else if (response.status === 429) {
         const text = await response.text()
         toast.error(text || 'Too many requests, please try again later.')
@@ -99,8 +104,11 @@ const handleRefreshToken = async () => {
 
   try {
     const authApi = new AuthApi(new Configuration({ basePath: '/apis' }))
+    // 注意入参要包一层 refreshTokenRequest：openapi.yaml 里该 requestBody 是内联匿名
+    // schema，生成器会额外包装成 RefreshTokenOperationRequest。直接传 { refreshToken }
+    // 会在客户端同步抛 RequiredError，刷新请求发不出去，401 直接退化成跳登录页。
     const token = await authApi.refreshToken({
-      refreshToken: refreshToken,
+      refreshTokenRequest: { refreshToken },
     })
 
     // 更新 token 到 store

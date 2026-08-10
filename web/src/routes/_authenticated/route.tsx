@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { QueryClient, queryOptions, useQuery } from '@tanstack/react-query'
 import {
   createFileRoute,
   LinkProps,
   Outlet,
   redirect,
 } from '@tanstack/react-router'
+import { originTokenAtom, store } from '~/atoms'
 import { MenuType, UserApi } from '~/do-exercise-api'
 import { PermissionProvider } from '~/provider'
 import { SearchProvider } from '~/provider/search'
@@ -18,6 +19,8 @@ import { AppSidebar } from '~/components/layout/app-sidebar'
 import { NavGroup } from '~/components/layout/types'
 import { LoadingSpinner, MainHeader, Watermark } from '~/components/other'
 
+const CHANGE_PASSWORD_PATH = '/settings/password' as const
+
 const getUserMenu = () => {
   const userApi = apiInstance(UserApi)
   return queryOptions({
@@ -27,24 +30,41 @@ const getUserMenu = () => {
   })
 }
 
+const getUserMenuData = (queryClient: QueryClient) =>
+  queryClient.ensureQueryData(getUserMenu())
+
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context: { queryClient }, location }) => {
+    // 强制改密优先于菜单鉴权：未改密时后端只放行白名单接口，
+    // 此时任何业务路由都拿不到数据，必须先回改密页而不是判成「无权限」跳 403。
+    // 注意读 store 而不是 router context——context.token 是建 router 时的快照，不会更新。
+    if (store.get(originTokenAtom).mustChangePassword) {
+      if (location.pathname === CHANGE_PASSWORD_PATH) return
+      throw redirect({ to: CHANGE_PASSWORD_PATH })
+    }
+
+    if (
+      location.pathname === '/' ||
+      location.pathname.startsWith('/settings')
+    ) {
+      return
+    }
+
+    let menus: Awaited<ReturnType<typeof getUserMenuData>>
     try {
-      const menus = await queryClient.ensureQueryData(getUserMenu())
-      if (
-        location.pathname === '/' ||
-        location.pathname.startsWith('/settings')
-      ) {
-        return
-      }
-      const hasPermission = menus
-        .filter((item) => item.type === MenuType.menu)
-        .some((item) => item.route === location.pathname)
-      if (!hasPermission) {
-        return redirect({ to: '/403' })
-      }
+      menus = await getUserMenuData(queryClient)
     } catch (error) {
-      console.error('error', error)
+      // 菜单拿不到时不能静默放行——否则空菜单会被后续判成「无权限」跳 403，
+      // 掩盖真正的失败原因（401 已由 use-api 中间件处理，这里只兜剩下的）。
+      console.error('获取用户菜单失败，无法完成路由鉴权', error)
+      throw error
+    }
+
+    const hasPermission = menus
+      .filter((item) => item.type === MenuType.menu)
+      .some((item) => item.route === location.pathname)
+    if (!hasPermission) {
+      throw redirect({ to: '/403' })
     }
   },
   component: RouteComponent,
@@ -63,11 +83,12 @@ function RouteComponent() {
         (item) =>
           ({
             title: item.name,
-            items: item.children.map((child) => ({
-              title: child.name,
-              url: child.route as LinkProps['to'],
-              icon: child.icon,
-            })),
+            items:
+              item.children?.map((child) => ({
+                title: child.name,
+                url: child.route as LinkProps['to'],
+                icon: child.icon,
+              })) ?? [],
           }) as NavGroup
       )
     }

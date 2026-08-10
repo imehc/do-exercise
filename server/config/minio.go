@@ -8,4 +8,5 @@ type Minio struct {
 	BucketName    string `yaml:"bucket_name" mapstructure:"bucket_name"`       // minio服务器桶名
 	Expires       int    `yaml:"expires" mapstructure:"expires"`               // 预签名有效期，单位秒
 	PresignedHost string `yaml:"presigned_host" mapstructure:"presigned_host"` // 预签名地址
+	Secure        bool   `yaml:"secure" mapstructure:"secure"`                 // 是否使用HTTPS连接
 }

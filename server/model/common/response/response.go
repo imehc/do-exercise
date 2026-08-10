@@ -79,6 +79,16 @@ func NotFound(c *gin.Context) {
 	Response(c, http.StatusNotFound, "Not Found")
 }
 
+// NotFoundMessage 资源不存在响应，携带可翻译的业务提示。
+// 用于 token 有效但目标记录已不存在的场景，避免复用 400 让前端误判为参数错误。
+func NotFoundMessage(c *gin.Context, value string) {
+	lang := c.GetString("lang")
+	Response(c, http.StatusNotFound, ValidationError{
+		Type:    status.NOT_FOUND_MSG,
+		Message: global.I18.Translate(value, lang),
+	})
+}
+
 // StatusUnprocessableEntity 请求参数错误
 func StatusUnprocessableEntity(c *gin.Context) {
 	Response(c, http.StatusUnprocessableEntity, "Unprocessable Entity")

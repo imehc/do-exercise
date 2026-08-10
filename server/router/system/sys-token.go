@@ -6,7 +6,7 @@ import (
 
 type SysTokenRouter struct{}
 
-func (s *SysOperationLogRouter) InitSysTokenRouter(r *gin.RouterGroup) gin.IRoutes {
+func (s *SysTokenRouter) InitSysTokenRouter(r *gin.RouterGroup) gin.IRoutes {
 	router := r.Group("token")
 	{
 		router.GET("all", sysTokenApi.FindAll)     // 获取token列表

@@ -13,6 +13,7 @@ import { messages as enMessages } from '~/locales/en-US/messages'
 import { messages as zhMessages } from '~/locales/zh-CN/messages'
 import { languageAtom, originTokenAtom, store } from './atoms'
 import './index.css'
+import { SseBridge } from './hooks/use-sse'
 import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
 // Generated Routes
@@ -83,6 +84,7 @@ if (!rootElement.innerHTML) {
           <QueryClientProvider client={queryClient}>
             <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
               <FontProvider>
+                <SseBridge />
                 <RouterProvider router={router} />
               </FontProvider>
             </ThemeProvider>

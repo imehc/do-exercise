@@ -54,13 +54,12 @@ func (s *SysUserApi) Update(ctx *gin.Context) {
 		return
 	}
 	user := request.UpdateSysUserReq{
-		Id:       id,
 		Avatar:   req.Avatar,
 		Nickname: req.Nickname,
 		RoleIds:  req.RoleIds,
 	}
 
-	if err := userService.Update(util.DB(ctx), user); err != nil {
+	if err := userService.Update(util.DB(ctx), id, user); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -109,9 +108,8 @@ func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	req.Id = id
 
-	err := userService.ResetPassword(util.DB(ctx), req, nil, "")
+	err := userService.ResetPassword(util.DB(ctx), id, req, nil, "")
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

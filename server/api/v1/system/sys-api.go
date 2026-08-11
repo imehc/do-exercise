@@ -23,9 +23,8 @@ func (s *SysApiApi) Update(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	req.Id = id
 
-	if err := apiService.Update(util.DB(ctx), req); err != nil {
+	if err := apiService.Update(util.DB(ctx), id, req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}

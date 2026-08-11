@@ -62,21 +62,32 @@ func StatusTooManyRequests(c *gin.Context) {
 
 // Unauthorized 未授权响应
 func Unauthorized(c *gin.Context) {
-	Response(c, http.StatusUnauthorized, "Unauthorized")
+	lang := c.GetString("lang")
+	Response(c, http.StatusUnauthorized, ValidationError{
+		Type:    status.UNAUTHORIZED_MSG,
+		Message: global.I18.Translate("unauthorized", lang),
+	})
 }
 
 // Forbidden 禁止访问响应
 func Forbidden(c *gin.Context, message string) {
-	if message != "" {
-		Response(c, http.StatusForbidden, message)
-		return
+	lang := c.GetString("lang")
+	if message == "" {
+		message = global.I18.Translate("forbidden", lang)
 	}
-	Response(c, http.StatusForbidden, "Forbidden")
+	Response(c, http.StatusForbidden, ValidationError{
+		Type:    status.FORBIDDEN_MSG,
+		Message: message,
+	})
 }
 
 // NotFound 资源不存在响应
 func NotFound(c *gin.Context) {
-	Response(c, http.StatusNotFound, "Not Found")
+	lang := c.GetString("lang")
+	Response(c, http.StatusNotFound, ValidationError{
+		Type:    status.NOT_FOUND_MSG,
+		Message: global.I18.Translate("notFound", lang),
+	})
 }
 
 // NotFoundMessage 资源不存在响应，携带可翻译的业务提示。

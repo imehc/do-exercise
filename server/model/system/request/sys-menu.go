@@ -14,7 +14,6 @@ type CreateSysMenuReq struct {
 }
 
 type UpdateSysMenuReq struct {
-	Id               uint   `json:"id"`
 	ApiIds           []uint `json:"api_ids"`
 	CreateSysMenuReq `json:",inline"`
 }

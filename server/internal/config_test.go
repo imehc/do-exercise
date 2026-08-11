@@ -16,9 +16,12 @@ func TestInitConfigLoadsServiceConfigFromEnv(t *testing.T) {
 
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
 	configData := []byte(`
+auth:
+  access_expire_time: 2h
+  refresh_expire_time: 7d
 database:
   pool:
-    max_connections: 100
+    max_connections: 25
 minio:
   expires: 3600
 `)

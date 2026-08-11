@@ -19,24 +19,14 @@ import (
 type AuthApi struct{}
 
 func (s *AuthApi) generateToken(ctx *gin.Context, user *system.SysUser) {
-	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
-	if err != nil {
-		response.ServerError(ctx)
-		return
-	}
-	refreshExpire, err := util.ParseDurationString(global.Config.Auth.RefreshExpireTime)
-	if err != nil {
-		response.ServerError(ctx)
-		return
-	}
 	baseConf := util.Token{
 		UserId:   user.UserId,
 		Username: user.Username,
 		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
 			return item.Id
 		}),
-		ExpireTime:         accessExpire,
-		RefreshExpireTime:  refreshExpire,
+		ExpireTime:         util.AuthAccessExpire(),
+		RefreshExpireTime:  util.AuthRefreshExpire(),
 		Disabled:           false, // TODO: 在数据库中添加字段获取禁用状态
 		CreatedTime:        time.Now(),
 		MustChangePassword: user.MustChangePassword,
@@ -68,11 +58,15 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 		return
 	}
 
-	// 登录爆破防护：按IP与用户名计数，失败次数达到阈值后临时锁定
+	// 登录爆破防护：按IP与用户名计数，失败次数越多等待越久，达到阈值后硬锁
 	ip := ctx.ClientIP()
-	if loginIsLocked(ip, req.Username) {
+	locked, delay := loginPenalty(ip, req.Username)
+	if locked {
 		response.BadRequest(ctx, "loginLocked")
 		return
+	}
+	if delay > 0 {
+		time.Sleep(delay)
 	}
 
 	user, err := authService.Login(util.DB(ctx), common.Login{
@@ -101,19 +95,9 @@ func (s *AuthApi) RefreshToken(ctx *gin.Context) {
 		response.BadRequest(ctx, "emptyRefreshToken")
 		return
 	}
-	accessExpire, err := util.ParseDurationString(global.Config.Auth.AccessExpireTime)
-	if err != nil {
-		response.ServerError(ctx)
-		return
-	}
-	refreshExpire, err := util.ParseDurationString(global.Config.Auth.RefreshExpireTime)
-	if err != nil {
-		response.ServerError(ctx)
-		return
-	}
 	baseConf := util.Token{
-		ExpireTime:        accessExpire,
-		RefreshExpireTime: refreshExpire,
+		ExpireTime:        util.AuthAccessExpire(),
+		RefreshExpireTime: util.AuthRefreshExpire(),
 	}
 	token, err := baseConf.RefreshToken(req.RefreshToken)
 	if err != nil {
@@ -160,7 +144,8 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 
 	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
-		response.BadRequest(ctx, "emailNotBound")
+		// 未绑定的邮箱与“验证码错误”返回同一个响应，避免枚举账号存在性。
+		response.BadRequest(ctx, "captchaError")
 		return
 	}
 
@@ -186,8 +171,7 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := authService.ResetPassword(util.DB(ctx), request.UserResetPasswordReq{
-		Id:       user.UserId,
+	if err := authService.ResetPassword(util.DB(ctx), user.UserId, request.UserResetPasswordReq{
 		Password: password,
 	}); err != nil {
 		response.BadRequest(ctx, err.Error())
@@ -206,7 +190,9 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 
 	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
-		response.BadRequest(ctx, "emailNotBound")
+		// 未绑定的邮箱与“验证码已发送”返回同一个响应，避免枚举账号存在性。
+		// 不真正发信，但保持一致的 204，客户端无法区分。
+		response.NoContent(ctx)
 		return
 	}
 
@@ -255,7 +241,8 @@ func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 
 	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
-		response.BadRequest(ctx, "emailNotBound")
+		// 未绑定的邮箱与“验证码错误”返回同一个响应，避免枚举账号存在性。
+		response.BadRequest(ctx, "captchaError")
 		return
 	}
 
@@ -277,7 +264,9 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 
 	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
 	if err != nil {
-		response.BadRequest(ctx, "emailNotBound")
+		// 未绑定的邮箱与“验证码已发送”返回同一个响应，避免枚举账号存在性。
+		// 不真正发信，但保持一致的 204，客户端无法区分。
+		response.NoContent(ctx)
 		return
 	}
 

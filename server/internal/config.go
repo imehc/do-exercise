@@ -61,6 +61,10 @@ func InitConfig(configFile string) {
 	if err := v.Unmarshal(&global.Config); err != nil {
 		util.Exit("配置映射失败: ", err)
 	}
+
+	// 启动时一次性解析并校验 token 时长配置，避免请求期解析失败时生成 0 TTL 的永久 token。
+	util.InitAuthDurations(global.Config.Auth.AccessExpireTime, global.Config.Auth.RefreshExpireTime)
+
 	fmt.Println("配置初始化完成")
 }
 

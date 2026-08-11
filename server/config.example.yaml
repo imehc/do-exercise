@@ -28,7 +28,7 @@ database:
   # sslmode: disable/require/verify-full；生产建议 require 及以上
   sslmode: disable
   pool:
-    max_connections: 100
+    max_connections: 25 # 峰值连接数；小型单实例部署建议 ~25（文档原为 100）
     min_connections: 10
     max_idle_time: 300      # 最大空闲时间(秒)
     max_conn_lifetime: 3600 # 连接最大存活时间(秒)，0 用默认 1 小时

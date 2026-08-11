@@ -61,70 +61,79 @@ make logs
 
 ### 5. 本地开发
 
-- 前端开发：`cd web && pnpm install && pnpm dev`
-- 后端开发：先设置 `POSTGRES_*`、`MINIO_*` 等环境变量，再执行 `cd server && go run main.go` 或使用 IDE 调试
+推荐使用 `make dev` 一键启动开发环境：它会自动复制开发环境变量、启动依赖容器（PostgreSQL / Redis / MinIO）、等待数据库就绪，并初始化数据库后通过 `air` 启动后端热重载。
 
-#### 开发模式数据库和 MinIO
+#### 前置准备（仅首次）
 
-后端本机运行时不会自动读取 `deploy/docker/.env`，需要在当前 shell、IDE 运行配置或本地 dotenv 工具中设置环境变量。`server/config.yaml` 不保存数据库和 MinIO 的地址、账号、密码。
+1. 安装后端热重载工具 `air`：
+
+   ```bash
+   cd server && make dev-install
+   ```
+
+2. 确保 Go 的 bin 目录（`$(go env GOPATH)/bin`）已加入 `PATH`，否则 `air` 无法被找到。
+
+#### 一键启动（推荐）
+
+在项目根目录执行：
 
 ```bash
-export POSTGRES_HOST=127.0.0.1
-export POSTGRES_PORT=5432
-export POSTGRES_USER=admin
-export POSTGRES_PASSWORD=admin2025
-export POSTGRES_DB=do-exercise
-
-export MINIO_HOST=127.0.0.1
-export MINIO_PORT=9000
-export MINIO_BUCKET_NAME=do-exercise
-export MINIO_APP_ACCESS_KEY=your-access-key
-export MINIO_APP_SECRET_KEY=your-secret-key
-export MINIO_PRESIGNED_HOST=/oss
+make dev
 ```
 
-- `MINIO_HOST` / `MINIO_PORT` 是后端连接 MinIO API 的地址，本地开发通常是 `127.0.0.1:9000`
-- `MINIO_PRESIGNED_HOST=/oss` 配合 Vite 开发代理使用，前端上传会通过 `/oss` 转发到 `127.0.0.1:9000`
-- 本地 MinIO 仍需提前创建 `MINIO_BUCKET_NAME` 对应 bucket、匿名只读规则和应用 Access Key
-- 如只用 Docker 跑依赖服务，需要把 PostgreSQL `5432` 和 MinIO API `9000` 暴露到宿主机，并避免同时启动占用 `9000` 的 `web` 服务
+该命令会依次完成：
 
-#### 使用开发环境 env 文件
+- 若 `deploy/docker/.env.dev` 不存在，则从 `.env.dev.example` 复制一份（按需修改）
+- 启动 `deploy/docker/docker-compose.dev.yml` 中的依赖容器（PostgreSQL / Redis / MinIO，端口映射到宿主机 5432/6379/9000/9001）
+- 等待数据库就绪后，自动加载 `.env.dev` 并执行数据库初始化（`make migrate`，幂等，已有数据自动跳过）
+- 启动后端 `air` 热重载服务（监听文件变化自动重新编译运行）
 
-也可以为本机开发准备单独的环境变量文件，例如：
+> 注意：首次执行若未检测到 `air`，`make dev` 会提示你先执行 `cd server && make dev-install`，安装后再重新运行 `make dev`。
 
-- `deploy/docker/.env`：Docker 部署使用
-- `server/.env.development`：本机开发使用，保存真实本地配置，不提交仓库
-- `server/.env.example`：本机开发示例，可提交仓库
+#### 前端开发
 
-`server/.env.development` 示例：
+另开一个终端，单独启动前端：
 
-```env
-POSTGRES_HOST=127.0.0.1
-POSTGRES_PORT=5432
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=admin2025
-POSTGRES_DB=do-exercise
-
-MINIO_HOST=127.0.0.1
-MINIO_PORT=9000
-MINIO_BUCKET_NAME=do-exercise
-MINIO_APP_ACCESS_KEY=your-access-key
-MINIO_APP_SECRET_KEY=your-secret-key
-MINIO_PRESIGNED_HOST=/oss
+```bash
+cd web
+pnpm install
+pnpm dev
 ```
 
-启动后端前手动加载：
+前端默认通过 Vite 开发服务器访问（配合 `/oss` 代理转发到本地 MinIO `127.0.0.1:9000` 处理上传）。
+
+#### 开发环境依赖容器管理
+
+```bash
+make dev-down   # 停止并移除开发依赖容器
+make dev-logs   # 查看开发依赖容器日志
+```
+
+#### 开发环境变量说明
+
+开发环境变量统一放在 `deploy/docker/.env.dev`（`make dev` 自动生成，不提交仓库），由后端进程和 `docker-compose.dev.yml` 共用：
+
+- `POSTGRES_HOST` / `REDIS_HOST` / `MINIO_HOST` 在本地均指向 `localhost`，便于本机运行的 Go 进程直接连接
+- 容器内部的 `minio-init` 会自动将 `MINIO_HOST` 覆盖为服务名 `minio` 完成 bucket 初始化
+- `MINIO_PRESIGNED_HOST` 在本地为 `http://localhost:9000`，生产环境则改为走 Nginx 反代路径（如 `/oss`）
+
+如需要手动调整开发配置，直接编辑 `deploy/docker/.env.dev` 即可，无需改动 `server/config.yaml`。
+
+#### 仅手动启动后端（不使用 make dev）
+
+如果你只想手动启动后端，可先加载开发环境变量再运行：
 
 ```bash
 set -a
-source server/.env.development
+source deploy/docker/.env.dev
 set +a
 
 cd server
-go run main.go
+make migrate   # 初始化数据库（首次或重置时）
+make dev       # air 热重载；或用 go run main.go 直接运行
 ```
 
-当前后端读取的是进程环境变量，不会自动加载 `server/.env.development`；如果需要自动加载，需要额外加入 dotenv 加载逻辑。
+> 后端读取的是进程环境变量，不会自动加载 `.env.dev`，需手动 `source` 或借助 IDE 运行配置注入。
 
 ## 配置说明
 

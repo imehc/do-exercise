@@ -36,37 +36,37 @@ func (u *UserService) FindUserByEmail(db *gorm.DB, email string) (*system.SysUse
 }
 
 // BindEmail 绑定邮箱
-func (u *UserService) BindEmail(db *gorm.DB, req request.BindEmailReq) error {
+func (u *UserService) BindEmail(db *gorm.DB, id string, email string) error {
 	if err := db.
 		Model(&system.SysUser{}).
-		Where("id = ?", req.Id).
-		Update("email", req.Email).
+		Where("id = ?", id).
+		Update("email", email).
 		Error; err != nil {
-		global.Log.Error("绑定邮箱失败", zap.String("id", req.Id), zap.String("email", req.Email), zap.Error(err))
+		global.Log.Error("绑定邮箱失败", zap.String("id", id), zap.String("email", email), zap.Error(err))
 		return errors.New("bindEmailFailed")
 	}
 	return nil
 }
 
 // UpdatePassword 修改密码
-func (u *UserService) UpdatePassword(db *gorm.DB, req request.UserModifyPasswordReq, accessToken string) error {
+func (u *UserService) UpdatePassword(db *gorm.DB, id string, oldPassword, password, accessToken string) error {
 	var sysUserService sysService.SysUserService
 	return sysUserService.ResetPassword(
 		db,
+		id,
 		sysReq.UpdateSysUserPasswordReq{
-			Id:       req.Id,
-			Password: req.Password,
+			Password: password,
 		},
-		&req.OldPassword,
+		&oldPassword,
 		accessToken,
 	)
 }
 
 // UpdateProfile 修改用户基本信息
-func (u *UserService) UpdateProfile(db *gorm.DB, req request.UserModifyProfileReq) error {
+func (u *UserService) UpdateProfile(db *gorm.DB, id string, req request.UserModifyProfileReq) error {
 	var user *system.SysUser
 	error := db.
-		Where("id = ?", req.Id).
+		Where("id = ?", id).
 		First(&user).
 		Error
 	if error != nil {

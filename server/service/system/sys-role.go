@@ -227,8 +227,8 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 }
 
 // Update 更新角色
-func (s *SysRoleService) Update(db *gorm.DB, req request.UpdateSysRoleReq) error {
-	role, err := s.checkRoleExist(db, req.Id)
+func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleReq) error {
+	role, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return err
 	}

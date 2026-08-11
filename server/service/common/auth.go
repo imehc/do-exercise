@@ -43,7 +43,9 @@ func (s *AuthService) Login(db *gorm.DB, req common.Login) (*system.SysUser, err
 	return existUser, nil
 }
 
-func (s *AuthService) ResetPassword(db *gorm.DB, req request.UserResetPasswordReq) error {
+// ResetPassword 重置密码。id 必须由调用方从已校验的来源（邮箱查找、管理员路径参数）取得，
+// 请求结构体不再承载 id 字段，杜绝客户端可控 id 被误用的可能。
+func (s *AuthService) ResetPassword(db *gorm.DB, id string, req request.UserResetPasswordReq) error {
 	hash := util.Hash{Value: req.Password}
 	password, err := hash.Hash()
 	if err != nil {
@@ -51,12 +53,12 @@ func (s *AuthService) ResetPassword(db *gorm.DB, req request.UserResetPasswordRe
 	}
 
 	// user.Password=pa
-	err = db.Model(&system.SysUser{}).Where("id = ?", req.Id).Updates(map[string]interface{}{
+	err = db.Model(&system.SysUser{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"Password":           password,
 		"MustChangePassword": false,
 	}).Error
 	if err != nil {
-		global.Log.Error("reset password failed", zap.String("userId", req.Id), zap.Error(err))
+		global.Log.Error("reset password failed", zap.String("userId", id), zap.Error(err))
 		return err
 	}
 

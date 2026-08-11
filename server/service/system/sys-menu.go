@@ -156,9 +156,9 @@ func (s *SysMenuService) Delete(db *gorm.DB, id uint) error {
 }
 
 // Update 更新菜单
-func (s *SysMenuService) Update(db *gorm.DB, req request.UpdateSysMenuReq) error {
+func (s *SysMenuService) Update(db *gorm.DB, id uint, req request.UpdateSysMenuReq) error {
 	var menu *system.SysMenu
-	menu, err := s.checkMenuExist(db, req.Id, false)
+	menu, err := s.checkMenuExist(db, id, false)
 	if err != nil {
 		return err
 	}

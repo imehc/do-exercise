@@ -62,7 +62,7 @@ const middleware = {
         // 暂停请求，处理 token 刷新
         return await new Promise<Response>((resolve, reject) => {
           requestQueue.push({ url, init, resolve, reject })
-          handleRefreshToken()
+          refreshAccessToken()
         })
       } else if (response.status === 403) {
         // 默认口令强制轮换——未改密时非白名单接口返回 403，强制回到改密页
@@ -90,7 +90,10 @@ const middleware = {
   },
 } satisfies Middleware
 
-const handleRefreshToken = async () => {
+// refreshAccessToken 静默刷新 access token，供 401 拦截器与本地过期定时器共用。
+// 单飞标志（refreshTokenFlag）保证两者并发触发时只发一次刷新请求——
+// refresh token 是轮转的，并发刷新会让后到者拿到已消费的旧 refresh token。
+export const refreshAccessToken = async () => {
   if (refreshTokenFlag) return
   refreshTokenFlag = true
 

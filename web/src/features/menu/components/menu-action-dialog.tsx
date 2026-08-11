@@ -494,12 +494,14 @@ export function MenuActionDialog({
                                 <span>{item.description}</span>
                               </Badge>
                             )}
-                            data={apis.map((item) => ({
-                              ...item,
-                              key: item.id,
-                              label: item.description || item.path,
-                              selected: field.value?.includes(item.id),
-                            }))}
+                            data={apis
+                              .filter((item) => item.group === 'SYSTEM')
+                              .map((item) => ({
+                                ...item,
+                                key: item.id,
+                                label: item.description || item.path,
+                                selected: field.value?.includes(item.id),
+                              }))}
                           />
                         </StatusRenderer>
                       </FormControl>

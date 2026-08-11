@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	mRand "math/rand"
 	"time"
 
@@ -132,21 +131,23 @@ func (r *RSACrypto) GetRandomKeyPair() (KeyPair, error) {
 		case errors.Is(err, redis.TxFailedErr):
 			time.Sleep(100 * time.Millisecond)
 		default:
-			return KeyPair{}, fmt.Errorf("failed to get key pair: %w", err)
+			// 内部错误（Redis 连接、密钥生成等）一律收拢为通用 i18n 键，
+			// 不让底层实现细节直达客户端。
+			return KeyPair{}, errors.New("operationFailed")
 		}
 	}
-	return KeyPair{}, errors.New("max retries reached")
+	return KeyPair{}, errors.New("operationFailed")
 }
 
 // 新增辅助函数
 func (r *RSACrypto) generateKeysIfNeeded(tx *redis.Tx, currentCount int) error {
 	if currentCount < minKeyThreshold {
 		if err := r.GenerateAndStoreKeys(minKeyThreshold - currentCount); err != nil {
-			return fmt.Errorf("密钥生成失败: %w", err)
+			return errors.New("operationFailed")
 		}
 		// 强制刷新事务中的key状态
 		if _, err := tx.HKeys(context.Background(), availableKeysHash).Result(); err != nil {
-			return fmt.Errorf("刷新密钥列表失败: %w", err)
+			return errors.New("operationFailed")
 		}
 	}
 	return nil

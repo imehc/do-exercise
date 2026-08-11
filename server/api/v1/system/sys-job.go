@@ -53,9 +53,8 @@ func (s *SysJobApi) Update(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	req.Id = id
 
-	if err := jobService.Update(util.DB(ctx), req); err != nil {
+	if err := jobService.Update(util.DB(ctx), id, req); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}

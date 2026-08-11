@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
@@ -51,6 +52,14 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		if tokenData.Disabled {
 			response.Forbidden(c, global.I18.Translate("accessTokenIsDisabled", c.GetString("lang")))
+			c.Abort()
+			return
+		}
+
+		// 防御性过期检查。token 过期以 Redis TTL 为准（吊销走 Redis 删键），
+		// 但若上游误把 TTL 存成 0，token 会变永不过期；这里用 ExpiredTime 兜底。
+		if !tokenData.ExpiredTime.IsZero() && time.Now().After(tokenData.ExpiredTime) {
+			response.Unauthorized(c)
 			c.Abort()
 			return
 		}

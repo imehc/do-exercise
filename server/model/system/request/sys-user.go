@@ -10,13 +10,11 @@ type CreateSysUserReq struct {
 }
 
 type UpdateSysUserReq struct {
-	Id       string `json:"id"`
 	Nickname string `json:"nickname"`
 	Avatar   string `json:"avatar"`
 	RoleIds  []uint `json:"role_ids"`
 }
 
 type UpdateSysUserPasswordReq struct {
-	Id       string `json:"id"`
 	Password string `json:"password" binding:"required,min=6,max=16,complexPassword"`
 }

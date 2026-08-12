@@ -35,30 +35,48 @@ func loginFailKeys(ip, username string) []string {
 	return keys
 }
 
-// loginIsLocked 判断当前 IP/用户名是否已被锁定。
+// loginPenalty 返回当前 IP/用户名应承受的惩罚：是否已达硬锁阈值，以及本次尝试需等待的渐进延迟。
 //
-// Redis 异常时返回 true（失败关闭）。早期实现用 `err == nil && n >= max` 判断，
-// 于是任何 Redis 超时、驱逐或宕机都会让锁定失效——恰好在监控最嘈杂、
-// 最难察觉的时候放开了无限密码猜测。
-func loginIsLocked(ip, username string) bool {
+// 在到达阈值前，每多一次失败，下一次尝试的等待时间按 2 的幂递增并封顶，
+// 让持续爆破越来越慢；达到阈值后直接拒绝（登录锁定）。
+func loginPenalty(ip, username string) (locked bool, delay time.Duration) {
 	ctx := context.Background()
 	max, _ := loginAttempts()
+	count := 0
 	for _, key := range loginFailKeys(ip, username) {
 		n, err := global.Redis.Get(ctx, key).Int()
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
-				// 键不存在 = 尚无失败记录，属于正常路径
 				continue
 			}
 			global.Log.Error("登录失败计数读取异常，按锁定处理",
 				zap.String("key", key), zap.Error(err))
-			return true
+			return true, 0
 		}
-		if n >= max {
-			return true
+		if n > count {
+			count = n
 		}
 	}
-	return false
+	if count >= max {
+		return true, 0
+	}
+	return false, progressiveDelay(count)
+}
+
+// progressiveDelay 根据上一轮累计的失败次数计算本次请求需等待的延迟。
+func progressiveDelay(failCount int) time.Duration {
+	if failCount <= 0 {
+		return 0
+	}
+	const (
+		base    = 500 * time.Millisecond // 首次失败后的等待
+		maxWait = 20 * time.Second       // 渐进延迟封顶
+	)
+	d := base
+	for i := 1; i < failCount && d < maxWait; i++ {
+		d *= 2
+	}
+	return d
 }
 
 // registerLoginFailure 记录一次登录失败。

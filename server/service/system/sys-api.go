@@ -15,11 +15,11 @@ import (
 type SysApiService struct{}
 
 // Update 更新api
-func (s *SysApiService) Update(db *gorm.DB, req request.UpdateSysApiReq) error {
+func (s *SysApiService) Update(db *gorm.DB, id uint, req request.UpdateSysApiReq) error {
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
 	err := db.
-		Where("id = ?", req.Id).
+		Where("id = ?", id).
 		First(existApi).
 		Error
 	if err != nil {

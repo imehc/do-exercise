@@ -18,7 +18,6 @@ type CreateSysJobReq struct {
 
 // UpdateSysJobReq 更新定时任务请求
 type UpdateSysJobReq struct {
-	Id uint `json:"id"`
 	CreateSysJobReq
 }
 

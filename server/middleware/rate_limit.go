@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/model/common/response"
-	"github.com/juju/ratelimit"
 )
 
 type RequestInfo struct {
@@ -14,81 +13,88 @@ type RequestInfo struct {
 	RequestNum     int       // 请求计数
 }
 
-var (
-	requestInfoMap = make(map[string]*RequestInfo) // IP到请求信息的映射
-	mutex          = &sync.Mutex{}                 // 用于保护requestInfoMap的互斥锁
-	maxRequests    = 10                            // 允许的最大请求数
-	timeWindow     = 1 * time.Second               // 时间窗口
-	cleanupOnce    sync.Once                       // 清理协程只启动一次
+// 全局兜底限流参数：所有请求默认 10 次/秒/IP。
+const (
+	maxRequests = 10
+	timeWindow  = 1 * time.Second
 )
 
-// startCleanup 定期清理过期IP记录，防止requestInfoMap无限增长导致内存泄漏
-func startCleanup() {
-	cleanupOnce.Do(func() {
-		go func() {
-			ticker := time.NewTicker(timeWindow)
-			defer ticker.Stop()
-			for range ticker.C {
-				threshold := time.Now().Add(-2 * timeWindow)
-				mutex.Lock()
-				for ip, info := range requestInfoMap {
-					if info.LastAccessTime.Before(threshold) {
-						delete(requestInfoMap, ip)
-					}
-				}
-				mutex.Unlock()
-			}
-		}()
-	})
+// ipLimiter 按 IP 维度做滑动窗口限流。
+// 相比全局 token bucket，按 IP 隔离不会误伤正常的多用户并发流量。
+type ipLimiter struct {
+	mutex       sync.Mutex
+	reqs        map[string]*RequestInfo
+	timeWindow  time.Duration
+	maxRequests int
 }
 
-// IpLimitMiddleware IP限流器
-func IpLimitMiddleware(c *gin.Context) {
-	startCleanup()
+func newIPLimiter(timeWindow time.Duration, maxRequests int) *ipLimiter {
+	l := &ipLimiter{
+		reqs:        make(map[string]*RequestInfo),
+		timeWindow:  timeWindow,
+		maxRequests: maxRequests,
+	}
+	go l.startCleanup()
+	return l
+}
 
+// startCleanup 定期清理过期的 IP 记录，防止 map 无限增长导致内存泄漏。
+func (l *ipLimiter) startCleanup() {
+	ticker := time.NewTicker(l.timeWindow)
+	defer ticker.Stop()
+	for range ticker.C {
+		threshold := time.Now().Add(-2 * l.timeWindow)
+		l.mutex.Lock()
+		for ip, info := range l.reqs {
+			if info.LastAccessTime.Before(threshold) {
+				delete(l.reqs, ip)
+			}
+		}
+		l.mutex.Unlock()
+	}
+}
+
+// Handle 限流处理。锁只在状态更新期间持有，c.Next() 在解锁后执行，避免长请求持锁阻塞其它 IP。
+func (l *ipLimiter) Handle(c *gin.Context) {
 	ip := c.ClientIP()
-	mutex.Lock()
+	l.mutex.Lock()
 
-	info, exists := requestInfoMap[ip]
+	info, exists := l.reqs[ip]
 	// 如果IP不存在，初始化并添加到map中
 	if !exists {
-		requestInfoMap[ip] = &RequestInfo{LastAccessTime: time.Now(), RequestNum: 1}
-		mutex.Unlock()
+		l.reqs[ip] = &RequestInfo{LastAccessTime: time.Now(), RequestNum: 1}
+		l.mutex.Unlock()
 		c.Next()
 		return
 	}
 	// 如果超过时间窗口，重置请求计数
-	if time.Since(info.LastAccessTime) > timeWindow {
+	if time.Since(info.LastAccessTime) > l.timeWindow {
 		info.RequestNum = 1
 		info.LastAccessTime = time.Now()
-		mutex.Unlock()
+		l.mutex.Unlock()
 		c.Next()
 		return
 	}
 	// 在时间窗口内，增加请求计数
 	info.RequestNum++
 	// 如果请求计数超过限制，禁止访问
-	if info.RequestNum > maxRequests {
-		mutex.Unlock()
+	if info.RequestNum > l.maxRequests {
+		l.mutex.Unlock()
 		response.StatusTooManyRequests(c)
 		c.Abort()
 		return
 	}
 	// 更新最后访问时间
 	info.LastAccessTime = time.Now()
-	mutex.Unlock()
+	l.mutex.Unlock()
 	c.Next()
 }
 
-// RateLimitMiddleware 限流中间件
-func RateLimitMiddleware(time time.Duration, originNum, pushNum int64) gin.HandlerFunc {
-	bucket := ratelimit.NewBucketWithQuantum(time, originNum, pushNum)
-	return func(c *gin.Context) {
-		if bucket.TakeAvailable(1) < 1 {
-			response.StatusTooManyRequests(c)
-			c.Abort()
-			return
-		}
-		c.Next()
-	}
+// IpLimitMiddleware IP限流器（全局兜底：所有请求 10 次/秒/IP）
+var IpLimitMiddleware = newIPLimiter(timeWindow, maxRequests).Handle
+
+// IpRateLimitMiddleware 生成按 IP 限流的中间件，用于对昂贵端点单独收紧配额。
+// 例：验证码生成、RSA 密钥签发、邮件发送。
+func IpRateLimitMiddleware(timeWindow time.Duration, maxRequests int) gin.HandlerFunc {
+	return newIPLimiter(timeWindow, maxRequests).Handle
 }

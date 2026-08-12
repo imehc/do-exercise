@@ -14,6 +14,7 @@ import { messages as zhMessages } from '~/locales/zh-CN/messages'
 import { languageAtom, originTokenAtom, store } from './atoms'
 import './index.css'
 import { SseBridge } from './hooks/use-sse'
+import { TokenRefreshBridge } from './hooks/use-token-refresh'
 import { FontProvider } from './provider/font'
 import { ThemeProvider } from './provider/theme'
 // Generated Routes
@@ -85,6 +86,7 @@ if (!rootElement.innerHTML) {
             <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
               <FontProvider>
                 <SseBridge />
+                <TokenRefreshBridge />
                 <RouterProvider router={router} />
               </FontProvider>
             </ThemeProvider>

@@ -241,9 +241,9 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 }
 
 // Update 更新用户
-func (s *SysUserService) Update(db *gorm.DB, req request.UpdateSysUserReq) error {
+func (s *SysUserService) Update(db *gorm.DB, id string, req request.UpdateSysUserReq) error {
 	var existUser *system.SysUser
-	existUser, err := s.checkUserExist(db, req.Id)
+	existUser, err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}
@@ -374,9 +374,9 @@ func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.Pag
 }
 
 // ResetPassword 重置密码
-func (s *SysUserService) ResetPassword(db *gorm.DB, req request.UpdateSysUserPasswordReq, oldPassword *string, accessToken string) error {
+func (s *SysUserService) ResetPassword(db *gorm.DB, id string, req request.UpdateSysUserPasswordReq, oldPassword *string, accessToken string) error {
 	var existUser *system.SysUser
-	existUser, err := s.checkUserExist(db, req.Id)
+	existUser, err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}

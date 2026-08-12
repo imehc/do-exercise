@@ -9,7 +9,6 @@ type CreateSysRoleReq struct {
 }
 
 type UpdateSysRoleReq struct {
-	Id      uint   `json:"id"`
 	Name    string `json:"name" binding:"required"`
 	MenuIds []uint `json:"menu_ids"`
 }

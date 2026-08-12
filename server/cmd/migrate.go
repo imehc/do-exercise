@@ -58,6 +58,13 @@ var migrateCmd = &cobra.Command{
 			fmt.Printf("已将 %d 个仍使用默认口令的账号标记为必须改密\n", rows)
 		}
 
+		// 软删除与唯一约束冲突修复：
+		// 旧版用普通唯一索引，软删的账号会永久占用用户名/邮箱，导致同名/同邮箱无法重建。
+		// 现改为 deleted_at IS NULL 的部分唯一索引（由模型 uniqueIndex 标签声明，AutoMigrate 创建）。
+		// 存量库里的旧索引不会自动消失，这里幂等清理，避免重建账号时撞上旧约束。
+		db.Exec("DROP INDEX IF EXISTS idx_sys_user_username")
+		db.Exec("DROP INDEX IF EXISTS idx_sys_user_email")
+
 		// 检查表是否已有数据
 		var count int64
 		err = db.Raw("SELECT COUNT(*) FROM sys_user").Count(&count).Error

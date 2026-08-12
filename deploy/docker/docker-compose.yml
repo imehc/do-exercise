@@ -3,8 +3,8 @@ volumes:
     name: postgres_data
   redis_data:
     name: redis_data
-  minio_data:
-    name: minio_data
+  oss_data:
+    name: oss_data
   server_data:
     name: server_data
 
@@ -37,40 +37,56 @@ services:
     networks:
       network:
         ipv4_address: 166.6.0.22
-  minio:
-    container_name: minio_data
-    image: bitnamilegacy/minio:2024.7.4
-    ports:
-      # - "9000:9000"
-      - "9001:9001"
+  # 对象存储服务（引擎为 RustFS，仅在此处保留其容器边界环境变量 RUSTFS_*）
+  oss:
+    container_name: oss_data
+    # 必须锁定版本 tag（RC 迭代快、有过策略回归）；rc.1 为 2026-08-08，
+    # 升级前到 github.com/rustfs/rustfs/releases 核实；勿用 latest/rc 浮动 tag。
+    image: rustfs/rustfs:1.0.0-rc.1
+    command: ["/data"] # 镜像入口需要数据目录位置参数
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      RUSTFS_ACCESS_KEY: ${OSS_ROOT_ACCESS_KEY} # root 凭证（规范名）
+      RUSTFS_SECRET_KEY: ${OSS_ROOT_SECRET_KEY}
+      RUSTFS_RPC_SECRET: ${OSS_RPC_SECRET} # 推荐显式设置，见迁移文档 R6
+      RUSTFS_ADDRESS: ":9000"               # S3 API 监听
+      RUSTFS_CONSOLE_ADDRESS: ":9001"       # Console 监听
+      RUSTFS_CONSOLE_ENABLE: "true"
     volumes:
-      - minio_data:/bitnami/minio/data
+      - oss_data:/data
+    # Console 管理入口（:9001，路径 /rustfs/console，官方不支持子路径反代）。
+    # 只绑定宿主机 loopback：本机/SSH 隧道可访问，不暴露到公网（官方建议仅可信网络）。
+    # S3 数据面(9000)仍走 nginx 反代（web 容器 9000:9000），不经此映射。
+    ports:
+      - "127.0.0.1:9001:9001"
+    # privileged: true 移除（Bitnami 遗留，RustFS 不需要）
+    security_opt:
+      - no-new-privileges:true
     restart: on-failure:3
-    privileged: true
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://127.0.0.1:9000/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
     networks:
       network:
         ipv4_address: 166.6.0.23
-  minio-init:
-    container_name: minio_init
-    # TODO: 建议锁定具体 RELEASE tag（当前 registry 不可达，未能核实可用 tag）。
-    # mc 只在 init 阶段跑一次性初始化，不持有数据，浮动 tag 风险低于 postgres/redis。
-    image: minio/mc:latest
+  oss-init:
+    container_name: oss_init
+    image: rustfs/rc:v0.1.30
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_HOST: ${MINIO_HOST}
-      MINIO_PORT: ${MINIO_PORT}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
-      MINIO_APP_ACCESS_KEY: ${MINIO_APP_ACCESS_KEY}
-      MINIO_APP_SECRET_KEY: ${MINIO_APP_SECRET_KEY}
+      OSS_ROOT_ACCESS_KEY: ${OSS_ROOT_ACCESS_KEY}
+      OSS_ROOT_SECRET_KEY: ${OSS_ROOT_SECRET_KEY}
+      OSS_HOST: ${OSS_HOST}
+      OSS_PORT: ${OSS_PORT}
+      OSS_BUCKET_NAME: ${OSS_BUCKET_NAME}
+      OSS_APP_ACCESS_KEY: ${OSS_APP_ACCESS_KEY}
+      OSS_APP_SECRET_KEY: ${OSS_APP_SECRET_KEY}
     depends_on:
-      - minio
-    entrypoint: ["/bin/sh", "/init-minio.sh"]
+      - oss
+    entrypoint: ["/bin/sh", "/init-oss.sh"]
     volumes:
-      - ./minio/init-minio.sh:/init-minio.sh:ro
+      - ./oss/init-oss.sh:/init-oss.sh:ro
     restart: on-failure:3
     networks:
       network:
@@ -88,12 +104,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      MINIO_HOST: ${MINIO_HOST}
-      MINIO_PORT: ${MINIO_PORT}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
-      MINIO_APP_ACCESS_KEY: ${MINIO_APP_ACCESS_KEY}
-      MINIO_APP_SECRET_KEY: ${MINIO_APP_SECRET_KEY}
-      MINIO_PRESIGNED_HOST: ${MINIO_PRESIGNED_HOST}
+      OSS_HOST: ${OSS_HOST}
+      OSS_PORT: ${OSS_PORT}
+      OSS_BUCKET_NAME: ${OSS_BUCKET_NAME}
+      OSS_APP_ACCESS_KEY: ${OSS_APP_ACCESS_KEY}
+      OSS_APP_SECRET_KEY: ${OSS_APP_SECRET_KEY}
+      OSS_PRESIGNED_HOST: ${OSS_PRESIGNED_HOST}
       EMAIL_HOST: ${EMAIL_HOST}
       EMAIL_PORT: ${EMAIL_PORT}
       EMAIL_USER: ${EMAIL_USER}
@@ -103,7 +119,9 @@ services:
         condition: service_started
       redis:
         condition: service_started
-      minio-init:
+      oss:
+        condition: service_healthy
+      oss-init:
         condition: service_completed_successfully
     # ports:
     #   - "6020:6020"
@@ -138,4 +156,3 @@ networks:
       driver: default
       config:
         - subnet: '166.6.0.0/16'
-    

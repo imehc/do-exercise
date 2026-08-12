@@ -25,12 +25,12 @@ func InitConfig(configFile string) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 	bindEnv(v, map[string]string{
-		"minio.bucket_name":    "MINIO_BUCKET_NAME",
-		"minio.host":           "MINIO_HOST",
-		"minio.port":           "MINIO_PORT",
-		"minio.access_key":     "MINIO_APP_ACCESS_KEY",
-		"minio.secret_key":     "MINIO_APP_SECRET_KEY",
-		"minio.presigned_host": "MINIO_PRESIGNED_HOST",
+		"oss.bucket_name":    "OSS_BUCKET_NAME",
+		"oss.host":           "OSS_HOST",
+		"oss.port":           "OSS_PORT",
+		"oss.access_key":     "OSS_APP_ACCESS_KEY",
+		"oss.secret_key":     "OSS_APP_SECRET_KEY",
+		"oss.presigned_host": "OSS_PRESIGNED_HOST",
 		"database.host":        "POSTGRES_HOST",
 		"database.username":    "POSTGRES_USER",
 		"database.password":    "POSTGRES_PASSWORD",
@@ -61,6 +61,10 @@ func InitConfig(configFile string) {
 	if err := v.Unmarshal(&global.Config); err != nil {
 		util.Exit("配置映射失败: ", err)
 	}
+
+	// 启动时一次性解析并校验 token 时长配置，避免请求期解析失败时生成 0 TTL 的永久 token。
+	util.InitAuthDurations(global.Config.Auth.AccessExpireTime, global.Config.Auth.RefreshExpireTime)
+
 	fmt.Println("配置初始化完成")
 }
 

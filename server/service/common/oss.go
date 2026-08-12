@@ -64,8 +64,8 @@ func (s *OssService) GetPresignedUrl(userId string, req model.OssReq) (*model.Os
 	objectKey := fmt.Sprintf("%s/%s%s", userId, objectName, ext)
 
 	client := global.Oss
-	bucketName := global.Config.Minio.BucketName
-	expires := time.Duration(global.Config.Minio.Expires) * time.Second
+	bucketName := global.Config.Oss.BucketName
+	expires := time.Duration(global.Config.Oss.Expires) * time.Second
 	ctx := context.Background()
 	putUrl, err := client.PresignedPutObject(
 		ctx,
@@ -77,7 +77,7 @@ func (s *OssService) GetPresignedUrl(userId string, req model.OssReq) (*model.Os
 		return nil, errors.New("getFailed")
 	}
 	url := fmt.Sprintf("%s://%s%s", putUrl.Scheme, putUrl.Host, putUrl.Path)
-	presignedHost := strings.TrimRight(global.Config.Minio.PresignedHost, "/")
+	presignedHost := strings.TrimRight(global.Config.Oss.PresignedHost, "/")
 	if gin.Mode() == gin.ReleaseMode && presignedHost != "" {
 		if strings.HasPrefix(presignedHost, "/") {
 			url = fmt.Sprintf("%s%s", presignedHost, putUrl.Path)
@@ -89,6 +89,6 @@ func (s *OssService) GetPresignedUrl(userId string, req model.OssReq) (*model.Os
 	return &model.OssRes{
 		PutObjectUrl: fmt.Sprintf("%s?%s", url, putUrl.RawQuery),
 		GetObjectUrl: putUrl.Path,
-		Expires:      global.Config.Minio.Expires,
+		Expires:      global.Config.Oss.Expires,
 	}, nil
 }

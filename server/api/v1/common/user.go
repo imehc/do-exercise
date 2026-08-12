@@ -99,6 +99,27 @@ func (s *UserApi) clearEmailCache(ctx context.Context, iRedis *redis.Client, ema
 	return nil
 }
 
+// checkEmailSendLimit 按邮箱地址限流验证码发送，防止邮件轰炸。
+// 每个邮箱 1 小时内最多发送 maxSendsPerHour 封，超出后与 cache 仍在生效时的行为一致。
+func (s *UserApi) checkEmailSendLimit(context context.Context, iRedis *redis.Client, email string) error {
+	const (
+		key              = "email_send_limit_%s"
+		maxSendsPerHour  = 5
+		limitWindowHours = 1
+	)
+	cnt, err := iRedis.Incr(context, fmt.Sprintf(key, email)).Result()
+	if err != nil {
+		return err
+	}
+	if cnt == 1 {
+		iRedis.Expire(context, fmt.Sprintf(key, email), time.Duration(limitWindowHours)*time.Hour)
+	}
+	if cnt > maxSendsPerHour {
+		return errors.New("emailSendLimit")
+	}
+	return nil
+}
+
 // sendEmailCode 发送邮箱验证码
 func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.EmailData, userId string) {
 	iRedis := global.Redis
@@ -117,6 +138,10 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 
 	minute := time.Duration(10) * time.Minute
 	code := util.GenerateRandomNumber(6)
+	if err := s.checkEmailSendLimit(context, iRedis, *to); err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
 	if err := s.setEmailCache(context, iRedis, emailType, *to, code, uId, minute); err != nil {
 		response.BadRequest(ctx, "emailSendFailed")
 		return
@@ -164,10 +189,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 		return
 	}
 
-	if err = userService.BindEmail(util.DB(ctx), request.BindEmailReq{
-		Id:    userId,
-		Email: req.Email,
-	}); err != nil {
+	if err = userService.BindEmail(util.DB(ctx), userId, req.Email); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -231,11 +253,8 @@ func (s *UserApi) UpdatePassword(ctx *gin.Context) {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
-	req.Id = userId
-	req.OldPassword = oldPassword
-	req.Password = password
 
-	if err := userService.UpdatePassword(util.DB(ctx), *req, ctx.GetString("accessToken")); err != nil {
+	if err := userService.UpdatePassword(util.DB(ctx), userId, oldPassword, password, ctx.GetString("accessToken")); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
@@ -252,9 +271,7 @@ func (s *UserApi) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
-	req.Id = userId
-
-	err := userService.UpdateProfile(util.DB(ctx), req)
+	err := userService.UpdateProfile(util.DB(ctx), userId, req)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

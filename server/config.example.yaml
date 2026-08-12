@@ -28,7 +28,7 @@ database:
   # sslmode: disable/require/verify-full；生产建议 require 及以上
   sslmode: disable
   pool:
-    max_connections: 100
+    max_connections: 25 # 峰值连接数；小型单实例部署建议 ~25（文档原为 100）
     min_connections: 10
     max_idle_time: 300      # 最大空闲时间(秒)
     max_conn_lifetime: 3600 # 连接最大存活时间(秒)，0 用默认 1 小时
@@ -54,10 +54,10 @@ captcha:
   img_height: 80
   captcha_timeout: 60 # open-captcha大于0时才生效
 
-# MinIO 连接信息和访问凭据由环境变量注入，Docker 部署使用 deploy/docker/.env
-minio:
+# 对象存储连接信息和访问凭据由环境变量注入，Docker 部署使用 deploy/docker/.env
+oss:
   expires: 3600
-  secure: false # 是否使用 HTTPS 访问 MinIO
+  secure: false # 是否使用 HTTPS 访问对象存储
 
 # email
 email:

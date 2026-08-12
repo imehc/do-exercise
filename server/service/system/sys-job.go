@@ -59,12 +59,12 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 }
 
 // Update 更新定时任务
-func (s *SysJobService) Update(db *gorm.DB, req request.UpdateSysJobReq) error {
+func (s *SysJobService) Update(db *gorm.DB, id uint, req request.UpdateSysJobReq) error {
 	// 命令必须在白名单内，防止通过更新绕过创建时的校验
 	if !shared.IsRegisteredCommand(req.Command) {
 		return errors.New("job.unregisteredCommand")
 	}
-	job, err := s.checkJobExist(db, req.Id)
+	job, err := s.checkJobExist(db, id)
 	if err != nil {
 		return err
 	}

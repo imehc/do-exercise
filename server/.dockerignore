@@ -18,5 +18,5 @@ tmp/
 *_test.go
 
 # 注意：config.yaml 未被忽略，因为 Dockerfile 需要它（应用启动时读取）。
-# 敏感项（数据库/MinIO/邮箱）一律通过环境变量覆盖，见 internal/config.go 的 bindEnv。
+# 敏感项（数据库/RustFS/邮箱）一律通过环境变量覆盖，见 internal/config.go 的 bindEnv。
 # 请确保提交进镜像的 config.yaml 中不含任何真实凭据。

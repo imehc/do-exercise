@@ -8,9 +8,9 @@ import (
 
 type SysUser struct {
 	UserId   string    `json:"id" gorm:"primarykey;column:id;type:varchar(32);comment:主键"`
-	Username string    `json:"username" gorm:"not null;unique;size:16;comment:用户名"`
+	Username string    `json:"username" gorm:"not null;size:16;uniqueIndex:idx_sys_user_username,where:deleted_at IS NULL;comment:用户名"`
 	Nickname string    `json:"nickname" gorm:"comment:昵称"`
-	Email    string    `json:"email" gorm:"unique;comment:邮箱"`
+	Email    string    `json:"email" gorm:"uniqueIndex:idx_sys_user_email,where:deleted_at IS NULL;comment:邮箱"`
 	Avatar   string    `json:"avatar" gorm:"comment:头像"`
 	Password string    `json:"-" gorm:"not null;comment:密码"`
 	Roles    []SysRole `json:"roles" gorm:"many2many:sys_user_role;comment:用户角色"`

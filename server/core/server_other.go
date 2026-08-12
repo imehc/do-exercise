@@ -19,6 +19,8 @@ func initServer(address string, router *gin.Engine) server {
 	// WriteTimeout 保持较长：SSE 等长连接依赖它。
 	// 若后续按审计建议摘掉或改造 SSE，可下调至 30s~60s。
 	s.WriteTimeout = 10 * time.Minute
+	// 与 Windows 分支对齐：空闲 keep-alive 连接 60s 未复用即回收，避免连接堆积。
+	s.IdleTimeout = 60 * time.Second
 	s.MaxHeaderBytes = 1 << 20
 	// endless 自身处理 SIGINT/SIGTERM/SIGHUP 并等待在途请求结束，故此处无需再接信号
 	return s

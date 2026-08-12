@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
@@ -25,7 +26,12 @@ func RunServer() {
 	// 启动操作日志批量落库 worker
 	middleware.StartOperationLogWorker()
 
+	// syncApi 由独立 goroutine 执行，用 WaitGroup 跟踪，优雅关闭时先等它收尾，
+	// 避免进程退出截断尚未提交的 DB 写入。
+	var syncApiWG sync.WaitGroup
+	syncApiWG.Add(1)
 	go func() {
+		defer syncApiWG.Done()
 		syncApi(r.Routes())
 	}()
 
@@ -37,6 +43,7 @@ func RunServer() {
 	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		global.Log.Fatal("server listen failed", zap.Error(err))
 	}
+	syncApiWG.Wait()
 }
 
 // syncApi 同步api到数据库
@@ -48,7 +55,9 @@ func syncApi(routes gin.RoutesInfo) {
 	}
 	// 2. 查询已存在的记录
 	var existingApis []system.SysApi
-	global.DB.Where("path IN ?", uniqueFields).Find(&existingApis)
+	if err := global.DB.Where("path IN ?", uniqueFields).Find(&existingApis).Error; err != nil {
+		global.Log.Error("查询已存在的api失败", zap.Error(err))
+	}
 	// 3. 构建已存在记录的map
 	existingMap := make(map[string]system.SysApi)
 	for _, api := range existingApis {

@@ -1,4 +1,4 @@
-# 开发环境依赖（数据库 / Redis / MinIO）
+# 开发环境依赖（数据库 / Redis / 对象存储 RustFS）
 # 用法：
 #   1. 复制环境变量：cp deploy/docker/.env.dev.example deploy/docker/.env.dev
 #   2. 启动依赖：    docker compose -f deploy/docker/docker-compose.dev.yml up -d
@@ -9,8 +9,8 @@ volumes:
     name: dev_postgres_data
   dev_redis_data:
     name: dev_redis_data
-  dev_minio_data:
-    name: dev_minio_data
+  dev_oss_data:
+    name: dev_oss_data
 
 services:
   postgres:
@@ -49,29 +49,46 @@ services:
       retries: 10
     restart: on-failure:3
 
-  minio:
-    container_name: minio-dev
-    image: bitnamilegacy/minio:2024.7.4
+  # 对象存储服务（引擎为 RustFS；入口校验用 RUSTFS_* 环境变量的值来自 .env.dev 的 OSS_* 映射）
+  oss:
+    container_name: oss-dev
+    image: rustfs/rustfs:1.0.0-rc.1
+    command: ["/data"]
     ports:
-      - "9000:9000" # API（本地服务 / 浏览器预签名访问）
+      - "9000:9000" # S3 API（本地服务 / 浏览器预签名访问）
       - "9001:9001" # Web 控制台
     env_file:
       - .env.dev
+    environment:
+      RUSTFS_ACCESS_KEY: ${OSS_ROOT_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${OSS_ROOT_SECRET_KEY}
+      RUSTFS_RPC_SECRET: ${OSS_RPC_SECRET}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
     volumes:
-      - dev_minio_data:/bitnami/minio/data
+      - dev_oss_data:/data
+    security_opt:
+      - no-new-privileges:true
     restart: on-failure:3
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://127.0.0.1:9000/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
 
-  minio-init:
-    container_name: minio-init-dev
-    image: minio/mc:latest
+  oss-init:
+    container_name: oss-init-dev
+    image: rustfs/rc:v0.1.30
     env_file:
       - .env.dev
     environment:
-      # 容器内部通过服务名访问 MinIO
-      MINIO_HOST: minio
+      # 容器内部通过服务名访问对象存储
+      OSS_HOST: oss
     depends_on:
-      - minio
-    entrypoint: ["/bin/sh", "/init-minio.sh"]
+      - oss
+    entrypoint: ["/bin/sh", "/init-oss.sh"]
     volumes:
-      - ./minio/init-minio.sh:/init-minio.sh:ro
+      - ./oss/init-oss.sh:/init-oss.sh:ro
     restart: "no"

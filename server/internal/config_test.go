@@ -22,7 +22,7 @@ auth:
 database:
   pool:
     max_connections: 25
-minio:
+oss:
   expires: 3600
 `)
 	if err := os.WriteFile(configPath, configData, 0o644); err != nil {
@@ -34,12 +34,12 @@ minio:
 	t.Setenv("POSTGRES_DB", "env-db")
 	t.Setenv("POSTGRES_USER", "env-user")
 	t.Setenv("POSTGRES_PASSWORD", "env-password")
-	t.Setenv("MINIO_HOST", "env-minio")
-	t.Setenv("MINIO_PORT", "19000")
-	t.Setenv("MINIO_BUCKET_NAME", "env-bucket")
-	t.Setenv("MINIO_APP_ACCESS_KEY", "env-access")
-	t.Setenv("MINIO_APP_SECRET_KEY", "env-secret")
-	t.Setenv("MINIO_PRESIGNED_HOST", "/env-oss")
+	t.Setenv("OSS_HOST", "env-oss")
+	t.Setenv("OSS_PORT", "19000")
+	t.Setenv("OSS_BUCKET_NAME", "env-bucket")
+	t.Setenv("OSS_APP_ACCESS_KEY", "env-access")
+	t.Setenv("OSS_APP_SECRET_KEY", "env-secret")
+	t.Setenv("OSS_PRESIGNED_HOST", "/env-oss")
 	t.Setenv("EMAIL_HOST", "env-smtp")
 	t.Setenv("EMAIL_PORT", "1587")
 	t.Setenv("EMAIL_USER", "env-mail-user")
@@ -62,26 +62,26 @@ minio:
 	if global.Config.Database.Password != "env-password" {
 		t.Fatalf("expected database password from env, got %q", global.Config.Database.Password)
 	}
-	if global.Config.Minio.Host != "env-minio" {
-		t.Fatalf("expected minio host from env, got %q", global.Config.Minio.Host)
+	if global.Config.Oss.Host != "env-oss" {
+		t.Fatalf("expected oss host from env, got %q", global.Config.Oss.Host)
 	}
-	if global.Config.Minio.Port != 19000 {
-		t.Fatalf("expected minio port from env, got %d", global.Config.Minio.Port)
+	if global.Config.Oss.Port != 19000 {
+		t.Fatalf("expected oss port from env, got %d", global.Config.Oss.Port)
 	}
-	if global.Config.Minio.BucketName != "env-bucket" {
-		t.Fatalf("expected bucket from env, got %q", global.Config.Minio.BucketName)
+	if global.Config.Oss.BucketName != "env-bucket" {
+		t.Fatalf("expected bucket from env, got %q", global.Config.Oss.BucketName)
 	}
-	if global.Config.Minio.AccessKey != "env-access" {
-		t.Fatalf("expected access key from env, got %q", global.Config.Minio.AccessKey)
+	if global.Config.Oss.AccessKey != "env-access" {
+		t.Fatalf("expected access key from env, got %q", global.Config.Oss.AccessKey)
 	}
-	if global.Config.Minio.SecretKey != "env-secret" {
-		t.Fatalf("expected secret key from env, got %q", global.Config.Minio.SecretKey)
+	if global.Config.Oss.SecretKey != "env-secret" {
+		t.Fatalf("expected secret key from env, got %q", global.Config.Oss.SecretKey)
 	}
-	if global.Config.Minio.PresignedHost != "/env-oss" {
-		t.Fatalf("expected presigned host from env, got %q", global.Config.Minio.PresignedHost)
+	if global.Config.Oss.PresignedHost != "/env-oss" {
+		t.Fatalf("expected presigned host from env, got %q", global.Config.Oss.PresignedHost)
 	}
-	if global.Config.Minio.Expires != 3600 {
-		t.Fatalf("expected minio expires from config, got %d", global.Config.Minio.Expires)
+	if global.Config.Oss.Expires != 3600 {
+		t.Fatalf("expected oss expires from config, got %d", global.Config.Oss.Expires)
 	}
 	// 邮箱凭据必须可由环境变量注入，否则只能写进会被打进镜像层的 config.yaml
 	if global.Config.Email.Host != "env-smtp" {

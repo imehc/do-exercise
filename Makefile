@@ -3,7 +3,7 @@
 
 # 默认使用 deploy/docker 目录下的 docker-compose.yml
 DOCKER_COMPOSE_FILE := deploy/docker/docker-compose.yml
-# 开发环境依赖（数据库/Redis/MinIO）
+# 开发环境依赖（数据库/Redis/RustFS）
 DEV_COMPOSE_FILE := deploy/docker/docker-compose.dev.yml
 
 # SSL证书相关配置
@@ -88,6 +88,6 @@ help:
 	@echo "make restart   - 重启服务"
 	@echo "make clean     - 清理所有容器和卷"
 	@echo "make certs     - 生成SSL证书"
-	@echo "make dev       - 一键开发：启动依赖容器（数据库/Redis/MinIO）+ 后端热重载"
+	@echo "make dev       - 一键开发：启动依赖容器（数据库/Redis/RustFS）+ 后端热重载"
 	@echo "make dev-down  - 停止开发环境依赖容器"
 	@echo "make dev-logs  - 查看开发环境依赖容器日志"

@@ -13,13 +13,13 @@ do-exercise 是一个基于 Go + React + Vite + Tailwind CSS 的全栈练习项�
 - Token 管理
 - 系统信息展示
 - 国际化支持（中英文）
-- 文件上传（MinIO 对象存储）
+- 文件上传（RustFS 对象存储）
 - 邮件通知
 - 响应式前端 UI，支持暗黑模式
 
 ## 技术栈
 
-- **后端**：Go 1.24、Gin、GORM、Casbin、Zap、MinIO、Redis、PostgreSQL
+- **后端**：Go 1.24、Gin、GORM、Casbin、Zap、RustFS、Redis、PostgreSQL
 - **前端**：React 19、Vite、Tailwind CSS、Radix UI、TanStack Router & Query、Zod、Lingui（i18n）
 - **容器化/部署**：Docker Compose、Nginx
 
@@ -36,8 +36,8 @@ cd do-exercise
 
 - 将 `deploy/docker/.env.example` 重命名为 `.env`，并根据实际需求填写配置项
 - 将 `server/config.example.yaml` 重命名为 `config.yaml`，并根据实际需求修改配置项
-- Docker 部署时，数据库和 MinIO 的连接地址、账号、密码、Bucket 等运行环境配置放在 `deploy/docker/.env`
-- `server/config.yaml` 只保留应用默认参数，如连接池、日志、验证码、MinIO 预签名有效期等
+- Docker 部署时，数据库和 RustFS 的连接地址、账号、密码、Bucket 等运行环境配置放在 `deploy/docker/.env`
+- `server/config.yaml` 只保留应用默认参数，如连接池、日志、验证码、RustFS 预签名有效期等
 - **本地开发时，如不使用 Docker，请通过环境变量或本地配置填写实际可访问的主机地址（如 `127.0.0.1` 或本机局域网 IP），而不是 Docker 容器名称**
 
 ### 3. 证书准备
@@ -61,7 +61,7 @@ make logs
 
 ### 5. 本地开发
 
-推荐使用 `make dev` 一键启动开发环境：它会自动复制开发环境变量、启动依赖容器（PostgreSQL / Redis / MinIO）、等待数据库就绪，并初始化数据库后通过 `air` 启动后端热重载。
+推荐使用 `make dev` 一键启动开发环境：它会自动复制开发环境变量、启动依赖容器（PostgreSQL / Redis / RustFS）、等待数据库就绪，并初始化数据库后通过 `air` 启动后端热重载。
 
 #### 前置准备（仅首次）
 
@@ -84,7 +84,7 @@ make dev
 该命令会依次完成：
 
 - 若 `deploy/docker/.env.dev` 不存在，则从 `.env.dev.example` 复制一份（按需修改）
-- 启动 `deploy/docker/docker-compose.dev.yml` 中的依赖容器（PostgreSQL / Redis / MinIO，端口映射到宿主机 5432/6379/9000/9001）
+- 启动 `deploy/docker/docker-compose.dev.yml` 中的依赖容器（PostgreSQL / Redis / RustFS，端口映射到宿主机 5432/6379/9000/9001）
 - 等待数据库就绪后，自动加载 `.env.dev` 并执行数据库初始化（`make migrate`，幂等，已有数据自动跳过）
 - 启动后端 `air` 热重载服务（监听文件变化自动重新编译运行）
 
@@ -100,7 +100,7 @@ pnpm install
 pnpm dev
 ```
 
-前端默认通过 Vite 开发服务器访问（配合 `/oss` 代理转发到本地 MinIO `127.0.0.1:9000` 处理上传）。
+前端默认通过 Vite 开发服务器访问（配合 `/oss` 代理转发到本地 RustFS `127.0.0.1:9000` 处理上传）。
 
 #### 开发环境依赖容器管理
 
@@ -113,9 +113,9 @@ make dev-logs   # 查看开发依赖容器日志
 
 开发环境变量统一放在 `deploy/docker/.env.dev`（`make dev` 自动生成，不提交仓库），由后端进程和 `docker-compose.dev.yml` 共用：
 
-- `POSTGRES_HOST` / `REDIS_HOST` / `MINIO_HOST` 在本地均指向 `localhost`，便于本机运行的 Go 进程直接连接
-- 容器内部的 `minio-init` 会自动将 `MINIO_HOST` 覆盖为服务名 `minio` 完成 bucket 初始化
-- `MINIO_PRESIGNED_HOST` 在本地为 `http://localhost:9000`，生产环境则改为走 Nginx 反代路径（如 `/oss`）
+- `POSTGRES_HOST` / `REDIS_HOST` / `RUSTFS_HOST` 在本地均指向 `localhost`，便于本机运行的 Go 进程直接连接
+- 容器内部的 `rustfs-init` 会自动将 `RUSTFS_HOST` 覆盖为服务名 `rustfs` 完成 bucket 初始化
+- `RUSTFS_PRESIGNED_HOST` 在本地为 `http://localhost:9000`，生产环境则改为走 Nginx 反代路径（如 `/oss`）
 
 如需要手动调整开发配置，直接编辑 `deploy/docker/.env.dev` 即可，无需改动 `server/config.yaml`。
 
@@ -138,8 +138,8 @@ make dev       # air 热重载；或用 go run main.go 直接运行
 ## 配置说明
 
 - `deploy/docker/.env` 优先级高于 `server/config.yaml`
-- 数据库与 MinIO 的部署差异和敏感信息放在 `.env`，不要写入 `config.yaml`
-- MinIO Bucket、Access Key、Secret Key 会由 `minio-init` 容器自动初始化
+- 数据库与 RustFS 的部署差异和敏感信息放在 `.env`，不要写入 `config.yaml`
+- RustFS Bucket、Access Key、Secret Key 会由 `rustfs-init` 容器自动初始化
 - 邮箱配置用于找回密码、通知等功能
 
 ## 默认管理员账户
@@ -151,7 +151,7 @@ make dev       # air 热重载；或用 go run main.go 直接运行
 
 ## 常见问题
 
-- **MinIO 启动失败**：请检查 Access Key/Secret Key 是否配置，Bucket 名是否一致
+- **RustFS 启动失败**：请检查 Access Key/Secret Key 是否配置，Bucket 名是否一致
 - **证书目录不存在**：请执行 `make certs` 或手动放置证书
 - **服务无法访问**：本地开发请确保 host 配置为实际可访问地址
 

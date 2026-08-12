@@ -80,6 +80,17 @@ const middleware = {
         const text = await response.text()
         toast.error(text || 'Too many requests, please try again later.')
       }
+    } else if (response.status >= 500) {
+      // 5xx（含网关 502/503/504）：后端或代理故障，必须显式提示而不是静默失败，
+      // 否则用户会以为操作已生效。body 可能是 nginx 的 HTML（非 JSON），不能假设可解析。
+      const text = await response.text().catch(() => '')
+      const message =
+        /"message"\s*:/.test(text)
+          ? (text.match(/"message"\s*:\s*"([^"]*)"/)?.[1] ?? '')
+          : ''
+      toast.error(
+        message || `服务暂时不可用（HTTP ${response.status}），请稍后重试`
+      )
     }
 
     return response

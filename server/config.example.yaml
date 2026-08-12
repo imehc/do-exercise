@@ -54,10 +54,10 @@ captcha:
   img_height: 80
   captcha_timeout: 60 # open-captcha大于0时才生效
 
-# MinIO 连接信息和访问凭据由环境变量注入，Docker 部署使用 deploy/docker/.env
-minio:
+# 对象存储连接信息和访问凭据由环境变量注入，Docker 部署使用 deploy/docker/.env
+oss:
   expires: 3600
-  secure: false # 是否使用 HTTPS 访问 MinIO
+  secure: false # 是否使用 HTTPS 访问对象存储
 
 # email
 email:

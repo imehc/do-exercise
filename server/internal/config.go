@@ -25,12 +25,12 @@ func InitConfig(configFile string) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 	bindEnv(v, map[string]string{
-		"minio.bucket_name":    "MINIO_BUCKET_NAME",
-		"minio.host":           "MINIO_HOST",
-		"minio.port":           "MINIO_PORT",
-		"minio.access_key":     "MINIO_APP_ACCESS_KEY",
-		"minio.secret_key":     "MINIO_APP_SECRET_KEY",
-		"minio.presigned_host": "MINIO_PRESIGNED_HOST",
+		"oss.bucket_name":    "OSS_BUCKET_NAME",
+		"oss.host":           "OSS_HOST",
+		"oss.port":           "OSS_PORT",
+		"oss.access_key":     "OSS_APP_ACCESS_KEY",
+		"oss.secret_key":     "OSS_APP_SECRET_KEY",
+		"oss.presigned_host": "OSS_PRESIGNED_HOST",
 		"database.host":        "POSTGRES_HOST",
 		"database.username":    "POSTGRES_USER",
 		"database.password":    "POSTGRES_PASSWORD",

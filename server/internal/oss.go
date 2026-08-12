@@ -10,18 +10,23 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-// InitMinio 初始化Minio
-func InitMinio() {
-	cfg := global.Config.Minio
+// InitOss 初始化RustFS
+func InitOss() {
+	cfg := global.Config.Oss
 	client, err := minio.New(
 		fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		&minio.Options{
-			Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+			Creds: credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 			Secure: cfg.Secure, // 是否使用https进行通信，由配置驱动
+			// 单区域自建部署固定 us-east-1：显式指定后 minio-go 不再发起
+			// GetBucketLocation 探测（RustFS 对 ?location 的实现差异不再影响签名作用域）
+			Region: "us-east-1",
+			// 路径式寻址：虚拟主机式(bucket.host)在自建 + nginx 反代下不可用
+			BucketLookup: minio.BucketLookupPath,
 		},
 	)
 	if err != nil {
-		util.Exit("minio连接失败", err)
+		util.Exit("oss连接失败", err)
 	}
 
 	// 检查bucket是否存在
@@ -29,13 +34,13 @@ func InitMinio() {
 	ctx := context.Background()
 	exists, err := client.BucketExists(ctx, bucketName)
 	if err != nil {
-		util.Exit("minio检查bucket失败", err)
+		util.Exit("oss检查bucket失败", err)
 	}
 	if !exists {
 		// 创建bucket
 		err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 		if err != nil {
-			util.Exit("minio创建bucket失败", err)
+			util.Exit("oss创建bucket失败", err)
 		}
 	}
 
@@ -70,5 +75,5 @@ func InitMinio() {
 	}
 
 	global.Oss = client
-	fmt.Println("minio初始化成功")
+	fmt.Println("oss初始化成功")
 }

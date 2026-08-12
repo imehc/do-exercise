@@ -8,6 +8,6 @@ type Config struct {
 	Auth     Auth     `yaml:"auth" mapstructure:"auth"`           // 认证配置
 	Captcha  Captcha  `yaml:"captcha" mapstructure:"captcha"`     // 验证码配置
 	Email    Email    `yaml:"email" mapstructure:"email"`         // 邮箱配置
-	Minio    Minio    `yaml:"minio" mapstructure:"minio"`         // Minio配置
+	Oss      Oss      `yaml:"oss" mapstructure:"oss"`             // 对象存储配置
 	DiskList []Disk   `yaml:"disk_list" mapstructure:"disk_list"` // 磁盘配置
 }

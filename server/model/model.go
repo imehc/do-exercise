@@ -20,6 +20,17 @@ func CurrentUserID(tx *gorm.DB) string {
 	return strings.TrimSpace(userId)
 }
 
+// CurrentTenantID 从 GORM 事务上下文安全地取出当前租户 ID。
+// 与 CurrentUserID 相同的兜底策略；不经请求上下文的路径返回空串。
+func CurrentTenantID(tx *gorm.DB) string {
+	v := tx.Statement.Context.Value(global.ContextTenantIDKey)
+	tenantId, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(tenantId)
+}
+
 type IdWrapper struct {
 	Id uint `json:"id" gorm:"primarykey;comment:主键"`
 }

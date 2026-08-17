@@ -12,6 +12,7 @@ export const getSignInActionSchema = () =>
     captchaId: z.string({
       error: t`验证码ID不能为空`,
     }),
+    tenantId: z.string().optional(),
     captcha: z
       .string({
         error: t`请输入验证码`,

@@ -20,6 +20,7 @@ var mustChangePasswordWhitelist = map[string]bool{
 	"GET /user/profile":           true, // 基本信息（前端布局依赖）
 	"GET /user/menu":              true, // 菜单（前端布局依赖）
 	"GET /sse":                    true, // SSE 连接（前端布局依赖）
+	"GET /auth/my_tenants":        true, // 可用租户（顶栏当前租户展示依赖，未改密期间仅展示不切换）
 }
 
 // AuthMiddleware 登录验证中间件
@@ -78,7 +79,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("userId", tokenData.UserId)
 		c.Set("roles", tokenData.RoleIds)
 		c.Set("username", tokenData.Username)
+		c.Set("tenantId", tokenData.TenantId)
 		c.Set("accessToken", accessToken)
+		c.Set("isSuperAdmin", tokenData.IsSuperAdmin)
 		c.Next()
 	}
 }

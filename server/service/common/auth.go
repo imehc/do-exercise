@@ -11,7 +11,9 @@ import (
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/request"
+	commonResponse "github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system"
+	systemService "github.com/imehc/do-exercise/server/service/system"
 	"github.com/imehc/do-exercise/server/util"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -19,28 +21,147 @@ import (
 
 type AuthService struct{}
 
-func (s *AuthService) Login(db *gorm.DB, req common.Login) (*system.SysUser, error) {
+// Login 登录。返回命中的用户（带角色）及其归属的启用业务租户列表。
+// 多租户模式下未指定租户且账号归属多个启用租户时返回 requiresTenantSelection，
+// 由前端弹窗选择后经 select_tenant 完成登录。
+func (s *AuthService) Login(db *gorm.DB, req common.Login) (*system.SysUser, []commonResponse.TenantOption, error) {
+	tenantId := req.TenantId
+	if !global.Config.Tenant.IsMulti() {
+		// 单租户模式始终以默认租户为准，忽略客户端传入的租户ID
+		tenantId = global.Config.Tenant.DefaultTenantId
+	} else if tenantId == "" {
+		return s.loginAcrossTenants(db, req)
+	}
+
+	if err := s.checkTenantUsable(db, tenantId); err != nil {
+		return nil, nil, err
+	}
+	user, err := s.Authenticate(db, tenantId, req.Username, req.Password)
+	if err != nil {
+		return nil, nil, err
+	}
+	options, _ := s.listEnabledTenants(db, req.Username)
+	return user, options, nil
+}
+
+// loginAcrossTenants 多租户模式未指定租户时的登录解析：
+// 校验用户名密码后按归属的启用租户分发——唯一归属直接进入；
+// 多个启用租户时返回 requiresTenantSelection 引导前端弹窗选择；
+func (s *AuthService) loginAcrossTenants(db *gorm.DB, req common.Login) (*system.SysUser, []commonResponse.TenantOption, error) {
+	var rows []system.SysUser
+	if err := db.Preload("Roles").Where("username = ?", req.Username).Find(&rows).Error; err != nil {
+		return nil, nil, errors.New("userNotFound")
+	}
+	if len(rows) == 0 {
+		return nil, nil, errors.New("userNotFound")
+	}
+
+	var (
+		business []system.SysUser
+		platform []system.SysUser
+		matched  bool
+	)
+	for _, u := range rows {
+		hash := util.Hash{Value: u.Password}
+		if !hash.Compare(req.Password) {
+			continue
+		}
+		matched = true
+		if u.TenantId == global.PlatformTenantID {
+			platform = append(platform, u)
+			continue
+		}
+		var tenant system.SysTenant
+		if err := db.Where("tenant_id = ? AND status = ?", u.TenantId, true).First(&tenant).Error; err != nil {
+			continue
+		}
+		business = append(business, u)
+	}
+
+	if len(business) == 0 && len(platform) == 0 {
+		if !matched {
+			return nil, nil, errors.New("passwordError")
+		}
+		return nil, nil, errors.New("tenantDisabled")
+	}
+
+	options, _ := s.listEnabledTenants(db, req.Username)
+
+	switch len(business) {
+	case 0:
+		// 仅平台归属：平台管理员 直接登录平台域，不出现在租户选择器中
+		return &platform[0], options, nil
+	case 1:
+		return &business[0], options, nil
+	default:
+		return nil, options, errors.New("requiresTenantSelection")
+	}
+}
+
+// listEnabledTenants 返回用户名归属的启用业务租户（不含平台保留租户）
+func (s *AuthService) listEnabledTenants(db *gorm.DB, username string) ([]commonResponse.TenantOption, error) {
+	return (&systemService.SysTenantService{}).ListEnabledForUsername(db, username)
+}
+
+// checkTenantUsable 校验指定租户存在且启用；单租户模式或平台保留租户始终可用。
+func (s *AuthService) checkTenantUsable(db *gorm.DB, tenantId string) error {
+	if !global.Config.Tenant.IsMulti() {
+		return nil
+	}
+	if tenantId == "" || tenantId == global.PlatformTenantID {
+		return nil
+	}
+	var tenant system.SysTenant
+	if err := db.Unscoped().Where("tenant_id = ?", tenantId).First(&tenant).Error; err != nil {
+		return errors.New("tenantNotFound")
+	}
+	if !tenant.Status {
+		return errors.New("tenantDisabled")
+	}
+	return nil
+}
+
+// Authenticate 校验指定租户下的用户名密码，返回带角色信息的用户。
+func (s *AuthService) Authenticate(db *gorm.DB, tenantId, username, password string) (*system.SysUser, error) {
 	existUser := &system.SysUser{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := db.WithContext(ctx).
 		Preload("Roles").
-		Where("username = ?", req.Username).
+		Where("tenant_id = ?", tenantId).
+		Where("username = ?", username).
 		First(existUser).
 		Error
 	if err != nil {
-		global.Log.Error("登录失败", zap.Error(err), zap.String("username", req.Username))
+		global.Log.Error("登录失败", zap.Error(err), zap.String("username", username))
 		errorKey := util.TranslateDBError(err, "userNotFound")
 		return nil, errors.New(errorKey)
 	}
-	hash := util.Hash{
-		Value: existUser.Password,
-	}
-	if !hash.Compare(req.Password) {
+	hash := util.Hash{Value: existUser.Password}
+	if !hash.Compare(password) {
 		return nil, errors.New("passwordError")
 	}
-
 	return existUser, nil
+}
+
+// EnterTenant 校验租户可用并加载该租户下指定用户名的账号（含角色）。
+// 用于多租户登录选择/切换：密码已在前一阶段验证，这里只做归属与可用性校验。
+func (s *AuthService) EnterTenant(db *gorm.DB, tenantId, username string) (*system.SysUser, error) {
+	if err := s.checkTenantUsable(db, tenantId); err != nil {
+		return nil, err
+	}
+	user := &system.SysUser{}
+	err := db.
+		Preload("Roles").
+		Where("tenant_id = ?", tenantId).
+		Where("username = ?", username).
+		First(user).
+		Error
+	if err != nil {
+		errorKey := util.TranslateDBError(err, "userNotFound")
+		return nil, errors.New(errorKey)
+	}
+	return user, nil
 }
 
 // ResetPassword 重置密码。id 必须由调用方从已校验的来源（邮箱查找、管理员路径参数）取得，

@@ -5,6 +5,14 @@ auth:
   login_max_attempts: 5   # 登录失败锁定阈值（0 使用默认 5）
   login_lock_minutes: 5   # 登录失败锁定时长（分钟，0 使用默认 5）
 
+# 多租户
+#   mode: single - 单租户，所有数据固定归属 default_tenant_id，登录页不显示租户选择器
+#         multi (默认)      - 多租户，登录页按可用租户展示选择器；数据/权限按 tenant_id 与 Casbin dom 隔离，
+#   default_tenant_id: 单租户固定的归属租户；多租户下作为登录未指定租户时的兜底
+tenant:
+  mode: multi
+  default_tenant_id: default
+
 # 系统
 system:
   port: 6020

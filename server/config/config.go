@@ -9,5 +9,6 @@ type Config struct {
 	Captcha  Captcha  `yaml:"captcha" mapstructure:"captcha"`     // 验证码配置
 	Email    Email    `yaml:"email" mapstructure:"email"`         // 邮箱配置
 	Oss      Oss      `yaml:"oss" mapstructure:"oss"`             // 对象存储配置
+	Tenant   Tenant   `yaml:"tenant" mapstructure:"tenant"`       // 租户配置
 	DiskList []Disk   `yaml:"disk_list" mapstructure:"disk_list"` // 磁盘配置
 }

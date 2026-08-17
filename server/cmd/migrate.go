@@ -61,9 +61,13 @@ var migrateCmd = &cobra.Command{
 		// 软删除与唯一约束冲突修复：
 		// 旧版用普通唯一索引，软删的账号会永久占用用户名/邮箱，导致同名/同邮箱无法重建。
 		// 现改为 deleted_at IS NULL 的部分唯一索引（由模型 uniqueIndex 标签声明，AutoMigrate 创建）。
+		// 邮箱唯一索引已进一步改为 email <> '' 的条件索引，空邮箱不参与唯一性校验。
 		// 存量库里的旧索引不会自动消失，这里幂等清理，避免重建账号时撞上旧约束。
 		db.Exec("DROP INDEX IF EXISTS idx_sys_user_username")
 		db.Exec("DROP INDEX IF EXISTS idx_sys_user_email")
+		db.Exec("DROP INDEX IF EXISTS idx_sys_user_email_tenant")
+		// 重建邮箱条件唯一索引：仅 email 非空时参与唯一性校验，空邮箱可在同一租户共存多条。
+		db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_sys_user_email_tenant ON sys_user (email, tenant_id) WHERE deleted_at IS NULL AND email <> ''")
 
 		// 检查表是否已有数据
 		var count int64

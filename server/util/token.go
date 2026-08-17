@@ -24,12 +24,15 @@ type Token struct {
 	UserId            string
 	Username          string
 	RoleIds           []uint
+	TenantId          string
 	ExpireTime        time.Duration // 有效时间
 	RefreshExpireTime time.Duration
 	Disabled          bool
 	CreatedTime       time.Time
 	// MustChangePassword 标记该账号仍需强制修改密码
 	MustChangePassword bool
+	// IsSuperAdmin 平台超级管理员标识（仅平台域账号有效）
+	IsSuperAdmin bool
 }
 
 func (t *Token) GenerateToken() (*common.Token, error) {
@@ -47,11 +50,13 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 		UserId:             t.UserId,
 		Username:           t.Username,
 		RoleIds:            t.RoleIds,
+		TenantId:           t.TenantId,
 		RefreshToken:       refreshToken,
 		Disabled:           t.Disabled,
 		CreatedTime:        t.CreatedTime,
 		ExpiredTime:        t.CreatedTime.Add(t.ExpireTime),
 		MustChangePassword: t.MustChangePassword,
+		IsSuperAdmin:       t.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, err
@@ -60,10 +65,12 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 		UserId:             t.UserId,
 		Username:           t.Username,
 		RoleIds:            t.RoleIds,
+		TenantId:           t.TenantId,
 		Disabled:           t.Disabled,
 		CreatedTime:        t.CreatedTime,
 		ExpiredTime:        t.CreatedTime.Add(t.RefreshExpireTime),
 		MustChangePassword: t.MustChangePassword,
+		IsSuperAdmin:       t.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, err
@@ -89,6 +96,8 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 		RefreshToken:       refreshToken,
 		RefreshExpireTime:  int64(t.RefreshExpireTime.Seconds()), // 将毫秒转换为秒
 		MustChangePassword: t.MustChangePassword,
+		TenantId:           t.TenantId,
+		IsSuperAdmin:       t.IsSuperAdmin,
 	}, nil
 }
 
@@ -155,11 +164,13 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		UserId:             refreshTokenInfo.UserId,
 		Username:           refreshTokenInfo.Username,
 		RoleIds:            refreshTokenInfo.RoleIds,
+		TenantId:           refreshTokenInfo.TenantId,
 		RefreshToken:       newRefreshToken, // 新 access 指向新 refresh
 		Disabled:           refreshTokenInfo.Disabled,
 		CreatedTime:        now,
 		ExpiredTime:        now.Add(accessExpire), // 从当前时间重新起算，不再累加原过期时间
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		IsSuperAdmin:       refreshTokenInfo.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
@@ -168,10 +179,12 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		UserId:             refreshTokenInfo.UserId,
 		Username:           refreshTokenInfo.Username,
 		RoleIds:            refreshTokenInfo.RoleIds,
+		TenantId:           refreshTokenInfo.TenantId,
 		Disabled:           refreshTokenInfo.Disabled,
 		CreatedTime:        now,
 		ExpiredTime:        now.Add(refreshExpire),
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		IsSuperAdmin:       refreshTokenInfo.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
@@ -182,10 +195,12 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		UserId:             refreshTokenInfo.UserId,
 		Username:           refreshTokenInfo.Username,
 		RoleIds:            refreshTokenInfo.RoleIds,
+		TenantId:           refreshTokenInfo.TenantId,
 		Disabled:           true,
 		CreatedTime:        refreshTokenInfo.CreatedTime,
 		ExpiredTime:        refreshTokenInfo.ExpiredTime,
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		IsSuperAdmin:       refreshTokenInfo.IsSuperAdmin,
 		Rotated:            true,
 	})
 	if err != nil {
@@ -217,6 +232,8 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		RefreshToken:       newRefreshToken,
 		RefreshExpireTime:  int64(refreshExpire.Seconds()),
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		TenantId:           refreshTokenInfo.TenantId,
+		IsSuperAdmin:       refreshTokenInfo.IsSuperAdmin,
 	}, nil
 }
 

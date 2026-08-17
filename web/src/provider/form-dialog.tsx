@@ -13,6 +13,8 @@ export type DialogType =
   | 'view-result'
   | 'view-info'
   | 'reset'
+  | 'assign-users'
+  | 'assign-tenant'
 
 type Object = Record<string, unknown>
 

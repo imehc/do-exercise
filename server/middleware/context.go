@@ -12,6 +12,9 @@ func ContextMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId := c.MustGet("userId").(string)
 		ctx := context.WithValue(c.Request.Context(), global.ContextUserIDKey, userId)
+		if tenantId := c.GetString("tenantId"); tenantId != "" {
+			ctx = context.WithValue(ctx, global.ContextTenantIDKey, tenantId)
+		}
 		// 请求范围内派生 DB，避免并发写全局 global.DB 造成数据竞争
 		c.Set(global.ContextDBKey, global.DB.WithContext(ctx))
 		c.Next()

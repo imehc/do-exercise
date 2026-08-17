@@ -79,12 +79,81 @@ components:
         must_change_password:
           type: boolean
           description: 是否仍需强制修改密码，前端据此跳转改密页
+        tenant_id:
+          type: string
+          description: 当前 token 所属租户ID
+        is_super_admin:
+          type: boolean
+          description: 平台超级管理员标识（仅平台超管登录时返回 true，普通账号不返回该字段）
       required:
         - access_token
         - expire_time
         - refresh_token
         - refresh_expire_time
         - must_change_password
+
+    LoginResult:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: 访问令牌（需选择租户时不返回）
+        expire_time:
+          type: integer
+          format: int64
+          description: 访问令牌过期时间
+        refresh_token:
+          type: string
+          description: 刷新令牌
+        refresh_expire_time:
+          type: integer
+          format: int64
+          description: 刷新令牌过期时间
+        must_change_password:
+          type: boolean
+          description: 是否仍需强制修改密码，前端据此跳转改密页
+        tenant_id:
+          type: string
+          description: 当前 token 所属租户ID
+        is_super_admin:
+          type: boolean
+          description: 平台超级管理员标识（仅平台超管登录时返回 true，普通账号不返回该字段）
+        requires_tenant_selection:
+          type: boolean
+          description: 账号归属多个启用租户，需先选择租户再完成登录
+        login_session_id:
+          type: string
+          description: 多租户登录会话ID（需选择租户时返回，供 select_tenant 使用）
+        available_tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantOption'
+          description: 当前账号可进入的启用租户列表
+      required:
+        - requires_tenant_selection
+        - available_tenants
+
+    SelectTenantRequest:
+      type: object
+      properties:
+        login_session_id:
+          type: string
+          description: 多租户登录会话ID
+        tenant_id:
+          type: string
+          description: 要进入的租户ID
+      required:
+        - login_session_id
+        - tenant_id
+
+    SwitchTenantRequest:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 要切换到的租户ID
+      required:
+        - tenant_id
 
     Captcha:
       type: object
@@ -112,6 +181,9 @@ components:
         password:
           type: string
           description: 密码
+        tenant_id:
+          type: string
+          description: 租户ID（多租户模式下指定登录租户；单租户模式可省略）
         captcha_id:
           type: string
           description: 验证码ID
@@ -832,6 +904,28 @@ components:
       required:
         - password
     
+    AssignUserTenant:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 目标租户ID
+      required:
+        - tenant_id
+
+    AssignableTenant:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 租户ID
+        name:
+          type: string
+          description: 租户名称
+        code:
+          type: string
+          description: 租户编码
+
     CreateSysUser:
       type: object
       properties:
@@ -1191,6 +1285,151 @@ components:
         - meta
         - data
 
+    Tenant:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 租户ID
+        name:
+          type: string
+          description: 租户名称
+        code:
+          type: string
+          description: 租户编码
+        status:
+          type: boolean
+          description: 是否启用
+        remark:
+          type: string
+          description: 备注
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateTenant:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 租户名称
+          minLength: 2
+        code:
+          type: string
+          description: 租户编码（字母数字）
+        admin_mode:
+          type: string
+          description: 管理员账号模式（new=新建用户，existing=选择现有用户）
+          enum:
+            - new
+            - existing
+        admin_user_id:
+          type: string
+          description: 选择现有用户时的用户ID（admin_mode=existing）
+        admin_username:
+          type: string
+          description: 租户管理员用户名（admin_mode=new）
+        admin_password:
+          type: string
+          description: 租户管理员初始密码（admin_mode=new）
+        remark:
+          type: string
+          description: 备注
+      required:
+        - name
+        - code
+        - admin_mode
+
+    UpdateTenant:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 租户名称
+        status:
+          type: boolean
+          description: 是否启用
+        remark:
+          type: string
+          description: 备注
+      required:
+        - name
+
+    TenantList:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/Pagination'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenant'
+      required:
+        - meta
+        - data
+
+    TenantOption:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 租户ID
+        name:
+          type: string
+          description: 租户名称
+        code:
+          type: string
+          description: 租户编码
+
+    AssignableUser:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        nickname:
+          type: string
+          description: 昵称
+        email:
+          type: string
+          description: 邮箱
+        tenant_id:
+          type: string
+          description: 当前归属租户ID
+
+    AssignTenantUsers:
+      type: object
+      properties:
+        user_ids:
+          type: array
+          items:
+            type: string
+          description: 要分配的现有用户ID列表
+      required:
+        - user_ids
+
+    AvailableTenants:
+      type: object
+      properties:
+        mode:
+          type: string
+          description: 租户模式（single/multi）
+        tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantOption'
+      required:
+        - mode
+        - tenants
+
 paths:
   /auth/public_key:
     get:
@@ -1237,8 +1476,82 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Token"
-          description: "登录成功"
+                $ref: "#/components/schemas/LoginResult"
+          description: "登录成功（单个租户直接返回 token；多个租户时返回 requires_tenant_selection）"
+
+  /auth/select_tenant:
+    post:
+      summary: 多租户登录选择租户
+      operationId: selectTenant
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectTenantRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+          description: "选择成功，返回目标租户 token"
+
+  /auth/switch_tenant:
+    post:
+      summary: 登录后切换租户
+      operationId: switchTenant
+      tags:
+        - auth
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SwitchTenantRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+          description: "切换成功，返回新租户 token"
+
+  /auth/my_tenants:
+    get:
+      summary: 我的可用租户列表（租户切换器）
+      operationId: myTenants
+      tags:
+        - auth
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TenantOption"
+          description: "当前账号可进入的启用租户列表"
+
+  /auth/tenants:
+    get:
+      summary: 可用租户列表（兼容保留）
+      operationId: availableTenants
+      tags:
+        - auth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailableTenants"
+          description: "获取成功"
 
   /auth/code_with_email:
     get:
@@ -1447,6 +1760,181 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SysInfo"
+
+  /system/tenants:
+    post:
+      summary: 创建租户
+      operationId: createTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTenant"
+      responses:
+        "201":
+          description: "创建成功"
+    get:
+      summary: 获取租户列表
+      operationId: findTenants
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: code
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantList"
+          description: "获取成功"
+
+  /system/tenants/assignable_admins:
+    get:
+      summary: 获取可被选作租户管理员的现有用户列表
+      operationId: listAssignableAdmins
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignableUser"
+          description: "获取成功"
+
+  /system/tenants/{id}:
+    get:
+      summary: 获取租户详情
+      operationId: findTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+          description: "获取成功"
+    put:
+      summary: 更新租户
+      operationId: updateTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenant"
+      responses:
+        "204":
+          description: "更新成功"
+    delete:
+      summary: 删除租户
+      operationId: deleteTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "删除成功"
+
+  /system/tenants/{id}/assignable_users:
+    get:
+      summary: 获取可分配给租户的现有用户列表
+      operationId: listAssignableUsers
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignableUser"
+          description: "获取成功"
+
+  /system/tenants/{id}/users:
+    post:
+      summary: 分配现有用户到租户
+      operationId: assignTenantUsers
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignTenantUsers"
+      responses:
+        "204":
+          description: "分配成功"
 
   /system/logs:
     get:
@@ -1960,6 +2448,30 @@ paths:
           description: "获取成功"
       
 
+  /system/users/check_username:
+    get:
+      summary: 检查用户名是否已存在
+      operationId: checkUsername
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "获取成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
   /system/users/{id}/reset_password:
     put:
       summary: 重置用户密码
@@ -1983,6 +2495,54 @@ paths:
       responses:
         "204":
           description: "重置成功"
+
+  /system/users/{id}/tenant:
+    patch:
+      summary: 分配用户到租户（复制到目标租户，仅平台超级管理员）
+      operationId: assignUserTenant
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignUserTenant"
+      responses:
+        "204":
+          description: "分配成功"
+
+  /system/users/{id}/assignable_tenants:
+    get:
+      summary: 获取用户可分配的候选租户列表（仅平台超级管理员）
+      operationId: listAssignableTenants
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignableTenant"
+          description: "获取成功"
 
   /user/bind_email_code:
     get:

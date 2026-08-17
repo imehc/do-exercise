@@ -23,4 +23,5 @@ type UserMenu struct {
 	Type       uint8   `json:"type"`
 	Route      string  `json:"route,omitzero"`
 	Component  string  `json:"component,omitzero"`
+	Sort       uint    `json:"sort"`
 }

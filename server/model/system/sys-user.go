@@ -8,15 +8,21 @@ import (
 
 type SysUser struct {
 	UserId   string    `json:"id" gorm:"primarykey;column:id;type:varchar(32);comment:主键"`
-	Username string    `json:"username" gorm:"not null;size:16;uniqueIndex:idx_sys_user_username,where:deleted_at IS NULL;comment:用户名"`
+	Username string    `json:"username" gorm:"not null;size:16;uniqueIndex:idx_sys_user_username_tenant,priority:1,where:deleted_at IS NULL;comment:用户名"`
 	Nickname string    `json:"nickname" gorm:"comment:昵称"`
-	Email    string    `json:"email" gorm:"uniqueIndex:idx_sys_user_email,where:deleted_at IS NULL;comment:邮箱"`
+	// Email 邮箱唯一索引为条件索引（email <> ''），空邮箱不参与唯一性校验，
+	// 从而同一租户下可存在多个空邮箱用户。
+	Email string `json:"email" gorm:"uniqueIndex:idx_sys_user_email_tenant,priority:1,where:deleted_at IS NULL AND email <> '';comment:邮箱"`
 	Avatar   string    `json:"avatar" gorm:"comment:头像"`
 	Password string    `json:"-" gorm:"not null;comment:密码"`
+	TenantId string    `json:"tenant_id" gorm:"column:tenant_id;type:varchar(32);not null;default:'';index;comment:租户ID;uniqueIndex:idx_sys_user_username_tenant,priority:2;uniqueIndex:idx_sys_user_email_tenant,priority:2"`
 	Roles    []SysRole `json:"roles" gorm:"many2many:sys_user_role;comment:用户角色"`
 	// MustChangePassword 标记账号是否需要在下次登录时强制修改密码。
 	// 用于默认管理员口令的强制轮换：播种的默认口令是公开的，首次登录后必须改密。
 	MustChangePassword bool `json:"must_change_password" gorm:"column:must_change_password;type:boolean;default:false;comment:是否需要在下次登录时强制修改密码"`
+	// IsSuperAdmin 平台超级管理员标识（仅平台域 tenant_id=platform 的账号有效）。
+	// 超管身份由标识决定而非账号名，改名/换账号只要标识为真即可，逻辑不依赖具体用户名。
+	IsSuperAdmin bool `json:"is_super_admin" gorm:"column:is_super_admin;type:boolean;default:false;comment:是否平台超级管理员"`
 	model.ControlWrapper
 }
 

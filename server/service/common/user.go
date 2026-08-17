@@ -21,7 +21,13 @@ type UserService struct{}
 // 通过邮箱查询用户
 func (u *UserService) FindUserByEmail(db *gorm.DB, email string) (*system.SysUser, error) {
 	var user *system.SysUser
-	error := db.
+	query := db
+	// 邮箱登录/找回密码等公共端点无租户上下文；多租户模式限定默认租户，
+	// 避免同一邮箱跨租户命中歧义（阶段一限制：仅默认租户支持邮箱流程）
+	if global.Config.Tenant.IsMulti() {
+		query = query.Where("tenant_id = ?", global.Config.Tenant.DefaultTenantId)
+	}
+	error := query.
 		Where("email = ?", email).
 		First(&user).
 		Error
@@ -150,8 +156,16 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 
 	// 构建菜单map，避免重复查询
 	menuMap := make(map[uint]system.SysMenu)
-	for _, menu := range menus {
-		menuMap[menu.Id] = menu
+	if user.IsSuperAdmin {
+		// 平台超级管理员：由 is_super_admin 标识直接授予全部菜单（含平台独有租户管理子树），
+		// 不依赖角色绑定，账号改名/换账号不影响权限；Casbin 中间件对平台超管同样直接放行。
+		for id, m := range allMenus {
+			menuMap[id] = m
+		}
+	} else {
+		for _, menu := range menus {
+			menuMap[menu.Id] = menu
+		}
 	}
 
 	// 递归向上查找父菜单：直接从内存索引取，不再逐级打数据库
@@ -189,11 +203,18 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 			Type:       menu.Type,
 			Route:      menu.Route,
 			Component:  menu.Component,
+			Sort:       menu.Sort,
 		})
 	}
 
-	// 按照 ID 升序排序
+	// 按照 Sort 升序排序，Sort 相同再按 ID 升序，与菜单树排序规则保持一致
 	slices.SortFunc(userMenus, func(a, b response.UserMenu) int {
+		if a.Sort != b.Sort {
+			if a.Sort < b.Sort {
+				return -1
+			}
+			return 1
+		}
 		if a.Id < b.Id {
 			return -1
 		} else if a.Id > b.Id {

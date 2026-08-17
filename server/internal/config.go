@@ -62,6 +62,14 @@ func InitConfig(configFile string) {
 		util.Exit("配置映射失败: ", err)
 	}
 
+	// 租户配置归一化：缺省时单租户模式，默认租户兜底为 "default"
+	if global.Config.Tenant.Mode == "" {
+		global.Config.Tenant.Mode = global.TenantModeSingle
+	}
+	if global.Config.Tenant.DefaultTenantId == "" {
+		global.Config.Tenant.DefaultTenantId = "default"
+	}
+
 	// 启动时一次性解析并校验 token 时长配置，避免请求期解析失败时生成 0 TTL 的永久 token。
 	util.InitAuthDurations(global.Config.Auth.AccessExpireTime, global.Config.Auth.RefreshExpireTime)
 

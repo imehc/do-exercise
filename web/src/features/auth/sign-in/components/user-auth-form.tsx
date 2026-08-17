@@ -1,5 +1,4 @@
-import { HTMLAttributes, useEffect } from 'react'
-import { addSeconds } from 'date-fns'
+import { HTMLAttributes, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -9,9 +8,15 @@ import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { originTokenAtom } from '~/atoms'
-import { AuthApi, LoginRequest } from '~/do-exercise-api'
+import {
+  AuthApi,
+  LoginRequest,
+  LoginResult,
+  TenantOption,
+} from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
 import { encryptPassword } from '~/utils/encrypt'
+import { applyToken } from '~/lib/token'
 import { useApi } from '~/hooks/use-api'
 import { useChan } from '~/hooks/use-chan'
 import { usePublicKey } from '~/hooks/use-public-key'
@@ -26,6 +31,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { PasswordInput } from '~/components/password-input'
+import { TenantSelectDialog } from './tenant-select-dialog'
 import {
   getSignInActionSchema,
   SignInActionFormValues,
@@ -46,6 +52,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         captchaId: '',
         captcha: '',
         publicKey: '',
+        tenantId: '',
       },
     })
   )
@@ -76,27 +83,58 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     }
   }, [captchaData, form, publicKeyData])
 
+  // 多租户登录：账号归属多个启用租户时，登录接口返回 requires_tenant_selection，
+  // 暂存会话信息并弹出租户选择框，选定后经 select_tenant 完成登录。
+  const [tenantSelection, setTenantSelection] = useState<{
+    loginSessionId: string
+    tenants: TenantOption[]
+  } | null>(null)
+
+  const applyLoginResult = (data: LoginResult) => {
+    setToken(applyToken(data))
+    // 默认口令强制轮换——首次登录成功后强制跳转到改密页
+    window.location.href = data.mustChangePassword
+      ? '/settings/password'
+      : '/'
+  }
+
   const { mutate: login, isPending: loginIsPending } = useMutation({
     mutationFn: (value: LoginRequest) => authApi.login(value),
     onSuccess: (data) => {
-      setToken({
-        ...data,
-        expireTime: addSeconds(new Date(), data.expireTime).getTime(),
-        refreshExpireTime: addSeconds(
-          new Date(),
-          data.refreshExpireTime
-        ).getTime(),
-      })
-      // 默认口令强制轮换——首次登录成功后强制跳转到改密页
-      window.location.href = data.mustChangePassword
-        ? '/settings/password'
-        : '/'
+      if (data.requiresTenantSelection) {
+        setTenantSelection({
+          loginSessionId: data.loginSessionId ?? '',
+          tenants: data.availableTenants,
+        })
+        return
+      }
+      applyLoginResult(data)
     },
     onError: () => {
       refetchPublicKey()
       refetchCaptcha()
     },
   })
+
+  const { mutate: selectTenant, isPending: selectTenantIsPending } =
+    useMutation({
+      mutationFn: (tenant: TenantOption) =>
+        authApi.selectTenant({
+          selectTenantRequest: {
+            loginSessionId: tenantSelection?.loginSessionId ?? '',
+            tenantId: tenant.tenantId ?? '',
+          },
+        }),
+      onSuccess: (data) => {
+        setTenantSelection(null)
+        applyLoginResult(data)
+      },
+      onError: () => {
+        setTenantSelection(null)
+        refetchPublicKey()
+        refetchCaptcha()
+      },
+    })
 
   function onSubmit(data: SignInActionFormValues) {
     if (!publicKeyData) return
@@ -118,27 +156,28 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     publicKeyDataIsLoading || captchaDataIsLoading || loginIsPending
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-3', className)}
-        {...props}
-      >
-        <FormField
-          control={form.control}
-          name='username'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <Trans>用户名</Trans>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder={t`请输入用户名`} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={cn('grid gap-3', className)}
+          {...props}
+        >
+          <FormField
+            control={form.control}
+            name='username'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>用户名</Trans>
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder={t`请输入用户名`} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         <FormField
           control={form.control}
           name='password'
@@ -240,6 +279,13 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           </Button> */}
         </div>
       </form>
-    </Form>
+      </Form>
+      <TenantSelectDialog
+        open={!!tenantSelection}
+        tenants={tenantSelection?.tenants ?? []}
+        isPending={selectTenantIsPending}
+        onSelect={selectTenant}
+      />
+    </>
   )
 }

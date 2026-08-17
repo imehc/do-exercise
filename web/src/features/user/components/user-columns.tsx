@@ -1,7 +1,7 @@
 import { ColumnDef, CellContext } from '@tanstack/react-table'
 import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
-import { languageAtom } from '~/atoms'
+import { languageAtom, originTokenAtom } from '~/atoms'
 import { SysUser } from '~/do-exercise-api'
 import {
   basicMoreOptions,
@@ -19,6 +19,7 @@ import {
 } from '~/components/other/data-table/column-utils'
 import { DataTableFeatures } from '~/components/other/data-table/features'
 import { ResetPassword } from './user-reset-password-dialog'
+import { AssignTenant } from './user-assign-tenant-dialog'
 
 const columnTitleMap = {
   id: (): string => t`序号`,
@@ -36,6 +37,8 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = (): ColumnDef<DataTableFeatures, SysUser>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
+  // 当前操作者是否为平台超级管理员（超管才能在用户列表执行「分配租户」）
+  const isSuperAdmin = !!useAtomValue(originTokenAtom).isSuperAdmin
   const hasMore = (
     [...basicMoreOptions, 'reset'] satisfies PermissionType[]
   ).some((p) => permissions.includes(p))
@@ -109,9 +112,12 @@ export const useColumns = (): ColumnDef<DataTableFeatures, SysUser>[] => {
               showInfo={permissions.some((p) => p === 'info')}
             >
               {(user) => (
-                <WithPermission permission='reset'>
-                  <ResetPassword currentRow={user} />
-                </WithPermission>
+                <>
+                  <WithPermission permission='reset'>
+                    <ResetPassword currentRow={user} />
+                  </WithPermission>
+                  {isSuperAdmin && <AssignTenant currentRow={user} />}
+                </>
               )}
             </DataTableRowActions>
           ))

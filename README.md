@@ -144,7 +144,7 @@ make dev       # air 热重载；或用 go run main.go 直接运行
 
 ## 默认管理员账户
 
-- 用户名：`admin`
+- 用户名：`superAdmin`
 - 密码：`@admin2025`
 
 请在首次登录后及时修改默认管理员密码以确保安全。

@@ -68,7 +68,7 @@
     "react": "^19.2.8",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.8",
-    "react-hook-form": "^7.84.0",
+    "react-hook-form": "^7.85.0",
     "react-scan": "^0.5.7",
     "react-syntax-highlighter": "^16.1.1",
     "react-top-loading-bar": "^3.0.2",

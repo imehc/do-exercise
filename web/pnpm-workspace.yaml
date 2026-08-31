@@ -1,3 +1,7 @@
+# 关闭 pnpm 的 minimumReleaseAge（新包最小发布年龄）限制，
+# 避免 Dependabot 升级到刚发布的依赖时被 pnpm 11 默认策略拦截导致 CI 失败。
+minimumReleaseAge: 0
+
 allowBuilds:
   '@nestjs/core': true
   '@openapitools/openapi-generator-cli': true

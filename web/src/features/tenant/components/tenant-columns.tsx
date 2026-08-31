@@ -2,19 +2,20 @@ import { ColumnDef, CellContext } from '@tanstack/react-table'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
-import { languageAtom } from '~/atoms'
+import { languageAtom, originTokenAtom } from '~/atoms'
 import { Tenant } from '~/do-exercise-api'
 import { basicMoreOptions, usePermissions } from '~/provider'
-import { DataTableRowActions } from '~/components/other'
 import { Badge } from '~/components/ui/badge'
-import { TenantToggleStatusSwitch } from './tenant-toggle-status-switch'
-import { TenantAssignUserButton } from './tenant-assign-user-button'
+import { DataTableRowActions } from '~/components/other'
 import {
   createColumn,
   createDateColumn,
   createActionColumn,
 } from '~/components/other/data-table/column-utils'
 import { DataTableFeatures } from '~/components/other/data-table/features'
+import { TenantAssignUserButton } from './tenant-assign-user-button'
+import { TenantMembersButton } from './tenant-members-button'
+import { TenantToggleStatusSwitch } from './tenant-toggle-status-switch'
 
 const columnTitleMap = {
   id: (): string => t`序号`,
@@ -38,6 +39,10 @@ export const useColumns = (
   // 仅剩一个租户时不允许删除，避免平台无可用租户
   const canDelete = permissions.some((p) => p === 'delete') && (total ?? 1) > 1
   const canAssign = permissions.some((p) => p === 'update')
+  const isSuperAdmin = !!useAtomValue(originTokenAtom).isSuperAdmin
+  // 成员管理复用用户接口的 tenant_id 筛选，该参数只对平台超级管理员生效，
+  // 非超管点进去只会看到自己租户的数据，因此入口也只对超管开放。
+  const canManageMembers = canAssign && isSuperAdmin
 
   return [
     {
@@ -56,7 +61,7 @@ export const useColumns = (
       key: 'name',
       title: columnTitleMap.name,
       cell: ({ row }: CellContext<DataTableFeatures, Tenant, unknown>) => (
-        <div className='w-fit text-nowrap font-medium'>{row.original.name}</div>
+        <div className='w-fit font-medium text-nowrap'>{row.original.name}</div>
       ),
     }),
     createColumn<Tenant>({
@@ -106,6 +111,9 @@ export const useColumns = (
               showEdit={permissions.some((p) => p === 'update')}
               showDelete={canDelete}
             >
+              {canManageMembers && (
+                <TenantMembersButton tenant={row.original} />
+              )}
               {canAssign && <TenantAssignUserButton tenant={row.original} />}
             </DataTableRowActions>
           ))

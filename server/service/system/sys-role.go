@@ -2,6 +2,7 @@ package system
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
@@ -25,6 +26,16 @@ type SysRoleService struct{}
 func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds []uint) ([]system.SysMenu, error) {
 	var menus []system.SysMenu
 	if len(menuIds) > 0 {
+		// 平台专属菜单（租户管理子树）不在租户的授权范围内。
+		// 不过滤的话，租户管理员只要提交这些 ID 就能给自己造出一个有租户管理权限的角色，
+		// 直接越过平台授权边界，因此这里必须拒绝而不是静默丢弃。
+		if tenantRestricted(tx) {
+			for _, id := range menuIds {
+				if slices.Contains(global.PlatformOnlyMenuIDs, id) {
+					return nil, errors.New("menuPlatformOnly")
+				}
+			}
+		}
 		// 一次查出菜单及其绑定的 API（此前分两次查询同一批行，第二次只为补 Apis）
 		if err := tx.Preload("Apis").Where("id IN ?", menuIds).Find(&menus).Error; err != nil {
 			return nil, errors.New("allMenusNotFound")
@@ -185,6 +196,11 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 	if err != nil {
 		return err
 	}
+	// 「租户管理员」是创建租户时由平台供应的内建角色，一旦被租户自己删掉，
+	// 该租户将失去管理入口且无法自行恢复，因此对受限调用者一律拒绝。
+	if isTenantAdminRole(existRole) && tenantRestricted(db) {
+		return errors.New("tenantAdminRoleReadonly")
+	}
 
 	tx := db.Begin()
 	defer func() {
@@ -236,6 +252,11 @@ func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleR
 	role, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return err
+	}
+	// 「租户管理员」的菜单集合决定了该租户的权限上限，只能由平台超级管理员调整；
+	// 否则租户管理员可以给自己加上任意菜单（含平台专属），越过平台的授权边界。
+	if isTenantAdminRole(role) && tenantRestricted(db) {
+		return errors.New("tenantAdminRoleReadonly")
 	}
 	role.Name = req.Name
 
@@ -370,10 +391,15 @@ func (s *SysRoleService) GetList(db *gorm.DB, req request.QuerySysRoleReq) (comm
 	return result, nil
 }
 
-// GetAll 获取所有角色
-func (s *SysRoleService) GetAll(db *gorm.DB) ([]response.SysRoleShortResp, error) {
+// GetAll 获取所有角色。
+// tenantId 仅平台超级管理员可用（租户成员管理需要列出目标租户的角色）；
+// 受限调用者传入该参数会被忽略，可见范围始终由租户插件锁定在自己的租户。
+func (s *SysRoleService) GetAll(db *gorm.DB, tenantId string) ([]response.SysRoleShortResp, error) {
 	var roles []system.SysRole
 	db = db.Model(&system.SysRole{})
+	if tenantId != "" && isSuperAdmin(db) {
+		db = db.Where("tenant_id = ?", tenantId)
+	}
 	err := db.
 		Order("id ASC").
 		Find(&roles).
@@ -384,7 +410,7 @@ func (s *SysRoleService) GetAll(db *gorm.DB) ([]response.SysRoleShortResp, error
 
 	// 租户管理员（非超管）创建/编辑用户分配角色时，
 	// 过滤掉「租户管理员」角色，仅展示该租户自己创建的低权限角色。
-	if !s.isCurrentUserSuperAdmin(db) {
+	if !isSuperAdmin(db) {
 		roles = lo.Filter(roles, func(role system.SysRole, _ int) bool {
 			return role.Code != TenantAdminRoleCode
 		})
@@ -397,18 +423,4 @@ func (s *SysRoleService) GetAll(db *gorm.DB) ([]response.SysRoleShortResp, error
 			Name: role.Name,
 		}
 	}), nil
-}
-
-// isCurrentUserSuperAdmin 判断当前操作者是否为平台超级管理员。
-// 租户管理员分配角色时需过滤「租户管理员」角色，平台超级管理员无需过滤。
-func (s *SysRoleService) isCurrentUserSuperAdmin(db *gorm.DB) bool {
-	userId := model.CurrentUserID(db)
-	if userId == "" {
-		return false
-	}
-	var user system.SysUser
-	if err := db.Select("is_super_admin").Where("id = ?", userId).First(&user).Error; err != nil {
-		return false
-	}
-	return user.IsSuperAdmin
 }

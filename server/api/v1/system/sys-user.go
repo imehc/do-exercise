@@ -96,14 +96,22 @@ func (s *SysUserApi) UsernameExists(ctx *gin.Context) {
 	response.Success(ctx, gin.H{"exists": exists})
 }
 
-// GetList 获取用户列表
+// GetList 获取用户列表。
+// tenant_id 是平台超级管理员专用的筛选参数（租户成员管理复用本接口）。
+// 只有确认调用者是超管才切到绕过隔离的 DB —— 否则受限调用者只要带上该参数
+// 就会拿到一个不受租户插件约束的连接，直接看到全平台用户。
 func (s *SysUserApi) GetList(ctx *gin.Context) {
 	var req common.Pagination
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.Error(err)
 		return
 	}
-	data, err := userService.GetList(util.DB(ctx), req)
+	tenantId := ctx.Query("tenant_id")
+	db := util.DB(ctx)
+	if tenantId != "" && ctx.GetBool("isSuperAdmin") {
+		db = util.BypassTenantDB(ctx)
+	}
+	data, err := userService.GetList(db, req, tenantId)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

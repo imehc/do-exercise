@@ -1,9 +1,10 @@
 import { ColumnDef, CellContext } from '@tanstack/react-table'
 import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
-import { languageAtom } from '~/atoms'
+import { languageAtom, originTokenAtom } from '~/atoms'
 import { SysOperationLog } from '~/do-exercise-api'
 import { usePermissions, WithPermission } from '~/provider'
+import { formatTenant } from '~/utils/tenant'
 import { DataTableRowActions, Status } from '~/components/other'
 import {
   createColumn,
@@ -20,6 +21,7 @@ import { OperationLogViewDialog } from './operation-log-view-dialog'
 const columnTitleMap = {
   id: (): string => t`序号`,
   username: (): string => t`请求用户`,
+  tenantId: (): string => t`所属租户`,
   ip: (): string => t`IP地址`,
   address: (): string => t`IP属地`,
   os: (): string => t`系统`,
@@ -48,6 +50,9 @@ export const useColumns = (): ColumnDef<
 >[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
+  // 超管的日志列表跨租户，需要一列标明操作来源；受限管理员被行级隔离锁在本租户，
+  // 该列恒为同一个值。
+  const isSuperAdmin = !!useAtomValue(originTokenAtom).isSuperAdmin
   const hasMore = permissions.some((p) => p === 'info')
   return [
     {
@@ -71,6 +76,21 @@ export const useColumns = (): ColumnDef<
         <div className='w-fit text-nowrap'>{row.original.username || '-'}</div>
       ),
     }),
+    ...(isSuperAdmin
+      ? [
+          createColumn<SysOperationLog>({
+            key: 'tenantId',
+            title: columnTitleMap.tenantId,
+            cell: ({
+              row,
+            }: CellContext<DataTableFeatures, SysOperationLog, unknown>) => (
+              <div className='w-fit text-nowrap'>
+                {formatTenant(row.original.tenantId)}
+              </div>
+            ),
+          }),
+        ]
+      : []),
     createColumn<SysOperationLog>({
       key: 'ip',
       title: columnTitleMap.ip,

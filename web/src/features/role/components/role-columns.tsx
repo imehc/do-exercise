@@ -1,9 +1,10 @@
 import { ColumnDef, CellContext } from '@tanstack/react-table'
 import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
-import { languageAtom } from '~/atoms'
+import { languageAtom, originTokenAtom } from '~/atoms'
 import { SysRole } from '~/do-exercise-api'
 import { basicMoreOptions, usePermissions } from '~/provider'
+import { TENANT_ADMIN_ROLE_CODE } from '~/utils/tenant'
 import { DataTableRowActions } from '~/components/other'
 import {
   createActionColumn,
@@ -26,6 +27,10 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = (): ColumnDef<DataTableFeatures, SysRole>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
+  // 租户管理员角色由平台统一维护：租户侧只能查看（详情仍开放），
+  // 改名、改菜单、删除都只有平台超级管理员可以做，服务端同样拦截
+  // （tenantAdminRoleReadonly），这里只是不摆出注定失败的入口。
+  const isSuperAdmin = !!useAtomValue(originTokenAtom).isSuperAdmin
   const hasMore = basicMoreOptions.some((p) => permissions.includes(p))
 
   return [
@@ -59,14 +64,20 @@ export const useColumns = (): ColumnDef<DataTableFeatures, SysRole>[] => {
     createDateColumn<SysRole>('updatedAt', columnTitleMap.updatedAt),
     ...[
       hasMore
-        ? createActionColumn<SysRole>(({ row }) => (
-            <DataTableRowActions
-              row={row}
-              showEdit={permissions.some((p) => p === 'update')}
-              showDelete={permissions.some((p) => p === 'delete')}
-              showInfo={permissions.some((p) => p === 'info')}
-            />
-          ))
+        ? createActionColumn<SysRole>(({ row }) => {
+            const readonly =
+              !isSuperAdmin && row.original.code === TENANT_ADMIN_ROLE_CODE
+            return (
+              <DataTableRowActions
+                row={row}
+                showEdit={!readonly && permissions.some((p) => p === 'update')}
+                showDelete={
+                  !readonly && permissions.some((p) => p === 'delete')
+                }
+                showInfo={permissions.some((p) => p === 'info')}
+              />
+            )
+          })
         : [],
     ].flat(),
   ]

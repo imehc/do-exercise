@@ -16,6 +16,11 @@ type SysApiService struct{}
 
 // Update 更新api
 func (s *SysApiService) Update(db *gorm.DB, id uint, req request.UpdateSysApiReq) error {
+	// sys_api 与 sys_menu 一样是全租户共享的定义表，禁用/改描述会影响所有租户，
+	// 多租户模式下写操作收归平台超级管理员；单租户模式行为不变。
+	if tenantRestricted(db) {
+		return errors.New("apiReadonlyForTenant")
+	}
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
 	err := db.
@@ -41,11 +46,11 @@ func (s *SysApiService) Update(db *gorm.DB, id uint, req request.UpdateSysApiReq
 	return nil
 }
 
-// Get 查询单个api
+// Get 查询单个api（按调用者的租户可见范围裁剪）
 func (s *SysApiService) Get(db *gorm.DB, id uint) (*response.SysApiResp, error) {
 	// 先检查api是否存在
 	existApi := &system.SysApi{}
-	err := db.
+	err := scopeTenantVisibleApis(db).
 		Where("id = ?", id).
 		First(existApi).
 		Error
@@ -65,18 +70,18 @@ func (s *SysApiService) Get(db *gorm.DB, id uint) (*response.SysApiResp, error) 
 	}, nil
 }
 
-// GetList 查询api列表
+// GetList 查询api列表（按调用者的租户可见范围裁剪）
 func (s *SysApiService) GetList(db *gorm.DB, req common.Pagination) (*common.PageResult[response.SysApiResp], error) {
 	var apis []system.SysApi
 	var total int64
 
-	// Count 用独立 builder，避免污染后续 Find 的状态
-	countDB := db.Model(&system.SysApi{})
+	// Count 用独立 builder，避免污染后续 Find 的状态；可见范围条件两处各加一次
+	countDB := scopeTenantVisibleApis(db).Model(&system.SysApi{})
 	if err := countDB.Count(&total).Error; err != nil {
 		return nil, errors.New("getApiListFailed")
 	}
 	req.Normalize()
-	err := db.Model(&system.SysApi{}).
+	err := scopeTenantVisibleApis(db).Model(&system.SysApi{}).
 		Scopes(util.Paginate(req.PageSize, req.Page)).
 		Order("disabled ASC").
 		Order("sort DESC").
@@ -108,10 +113,10 @@ func (s *SysApiService) GetList(db *gorm.DB, req common.Pagination) (*common.Pag
 	}, nil
 }
 
-// GetAll 查询所有api
+// GetAll 查询所有api（按调用者的租户可见范围裁剪）
 func (s *SysApiService) GetAll(db *gorm.DB) ([]response.SysApiResp, error) {
 	var apis []system.SysApi
-	err := db.
+	err := scopeTenantVisibleApis(db).
 		Order("disabled ASC").
 		Order("sort DESC").
 		Order("id ASC").
@@ -135,10 +140,10 @@ func (s *SysApiService) GetAll(db *gorm.DB) ([]response.SysApiResp, error) {
 	}), nil
 }
 
-// GroupType 查询api分组类型
+// GroupType 查询api分组类型（按调用者的租户可见范围裁剪）
 func (s *SysApiService) GroupType(db *gorm.DB) ([]string, error) {
 	var groups []string
-	err := db.
+	err := scopeTenantVisibleApis(db).
 		Model(&system.SysApi{}).
 		Select("COALESCE(\"group\", 'Default') as group").
 		Distinct().

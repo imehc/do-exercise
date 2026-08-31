@@ -20,8 +20,28 @@ import (
 
 type SysTokenService struct{}
 
-// FindAll 获取所有token列表
-func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
+// TokenScope 描述令牌管理请求的可见范围。
+// 会话保存在 Redis 里，不经过 GORM，租户插件管不到，必须在服务层按
+// TokenInfo.TenantId 自行裁剪。
+type TokenScope struct {
+	// TenantId 调用者所属租户
+	TenantId string
+	// IsSuperAdmin 平台超级管理员看全部租户的会话
+	IsSuperAdmin bool
+}
+
+// visible 判断某个会话是否在当前调用者的可见范围内。
+// 超管不受限；其余人只能看到与自己同租户的会话。
+// 单租户模式下所有会话的 TenantId 一致，判定自然恒真。
+func (s TokenScope) visible(tenantId string) bool {
+	if s.IsSuperAdmin {
+		return true
+	}
+	return tenantId == s.TenantId
+}
+
+// FindAll 获取令牌列表（按调用者的租户可见范围裁剪）
+func (s *SysTokenService) FindAll(scope TokenScope) ([]response.SysTokenLogRsp, error) {
 	ctx := context.Background()
 	log := global.Log
 	rdb := global.Redis
@@ -89,6 +109,11 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 			continue
 		}
 
+		// 跨租户会话直接丢弃，不进入后续 refresh token 查询与响应
+		if !scope.visible(info.TenantId) {
+			continue
+		}
+
 		result[accessTokenKeys[i]] = info
 		// 收集refreshToken keys
 		refreshTokenKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, info.RefreshToken)
@@ -141,6 +166,7 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 
 		return response.SysTokenLogRsp{
 			UserId:              entry.Value.UserId,
+			TenantId:            entry.Value.TenantId,
 			Username:            entry.Value.Username,
 			AccessToken:         strings.TrimPrefix(entry.Key, util.PrefixAccessToken),
 			RefreshToken:        entry.Value.RefreshToken,
@@ -171,8 +197,8 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 	return tokens, nil
 }
 
-// Delete 删除token
-func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
+// Delete 删除token（仅限调用者可见范围内的会话）
+func (s *SysTokenService) Delete(req request.SysTokenDeleteReq, scope TokenScope) error {
 	ctx := context.Background()
 	rdb := global.Redis
 	log := global.Log
@@ -189,6 +215,12 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 			return errors.New("accessTokenNotExist")
 		}
 		return errors.New("getFailed")
+	}
+
+	// 越权防护：令牌 ID 是随机 UUID，但列表接口之外仍可能被猜测/横传，
+	// 跨租户一律按「不存在」处理，既拒绝操作也不泄露该令牌是否存在。
+	if !scope.visible(tokenData.TenantId) {
+		return errors.New("accessTokenNotExist")
 	}
 
 	err = deleteWithTransaction(
@@ -222,8 +254,8 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 	return nil
 }
 
-// ModityStatus 修改token状态
-func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) error {
+// ModityStatus 修改token状态（仅限调用者可见范围内的会话）
+func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq, scope TokenScope) error {
 	ctx := context.Background()
 	rdb := global.Redis
 	log := global.Log
@@ -240,6 +272,11 @@ func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) erro
 			return errors.New("accessTokenNotExist")
 		}
 		return errors.New("getFailed")
+	}
+
+	// 越权防护：跨租户会话按「不存在」处理，理由同 Delete
+	if !scope.visible(tokenData.TenantId) {
+		return errors.New("accessTokenNotExist")
 	}
 
 	rKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, tokenData.RefreshToken)

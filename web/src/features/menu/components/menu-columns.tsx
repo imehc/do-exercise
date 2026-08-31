@@ -6,6 +6,7 @@ import { languageAtom } from '~/atoms'
 import { MenuType, SysMenuTree } from '~/do-exercise-api'
 import { basicMoreOptions, usePermissions } from '~/provider'
 import { toIconComponent } from '~/utils/icon'
+import { usePlatformResourceReadonly } from '~/hooks/use-tenant'
 import { Button } from '~/components/ui/button'
 import { DataTableRowActions } from '~/components/other'
 import {
@@ -39,6 +40,8 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = () => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
+  // sys_menu 是全平台共享表，租户侧只读：详情可看，增删改一律由平台超管操作
+  const readonly = usePlatformResourceReadonly()
   const hasMore = basicMoreOptions.some((p) => permissions.includes(p))
 
   return [
@@ -141,10 +144,10 @@ export const useColumns = () => {
         ? createActionColumn<SysMenuTree>(({ row }) => (
             <DataTableRowActions
               row={row}
-              showEdit={permissions.some((p) => p === 'update')}
-              showDelete={permissions.some((p) => p === 'delete')}
+              showEdit={!readonly && permissions.some((p) => p === 'update')}
+              showDelete={!readonly && permissions.some((p) => p === 'delete')}
               showInfo={permissions.some((p) => p === 'info')}
-              showAdd={permissions.some((p) => p === 'create')}
+              showAdd={!readonly && permissions.some((p) => p === 'create')}
             />
           ))
         : [],

@@ -3,6 +3,7 @@ import { useFormDialog } from '~/provider'
 import { TenantActionDialog } from './tenant-action-dialog'
 import { TenantAssignUsersDialog } from './tenant-assign-users-dialog'
 import { TenantDeleteDialog } from './tenant-delete-dialog'
+import { TenantMembersDialog } from './tenant-members-dialog'
 
 interface Props {
   refetch(): void
@@ -47,6 +48,20 @@ export function TenantDialogs({ refetch }: Props) {
                 refetch()
               }
               setOpen('assign-users')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
+          />
+          <TenantMembersDialog
+            key={`tenant-members-${currentRow.tenantId}`}
+            open={open === 'tenant-members'}
+            onOpenChange={(_, hasRefresh) => {
+              if (hasRefresh) {
+                refetch()
+              }
+              setOpen('tenant-members')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

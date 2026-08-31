@@ -137,20 +137,6 @@ func (s *SysUserService) UsernameExists(db *gorm.DB, username string) (bool, err
 	return count > 0, nil
 }
 
-// isCurrentUserSuperAdmin 判断当前操作者是否为平台超级管理员。
-// 超管创建用户时允许不选择角色（默认无角色）；非超管必须选择至少一个角色。
-func (s *SysUserService) isCurrentUserSuperAdmin(db *gorm.DB) bool {
-	userId := model.CurrentUserID(db)
-	if userId == "" {
-		return false
-	}
-	var user system.SysUser
-	if err := db.Select("is_super_admin").Where("id = ?", userId).First(&user).Error; err != nil {
-		return false
-	}
-	return user.IsSuperAdmin
-}
-
 // Create 创建用户
 func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*response.SysUserResp, error) {
 	err := s.checkUserNameDuplication(db, req.Username)
@@ -227,6 +213,12 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 // 否则被删用户的 access token 在 TTL 内仍然有效，refresh token 更能持续换发新令牌，
 // 且 casbin_rule 中的 g 规则会永久残留（用户 ID 复用时会泄漏给新用户）。
 func (s *SysUserService) Delete(db *gorm.DB, id string) error {
+	// 删自己会立刻吊销自己的全部会话并解除角色绑定，操作者当场被踢出且无法回滚；
+	// 若删的又是本租户唯一的管理员，该租户就再没有管理入口。一律拒绝。
+	if id == model.CurrentUserID(db) {
+		return errors.New("cannotDeleteSelf")
+	}
+
 	// 先检查用户是否存在
 	user, err := s.checkUserExist(db, id)
 	if err != nil {
@@ -337,13 +329,15 @@ func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, err
 	}
 
 	return &response.SysUserResp{
-		Id:        user.UserId,
-		Username:  user.Username,
-		Nickname:  user.Nickname,
-		Email:     user.Email,
-		Avatar:    user.Avatar,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		Id:         user.UserId,
+		Username:   user.Username,
+		Nickname:   user.Nickname,
+		Email:      user.Email,
+		Avatar:     user.Avatar,
+		TenantId:   user.TenantId,
+		TenantName: tenantNames(db, []string{user.TenantId})[user.TenantId],
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
 		Roles: lo.Map(user.Roles, func(item system.SysRole, index int) response.SysRoleResp {
 			return response.SysRoleResp{
 				Id:   item.Id,
@@ -354,19 +348,54 @@ func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, err
 	}, nil
 }
 
-// GetList 查询用户列表
-func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.PageResult[response.SysUserResp], error) {
+// tenantNames 批量查询租户名称，用于用户列表回填「所属租户」。
+// sys_tenant 是全局目录表、不参与行级隔离，因此这里直接用请求级 DB 即可，
+// 不需要 BypassTenantDB。查不到的租户（已删除或历史脏数据）不入 map，
+// 调用方取到空串后由前端回退展示 tenant_id。
+func tenantNames(db *gorm.DB, tenantIds []string) map[string]string {
+	ids := lo.Filter(lo.Uniq(tenantIds), func(id string, _ int) bool { return id != "" })
+	if len(ids) == 0 {
+		return map[string]string{}
+	}
+	var rows []system.SysTenant
+	if err := db.Session(&gorm.Session{NewDB: true}).
+		Model(&system.SysTenant{}).
+		Select("tenant_id", "name").
+		Where("tenant_id IN ?", ids).
+		Find(&rows).Error; err != nil {
+		// 名称只是展示增强，查不到就退化为只显示 ID，不该让整个列表失败
+		global.Log.Warn("查询租户名称失败", zap.Error(err))
+		return map[string]string{}
+	}
+	return lo.SliceToMap(rows, func(item system.SysTenant) (string, string) {
+		return item.TenantId, item.Name
+	})
+}
+
+// GetList 查询用户列表。
+// tenantId 仅平台超级管理员可用（租户成员管理需要列出指定租户的成员）；
+// 受限调用者传入该参数会被忽略，可见范围始终由租户插件锁定在自己的租户。
+func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination, tenantId string) (common.PageResult[response.SysUserResp], error) {
 	var users []system.SysUser
 	var total int64
 
+	// 按租户筛选只对超管开放；每个 builder 各自加一次条件，避免共享语句状态
+	filterTenant := tenantId != "" && isSuperAdmin(db)
+	scoped := func() *gorm.DB {
+		q := db.Model(&system.SysUser{})
+		if filterTenant {
+			q = q.Where("tenant_id = ?", tenantId)
+		}
+		return q
+	}
+
 	// Count 用独立 builder，避免污染后续 Find 的状态
-	countDB := db.Model(&system.SysUser{})
+	countDB := scoped()
 	if err := countDB.Count(&total).Error; err != nil {
 		return common.PageResult[response.SysUserResp]{}, errors.New("getUserListFailed")
 	}
 	req.Normalize()
-	err := db.
-		Model(&system.SysUser{}).
+	err := scoped().
 		Preload("Roles").
 		Scopes(util.Paginate(req.PageSize, req.Page)).
 		Order("id ASC").
@@ -375,16 +404,21 @@ func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.Pag
 	if err != nil {
 		return common.PageResult[response.SysUserResp]{}, errors.New("getUserListFailed")
 	}
+	names := tenantNames(db, lo.Map(users, func(user system.SysUser, _ int) string {
+		return user.TenantId
+	}))
 	data := make([]response.SysUserResp, len(users))
 	for i, user := range users {
 		data[i] = response.SysUserResp{
-			Id:        user.UserId,
-			Username:  user.Username,
-			Nickname:  user.Nickname,
-			Email:     user.Email,
-			Avatar:    user.Avatar,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+			Id:         user.UserId,
+			Username:   user.Username,
+			Nickname:   user.Nickname,
+			Email:      user.Email,
+			Avatar:     user.Avatar,
+			TenantId:   user.TenantId,
+			TenantName: names[user.TenantId],
+			CreatedAt:  user.CreatedAt,
+			UpdatedAt:  user.UpdatedAt,
 			Roles: lo.Map(user.Roles, func(item system.SysRole, index int) response.SysRoleResp {
 				return response.SysRoleResp{
 					Id:   item.Id,

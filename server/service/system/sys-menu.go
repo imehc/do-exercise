@@ -64,6 +64,11 @@ func (s *SysMenuService) checkMenuExist(db *gorm.DB, menuId uint, isParent bool)
 // Create 创建菜单
 func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*response.SysMenuResp, error) {
 	log := global.Log
+	// sys_menu 是全租户共享的定义表，租户改一行会影响所有租户，因此多租户模式下
+	// 写操作收归平台超级管理员；单租户模式没有共享问题，行为保持不变。
+	if tenantRestricted(db) {
+		return nil, errors.New("menuReadonlyForTenant")
+	}
 	if *req.ParentId != 0 {
 		_, err := s.checkMenuExist(db, *req.ParentId, false)
 		if err != nil {
@@ -140,6 +145,10 @@ func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*res
 
 // Delete 删除菜单
 func (s *SysMenuService) Delete(db *gorm.DB, id uint) error {
+	// 共享定义表，写操作理由同 Create
+	if tenantRestricted(db) {
+		return errors.New("menuReadonlyForTenant")
+	}
 	var menu *system.SysMenu
 	menu, err := s.checkMenuExist(db, id, false)
 	if err != nil {
@@ -157,6 +166,10 @@ func (s *SysMenuService) Delete(db *gorm.DB, id uint) error {
 
 // Update 更新菜单
 func (s *SysMenuService) Update(db *gorm.DB, id uint, req request.UpdateSysMenuReq) error {
+	// 共享定义表，写操作理由同 Create
+	if tenantRestricted(db) {
+		return errors.New("menuReadonlyForTenant")
+	}
 	var menu *system.SysMenu
 	menu, err := s.checkMenuExist(db, id, false)
 	if err != nil {
@@ -212,7 +225,7 @@ func (s *SysMenuService) Update(db *gorm.DB, id uint, req request.UpdateSysMenuR
 func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error) {
 	// 一次查询带出 Apis，不再先查存在性再重查同一行
 	var menu system.SysMenu
-	result := db.
+	result := scopeTenantVisibleMenus(db).
 		Unscoped().
 		Preload("Apis").
 		First(&menu, id)
@@ -252,10 +265,10 @@ func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error
 	}, nil
 }
 
-// GetTree 获取菜单树
+// GetTree 获取菜单树（按调用者的租户可见范围裁剪）
 func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error) {
 	var menus []system.SysMenu
-	if err := db.Find(&menus).Error; err != nil {
+	if err := scopeTenantVisibleMenus(db).Find(&menus).Error; err != nil {
 		return nil, errors.New("getMenuListFailed")
 	}
 

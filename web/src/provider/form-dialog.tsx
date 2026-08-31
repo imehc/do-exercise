@@ -15,6 +15,7 @@ export type DialogType =
   | 'reset'
   | 'assign-users'
   | 'assign-tenant'
+  | 'tenant-members'
 
 type Object = Record<string, unknown>
 

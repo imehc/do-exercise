@@ -306,6 +306,9 @@ components:
         user_id:
           type: string
           format: int64
+        tenant_id:
+          type: string
+          description: 会话所属租户，供平台超级管理员在全量视图里区分来源
         disabled:
           type: boolean
           description: 是否禁用
@@ -334,6 +337,7 @@ components:
       required:
         - username
         - user_id
+        - tenant_id
         - disabled
         - access_token
         - refresh_token
@@ -370,6 +374,9 @@ components:
         username:
           type: string
           description: 请求用户
+        tenant_id:
+          type: string
+          description: 日志所属租户，供平台超级管理员在全量视图里区分来源
         ip:
           type: string
           description: IP地址
@@ -443,6 +450,7 @@ components:
           description: 更新时间
       required:
         - id
+        - tenant_id
         - ip
         - is_internal_ip
         - user_agent
@@ -993,6 +1001,12 @@ components:
              avatar:
                type: string
                description: 头像
+             tenant_id:
+               type: string
+               description: 所属租户ID
+             tenant_name:
+               type: string
+               description: 所属租户名称；平台账号或租户已删除时为空
              roles:
                type: array
                description: 角色ID列表
@@ -1017,6 +1031,8 @@ components:
         - id
         - username
         - nickname
+        - tenant_id
+        - tenant_name
         - roles
 
     BindEmail:
@@ -2311,6 +2327,13 @@ paths:
         - system-role
       security:
         - apiKeyAuth: []
+      parameters:
+        - name: tenant_id
+          in: query
+          required: false
+          description: 按租户筛选，仅平台超级管理员有效（租户成员管理使用）
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -2429,6 +2452,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: tenant_id
+          in: query
+          required: false
+          description: 按租户筛选，仅平台超级管理员有效（租户成员管理使用）
+          schema:
+            type: string
       responses:
         "200":
           content:

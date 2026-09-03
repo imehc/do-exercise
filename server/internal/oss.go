@@ -16,7 +16,7 @@ func InitOss() {
 	client, err := minio.New(
 		fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		&minio.Options{
-			Creds: credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+			Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 			Secure: cfg.Secure, // 是否使用https进行通信，由配置驱动
 			// 单区域自建部署固定 us-east-1：显式指定后 minio-go 不再发起
 			// GetBucketLocation 探测（RustFS 对 ?location 的实现差异不再影响签名作用域）

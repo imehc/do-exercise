@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { SwitchThumb } from '@radix-ui/react-switch'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -20,7 +20,9 @@ import {
 import { router } from '~/main'
 import { useFormDialog } from '~/provider'
 import { cn } from '~/lib/utils'
+import { getMenuLabel } from '~/utils/menu-label'
 import { useApi } from '~/hooks/use-api'
+import { useMenuPermissionActions } from '~/hooks/use-tenant'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
@@ -40,6 +42,7 @@ import {
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { ConfirmDialog } from '~/components/confirm-dialog'
 import {
   IconSelect,
   StatusRenderer,
@@ -53,11 +56,15 @@ import { callMethodTypes } from '~/features/api/data/data'
 import { getCallMenuMapping } from '../data/data'
 import {
   ActionSysMenuFormValues,
-  ActionSysMenuWithButtonFormValues,
   ActionSysMenuWithDirectoryFormValues,
   ActionSysMenuWithMenuFormValues,
+  fallbackMenuPermissionActions,
   getActionSysMenuSchema,
+  getMenuPermissionActionLabel,
+  getMenuScopeLabel,
+  menuScopes,
 } from '../schemas/action-schema'
+import { buildMenuPermission, routePermissionKey } from '../utils/permission'
 
 function toCamelCase(str?: string) {
   return str
@@ -69,16 +76,23 @@ function toCamelCase(str?: string) {
     .join('')
 }
 
+function findMenuRoute(nodes: SysMenuTree[], id: number): string | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return node.route
+    if (node.children?.length) {
+      const route = findMenuRoute(node.children, id)
+      if (route !== undefined) return route
+    }
+  }
+  return undefined
+}
+
 interface Props {
   treeData: SysMenuTree[]
   currentRow?: SysMenuTree
   open: boolean
   onOpenChange: (open: boolean, hasRefresh: boolean) => void
 }
-
-const modules = Object.keys(import.meta.glob('~/features/**/index.tsx')).map(
-  (item) => item.replace('/src/features', '')
-)
 
 export function MenuActionDialog({
   treeData,
@@ -98,12 +112,38 @@ export function MenuActionDialog({
   const sysMenuApi = useApi(SystemMenuApi)
   const sysApi = useApi(SystemApiApi)
 
+  const backendActions = useMenuPermissionActions()
+  // 词表以后端下发为准；未到达时用兜底表，避免首屏下拉为空
+  const permissionActions = useMemo(
+    () =>
+      backendActions.length
+        ? backendActions
+        : [...fallbackMenuPermissionActions],
+    [backendActions]
+  )
+
   const isEdit = useMemo(() => !!currentRow?.id, [currentRow])
   const form = useForm<ActionSysMenuFormValues>({
-    resolver: zodResolver(getActionSysMenuSchema()),
+    resolver: zodResolver(getActionSysMenuSchema(permissionActions)),
   })
+  // 平台专属是授权边界变更，提交前二次确认（后端另有审计日志）
+  const [pendingPlatformValues, setPendingPlatformValues] =
+    useState<ActionSysMenuFormValues | null>(null)
 
   const menuType = useWatch({ control: form.control, name: 'type' })
+  const parentId = useWatch({ control: form.control, name: 'parentId' })
+  const permissionAction = useWatch({
+    control: form.control,
+    name: 'permissionAction',
+  })
+  const scope = useWatch({ control: form.control, name: 'scope' })
+  const permissionPrefix = routePermissionKey(
+    typeof parentId === 'number' ? findMenuRoute(treeData, parentId) : undefined
+  )
+  const generatedPermission =
+    permissionPrefix && permissionAction
+      ? `${permissionPrefix}:${permissionAction}`
+      : ''
   const isButtonType = menuType === MenuType.button
   const isActionOpen =
     openType === 'add' || openType === 'edit' || openType === 'add-child'
@@ -148,6 +188,8 @@ export function MenuActionDialog({
             sort: currentRow.sort,
             parentId: currentRow.parentId,
             name: currentRow.name,
+            i18nKey: currentRow.i18nKey,
+            scope: currentRow.scope,
             visible: currentRow.visible,
           })
           break
@@ -157,9 +199,10 @@ export function MenuActionDialog({
             sort: currentRow.sort,
             parentId: currentRow.parentId,
             name: currentRow.name,
+            i18nKey: currentRow.i18nKey,
+            scope: currentRow.scope,
             icon: currentRow.icon,
             route: currentRow.route,
-            component: currentRow.component,
             visible: currentRow.visible,
           })
           break
@@ -167,8 +210,10 @@ export function MenuActionDialog({
           form.reset({
             parentId: currentRow.parentId,
             name: currentRow.name,
+            i18nKey: currentRow.i18nKey,
+            scope: currentRow.scope,
             type: MenuType.button,
-            permission: currentRow.permission,
+            permissionAction: currentRow.permission?.split(':')[1] ?? 'query',
             apiIds:
               (menu as SysMenuWithButton)?.apis?.map((api) => api.id) ?? [],
             visible: currentRow.visible,
@@ -188,12 +233,13 @@ export function MenuActionDialog({
       sort: 0,
     })
   }, [
-    currentRow?.component,
     currentRow?.icon,
+    currentRow?.i18nKey,
     currentRow?.name,
     currentRow?.parentId,
     currentRow?.permission,
     currentRow?.route,
+    currentRow?.scope,
     currentRow?.sort,
     currentRow?.type,
     currentRow?.visible,
@@ -211,6 +257,8 @@ export function MenuActionDialog({
           type: values.type,
           parentId: values.parentId,
           name: values.name,
+          i18nKey: values.i18nKey,
+          scope: values.scope,
           sort: values.sort,
           visible: Boolean(values.visible),
         } satisfies ActionSysMenuWithDirectoryFormValues
@@ -219,9 +267,10 @@ export function MenuActionDialog({
           type: values.type,
           parentId: values.parentId,
           name: values.name,
+          i18nKey: values.i18nKey,
+          scope: values.scope,
           icon: values.icon,
           route: values.route,
-          component: values.component,
           sort: values.sort,
           visible: Boolean(values.visible),
         } satisfies ActionSysMenuWithMenuFormValues
@@ -230,14 +279,19 @@ export function MenuActionDialog({
           type: values.type,
           parentId: values.parentId,
           name: values.name,
-          permission: values.permission,
+          i18nKey: values.i18nKey,
+          scope: values.scope,
+          permission: buildMenuPermission(
+            findMenuRoute(treeData, values.parentId),
+            values.permissionAction
+          ),
           apiIds: values.apiIds,
           visible: Boolean(values.visible),
-        } satisfies ActionSysMenuWithButtonFormValues
+        }
     }
   }
 
-  const onSubmit = (values: ActionSysMenuFormValues) => {
+  const submitValues = (values: ActionSysMenuFormValues) => {
     if (isEdit) {
       saveUpdate({
         createSysMenu: handleFormat(values) as unknown as CreateSysMenu,
@@ -248,6 +302,19 @@ export function MenuActionDialog({
     saveCreate({
       createSysMenu: handleFormat(values) as unknown as CreateSysMenu,
     })
+  }
+
+  const onSubmit = (values: ActionSysMenuFormValues) => {
+    if (values.type === MenuType.button && !permissionPrefix) {
+      toast.error(t`父级菜单必须绑定有效路由`)
+      return
+    }
+    // 只在「新落到 platform」时确认：已经是平台菜单的改名、改排序不该反复打断
+    if (values.scope === 'platform' && currentRow?.scope !== 'platform') {
+      setPendingPlatformValues(values)
+      return
+    }
+    submitValues(values)
   }
 
   const isPending = isPendingCreate || isPendingUpdate
@@ -263,6 +330,18 @@ export function MenuActionDialog({
       <DialogContent className='sm:max-w-2xl'>
         <DialogHeader className='text-left'>
           <DialogHeaderContent isEdit={isEdit} text={<Trans>菜单</Trans>} />
+          {currentRow?.isSystem && (
+            <div className='text-muted-foreground flex items-center gap-2 text-xs'>
+              <Badge variant='outline'>
+                <Trans>系统内置</Trans>
+              </Badge>
+              <span>
+                <Trans>
+                  路由、权限标识、菜单类型属于平台契约，提交后仍保持原值
+                </Trans>
+              </span>
+            </div>
+          )}
         </DialogHeader>
         <Form {...form}>
           <form
@@ -307,7 +386,7 @@ export function MenuActionDialog({
                             value: 0,
                             children: transformData(
                               treeData,
-                              (item) => item.name,
+                              (item) => getMenuLabel(item),
                               (item) => item.id
                             ),
                           },
@@ -343,6 +422,68 @@ export function MenuActionDialog({
                         value={field.value ?? ''}
                       />
                     </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='i18nKey'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-right'>
+                      <Trans>国际化键</Trans>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t`请输入稳定的翻译键（可选）`}
+                        className='col-span-8'
+                        autoComplete='off'
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='scope'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-right'>
+                      <Trans>可见范围</Trans>
+                    </FormLabel>
+                    <FormControl>
+                      <SelectDropdown
+                        defaultValue={field.value ?? 'both'}
+                        isControlled
+                        onValueChange={field.onChange}
+                        placeholder={t`请选择可见范围`}
+                        className='col-span-8 w-full'
+                        disabled={currentRow?.isSystem}
+                        items={menuScopes.map((item) => ({
+                          label: getMenuScopeLabel(item),
+                          value: item,
+                        }))}
+                      />
+                    </FormControl>
+                    <div className='text-muted-foreground col-span-8 col-start-3 text-xs'>
+                      {currentRow?.isSystem ? (
+                        <Trans>
+                          系统内置菜单的可见范围由平台维护，不可在此修改
+                        </Trans>
+                      ) : scope === 'platform' ? (
+                        <Trans>
+                          仅平台：该菜单及其权限不会下发给任何业务租户，保存时需要二次确认
+                        </Trans>
+                      ) : (
+                        <Trans>
+                          决定该菜单能否下发给业务租户，留空按「平台与租户」处理
+                        </Trans>
+                      )}
+                    </div>
                     <FormMessage className='col-span-8 col-start-3' />
                   </FormItem>
                 )}
@@ -388,41 +529,6 @@ export function MenuActionDialog({
                 />
                 <FormField
                   control={form.control}
-                  name='component'
-                  render={({ field }) => (
-                    <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                      <FormLabel className='col-span-2 text-right'>
-                        <Trans>组件</Trans>
-                      </FormLabel>
-                      <FormControl>
-                        <SelectDropdown
-                          defaultValue={field.value ?? ''}
-                          onValueChange={field.onChange}
-                          placeholder={t`请选择组件路径`}
-                          className='col-span-8 w-full'
-                          items={[
-                            ...modules.map((item) => ({
-                              label: item,
-                              value: item,
-                            })),
-                            ...(currentRow?.component &&
-                            !modules.includes(currentRow.component)
-                              ? [
-                                  {
-                                    label: currentRow.component,
-                                    value: currentRow.component,
-                                  },
-                                ]
-                              : []),
-                          ].sort((a, b) => a.label.localeCompare(b.label))}
-                        />
-                      </FormControl>
-                      <FormMessage className='col-span-8 col-start-3' />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name='icon'
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
@@ -448,25 +554,41 @@ export function MenuActionDialog({
               >
                 <FormField
                   control={form.control}
-                  name='permission'
+                  name='permissionAction'
                   render={({ field }) => (
                     <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
                       <FormLabel className='col-span-2 text-right'>
-                        <Trans>权限标识</Trans>
+                        <Trans>权限动作</Trans>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder={t`请输入权限标识`}
-                          className='col-span-8'
-                          autoComplete='off'
-                          {...field}
-                          value={field.value ?? ''}
+                        <SelectDropdown
+                          defaultValue={field.value}
+                          isControlled
+                          onValueChange={field.onChange}
+                          placeholder={t`请选择权限动作`}
+                          className='col-span-8 w-full'
+                          items={permissionActions.map((action) => ({
+                            label: getMenuPermissionActionLabel(action),
+                            value: action,
+                          }))}
                         />
                       </FormControl>
                       <FormMessage className='col-span-8 col-start-3' />
                     </FormItem>
                   )}
                 />
+                <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                  <FormLabel className='col-span-2 text-right'>
+                    <Trans>权限标识</Trans>
+                  </FormLabel>
+                  <Input
+                    readOnly
+                    disabled
+                    value={generatedPermission}
+                    placeholder={t`选择父级菜单和权限动作后自动生成`}
+                    className='col-span-8'
+                  />
+                </FormItem>
                 <FormField
                   control={form.control}
                   name='apiIds'
@@ -574,6 +696,27 @@ export function MenuActionDialog({
             )}
           </Button>
         </DialogFooter>
+        <ConfirmDialog
+          open={!!pendingPlatformValues}
+          onOpenChange={(state) => {
+            if (!state) setPendingPlatformValues(null)
+          }}
+          destructive
+          isLoading={isPending}
+          title={<Trans>确认设为平台专属菜单？</Trans>}
+          desc={
+            <Trans>
+              该菜单及其下的权限将只对平台超级管理员可见，所有业务租户都拿不到，
+              已经授予租户角色的相关权限也会失效。此操作会记入平台审计日志。
+            </Trans>
+          }
+          confirmText={<Trans>确认设为平台专属</Trans>}
+          handleConfirm={() => {
+            const values = pendingPlatformValues
+            setPendingPlatformValues(null)
+            if (values) submitValues(values)
+          }}
+        />
       </DialogContent>
     </Dialog>
   )

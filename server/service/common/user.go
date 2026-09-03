@@ -18,27 +18,60 @@ import (
 
 type UserService struct{}
 
-// 通过邮箱查询用户
-func (u *UserService) FindUserByEmail(db *gorm.DB, email string) (*system.SysUser, error) {
-	var user *system.SysUser
-	query := db
-	// 邮箱登录/找回密码等公共端点无租户上下文；多租户模式限定默认租户，
-	// 避免同一邮箱跨租户命中歧义（阶段一限制：仅默认租户支持邮箱流程）
-	if global.Config.Tenant.IsMulti() {
-		query = query.Where("tenant_id = ?", global.Config.Tenant.DefaultTenantId)
-	}
-	error := query.
+// FindUsersByEmail 按邮箱跨租户查出全部可用的业务账号（含角色，供签发 token 用）。
+//
+// 邮箱在多租户下不唯一：同一个人在 N 个租户里就是 N 行 sys_user（唯一索引是
+// email+tenant_id）。邮箱登录与找回密码都是匿名公共端点，请求里没有租户上下文，
+// 所以这里不能自己挑一个账号返回——早期实现把范围硬编码在「默认租户」上，
+// 其他租户的用户根本用不了邮箱流程。改为返回候选集合，由调用方结合租户选择收敛。
+//
+// 三类账号被排除：
+//   - 软删账号：GORM 默认作用域已处理；
+//   - 已停用租户的账号：验证码只证明「请求者拥有这个邮箱」，不该成为绕过停用的入口；
+//   - 平台租户账号：平台超管是全系统最高权限，若邮箱可以免口令签发平台 token 或
+//     重置平台口令，则邮箱被盗即等于整站被接管。平台账号的口令走后台用户管理重置。
+func (u *UserService) FindUsersByEmail(db *gorm.DB, email string) ([]system.SysUser, error) {
+	var users []system.SysUser
+	if err := db.
+		Preload("Roles").
 		Where("email = ?", email).
-		First(&user).
-		Error
-	if error != nil {
+		Where("tenant_id <> ?", global.PlatformTenantID).
+		Order("created_at ASC").
+		Find(&users).Error; err != nil {
+		return nil, errors.New("userNotFound")
+	}
+	if len(users) == 0 {
 		return nil, errors.New("userNotFound")
 	}
 
-	if !user.DeletedAt.Time.IsZero() {
-		return nil, errors.New("userDeleted")
+	tenantIds := lo.Uniq(lo.Map(users, func(user system.SysUser, _ int) string { return user.TenantId }))
+	var tenants []system.SysTenant
+	if err := db.Where("tenant_id IN ? AND status = ?", tenantIds, true).
+		Find(&tenants).Error; err != nil {
+		return nil, errors.New("userNotFound")
 	}
-	return user, nil
+	enabled := lo.SliceToMap(tenants, func(t system.SysTenant) (string, struct{}) {
+		return t.TenantId, struct{}{}
+	})
+
+	users = lo.Filter(users, func(user system.SysUser, _ int) bool {
+		_, ok := enabled[user.TenantId]
+		return ok
+	})
+	if len(users) == 0 {
+		return nil, errors.New("userNotFound")
+	}
+	return users, nil
+}
+
+// UserIdsOf 提取候选账号的 ID 集合，用于绑定/校验邮箱验证码。
+func (u *UserService) UserIdsOf(users []system.SysUser) []string {
+	return lo.Map(users, func(user system.SysUser, _ int) string { return user.UserId })
+}
+
+// TenantIdsOf 提取候选账号所属的租户集合，用于生成租户选择列表。
+func (u *UserService) TenantIdsOf(users []system.SysUser) []string {
+	return lo.Uniq(lo.Map(users, func(user system.SysUser, _ int) string { return user.TenantId }))
 }
 
 // BindEmail 绑定邮箱
@@ -142,6 +175,7 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 	menus = lo.UniqBy(menus, func(menu system.SysMenu) uint {
 		return menu.Id
 	})
+	menus = sysService.FilterTenantVisibleMenus(db, menus)
 
 	// 一次加载全量菜单建内存索引，供父级回填用。
 	// 菜单表是小型参考表，这里 1 次 Find 替代原逐层 N 次 First。
@@ -150,6 +184,7 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 	if err := db.Find(&all).Error; err != nil {
 		return nil, errors.New("getMenuListFailed")
 	}
+	all = sysService.FilterTenantVisibleMenus(db, all)
 	for _, m := range all {
 		allMenus[m.Id] = m
 	}
@@ -197,6 +232,7 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 		userMenus = append(userMenus, response.UserMenu{
 			Id:         menu.Id,
 			Name:       menu.Name,
+			I18nKey:    menu.I18nKey,
 			ParentId:   menu.ParentId,
 			Permission: menu.Permission,
 			Icon:       menu.Icon,
@@ -204,6 +240,7 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 			Route:      menu.Route,
 			Component:  menu.Component,
 			Sort:       menu.Sort,
+			Visible:    menu.Visible,
 		})
 	}
 

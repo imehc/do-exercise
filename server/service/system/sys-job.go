@@ -4,7 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -44,6 +46,17 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 		RetryTimes:     req.RetryTimes,
 		RetryInterval:  req.RetryInterval,
 		Timeout:        req.Timeout,
+	}
+	// 归属显式化。租户上下文由插件回填；平台超管没有租户上下文，回填不出值，
+	// 这里显式落成平台租户——平台维护类任务（日志清理等）需要跨租户执行，
+	// 空 tenant_id 则是谁都认领不了的孤儿行，调度器会直接拒绝。
+	job.TenantId = model.CurrentTenantID(db)
+	if job.TenantId == "" && model.CurrentIsSuperAdmin(db) {
+		job.TenantId = global.PlatformTenantID
+	}
+	// 任务数配额校验：超限即拒绝创建
+	if err := enforceJobQuota(db, job.TenantId, 1); err != nil {
+		return nil, err
 	}
 	if err := db.Create(job).Error; err != nil {
 		return nil, errors.New("job.createJobFailed")

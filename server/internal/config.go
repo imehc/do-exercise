@@ -31,19 +31,19 @@ func InitConfig(configFile string) {
 		"oss.access_key":     "OSS_APP_ACCESS_KEY",
 		"oss.secret_key":     "OSS_APP_SECRET_KEY",
 		"oss.presigned_host": "OSS_PRESIGNED_HOST",
-		"database.host":        "POSTGRES_HOST",
-		"database.username":    "POSTGRES_USER",
-		"database.password":    "POSTGRES_PASSWORD",
-		"database.database":    "POSTGRES_DB",
-		"database.port":        "POSTGRES_PORT",
-		"redis.host":           "REDIS_HOST",
-		"redis.port":           "REDIS_PORT",
-		"redis.password":       "REDIS_PASSWORD",
-		"redis.database":       "REDIS_DATABASE",
-		"email.host":           "EMAIL_HOST",
-		"email.port":           "EMAIL_PORT",
-		"email.user":           "EMAIL_USER",
-		"email.pass":           "EMAIL_PASS",
+		"database.host":      "POSTGRES_HOST",
+		"database.username":  "POSTGRES_USER",
+		"database.password":  "POSTGRES_PASSWORD",
+		"database.database":  "POSTGRES_DB",
+		"database.port":      "POSTGRES_PORT",
+		"redis.host":         "REDIS_HOST",
+		"redis.port":         "REDIS_PORT",
+		"redis.password":     "REDIS_PASSWORD",
+		"redis.database":     "REDIS_DATABASE",
+		"email.host":         "EMAIL_HOST",
+		"email.port":         "EMAIL_PORT",
+		"email.user":         "EMAIL_USER",
+		"email.pass":         "EMAIL_PASS",
 	})
 
 	// 读取配置文件
@@ -60,14 +60,6 @@ func InitConfig(configFile string) {
 	// 将配置映射到全局变量
 	if err := v.Unmarshal(&global.Config); err != nil {
 		util.Exit("配置映射失败: ", err)
-	}
-
-	// 租户配置归一化：缺省时单租户模式，默认租户兜底为 "default"
-	if global.Config.Tenant.Mode == "" {
-		global.Config.Tenant.Mode = global.TenantModeSingle
-	}
-	if global.Config.Tenant.DefaultTenantId == "" {
-		global.Config.Tenant.DefaultTenantId = "default"
 	}
 
 	// 启动时一次性解析并校验 token 时长配置，避免请求期解析失败时生成 0 TTL 的永久 token。

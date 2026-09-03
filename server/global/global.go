@@ -4,7 +4,6 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/imehc/do-exercise/server/config"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
-	"github.com/minio/minio-go/v7"
 	"github.com/mojocn/base64Captcha"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -20,5 +19,5 @@ var (
 	Captcha  *base64Captcha.Captcha // Captcha 验证码
 	Enforcer *casbin.Enforcer       // Enforcer 权限控制器
 	Searcher *xdb.Searcher          // Searcher IP2Region查询器
-	Oss      *minio.Client          // Oss OSS对象存储
+	Oss      OssClient              // Oss OSS对象存储
 )

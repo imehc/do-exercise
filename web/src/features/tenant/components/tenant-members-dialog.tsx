@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { IconUsersGroup } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
@@ -32,7 +32,7 @@ interface Props {
 const PAGE_SIZE = 10
 
 /**
- * 租户成员管理：列出目标租户下的全部成员并就地调整角色 / 移出租户。
+ * 租户成员管理：列出目标租户下的全部成员并就地调整角色 / 删除账号。
  * 复用用户接口的 tenant_id 筛选参数（仅平台超级管理员可用），
  * 角色候选同样按目标租户查询，避免把别的租户的角色分配过去。
  */
@@ -42,12 +42,13 @@ export function TenantMembersDialog({ open, onOpenChange, currentRow }: Props) {
   const tenantId = currentRow.tenantId ?? ''
   const [page, setPage] = useState(1)
 
-  // 换租户或重新打开时回到第一页，避免沿用上一个租户的页码
-  useEffect(() => {
-    if (open) {
-      setPage(1)
-    }
-  }, [open, tenantId])
+  // 换租户或重新打开时回到第一页，避免沿用上一个租户的页码。
+  // 用渲染期比对而不是 useEffect：effect 里 setState 会先用旧页码发一次请求再重渲染。
+  const [pageScope, setPageScope] = useState({ open, tenantId })
+  if (pageScope.open !== open || pageScope.tenantId !== tenantId) {
+    setPageScope({ open, tenantId })
+    setPage(1)
+  }
 
   const {
     data: members,
@@ -70,6 +71,8 @@ export function TenantMembersDialog({ open, onOpenChange, currentRow }: Props) {
   const rows = members?.data ?? []
   const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const isLoading = membersIsLoading || rolesIsLoading
+  // 提到消息外面：内联表达式会让 msgid 退化成位置占位符 {0}
+  const tenantName = currentRow.name ?? ''
 
   return (
     <Dialog open={open} onOpenChange={(state) => onOpenChange(state, false)}>
@@ -81,8 +84,8 @@ export function TenantMembersDialog({ open, onOpenChange, currentRow }: Props) {
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              查看租户「{currentRow.name ?? ''}
-              」下的成员，并调整其角色或将其移出该租户。
+              查看租户「{tenantName}
+              」下的账号，并调整其角色或删除该租户下的账号。
             </Trans>
           </DialogDescription>
         </DialogHeader>

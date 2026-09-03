@@ -152,8 +152,16 @@ components:
         tenant_id:
           type: string
           description: 要切换到的租户ID
+        password:
+          type: string
+          description: 目标租户账号口令（RSA 加密）
+        public_key:
+          type: string
+          description: RSA 公钥
       required:
         - tenant_id
+        - password
+        - public_key
 
     Captcha:
       type: object
@@ -183,7 +191,16 @@ components:
           description: 密码
         tenant_id:
           type: string
-          description: 租户ID（多租户模式下指定登录租户；单租户模式可省略）
+          description: 租户ID。显式指定登录租户，一般由前端流程内部使用；人工填写请用 tenant_code
+        tenant_code:
+          type: string
+          maxLength: 32
+          # 与创建租户的 code 同一口径（alphanum,2~32）；整体可选，故 pattern 允许空串
+          pattern: '^([a-zA-Z0-9]{2,32})?$'
+          description: >-
+            租户编码（登录页可选填写，2~32 位字母或数字）。填了就只在该租户下验证一次口令，
+            避免同名账号跨租户逐行比对；代价是本次会话仅授权该租户，
+            需要跨租户切换时留空。tenant_id 优先于该字段
         captcha_id:
           type: string
           description: 验证码ID
@@ -215,11 +232,32 @@ components:
         public_key:
           type: string
           description: 公钥
+        tenant_id:
+          type: string
+          description: >-
+            要重置哪个租户下的账号。同一邮箱只归属一个租户时可省略；
+            归属多个租户时服务端返回 requires_tenant_selection 与候选列表，
+            前端选择后带该字段重试（原验证码仍有效）
       required:
         - email
         - code
         - password
         - public_key
+
+    ResetPasswordResult:
+      type: object
+      properties:
+        requires_tenant_selection:
+          type: boolean
+          description: 该邮箱归属多个租户，需先选择租户；此时服务端未做任何修改
+        available_tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantOption'
+          description: 候选租户列表（requires_tenant_selection=true 时非空）
+      required:
+        - requires_tenant_selection
+        - available_tenants
 
     MenuType:
       type: integer
@@ -641,6 +679,17 @@ components:
         name:
           type: string
           description: 菜单名称
+        i18n_key:
+          type: string
+          description: 菜单国际化键
+        scope:
+          type: string
+          enum: [platform, tenant, both]
+          default: both
+          description: 菜单范围
+        is_system:
+          type: boolean
+          description: 是否系统内置菜单
         sort:
           type: integer
           description: 排序
@@ -662,14 +711,15 @@ components:
               description: 路由
             component:
               type: string
-              description: 组件
+              description: >-
+                组件地址。保留字段：前端是文件式路由，运行期只按 route 匹配，不消费该值，
+                也不再在菜单表单里采集它。存量数据仍会原样返回。
             visible:
               type: boolean
               description: 是否可见
           required:
             - icon
             - route
-            - component
 
     CreateSysMenuWithButton:
       type: object
@@ -683,6 +733,17 @@ components:
         name:
           type: string
           description: 菜单名称
+        i18n_key:
+          type: string
+          description: 菜单国际化键
+        scope:
+          type: string
+          enum: [platform, tenant, both]
+          default: both
+          description: 菜单范围
+        is_system:
+          type: boolean
+          description: 是否系统内置菜单
         permission:
           type: string
           description: 权限标识
@@ -721,6 +782,17 @@ components:
             name:
               type: string
               description: 菜单名称
+            i18n_key:
+              type: string
+              description: 菜单国际化键
+            scope:
+              type: string
+              enum: [platform, tenant, both]
+              default: both
+              description: 菜单范围
+            is_system:
+              type: boolean
+              description: 是否系统内置菜单
             icon:
               type: string
               description: 图标
@@ -744,12 +816,11 @@ components:
           properties:
             component:
               type: string
-              description: 组件
+              description: 组件地址（保留字段，前端不消费；空值时不返回）
             visible:
               type: boolean
               description: 是否可见
       required:
-        - component
         - apis
 
     SysMenuWithButton:
@@ -817,13 +888,29 @@ components:
           description: 路由
         component:
           type: string
-          description: 组件
+          description: 组件地址（保留字段，前端不消费；空值时不返回）
         sort:
           type: integer
           description: 排序
         visible:
           type: boolean
           description: 是否可见
+        i18n_key:
+          type: string
+          description: 菜单国际化键
+        scope:
+          type: string
+          enum: [platform, tenant, both]
+          default: both
+          description: 菜单范围
+        is_system:
+          type: boolean
+          description: 是否系统内置菜单
+        apis:
+          type: array
+          description: 该菜单绑定的接口（授权页预览用的精简字段）
+          items:
+            $ref: "#/components/schemas/SysMenuApiBrief"
         children:
           type: array
           items:
@@ -834,6 +921,26 @@ components:
         - name
         - type
         - children
+
+    SysMenuApiBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        method:
+          type: string
+          description: 请求方法
+        path:
+          type: string
+          description: 接口路径
+        description:
+          type: string
+          description: 接口描述
+      required:
+        - id
+        - method
+        - path
 
     CreateSysRole:
       type: object
@@ -898,11 +1005,16 @@ components:
                   - id
                   - name
               description: 菜单列表
+            user_count:
+              type: integer
+              format: int64
+              description: 当前持有该角色的未注销用户数（授权变更的影响面）
       required:
         - id
         - name
         - code
         - menus
+        - user_count
     ResetSysUserPassword:
       type: object
       properties:
@@ -1128,6 +1240,9 @@ components:
         name:
           type: string
           description: 菜单名称
+        i18n_key:
+          type: string
+          description: 菜单国际化键，前端优先按该键取翻译，缺失时回落到 name
         parent_id:
           type: integer
           description: 父菜单ID
@@ -1145,7 +1260,10 @@ components:
           description: 路由
         component:
           type: string
-          description: 组件
+          description: 组件地址（保留字段，前端不消费）
+        visible:
+          type: boolean
+          description: 是否在导航中显示
       required:
         - id
         - name
@@ -1337,7 +1455,10 @@ components:
           minLength: 2
         code:
           type: string
-          description: 租户编码（字母数字）
+          description: 租户编码（2~32 位字母或数字；创建后不可修改）
+          minLength: 2
+          maxLength: 32
+          pattern: '^[a-zA-Z0-9]+$'
         admin_mode:
           type: string
           description: 管理员账号模式（new=新建用户，existing=选择现有用户）
@@ -1435,16 +1556,19 @@ components:
     AvailableTenants:
       type: object
       properties:
-        mode:
-          type: string
-          description: 租户模式（single/multi）
         tenants:
           type: array
           items:
             $ref: '#/components/schemas/TenantOption'
+          description: 始终为空（禁止匿名枚举租户），候选租户由登录结果返回
+        permission_actions:
+          type: array
+          description: 权限标识允许的动作枚举，由服务端集中下发
+          items:
+            type: string
       required:
-        - mode
         - tenants
+        - permission_actions
 
 paths:
   /auth/public_key:
@@ -1614,8 +1738,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Token"
-          description: "登录成功"
+                $ref: "#/components/schemas/LoginResult"
+          description: "登录成功（邮箱只归属一个租户时直接返回 token；归属多个租户时返回 requires_tenant_selection）"
 
   /auth/refresh_token:
     post:
@@ -1655,8 +1779,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ForgetPassword"
       responses:
-        "204":
-          description: 重置密码成功
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetPasswordResult"
+          description: "重置密码成功；或该邮箱归属多个租户，需带 tenant_id 重试"
 
   /auth/forget_password_code:
     get:
@@ -2185,6 +2313,9 @@ paths:
   /system/menus/tree:
     get:
       summary: 获取菜单树
+      description: >-
+        认证即可读，不参与 Casbin 鉴权：菜单树是权限模型的字典（角色授权弹窗靠它勾选权限），
+        不是「菜单管理」页的私有数据。可见范围仍按 scope 与当前上下文过滤，增删改仍需菜单管理权限
       operationId: findMenuTree
       tags:
         - system-menu

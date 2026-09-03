@@ -8,6 +8,8 @@ type SysTenantResp struct {
 	Code       string     `json:"code"`
 	Status     bool       `json:"status"`
 	ExpireTime *time.Time `json:"expire_time,omitzero"`
+	MaxUsers   int        `json:"max_users"`
+	MaxTasks   int        `json:"max_tasks"`
 	Remark     string     `json:"remark"`
 	CreatedAt  time.Time  `json:"created_at,omitzero"`
 	CreatedBy  string     `json:"created_by,omitzero"`

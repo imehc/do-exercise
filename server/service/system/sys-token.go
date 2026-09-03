@@ -48,31 +48,47 @@ func (s *SysTokenService) FindAll(scope TokenScope) ([]response.SysTokenLogRsp, 
 
 	accessTokenKeys := []string{}
 	refreshTokenKeys := []string{}
+
+	// 从租户维度索引集枚举候选 access token，避免 SCAN 全 keyspace。
+	// 平台超管要看全租户，回退到全量扫描（管理端低频操作）；普通会话只扫自己租户的索引。
+	fromIndex := false
+	indexSetKey := ""
 	var cursor uint64
-	pattern := fmt.Sprintf("%s*", util.PrefixUserAcessToken)
-	// SCAN 所有 userAccessToken_:* 的 key
-	for {
-		keys, nextCursor, err := rdb.Scan(ctx, cursor, pattern, 100).Result()
+	if scope.IsSuperAdmin {
+		pattern := fmt.Sprintf("%s*", util.PrefixUserAcessToken)
+		for {
+			keys, nextCursor, err := rdb.Scan(ctx, cursor, pattern, 100).Result()
+			if err != nil {
+				log.Error("Failed to scan user token sets", zap.Error(err))
+				return nil, errors.New("getFailed")
+			}
+			cursor = nextCursor
+
+			for _, key := range keys {
+				tokens, err := rdb.SMembers(ctx, key).Result()
+				if err != nil {
+					log.Warn("Failed to read token set", zap.String("key", key), zap.Error(err))
+					continue
+				}
+				for _, token := range tokens {
+					accessTokenKeys = append(accessTokenKeys, fmt.Sprintf("%s%s", util.PrefixAccessToken, token))
+				}
+			}
+
+			if cursor == 0 {
+				break
+			}
+		}
+	} else {
+		indexSetKey = util.TenantAccessSetKey(scope.TenantId)
+		fromIndex = true
+		members, err := rdb.SMembers(ctx, indexSetKey).Result()
 		if err != nil {
-			log.Error("Failed to scan user token sets", zap.Error(err))
+			log.Error("Failed to read tenant access token index", zap.Error(err))
 			return nil, errors.New("getFailed")
 		}
-		cursor = nextCursor
-
-		for _, key := range keys {
-			tokens, err := rdb.SMembers(ctx, key).Result()
-			if err != nil {
-				log.Warn("Failed to read token set", zap.String("key", key), zap.Error(err))
-				continue
-			}
-			for _, token := range tokens {
-				accessTokenKey := fmt.Sprintf("%s%s", util.PrefixAccessToken, token)
-				accessTokenKeys = append(accessTokenKeys, accessTokenKey)
-			}
-		}
-
-		if cursor == 0 {
-			break
+		for _, token := range members {
+			accessTokenKeys = append(accessTokenKeys, fmt.Sprintf("%s%s", util.PrefixAccessToken, token))
 		}
 	}
 
@@ -96,10 +112,18 @@ func (s *SysTokenService) FindAll(scope TokenScope) ([]response.SysTokenLogRsp, 
 
 	// Step 3: 解析 JSON 为结构体并收集refreshToken keys
 	result := make(map[string]model.TokenInfo)
+	staleTokens := []string{}
 	for i, cmd := range cmds {
 		val, err := cmd.Result()
 		if err != nil && err != redis.Nil {
 			log.Warn("Failed to get access token value", zap.String("key", accessTokenKeys[i]), zap.Error(err))
+			continue
+		}
+		// 索引里登记了但值已过期/被删的 token：懒清理该租户索引，避免悬空成员累积。
+		if err == redis.Nil {
+			if fromIndex {
+				staleTokens = append(staleTokens, strings.TrimPrefix(accessTokenKeys[i], util.PrefixAccessToken))
+			}
 			continue
 		}
 
@@ -111,6 +135,10 @@ func (s *SysTokenService) FindAll(scope TokenScope) ([]response.SysTokenLogRsp, 
 
 		// 跨租户会话直接丢弃，不进入后续 refresh token 查询与响应
 		if !scope.visible(info.TenantId) {
+			// 该成员不属于本租户索引，属于悬空/错放成员，顺带清理。
+			if fromIndex {
+				staleTokens = append(staleTokens, strings.TrimPrefix(accessTokenKeys[i], util.PrefixAccessToken))
+			}
 			continue
 		}
 
@@ -118,6 +146,12 @@ func (s *SysTokenService) FindAll(scope TokenScope) ([]response.SysTokenLogRsp, 
 		// 收集refreshToken keys
 		refreshTokenKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, info.RefreshToken)
 		refreshTokenKeys = append(refreshTokenKeys, refreshTokenKey)
+	}
+
+	if fromIndex && len(staleTokens) > 0 {
+		if err := rdb.SRem(ctx, indexSetKey, staleTokens).Err(); err != nil {
+			log.Warn("Failed to prune stale tenant access token index", zap.Error(err))
+		}
 	}
 
 	// Step 4: Pipeline 批量 GET 所有 refreshToken 值

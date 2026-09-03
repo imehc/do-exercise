@@ -75,61 +75,67 @@ INSERT INTO sys_api VALUES(119, '/sse', 'SSE消息通知', 'COMMON', 'GET', fals
 
 INSERT INTO sys_api VALUES(120, '/health', '获取服务器状态', 'COMMON', 'GET', false, 0, '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621', NULL);
 
--- 租户数据（默认租户：单租户模式的唯一租户，多租户模式的兜底租户）;
+-- 租户数据（内置示例业务租户：种子里的角色、菜单授权与定时任务都挂在它下面）;
+-- 系统只有多租户一种形态：平台层用保留租户 ID `platform`，不在本表里。
 INSERT INTO sys_tenant (tenant_id, name, code, status, remark, created_at, updated_at)
 VALUES ('default', '默认租户', 'default', TRUE, '系统内置默认租户', '2025-03-06 08:19:00.621', '2025-03-06 08:19:00.621');
 
 SELECT setval(pg_get_serial_sequence('sys_api', 'id'), (SELECT MAX(id) FROM sys_api)); -- 重置自增序列;
 
 -- 菜单数据;
-INSERT INTO sys_menu VALUES(1, '系统管理', 0, NULL, NULL, 1, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(2, 'API管理', 1, NULL, 'Api', 2, '/api', '/api/page.tsx', 1, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(101, '查询', 2, 'api:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(102, '更新', 2, 'api:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(3, '菜单管理', 1, NULL, 'ListDetails', 2, '/menu', '/menu/page.tsx', 3, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(111, '查询', 3, 'menu:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(112, '创建', 3, 'menu:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(113, '更新', 3, 'menu:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(114, '删除', 3, 'menu:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(115, '详情', 3, 'menu:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(4, '角色管理', 1, NULL, 'Shield', 2, '/role', '/role/page.tsx', 4, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(121, '查询', 4, 'role:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(122, '创建', 4, 'role:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(123, '更新', 4, 'role:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(124, '删除', 4, 'role:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(125, '详情', 4, 'role:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(5, '用户管理', 1, NULL, 'Users', 2, '/user', '/user/page.tsx', 5, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(131, '查询', 5, 'user:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(132, '创建', 5, 'user:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(133, '更新', 5, 'user:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(134, '删除', 5, 'user:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(135, '详情', 5, 'user:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(136, '重置密码', 5, 'user:reset', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(6, '操作记录', 1, NULL, 'WorldCog', 2, '/operation-log', '/operation-log/page.tsx', 6, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(141, '查询', 6, 'operation-log:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(142, '详情', 6, 'operation-log:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(7, '令牌管理', 1, NULL, 'Key', 2, '/token', '/token/page.tsx', 7, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(151, '查询', 7, 'token:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(152, '删除', 7, 'token:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(153, '更新', 7, 'token:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(154, '详情', 7, 'token:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(8, '系统信息', 1, NULL, 'DeviceDesktopAnalytics', 2, '/system-info', '/system-info/page.tsx', 8, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(161, '查询', 8, 'system-info:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(9, '定时任务', 1, NULL, 'Subtask', 2, '/task', '/task/page.tsx', 9, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(171, '查询', 9, 'task:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(172, '创建', 9, 'task:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(173, '更新', 9, 'task:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(174, '删除', 9, 'task:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(175, '启动', 9, 'task:start', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(176, '停止', 9, 'task:stop', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(177, '立即执行', 9, 'task:execute', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(178, '详情', 9, 'task:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(10, '租户管理', 1, NULL, 'BuildingBank', 2, '/tenant', '/tenant/page.tsx', 2, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(181, '查询', 10, 'tenant:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(182, '创建', 10, 'tenant:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(183, '更新', 10, 'tenant:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(184, '删除', 10, 'tenant:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
-INSERT INTO sys_menu VALUES(185, '详情', 10, 'tenant:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(1, '系统管理', 0, NULL, NULL, 1, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(2, 'API管理', 1, NULL, 'Api', 2, '/api', '/api/page.tsx', 1, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(101, '查询', 2, 'api:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(102, '更新', 2, 'api:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(3, '菜单管理', 1, NULL, 'ListDetails', 2, '/menu', '/menu/page.tsx', 3, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(111, '查询', 3, 'menu:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(112, '创建', 3, 'menu:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(113, '更新', 3, 'menu:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(114, '删除', 3, 'menu:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(115, '详情', 3, 'menu:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(4, '角色管理', 1, NULL, 'Shield', 2, '/role', '/role/page.tsx', 4, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(121, '查询', 4, 'role:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(122, '创建', 4, 'role:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(123, '更新', 4, 'role:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(124, '删除', 4, 'role:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(125, '详情', 4, 'role:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(5, '用户管理', 1, NULL, 'Users', 2, '/user', '/user/page.tsx', 5, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(131, '查询', 5, 'user:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(132, '创建', 5, 'user:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(133, '更新', 5, 'user:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(134, '删除', 5, 'user:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(135, '详情', 5, 'user:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(136, '重置密码', 5, 'user:reset', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(6, '操作记录', 1, NULL, 'WorldCog', 2, '/operation-log', '/operation-log/page.tsx', 6, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(141, '查询', 6, 'operation-log:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(142, '详情', 6, 'operation-log:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(7, '令牌管理', 1, NULL, 'Key', 2, '/token', '/token/page.tsx', 7, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(151, '查询', 7, 'token:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(152, '删除', 7, 'token:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(153, '更新', 7, 'token:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(154, '详情', 7, 'token:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(8, '系统信息', 1, NULL, 'DeviceDesktopAnalytics', 2, '/system-info', '/system-info/page.tsx', 8, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(161, '查询', 8, 'system-info:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(9, '定时任务', 1, NULL, 'Subtask', 2, '/task', '/task/page.tsx', 9, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(171, '查询', 9, 'task:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(172, '创建', 9, 'task:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(173, '更新', 9, 'task:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(174, '删除', 9, 'task:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(175, '启动', 9, 'task:start', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(176, '停止', 9, 'task:stop', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(177, '立即执行', 9, 'task:execute', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(178, '详情', 9, 'task:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(10, '租户管理', 1, NULL, 'BuildingBank', 2, '/tenant', '/tenant/page.tsx', 2, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(181, '查询', 10, 'tenant:query', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(182, '创建', 10, 'tenant:create', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(183, '更新', 10, 'tenant:update', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(184, '删除', 10, 'tenant:delete', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+INSERT INTO sys_menu (id, name, parent_id, permission, icon, type, route, component, sort, visible, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by) VALUES(185, '详情', 10, 'tenant:info', NULL, 3, NULL, NULL, 0, true, '2025-03-06 08:19:00.621', NULL, '2025-03-06 08:19:00.621', NULL, NULL, NULL);
+
+-- scope / is_system / i18n_key 三列不在这里写死：
+-- 存量库升级时本文件不会重跑，因此回填口径统一放在 cmd/menu_seed.go 的
+-- backfillMenuMetadata，由 `server migrate` 在执行本文件前后各跑一次。
+-- 新增平台专属菜单时把 scope 设为 'platform' 即可，不要再依赖自增 ID 名单。
 
 SELECT setval(pg_get_serial_sequence('sys_menu', 'id'), (SELECT MAX(id) FROM sys_menu)); -- 重置自增序列;
 
@@ -286,10 +292,19 @@ INSERT INTO casbin_rule VALUES(139, 'p', 'system', 'default', '/system/tenants/a
 INSERT INTO casbin_rule VALUES(140, 'p', 'system', 'default', '/system/users/:id/tenant', 'PATCH', NULL, NULL);
 INSERT INTO casbin_rule VALUES(141, 'p', 'system', 'default', '/system/users/:id/assignable_tenants', 'GET', NULL, NULL);
 
-INSERT INTO casbin_rule VALUES(1, 'g', '12345678910', 'system', 'default', NULL, NULL, NULL);
+-- 种子超管不播种 g 规则（P3-3）：
+-- 它是 platform 租户的账号，靠 is_super_admin 旁路 Casbin（middleware/casbin.go），
+-- 既没有 sys_user_role 行，dom 也永远不会是 default。旧种子里那条
+-- `g, 12345678910, system, default` 从来不可能命中，只会让人以为超管的权限来自它。
 
+-- 策略表的自增序列必须跟着显式 id 一起推进：上面的 p 规则写死了 101-141，
+-- 而 casbin_rule.id 是自增主键。不重置序列的话，运行期新增策略会从 1 开始发号，
+-- 加到第 101 条时撞上种子行的主键——表现为「角色授权偶发失败」，极难排查。
+SELECT setval(pg_get_serial_sequence('casbin_rule', 'id'), (SELECT MAX(id) FROM casbin_rule)); -- 重置自增序列;
 
 -- 初始化一条定时任务（每小时清理sys_operation_log表中username为空的记录，默认不启动）
+-- 归属 platform：空用户名的日志来自未认证请求，本身不带租户，只有平台归属的任务
+-- 才会显式旁路租户过滤清到它们（见 global/shared/job_scheduler.go 的 jobContext）。
 INSERT INTO sys_job (
     name, job_group, cron_expression, command, status, concurrent, description, last_time, next_time, times, retry_times, retry_interval, timeout, tenant_id, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by
 ) VALUES (
@@ -301,7 +316,7 @@ INSERT INTO sys_job (
     FALSE,
     '每小时清理sys_operation_log表中username为空的记录',
     NULL, NULL, 0, 0, 0, 300,
-    'default',
+    'platform',
     CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system', NULL, NULL
 );
 SELECT setval(pg_get_serial_sequence('sys_job', 'id'), (SELECT MAX(id) FROM sys_job)); -- 重置自增序列;

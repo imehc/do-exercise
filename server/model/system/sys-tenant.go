@@ -13,6 +13,8 @@ type SysTenant struct {
 	Code       string         `json:"code" gorm:"not null;size:32;uniqueIndex:idx_sys_tenant_code,where:deleted_at IS NULL;comment:租户编码"`
 	Status     bool           `json:"status" gorm:"default:true;comment:是否启用"`
 	ExpireTime *time.Time     `json:"expire_time" gorm:"comment:过期时间"`
+	MaxUsers   int            `json:"max_users" gorm:"default:0;comment:租户最大用户数(0=不限)"`
+	MaxTasks   int            `json:"max_tasks" gorm:"default:0;comment:租户最大定时任务数(0=不限)"`
 	Remark     string         `json:"remark" gorm:"size:255;default:null;comment:备注"`
 	CreatedAt  time.Time      `json:"created_at" gorm:"column:created_at;autoCreateTime;comment:创建时间"`
 	CreatedBy  string         `json:"created_by" gorm:"column:created_by;type:varchar(32);comment:创建人"`
@@ -23,9 +25,4 @@ type SysTenant struct {
 
 func (*SysTenant) TableName() string {
 	return "sys_tenant"
-}
-
-// IsTenantScoped 租户目录本身不做行级隔离
-func (t *SysTenant) IsTenantScoped() bool {
-	return false
 }

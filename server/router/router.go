@@ -12,12 +12,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// Run 构建路由并初始化验证码，供服务启动与集成测试使用。
 func Run() *gin.Engine {
 	if util.IsRelease {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	internal.InitCaptcha()
+	return New()
+}
+
+// New 纯构建路由，不依赖 Redis/验证码等运行时依赖，供 openapi 漂移检查等离线工具复用。
+// 注意：InitCaptcha 在 Run 中完成，New 调用方如需验证码请自行初始化。
+func New() *gin.Engine {
 	r := gin.Default()
 
 	// 限定受信任的反向代理。
@@ -46,15 +53,26 @@ func Run() *gin.Engine {
 	protected.Use(
 		middleware.AuthMiddleware(),
 		middleware.ContextMiddleware(),
+		middleware.TenantRateLimitMiddleware(),
 		middleware.CasbinMiddleware(),
 	)
 
 	noAuth := r.Group("/")
 
+	// 认证但不鉴权的系统组：数据是全租户共用的字典，任何登录会话都可读。
+	// 见 InitSysMenuTreeRouter 的说明（P2-2）。
+	authedSystem := r.Group("/system")
+	authedSystem.Use(
+		middleware.AuthMiddleware(),
+		middleware.ContextMiddleware(),
+		middleware.TenantRateLimitMiddleware(),
+	)
+
 	auth := r.Group("/")
 	auth.Use(
 		middleware.AuthMiddleware(),
 		middleware.ContextMiddleware(),
+		middleware.TenantRateLimitMiddleware(),
 	)
 
 	public := r.Group("/")
@@ -68,6 +86,7 @@ func Run() *gin.Engine {
 		system.InitSysApiRouter(protected)
 		system.InitSysUserRouter(protected)
 		system.InitSysMenuRouter(protected)
+		system.InitSysMenuTreeRouter(authedSystem)
 		system.InitSysRoleRouter(protected)
 		system.InitSysOperationLogRouter(protected)
 		system.InitSysTokenRouter(protected)

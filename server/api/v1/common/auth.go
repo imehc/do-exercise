@@ -22,14 +22,14 @@ import (
 type AuthApi struct{}
 
 // buildToken 生成带租户信息的访问令牌
-func (s *AuthApi) buildToken(ctx *gin.Context, user *system.SysUser) (*common.Token, error) {
+func (s *AuthApi) buildToken(ctx *gin.Context, user *system.SysUser, available []response.TenantOption) (*common.Token, error) {
 	baseConf := util.Token{
 		UserId:   user.UserId,
 		Username: user.Username,
-		RoleIds: lo.Map(user.Roles, func(item system.SysRole, index int) uint {
-			return item.Id
+		TenantId: user.TenantId,
+		AuthorizedTenantIds: lo.Map(available, func(item response.TenantOption, _ int) string {
+			return item.TenantId
 		}),
-		TenantId:           user.TenantId,
 		ExpireTime:         util.AuthAccessExpire(),
 		RefreshExpireTime:  util.AuthRefreshExpire(),
 		Disabled:           false, // TODO: 在数据库中添加字段获取禁用状态
@@ -83,8 +83,10 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	}
 
 	user, options, err := authService.Login(util.DB(ctx), common.Login{
-		Username: req.Username,
-		Password: password,
+		Username:   req.Username,
+		Password:   password,
+		TenantId:   req.TenantId,
+		TenantCode: req.TenantCode,
 	})
 	if err != nil {
 		if err.Error() == "requiresTenantSelection" {
@@ -108,7 +110,7 @@ func (s *AuthApi) Login(ctx *gin.Context) {
 	}
 
 	clearLoginFailures(ip, req.Username)
-	token, terr := s.buildToken(ctx, user)
+	token, terr := s.buildToken(ctx, user, options)
 	if terr != nil {
 		response.ServerError(ctx)
 		return
@@ -164,25 +166,21 @@ func (s *AuthApi) GetCaptcha(ctx *gin.Context) {
 	})
 }
 
-// AvailableTenants 可用租户列表（兼容保留）。
-// 前端登录页选择器已移除，该接口仅在多租户模式下返回启用的业务租户（不含平台保留租户）。
+// AvailableTenants 返回登录页需要的静态词表。
+// 登录页已不再允许匿名枚举租户，因此 tenants 始终为空；认证后的候选租户由登录结果返回。
 func (s *AuthApi) AvailableTenants(ctx *gin.Context) {
 	rep := response.AvailableTenants{
-		Mode:    global.Config.Tenant.Mode,
-		Tenants: []response.TenantOption{},
-	}
-	if global.Config.Tenant.IsMulti() {
-		tenants, err := tenantPublicService.ListEnabled(util.DB(ctx))
-		if err != nil {
-			response.ServerError(ctx)
-			return
-		}
-		rep.Tenants = tenants
+		Tenants:           []response.TenantOption{},
+		PermissionActions: global.MenuPermissionActions,
 	}
 	response.Success(ctx, rep)
 }
 
-// ResetPassword 忘记密码
+// ResetPassword 忘记密码。
+//
+// 邮箱在多租户下不唯一，验证码只能证明「请求者拥有这个邮箱」，证明不了他要改哪个租户
+// 的口令。因此候选账号多于一个时不动任何数据，返回候选租户要求显式指定 tenant_id
+// ——一次请求重置同邮箱在所有租户下的口令，等于凭一个邮箱横向接管多个租户的账号。
 func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 	iRedis := global.Redis
 	context := context.Background()
@@ -190,13 +188,6 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 	req := &request.UserResetPasswordReq{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(err)
-		return
-	}
-
-	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
-	if err != nil {
-		// 未绑定的邮箱与“验证码错误”返回同一个响应，避免枚举账号存在性。
-		response.BadRequest(ctx, "captchaError")
 		return
 	}
 
@@ -213,22 +204,69 @@ func (s *AuthApi) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
+	// 验证码只在拿到终态（重置成功，或校验失败）时消费。
+	// 「还需选择租户」不是终态：此时一个字节都没改，若在这里清掉缓存，
+	// 用户带着 tenant_id 重试必然失败，只能重新收信。
+	consume := true
 	defer func() {
-		_ = userApi.clearEmailCache(context, iRedis, ForgotPasswordPrefix, req.Email)
+		if consume {
+			_ = userApi.clearEmailCache(context, iRedis, ForgotPasswordPrefix, req.Email)
+		}
 	}()
 
-	if cache.Code != req.Code || cache.UserId != user.UserId {
-		response.BadRequest(ctx, "captchaError")
+	users, err := s.emailCandidates(ctx, cache, req.Email, req.Code)
+	if err != nil {
+		// 未绑定的邮箱与「验证码错误」返回同一个响应，避免枚举账号存在性。
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 
-	if err := authService.ResetPassword(util.DB(ctx), user.UserId, request.UserResetPasswordReq{
+	if req.TenantId != "" {
+		users = lo.Filter(users, func(user system.SysUser, _ int) bool {
+			return user.TenantId == req.TenantId
+		})
+		if len(users) != 1 {
+			response.BadRequest(ctx, "invalidTenant")
+			return
+		}
+	} else if len(users) > 1 {
+		consume = false
+		options, _ := tenantPublicService.ListEnabledByIDs(util.DB(ctx), userService.TenantIdsOf(users))
+		response.Success(ctx, response.ResetPasswordResult{
+			RequiresTenantSelection: true,
+			AvailableTenants:        options,
+		})
+		return
+	}
+
+	if err := authService.ResetPassword(util.DB(ctx), users[0].UserId, request.UserResetPasswordReq{
 		Password: password,
 	}); err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
-	response.NoContent(ctx)
+	response.Success(ctx, response.ResetPasswordResult{AvailableTenants: []response.TenantOption{}})
+}
+
+// emailCandidates 校验邮箱验证码并收敛出候选账号。
+//
+// 「邮箱查不到」「验证码不对」「验证码不是发给这批账号的」三种情况返回同一个
+// captchaError：任何差异都能被用来枚举某个邮箱是否注册过。
+//
+// 候选集取「当前仍可用的账号」与「发码时绑定的账号」的交集——发码后才绑定同一邮箱的
+// 新账号不在集合内，否则抢先绑定邮箱就能蹭到别人已经收到的验证码。
+func (s *AuthApi) emailCandidates(ctx *gin.Context, cache *request.EmailCache, email, code string) ([]system.SysUser, error) {
+	users, err := userService.FindUsersByEmail(util.DB(ctx), email)
+	if err != nil || cache.Code != code {
+		return nil, errors.New("captchaError")
+	}
+	users = lo.Filter(users, func(user system.SysUser, _ int) bool {
+		return cache.Allows(user.UserId)
+	})
+	if len(users) == 0 {
+		return nil, errors.New("captchaError")
+	}
+	return users, nil
 }
 
 // SendResetPasswordCode 发送忘记密码邮箱验证码
@@ -239,7 +277,7 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 		return
 	}
 
-	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
+	users, err := userService.FindUsersByEmail(util.DB(ctx), req.Email)
 	if err != nil {
 		// 未绑定的邮箱与“验证码已发送”返回同一个响应，避免枚举账号存在性。
 		// 不真正发信，但保持一致的 204，客户端无法区分。
@@ -252,7 +290,7 @@ func (s *AuthApi) SendResetPasswordCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "重置密码",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成密码重置：",
-	}, user.UserId)
+	}, userService.UserIdsOf(users))
 }
 
 // Logout 退出登录
@@ -273,18 +311,33 @@ const (
 	loginSessionTTL    = 5 * time.Minute
 )
 
-// createLoginSession 为“多租户待选择”的登录签发一次性会话
+// createLoginSession 为「待选择租户」的口令登录签发一次性会话
 func (s *AuthApi) createLoginSession(ctx *gin.Context, username string, options []response.TenantOption) (string, error) {
+	return s.saveLoginSession(common.LoginSession{
+		Username: username,
+		Tenants:  tenantIdsOf(options),
+	})
+}
+
+// createEmailLoginSession 为「待选择租户」的邮箱登录签发一次性会话。
+// 邮箱路径记录候选账号 ID 而非用户名，见 common.LoginSession 的说明。
+func (s *AuthApi) createEmailLoginSession(userIds []string, options []response.TenantOption) (string, error) {
+	return s.saveLoginSession(common.LoginSession{
+		Tenants: tenantIdsOf(options),
+		UserIds: userIds,
+	})
+}
+
+func tenantIdsOf(options []response.TenantOption) []string {
+	return lo.Map(options, func(o response.TenantOption, _ int) string { return o.TenantId })
+}
+
+func (s *AuthApi) saveLoginSession(session common.LoginSession) (string, error) {
 	id, err := util.Uuid()
 	if err != nil {
 		return "", err
 	}
-	jsonBytes, err := json.Marshal(common.LoginSession{
-		Username: username,
-		Tenants: lo.Map(options, func(o response.TenantOption, _ int) string {
-			return o.TenantId
-		}),
-	})
+	jsonBytes, err := json.Marshal(session)
 	if err != nil {
 		return "", err
 	}
@@ -312,7 +365,7 @@ func (s *AuthApi) destroyLoginSession(sessionId string) error {
 	return global.Redis.Del(context.Background(), fmt.Sprintf("%s%s", loginSessionPrefix, sessionId)).Err()
 }
 
-// SelectTenant 多租户登录选择租户。登录会话一次性使用且只能进入会话认证过的租户，
+// SelectTenant 登录时选择租户。登录会话一次性使用且只能进入会话认证过的租户，
 // 防止会话复用或横向切换到未获授权的租户。
 func (s *AuthApi) SelectTenant(ctx *gin.Context) {
 	var req common.SelectTenantReq
@@ -334,18 +387,24 @@ func (s *AuthApi) SelectTenant(ctx *gin.Context) {
 		return
 	}
 
-	user, err := authService.EnterTenant(util.DB(ctx), req.TenantId, session.Username)
+	// 邮箱登录的会话按候选账号 ID 收敛，口令登录的会话按用户名收敛。
+	var user *system.SysUser
+	if len(session.UserIds) > 0 {
+		user, err = authService.EnterTenantByUserIds(util.DB(ctx), req.TenantId, session.UserIds)
+	} else {
+		user, err = authService.EnterTenant(util.DB(ctx), req.TenantId, session.Username)
+	}
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
 
-	token, terr := s.buildToken(ctx, user)
+	options, _ := tenantPublicService.ListEnabledByIDs(util.DB(ctx), session.Tenants)
+	token, terr := s.buildToken(ctx, user, options)
 	if terr != nil {
 		response.ServerError(ctx)
 		return
 	}
-	options, _ := tenantPublicService.ListEnabledForUsername(util.DB(ctx), session.Username)
 	s.respondLoginResult(ctx, token, options)
 }
 
@@ -358,13 +417,24 @@ func (s *AuthApi) SwitchTenant(ctx *gin.Context) {
 	}
 
 	username := ctx.GetString("username")
-	user, err := authService.EnterTenant(util.BypassTenantDB(ctx), req.TenantId, username)
+	authorizedTenantIds := ctx.GetStringSlice("authorizedTenantIds")
+	if !lo.Contains(authorizedTenantIds, req.TenantId) {
+		response.BadRequest(ctx, "invalidTenant")
+		return
+	}
+	password, err := shared.RSACrypto.DecryptWithKey(req.PublicKey, req.Password, true)
+	if err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
+	user, err := authService.Authenticate(util.BypassTenantDB(ctx), req.TenantId, username, password)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
 
-	token, terr := s.buildToken(ctx, user)
+	options, _ := tenantPublicService.ListEnabledByIDs(util.BypassTenantDB(ctx), authorizedTenantIds)
+	token, terr := s.buildToken(ctx, user, options)
 	if terr != nil {
 		response.ServerError(ctx)
 		return
@@ -372,14 +442,15 @@ func (s *AuthApi) SwitchTenant(ctx *gin.Context) {
 	// 吊销当前租户的会话凭据，避免旧租户凭据继续残留
 	_ = authService.Logout(ctx.GetString("userId"), ctx.GetString("accessToken"))
 
-	options, _ := tenantPublicService.ListEnabledForUsername(util.BypassTenantDB(ctx), username)
 	s.respondLoginResult(ctx, token, options)
 }
 
 // MyTenants 当前用户的可用租户列表（租户切换器用）。平台保留租户不在此列。
 func (s *AuthApi) MyTenants(ctx *gin.Context) {
-	username := ctx.GetString("username")
-	options, err := tenantPublicService.ListEnabledForUsername(util.BypassTenantDB(ctx), username)
+	options, err := tenantPublicService.ListEnabledByIDs(
+		util.BypassTenantDB(ctx),
+		ctx.GetStringSlice("authorizedTenantIds"),
+	)
 	if err != nil {
 		response.ServerError(ctx)
 		return
@@ -387,7 +458,10 @@ func (s *AuthApi) MyTenants(ctx *gin.Context) {
 	response.Success(ctx, options)
 }
 
-// LoginWithEmail 使用邮件登录
+// LoginWithEmail 使用邮箱验证码登录。
+//
+// 与口令登录同构：邮箱命中多个启用租户时不擅自挑一个，返回 requires_tenant_selection
+// 与一次性登录会话，由前端选择后经 select_tenant 完成登录。
 func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 	context := context.Background()
 	iRedis := global.Redis
@@ -405,28 +479,38 @@ func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 		return
 	}
 
+	// 验证码在这里一次性消费：后续的租户选择由一次性登录会话授权，不再需要验证码。
 	defer func() {
 		_ = userApi.clearEmailCache(context, iRedis, LoginWithEmailPrefix, req.Email)
 	}()
 
-	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
+	users, err := s.emailCandidates(ctx, cache, req.Email, req.Code)
 	if err != nil {
-		// 未绑定的邮箱与“验证码错误”返回同一个响应，避免枚举账号存在性。
-		response.BadRequest(ctx, "captchaError")
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 
-	if cache.Code != req.Code || cache.UserId != user.UserId {
-		response.BadRequest(ctx, "captchaError")
+	options, _ := tenantPublicService.ListEnabledByIDs(util.DB(ctx), userService.TenantIdsOf(users))
+	if len(users) > 1 {
+		sessionId, serr := s.createEmailLoginSession(userService.UserIdsOf(users), options)
+		if serr != nil {
+			response.ServerError(ctx)
+			return
+		}
+		response.Success(ctx, response.LoginResult{
+			RequiresTenantSelection: true,
+			LoginSessionId:          sessionId,
+			AvailableTenants:        options,
+		})
 		return
 	}
 
-	token, err := s.buildToken(ctx, user)
+	token, err := s.buildToken(ctx, &users[0], options)
 	if err != nil {
 		response.ServerError(ctx)
 		return
 	}
-	response.Success(ctx, token)
+	s.respondLoginResult(ctx, token, options)
 }
 
 // SendLoginWithEmailCode 发送使用邮箱登录验证码
@@ -437,7 +521,7 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 		return
 	}
 
-	user, err := userService.FindUserByEmail(util.DB(ctx), req.Email)
+	users, err := userService.FindUsersByEmail(util.DB(ctx), req.Email)
 	if err != nil {
 		// 未绑定的邮箱与“验证码已发送”返回同一个响应，避免枚举账号存在性。
 		// 不真正发信，但保持一致的 204，客户端无法区分。
@@ -450,5 +534,5 @@ func (s *AuthApi) SendLoginWithEmailCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "邮箱登录",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成登录：",
-	}, user.UserId)
+	}, userService.UserIdsOf(users))
 }

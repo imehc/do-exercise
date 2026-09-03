@@ -3,8 +3,10 @@ package system
 import (
 	"errors"
 	"slices"
+	"strings"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
@@ -14,6 +16,37 @@ import (
 )
 
 type SysMenuService struct{}
+
+// routePermissionKey 把父级菜单路由归一成权限标识前缀，与前端 routePermissionKey 同一算法。
+func routePermissionKey(route string) string {
+	route = strings.Trim(route, "/")
+	return strings.ReplaceAll(route, "/", "_")
+}
+
+// validatePermission 校验按钮菜单的权限标识：
+// 必须形如 <父级路由归一化>:<允许动作>，动作取自 global.MenuPermissionActions（唯一来源）。
+// 权限标识是 Casbin 策略与前端按钮鉴权的共同键，放开自由输入会长出
+// user:query / users:query / user:list 这类同义不同名的标识，权限表迅速失控。
+func (s *SysMenuService) validatePermission(db *gorm.DB, parentID *uint, menuType uint8, permission *string) error {
+	if menuType != 3 {
+		return nil
+	}
+	if parentID == nil || *parentID == 0 || permission == nil {
+		return errors.New("invalidPermission")
+	}
+	parent, err := s.checkMenuExist(db, *parentID, false)
+	if err != nil {
+		return err
+	}
+	parts := strings.SplitN(*permission, ":", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[0] != routePermissionKey(parent.Route) {
+		return errors.New("invalidPermission")
+	}
+	if !global.IsMenuPermissionAction(parts[1]) {
+		return errors.New("invalidPermission")
+	}
+	return nil
+}
 
 // assignApis 分配API。
 // 空 apiIds 的语义是「解除该菜单的全部 API 绑定」，不能提前 return，
@@ -75,9 +108,24 @@ func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*res
 			return nil, err
 		}
 	}
+	if err := s.validatePermission(db, req.ParentId, req.Type, req.Permission); err != nil {
+		return nil, err
+	}
+	scope := req.Scope
+	if scope == "" {
+		scope = global.MenuScopeBoth
+	}
+	if scope == global.MenuScopePlatform {
+		// 与 Update 同一理由：新增平台专属菜单同样是授权边界变更，留一条可追溯的审计
+		zap.L().Warn("新增平台专属菜单",
+			zap.String("menuName", req.Name),
+			zap.String("operator", model.CurrentUserID(db)),
+		)
+	}
 
 	menu := &system.SysMenu{
 		Name:       req.Name,
+		I18nKey:    req.I18nKey,
 		ParentId:   req.ParentId,
 		Permission: req.Permission,
 		Icon:       req.Icon,
@@ -86,6 +134,8 @@ func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*res
 		Component:  req.Component,
 		Sort:       req.Sort,
 		Visible:    req.Visible,
+		Scope:      scope,
+		IsSystem:   req.IsSystem,
 	}
 
 	// 开启事务
@@ -119,6 +169,8 @@ func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*res
 
 	return &response.SysMenuResp{
 		Id:         menu.Id,
+		Name:       menu.Name,
+		I18nKey:    menu.I18nKey,
 		ParentId:   menu.ParentId,
 		Permission: menu.Permission,
 		Icon:       menu.Icon,
@@ -127,6 +179,8 @@ func (s *SysMenuService) Create(db *gorm.DB, req request.CreateSysMenuReq) (*res
 		Component:  menu.Component,
 		Sort:       menu.Sort,
 		Visible:    menu.Visible,
+		Scope:      menu.Scope,
+		IsSystem:   menu.IsSystem,
 		CreatedAt:  menu.CreatedAt,
 		CreatedBy:  menu.CreatedBy,
 		UpdatedAt:  menu.UpdatedAt,
@@ -175,14 +229,34 @@ func (s *SysMenuService) Update(db *gorm.DB, id uint, req request.UpdateSysMenuR
 	if err != nil {
 		return err
 	}
-	if *req.ParentId != 0 {
+	if menu.IsSystem {
+		// 系统菜单的路由、权限和类型是平台契约，只允许改显示属性。
+		// 这一步必须排在校验之前：被强制回填的字段不该再拿请求里的值去校验，
+		// 否则编辑一个内置按钮时只改排序也会因为没提交 permission 而被判成非法权限标识。
+		req.Name = menu.Name
+		// 未提交翻译键时保留已有值；显式提供新键可用于补齐系统菜单 catalog。
+		if req.I18nKey == nil {
+			req.I18nKey = menu.I18nKey
+		}
+		req.ParentId = menu.ParentId
+		req.Permission = menu.Permission
+		req.Type = menu.Type
+		req.Route = menu.Route
+		req.Component = menu.Component
+		req.Scope = menu.Scope
+	}
+	if req.ParentId != nil && *req.ParentId != 0 {
 		_, err = s.checkMenuExist(db, *req.ParentId, true)
 		if err != nil {
 			return err
 		}
 	}
+	if err := s.validatePermission(db, req.ParentId, req.Type, req.Permission); err != nil {
+		return err
+	}
 
 	menu.Name = req.Name
+	menu.I18nKey = req.I18nKey
 	menu.ParentId = req.ParentId
 	menu.Permission = req.Permission
 	menu.Icon = req.Icon
@@ -191,6 +265,20 @@ func (s *SysMenuService) Update(db *gorm.DB, id uint, req request.UpdateSysMenuR
 	menu.Component = req.Component
 	menu.Sort = req.Sort
 	menu.Visible = req.Visible
+	if req.Scope != "" && req.Scope != menu.Scope {
+		// scope 决定这条菜单能不能落到业务租户手里，是一条授权边界的变更。
+		// 操作记录只留下请求体，这里额外打一条带前后值的审计日志，便于事后追溯
+		// 「某个平台菜单是什么时候被放开给租户的」。
+		zap.L().Warn("菜单可见范围变更",
+			zap.Uint("menuId", menu.Id),
+			zap.String("menuName", menu.Name),
+			zap.String("from", menu.Scope),
+			zap.String("to", req.Scope),
+			zap.String("operator", model.CurrentUserID(db)),
+		)
+		menu.Scope = req.Scope
+	}
+	menu.IsSystem = menu.IsSystem || req.IsSystem
 
 	// 开启事务
 	tx := db.Begin()
@@ -239,6 +327,7 @@ func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error
 	return &response.SysMenuResp{
 		Id:         menu.Id,
 		Name:       menu.Name,
+		I18nKey:    menu.I18nKey,
 		ParentId:   menu.ParentId,
 		Permission: menu.Permission,
 		Icon:       menu.Icon,
@@ -247,6 +336,8 @@ func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error
 		Component:  menu.Component,
 		Sort:       menu.Sort,
 		Visible:    menu.Visible,
+		Scope:      menu.Scope,
+		IsSystem:   menu.IsSystem,
 		CreatedAt:  menu.CreatedAt,
 		CreatedBy:  menu.CreatedBy,
 		UpdatedAt:  menu.UpdatedAt,
@@ -265,10 +356,24 @@ func (s *SysMenuService) Get(db *gorm.DB, id uint) (*response.SysMenuResp, error
 	}, nil
 }
 
+// toApiBriefs 把菜单绑定的接口压成授权页预览需要的最小字段集
+func toApiBriefs(apis []system.SysApi) []response.SysMenuApiBrief {
+	return lo.Map(apis, func(item system.SysApi, _ int) response.SysMenuApiBrief {
+		return response.SysMenuApiBrief{
+			Id:          item.Id,
+			Method:      item.Method,
+			Path:        item.Path,
+			Description: item.Description,
+		}
+	})
+}
+
 // GetTree 获取菜单树（按调用者的租户可见范围裁剪）
 func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error) {
 	var menus []system.SysMenu
-	if err := scopeTenantVisibleMenus(db).Find(&menus).Error; err != nil {
+	// 预加载绑定的 API：角色授权页需要在勾选权限时就地预览这条权限实际放开哪些接口，
+	// 否则只能逐个菜单再查一次详情（还要求授权人额外具备 menu:info）。
+	if err := scopeTenantVisibleMenus(db).Preload("Apis").Find(&menus).Error; err != nil {
 		return nil, errors.New("getMenuListFailed")
 	}
 
@@ -278,6 +383,7 @@ func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error
 		menuMap[m.Id] = &response.SysMenuTreeResp{
 			Id:         m.Id,
 			Name:       m.Name,
+			I18nKey:    m.I18nKey,
 			ParentId:   m.ParentId,
 			Permission: m.Permission,
 			Icon:       m.Icon,
@@ -286,6 +392,9 @@ func (s *SysMenuService) GetTree(db *gorm.DB) ([]response.SysMenuTreeResp, error
 			Component:  m.Component,
 			Sort:       m.Sort,
 			Visible:    m.Visible,
+			Scope:      m.Scope,
+			IsSystem:   m.IsSystem,
+			Apis:       toApiBriefs(m.Apis),
 			Children:   []response.SysMenuTreeResp{}, // 初始化为空数组而不是nil
 		}
 	}

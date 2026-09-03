@@ -1,17 +1,37 @@
 package global
 
-// TenantModeSingle / TenantModeMulti 租户模式枚举
-const (
-	TenantModeSingle = "single"
-	TenantModeMulti  = "multi"
-)
+import "slices"
 
 // PlatformTenantID 平台层(全局超级管理员)的保留租户 ID。
 // sys_tenant 表中不存在该行，仅作为内部标识。
 const PlatformTenantID = "platform"
 
-// PlatformOnlyMenuIDs 仅供平台超级管理员使用的菜单。
-// 创建租户时为租户管理员供应全量菜单时必须排除，业务租户不得获得这些权限。
+// MenuScope 定义共享菜单的可见范围。
+const (
+	MenuScopePlatform = "platform"
+	MenuScopeTenant   = "tenant"
+	MenuScopeBoth     = "both"
+)
+
+// MenuPermissionActions 权限标识允许的动作，按界面展示顺序排列。
+// 这里是唯一来源：服务端校验 sys_menu.permission 用它，前端的权限动作下拉框
+// 也由 GET /auth/tenants 下发同一份，避免两侧各写一套枚举后逐渐漂移。
+var MenuPermissionActions = []string{
+	"query", "info", "create", "update", "delete",
+	"start", "stop", "execute", "reset",
+}
+
+// IsMenuPermissionAction 判断动作是否在允许集合内
+func IsMenuPermissionAction(action string) bool {
+	return slices.Contains(MenuPermissionActions, action)
+}
+
+// LegacyPlatformOnlyMenuIDs 旧种子里的平台专属菜单 ID。
+//
+// 运行期的判定依据已经全部改成 sys_menu.scope（platform/tenant/both），
+// 这份名单只剩一个用途：升级存量库时把 scope/is_system 回填到这些行上
+// （init.sql 与迁移版本 7 menu_metadata_backfill，见 server/migration）。新增平台菜单只需把 scope 设成 platform，
+// 不要再往这里加 ID——自增 ID 不是稳定契约，这也是 P1-3 的整改目标。
 //
 // 收录标准是「该菜单的数据无法按租户隔离」：
 //   - 10/181-185 租户管理：管的就是租户本身，天然跨租户。
@@ -20,7 +40,7 @@ const PlatformTenantID = "platform"
 //
 // 其余菜单（用户/角色/操作记录/令牌/定时任务）的数据都能按租户裁剪，
 // 因此保持对租户开放，由行级隔离或服务层范围裁剪保证互不可见。
-var PlatformOnlyMenuIDs = []uint{8, 10, 161, 181, 182, 183, 184, 185}
+var LegacyPlatformOnlyMenuIDs = []uint{8, 10, 161, 181, 182, 183, 184, 185}
 
 // tenantScopedTables 参与行级租户隔离的表。
 // 租户插件据此决定是否为当前语句追加 tenant_id 过滤/回填；
@@ -56,16 +76,13 @@ func IsTenantScopedTable(table string) bool {
 	return tenantScopedTables[table]
 }
 
-// ResolveTenantID 依据配置与请求上下文解析当前操作归属的租户ID。
-// 返回值 ok=false 表示当前上下文无需租户隔离：
-//   - 请求未携带租户（登录等公共端点）
-//   - 多租户模式下为平台租户（跨租户管理）
+// ResolveTenantID 依据请求上下文解析当前操作归属的租户ID。
+// 系统只有多租户一种形态，返回值 ok=false 表示当前上下文无需租户隔离：
+//   - 请求未携带租户（登录等公共端点、迁移、定时任务的平台维护旁路）
+//   - 平台租户（跨租户管理）
 func ResolveTenantID(tid string) (string, bool) {
-	if Config.Tenant.IsMulti() {
-		if tid == "" || tid == PlatformTenantID {
-			return "", false
-		}
-		return tid, true
+	if tid == "" || tid == PlatformTenantID {
+		return "", false
 	}
-	return Config.Tenant.DefaultTenantId, true
+	return tid, true
 }

@@ -43,6 +43,8 @@ func (s *SysApiService) Update(db *gorm.DB, id uint, req request.UpdateSysApiReq
 	if err != nil {
 		return errors.New("updateApiFailed")
 	}
+	// 禁用/启用接口后刷新进程内缓存，让新状态立即对后续请求生效。
+	util.ReloadDisabledApis()
 	return nil
 }
 

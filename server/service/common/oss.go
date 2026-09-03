@@ -61,10 +61,10 @@ func (s *OssService) GetPresignedUrl(userId string, tenantId string, req model.O
 		return nil, errors.New("getFailed")
 	}
 	// 以 租户/用户 作前缀，便于按租户配额统计与按租户清理。
-	// 单租户模式 tenantId 为默认租户；多租户/平台层为空时退化为仅按用户隔离。
+	// 平台超管上传时上下文里的租户为空，归到平台前缀下，不落进任何业务租户的空间。
 	prefix := strings.Trim(tenantId, "/")
 	if prefix == "" {
-		prefix = global.Config.Tenant.DefaultTenantId
+		prefix = global.PlatformTenantID
 	}
 	objectKey := fmt.Sprintf("%s/%s/%s%s", prefix, userId, objectName, ext)
 

@@ -48,6 +48,12 @@ func (s *SysTenantService) Create(db *gorm.DB, req request.CreateSysTenantReq) (
 		Status:   true,
 		Remark:   req.Remark,
 	}
+	if req.MaxUsers != nil {
+		tenant.MaxUsers = *req.MaxUsers
+	}
+	if req.MaxTasks != nil {
+		tenant.MaxTasks = *req.MaxTasks
+	}
 
 	tx := db.Begin()
 	defer func() {
@@ -73,7 +79,13 @@ func (s *SysTenantService) Create(db *gorm.DB, req request.CreateSysTenantReq) (
 	}
 
 	var menus []system.SysMenu
-	if err := tx.Preload("Apis").Where("id NOT IN ?", global.PlatformOnlyMenuIDs).Find(&menus).Error; err != nil {
+	readonlyWritePermissions := []string{"api:update", "menu:create", "menu:update", "menu:delete"}
+	// scope 由迁移版本 8 约束为 NOT NULL，这里与 scopeTenantVisibleMenus 用同一口径，
+	// 不再为 NULL 留 fail-open 的兜底分支。
+	if err := tx.Preload("Apis").
+		Where("scope <> ?", global.MenuScopePlatform).
+		Where("permission IS NULL OR permission NOT IN ?", readonlyWritePermissions).
+		Find(&menus).Error; err != nil {
 		tx.Rollback()
 		return nil, errors.New("createTenantFailed")
 	}
@@ -109,6 +121,8 @@ func (s *SysTenantService) Create(db *gorm.DB, req request.CreateSysTenantReq) (
 		Name:      tenant.Name,
 		Code:      tenant.Code,
 		Status:    tenant.Status,
+		MaxUsers:  tenant.MaxUsers,
+		MaxTasks:  tenant.MaxTasks,
 		Remark:    tenant.Remark,
 		CreatedAt: tenant.CreatedAt,
 		CreatedBy: tenant.CreatedBy,
@@ -165,15 +179,20 @@ func (s *SysTenantService) provisionAdminUser(
 		}
 	} else {
 		adminUser = &system.SysUser{
-			UserId:   util.NextID(),
-			Username: req.AdminUsername,
-			Nickname: "租户管理员",
-			Password: req.AdminPassword,
-			TenantId: tenantId,
+			UserId:             util.NextID(),
+			Username:           req.AdminUsername,
+			Nickname:           "租户管理员",
+			Password:           req.AdminPassword,
+			TenantId:           tenantId,
+			MustChangePassword: true,
 		}
 		if err := tx.Create(adminUser).Error; err != nil {
 			return nil, errors.New("createTenantFailed")
 		}
+	}
+	// 记录成员关系：租户管理员与该租户的归属，和账号创建同事务提交
+	if err := addUserTenantMembership(tx, adminUser.UserId, adminUser.TenantId); err != nil {
+		return nil, errors.New("createTenantFailed")
 	}
 
 	// 挂载租户管理员角色
@@ -216,8 +235,23 @@ func (s *SysTenantService) Update(db *gorm.DB, id string, req request.UpdateSysT
 	if req.Status != nil {
 		updates["Status"] = *req.Status
 	}
+	if req.MaxUsers != nil {
+		updates["MaxUsers"] = *req.MaxUsers
+	}
+	if req.MaxTasks != nil {
+		updates["MaxTasks"] = *req.MaxTasks
+	}
+	if req.ExpireTime != nil {
+		updates["ExpireTime"] = req.ExpireTime
+	}
 	if err := db.Model(tenant).Updates(updates).Error; err != nil {
 		return errors.New("updateTenantFailed")
+	}
+	// 停用或到期（把 expire_time 设成过去）都立即吊销该租户全部会话。
+	if (req.Status != nil && !*req.Status) || util.IsTenantExpired(req.ExpireTime) {
+		if err := s.revokeTenantSessions(db, id); err != nil {
+			return errors.New("updateTenantFailed")
+		}
 	}
 	return nil
 }
@@ -235,8 +269,43 @@ func (s *SysTenantService) Delete(db *gorm.DB, id string) error {
 	if count <= 1 {
 		return errors.New("lastTenantNotDeletable")
 	}
-	if err := db.Model(&system.SysTenant{}).Where("tenant_id = ?", id).Delete(nil).Error; err != nil {
+	tx := db.Begin()
+	if err := tx.Model(&system.SysTenant{}).
+		Where("tenant_id = ?", id).
+		Update("status", false).Error; err != nil {
+		tx.Rollback()
 		return errors.New("deleteTenantFailed")
+	}
+	if err := tx.Model(&system.SysTenant{}).Where("tenant_id = ?", id).Delete(nil).Error; err != nil {
+		tx.Rollback()
+		return errors.New("deleteTenantFailed")
+	}
+	if err := tx.Commit().Error; err != nil {
+		return errors.New("deleteTenantFailed")
+	}
+	if err := s.revokeTenantSessions(db, id); err != nil {
+		return errors.New("deleteTenantFailed")
+	}
+	return nil
+}
+
+// revokeTenantSessions 吊销指定租户全部用户的 access/refresh token。
+// 鉴权中间件仍会复核租户状态，这里负责主动释放 Redis 会话并让客户端立即下线。
+func (s *SysTenantService) revokeTenantSessions(db *gorm.DB, tenantId string) error {
+	var userIds []string
+	if err := db.Model(&system.SysUser{}).
+		Where("tenant_id = ?", tenantId).
+		Pluck("id", &userIds).Error; err != nil {
+		return err
+	}
+	for _, userId := range userIds {
+		if err := util.RevokeAllUserTokens(userId); err != nil {
+			global.Log.Error("吊销租户会话失败",
+				zap.String("tenantId", tenantId),
+				zap.String("userId", userId),
+				zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }
@@ -253,6 +322,8 @@ func (s *SysTenantService) Get(db *gorm.DB, id string) (*response.SysTenantResp,
 		Code:       tenant.Code,
 		Status:     tenant.Status,
 		ExpireTime: tenant.ExpireTime,
+		MaxUsers:   tenant.MaxUsers,
+		MaxTasks:   tenant.MaxTasks,
 		Remark:     tenant.Remark,
 		CreatedAt:  tenant.CreatedAt,
 		CreatedBy:  tenant.CreatedBy,
@@ -303,6 +374,8 @@ func (s *SysTenantService) GetList(db *gorm.DB, req request.QuerySysTenantReq) (
 			Code:       t.Code,
 			Status:     t.Status,
 			ExpireTime: t.ExpireTime,
+			MaxUsers:   t.MaxUsers,
+			MaxTasks:   t.MaxTasks,
 			Remark:     t.Remark,
 			CreatedAt:  t.CreatedAt,
 			CreatedBy:  t.CreatedBy,
@@ -328,11 +401,17 @@ func (s *SysTenantService) checkTenantExist(db *gorm.DB, tenantId string) (*syst
 	return &tenant, nil
 }
 
-// ListEnabled 查询启用的租户（登录页选择器用）
-func (s *SysTenantService) ListEnabled(db *gorm.DB) ([]commonResponse.TenantOption, error) {
+// ListEnabledByIDs 查询给定集合中仍启用且未删除的业务租户。
+// 调用方传入的 ID 必须来自已认证会话，不在这里按用户名重新推导归属。
+func (s *SysTenantService) ListEnabledByIDs(db *gorm.DB, tenantIds []string) ([]commonResponse.TenantOption, error) {
+	ids := lo.Filter(lo.Uniq(tenantIds), func(id string, _ int) bool {
+		return id != "" && id != global.PlatformTenantID
+	})
+	if len(ids) == 0 {
+		return []commonResponse.TenantOption{}, nil
+	}
 	var tenants []system.SysTenant
-	if err := db.Model(&system.SysTenant{}).
-		Where("status = ?", true).
+	if err := db.Where("tenant_id IN ? AND status = ?", ids, true).
 		Order("created_at ASC").
 		Find(&tenants).Error; err != nil {
 		return nil, errors.New("getTenantListFailed")
@@ -340,34 +419,6 @@ func (s *SysTenantService) ListEnabled(db *gorm.DB) ([]commonResponse.TenantOpti
 	return lo.Map(tenants, func(t system.SysTenant, _ int) commonResponse.TenantOption {
 		return commonResponse.TenantOption{TenantId: t.TenantId, Name: t.Name, Code: t.Code}
 	}), nil
-}
-
-// ListEnabledForUsername 查询指定用户名归属的可用租户（租户切换器、多租户登录候选）。
-// 仅返回启用中的业务租户；平台保留租户（platform）不出现在任何租户选择器中，
-// 平台管理员直接登录平台域，无需也无法切换。
-func (s *SysTenantService) ListEnabledForUsername(db *gorm.DB, username string) ([]commonResponse.TenantOption, error) {
-	var tenantIds []string
-	if err := db.Model(&system.SysUser{}).
-		Where("username = ?", username).
-		Where("tenant_id != ?", global.PlatformTenantID).
-		Distinct().
-		Pluck("tenant_id", &tenantIds).Error; err != nil {
-		return nil, errors.New("getTenantListFailed")
-	}
-
-	options := make([]commonResponse.TenantOption, 0, len(tenantIds))
-	for _, tid := range tenantIds {
-		var tenant system.SysTenant
-		if err := db.Where("tenant_id = ? AND status = ?", tid, true).First(&tenant).Error; err != nil {
-			continue
-		}
-		options = append(options, commonResponse.TenantOption{
-			TenantId: tenant.TenantId,
-			Name:     tenant.Name,
-			Code:     tenant.Code,
-		})
-	}
-	return options, nil
 }
 
 // ListAssignableAdmins 查询可被选作租户管理员的现有用户（创建租户时用）。
@@ -498,8 +549,18 @@ func (s *SysTenantService) AssignUsers(db *gorm.DB, tenantId string, userIds []s
 			Password: src.Password, // 复用原密码哈希，避免二次 bcrypt
 			TenantId: tenantId,
 		}
+		// 用户数配额校验：同事务内计数，逐条放行到上限为止
+		if err := enforceUserQuota(tx, newUser.TenantId, 1); err != nil {
+			tx.Rollback()
+			return err
+		}
 		// 跳过 BeforeCreate 的密码哈希，密码哈希直接原样复用
 		if err := tx.Session(&gorm.Session{SkipHooks: true}).Create(newUser).Error; err != nil {
+			tx.Rollback()
+			return errors.New("assignUsersFailed")
+		}
+		// 记录成员关系：归属写入与用户行复制同事务，不出现半同步状态
+		if err := addUserTenantMembership(tx, newUser.UserId, newUser.TenantId); err != nil {
 			tx.Rollback()
 			return errors.New("assignUsersFailed")
 		}

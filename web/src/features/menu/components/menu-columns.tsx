@@ -6,6 +6,7 @@ import { languageAtom } from '~/atoms'
 import { MenuType, SysMenuTree } from '~/do-exercise-api'
 import { basicMoreOptions, usePermissions } from '~/provider'
 import { toIconComponent } from '~/utils/icon'
+import { getMenuLabel, hasMenuCatalogEntry } from '~/utils/menu-label'
 import { usePlatformResourceReadonly } from '~/hooks/use-tenant'
 import { Button } from '~/components/ui/button'
 import { DataTableRowActions } from '~/components/other'
@@ -23,13 +24,14 @@ import {
 
 const translations = {
   menuName: (): string => t`菜单名称`,
+  i18nKey: (): string => t`国际化键`,
   permission: (): string => t`权限标识`,
   icon: (): string => t`图标`,
   menuType: (): string => t`菜单类型`,
   route: (): string => t`路由`,
-  component: (): string => t`组件`,
   sort: (): string => t`排序`,
   visible: (): string => t`是否可见`,
+  missingCatalog: (): string => t`未翻译`,
   yes: (): string => t`是`,
   no: (): string => t`否`,
 } as const
@@ -79,7 +81,26 @@ export const useColumns = () => {
             paddingLeft: `${row.depth * 12}px`,
           }}
         >
-          {row.original.name}
+          {getMenuLabel(row.original)}
+        </div>
+      ),
+    }),
+    createColumn<SysMenuTree>({
+      key: 'i18nKey',
+      title: translations.i18nKey,
+      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
+        <div className='flex w-fit items-center gap-1 text-nowrap'>
+          <span>{row.original.i18nKey || '-'}</span>
+          {/* 键存在但没有 catalog 条目时界面会回落到中文名，这里直接标出来 */}
+          {!!row.original.i18nKey &&
+            !hasMenuCatalogEntry(row.original.i18nKey) && (
+              <span
+                className='text-muted-foreground text-xs'
+                title={translations.missingCatalog()}
+              >
+                ({translations.missingCatalog()})
+              </span>
+            )}
         </div>
       ),
     }),
@@ -117,13 +138,6 @@ export const useColumns = () => {
       title: translations.route,
       cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
         <div>{row.original.route || '-'}</div>
-      ),
-    }),
-    createColumn<SysMenuTree>({
-      key: 'component',
-      title: translations.component,
-      cell: ({ row }: CellContext<DataTableFeatures, SysMenuTree, unknown>) => (
-        <div>{row.original.component || '-'}</div>
       ),
     }),
     createColumn<SysMenuTree>({

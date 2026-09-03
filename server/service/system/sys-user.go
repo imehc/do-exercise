@@ -27,7 +27,7 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 	var roles []system.SysRole
 	if len(roleIds) > 0 {
 		// 检查角色是否存在
-		if err := tx.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
+		if err := tx.Where("id IN ? AND tenant_id = ?", roleIds, user.TenantId).Find(&roles).Error; err != nil {
 			return nil, errors.New("allRolesNotFound")
 		}
 		if len(roles) != len(roleIds) {
@@ -55,10 +55,8 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 // 并由补偿步骤将失效的半成品规则清掉，只把错误抛给上层提示人工介入。
 func (s *SysUserService) syncRolePolicy(user *system.SysUser, roles []system.SysRole) error {
 	roleCodes := make([]string, 0, len(roles))
-	roleIds := make([]uint, 0, len(roles))
 	for _, item := range roles {
 		roleCodes = append(roleCodes, item.Code)
-		roleIds = append(roleIds, item.Id)
 	}
 
 	enforcer := global.Enforcer
@@ -74,12 +72,6 @@ func (s *SysUserService) syncRolePolicy(user *system.SysUser, roles []system.Sys
 			_, _ = enforcer.DeleteRolesForUser(user.UserId, tenantId)
 			return errors.New("roleAssignFailed")
 		}
-	}
-
-	if err := util.UpdateUserRoleInCache(user.UserId, roleIds); err != nil {
-		// 补偿：撤销 Casbin 侧刚写入的规则，保持一致的无权限态
-		_, _ = enforcer.DeleteRolesForUser(user.UserId, tenantId)
-		return errors.New("roleAssignFailed")
 	}
 
 	return nil
@@ -139,6 +131,11 @@ func (s *SysUserService) UsernameExists(db *gorm.DB, username string) (bool, err
 
 // Create 创建用户
 func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*response.SysUserResp, error) {
+	// 用户必须落在具体租户下：平台超管的上下文没有租户，插件回填不出 tenant_id，
+	// 建出来的行会是任何租户都看不见的孤儿。要为某租户建号请先切到该租户。
+	if model.CurrentIsSuperAdmin(db) {
+		return nil, errors.New("platformTenantRequired")
+	}
 	err := s.checkUserNameDuplication(db, req.Username)
 	if err != nil {
 		return nil, err
@@ -166,9 +163,19 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 			tx.Rollback()
 		}
 	}()
+	// 用户数配额校验：超限即整体回滚
+	if err := enforceUserQuota(tx, user.TenantId, 1); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	// 创建用户
 	if err = tx.Create(user).Error; err != nil {
+		tx.Rollback()
+		return nil, errors.New("createUserFailed")
+	}
+	// 记录成员关系：用户与租户的归属与用户行同事务写入
+	if err := addUserTenantMembership(tx, user.UserId, user.TenantId); err != nil {
 		tx.Rollback()
 		return nil, errors.New("createUserFailed")
 	}
@@ -233,6 +240,11 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 	}()
 
 	if err := tx.Where("id = ?", id).Delete(user).Error; err != nil {
+		tx.Rollback()
+		return errors.New("deleteUserFailed")
+	}
+	// 撤销成员关系：移出用户与用户行的软删除同事务提交
+	if err := removeUserTenantMembership(tx, user.UserId, user.TenantId); err != nil {
 		tx.Rollback()
 		return errors.New("deleteUserFailed")
 	}
@@ -562,12 +574,32 @@ func (s *SysUserService) AssignUserToTenant(db *gorm.DB, id string, tenantId str
 		Password: user.Password,
 		TenantId: tenantId,
 	}
-	if err := db.Session(&gorm.Session{SkipHooks: true}).Create(newUser).Error; err != nil {
+	// 复制用户与记录成员关系放同一事务，避免出现「用户行已建、成员关系缺失」的半同步状态
+	tx := db.Begin()
+	// 用户数配额校验：超限即整体回滚，不放行本次复制
+	if err := enforceUserQuota(tx, newUser.TenantId, 1); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Session(&gorm.Session{SkipHooks: true}).Create(newUser).Error; err != nil {
+		tx.Rollback()
 		global.Log.Error("分配用户到租户失败：复制用户记录出错",
 			zap.String("userId", user.UserId),
 			zap.String("targetTenantId", tenantId),
 			zap.String("username", user.Username),
 			zap.Error(err))
+		return errors.New("assignTenantFailed")
+	}
+	if err := addUserTenantMembership(tx, newUser.UserId, newUser.TenantId); err != nil {
+		tx.Rollback()
+		global.Log.Error("分配用户到租户失败：记录成员关系出错",
+			zap.String("userId", newUser.UserId),
+			zap.String("targetTenantId", tenantId),
+			zap.Error(err))
+		return errors.New("assignTenantFailed")
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return errors.New("assignTenantFailed")
 	}
 	return nil

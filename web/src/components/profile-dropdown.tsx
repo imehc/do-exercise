@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
-import { useAtomValue, useSetAtom } from 'jotai'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { IconArrowsExchange } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { originTokenAtom } from '~/atoms'
-import { ensureHttpPrefix } from '~/utils/url'
-import { useLogout, useUserProfile } from '~/hooks/use-user'
-import { useApi } from '~/hooks/use-api'
 import { AuthApi, TenantOption } from '~/do-exercise-api'
 import { applyToken } from '~/lib/token'
+import { encryptPassword } from '~/utils/encrypt'
+import { ensureHttpPrefix } from '~/utils/url'
+import { useApi } from '~/hooks/use-api'
+import { usePublicKey } from '~/hooks/use-public-key'
+import { useLogout, useUserProfile } from '~/hooks/use-user'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
 import {
@@ -28,6 +30,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { PasswordInput } from '~/components/password-input'
 
 export function ProfileDropdown() {
   const { data: userProfile, isLoading: userProfileIsLoading } =
@@ -38,6 +41,8 @@ export function ProfileDropdown() {
   const setToken = useSetAtom(originTokenAtom)
 
   const [switchOpen, setSwitchOpen] = useState(false)
+  const [switchPassword, setSwitchPassword] = useState('')
+  const { data: publicKeyData } = usePublicKey()
 
   // 当前账号可切换的租户（用于顶栏展示当前租户与切换入口；不含平台保留租户）
   const { data: myTenants = [] } = useQuery({
@@ -50,12 +55,22 @@ export function ProfileDropdown() {
   const currentTenant = myTenants.find((t) => t.tenantId === token.tenantId)
 
   const { mutate: switchTenant, isPending: switchIsPending } = useMutation({
-    mutationFn: (tenant: TenantOption) =>
-      authApi.switchTenant({
-        switchTenantRequest: { tenantId: tenant.tenantId ?? '' },
-      }),
+    mutationFn: (tenant: TenantOption) => {
+      const publicKey = publicKeyData?.publicKey
+      if (!publicKey) throw new Error('public key unavailable')
+      const password = encryptPassword(switchPassword, publicKey)
+      if (!password) throw new Error('password encryption failed')
+      return authApi.switchTenant({
+        switchTenantRequest: {
+          tenantId: tenant.tenantId ?? '',
+          password,
+          publicKey,
+        },
+      })
+    },
     onSuccess: (data) => {
       setSwitchOpen(false)
+      setSwitchPassword('')
       setToken(applyToken(data))
       // 切换租户后整页刷新，让权限菜单与数据按新租户重建
       window.location.reload()
@@ -129,6 +144,12 @@ export function ProfileDropdown() {
               <Trans>选择要进入的租户</Trans>
             </DialogDescription>
           </DialogHeader>
+          <PasswordInput
+            value={switchPassword}
+            onChange={(event) => setSwitchPassword(event.target.value)}
+            placeholder='请输入当前租户口令'
+            disabled={switchIsPending}
+          />
           <div className='grid gap-2'>
             {myTenants.map((tenant) => {
               const isCurrent = tenant.tenantId === token.tenantId
@@ -137,7 +158,7 @@ export function ProfileDropdown() {
                   key={tenant.tenantId}
                   variant={isCurrent ? 'secondary' : 'outline'}
                   className='flex h-auto items-center justify-between px-4 py-3'
-                  disabled={isCurrent || switchIsPending}
+                  disabled={isCurrent || switchIsPending || !switchPassword}
                   onClick={() => switchTenant(tenant)}
                 >
                   <span>{tenant.name}</span>

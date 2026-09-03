@@ -9,7 +9,7 @@ type SysRole struct {
 	model.IdWrapper
 
 	Name     string    `json:"name" gorm:"not null;comment:角色名称"`
-	Code     string    `json:"code" gorm:"not null;uniqueIndex:idx_sys_role_code_tenant,priority:1;comment:角色编码"`
+	Code     string    `json:"code" gorm:"not null;uniqueIndex:idx_sys_role_code_tenant,priority:1,where:deleted_at IS NULL;comment:角色编码"`
 	TenantId string    `json:"tenant_id" gorm:"column:tenant_id;type:varchar(32);not null;default:'';index;comment:租户ID;uniqueIndex:idx_sys_role_code_tenant,priority:2"`
 	Menus    []SysMenu `json:"menus" gorm:"many2many:sys_role_menu;comment:角色菜单"`
 

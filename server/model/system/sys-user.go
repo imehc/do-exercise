@@ -7,12 +7,12 @@ import (
 )
 
 type SysUser struct {
-	UserId   string    `json:"id" gorm:"primarykey;column:id;type:varchar(32);comment:主键"`
-	Username string    `json:"username" gorm:"not null;size:16;uniqueIndex:idx_sys_user_username_tenant,priority:1,where:deleted_at IS NULL;comment:用户名"`
-	Nickname string    `json:"nickname" gorm:"comment:昵称"`
+	UserId   string `json:"id" gorm:"primarykey;column:id;type:varchar(32);comment:主键"`
+	Username string `json:"username" gorm:"not null;size:16;uniqueIndex:idx_sys_user_username_tenant,priority:1,where:deleted_at IS NULL;comment:用户名"`
+	Nickname string `json:"nickname" gorm:"comment:昵称"`
 	// Email 邮箱唯一索引为条件索引（email <> ''），空邮箱不参与唯一性校验，
 	// 从而同一租户下可存在多个空邮箱用户。
-	Email string `json:"email" gorm:"uniqueIndex:idx_sys_user_email_tenant,priority:1,where:deleted_at IS NULL AND email <> '';comment:邮箱"`
+	Email    string    `json:"email" gorm:"uniqueIndex:idx_sys_user_email_tenant,priority:1,where:deleted_at IS NULL AND email <> '';comment:邮箱"`
 	Avatar   string    `json:"avatar" gorm:"comment:头像"`
 	Password string    `json:"-" gorm:"not null;comment:密码"`
 	TenantId string    `json:"tenant_id" gorm:"column:tenant_id;type:varchar(32);not null;default:'';index;comment:租户ID;uniqueIndex:idx_sys_user_username_tenant,priority:2;uniqueIndex:idx_sys_user_email_tenant,priority:2"`

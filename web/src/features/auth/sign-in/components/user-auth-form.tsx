@@ -6,17 +6,17 @@ import { Link } from '@tanstack/react-router'
 import { IconLoader3, IconMail } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
-import { useSetAtom } from 'jotai'
-import { originTokenAtom } from '~/atoms'
+import { useAtom, useSetAtom } from 'jotai'
+import { lastTenantCodeAtom, originTokenAtom } from '~/atoms'
 import {
   AuthApi,
   LoginRequest,
   LoginResult,
   TenantOption,
 } from '~/do-exercise-api'
+import { applyToken } from '~/lib/token'
 import { cn } from '~/lib/utils'
 import { encryptPassword } from '~/utils/encrypt'
-import { applyToken } from '~/lib/token'
 import { useApi } from '~/hooks/use-api'
 import { useChan } from '~/hooks/use-chan'
 import { usePublicKey } from '~/hooks/use-public-key'
@@ -24,6 +24,7 @@ import { Button } from '~/components/ui/button'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,7 +32,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { PasswordInput } from '~/components/password-input'
-import { TenantSelectDialog } from './tenant-select-dialog'
+import { TenantSelectDialog } from '~/features/auth/components/tenant-select-dialog'
 import {
   getSignInActionSchema,
   SignInActionFormValues,
@@ -42,6 +43,8 @@ type UserAuthFormProps = HTMLAttributes<HTMLFormElement>
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const authApi = useApi(AuthApi)
   const setToken = useSetAtom(originTokenAtom)
+  // 上次用过的租户编码只是输入框记忆，鉴权仍全在服务端。
+  const [lastTenantCode, setLastTenantCode] = useAtom(lastTenantCodeAtom)
 
   const form = useChan(
     useForm<SignInActionFormValues>({
@@ -53,6 +56,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         captcha: '',
         publicKey: '',
         tenantId: '',
+        tenantCode: lastTenantCode,
       },
     })
   )
@@ -93,9 +97,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const applyLoginResult = (data: LoginResult) => {
     setToken(applyToken(data))
     // 默认口令强制轮换——首次登录成功后强制跳转到改密页
-    window.location.href = data.mustChangePassword
-      ? '/settings/password'
-      : '/'
+    window.location.href = data.mustChangePassword ? '/settings/password' : '/'
   }
 
   const { mutate: login, isPending: loginIsPending } = useMutation({
@@ -143,11 +145,16 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
       return
     }
 
+    const tenantCode = data.tenantCode?.trim() ?? ''
+    setLastTenantCode(tenantCode)
+
     login({
       login: {
         ...data,
         password: password,
         username: data.username,
+        // 空串等于「不指定租户」，别把它发出去当编码查库
+        tenantCode: tenantCode || undefined,
       },
     })
   }
@@ -178,107 +185,135 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               </FormItem>
             )}
           />
-        <FormField
-          control={form.control}
-          name='password'
-          render={({ field }) => (
-            <FormItem className='relative'>
-              <FormLabel>
-                <Trans>密码</Trans>
-              </FormLabel>
-              <FormControl>
-                <PasswordInput placeholder={t`请输入密码`} {...field} />
-              </FormControl>
-              <FormMessage />
-              <Link
-                to='/forgot-password'
-                className='text-muted-foreground absolute -top-0.5 right-0 text-sm font-medium hover:opacity-75'
-              >
-                <Trans>忘记密码?</Trans>
-              </Link>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='captcha'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <Trans>验证码</Trans>
-              </FormLabel>
-              <FormControl>
-                <div className='flex w-full items-center justify-between gap-x-4'>
+          <FormField
+            control={form.control}
+            name='password'
+            render={({ field }) => (
+              <FormItem className='relative'>
+                <FormLabel>
+                  <Trans>密码</Trans>
+                </FormLabel>
+                <FormControl>
+                  <PasswordInput placeholder={t`请输入密码`} {...field} />
+                </FormControl>
+                <FormMessage />
+                <Link
+                  to='/forgot-password'
+                  className='text-muted-foreground absolute -top-0.5 right-0 text-sm font-medium hover:opacity-75'
+                >
+                  <Trans>忘记密码?</Trans>
+                </Link>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='captcha'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>验证码</Trans>
+                </FormLabel>
+                <FormControl>
+                  <div className='flex w-full items-center justify-between gap-x-4'>
+                    <Input
+                      disabled={isPending}
+                      placeholder={t`验证码`}
+                      {...field}
+                    />
+                    <div className='relative aspect-[3/1] h-9 overflow-hidden rounded-md border border-solid border-[var(--input)]'>
+                      {!!captchaData && (
+                        <img
+                          className={cn(
+                            'box-border h-full w-full px-1',
+                            !isPending
+                              ? 'pointer-events-auto cursor-pointer'
+                              : 'pointer-events-none cursor-none'
+                          )}
+                          src={captchaData.picPath}
+                          alt='captcha'
+                          onClick={() => refetchCaptcha()}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='tenantCode'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>租户编码</Trans>
+                  <span className='text-muted-foreground text-xs font-normal'>
+                    <Trans>（选填）</Trans>
+                  </span>
+                </FormLabel>
+                <FormControl>
                   <Input
                     disabled={isPending}
-                    placeholder={t`验证码`}
+                    placeholder={t`留空则自动识别租户`}
                     {...field}
+                    value={field.value ?? ''}
                   />
-                  <div className='relative aspect-[3/1] h-9 overflow-hidden rounded-md border border-solid border-[var(--input)]'>
-                    {!!captchaData && (
-                      <img
-                        className={cn(
-                          'box-border h-full w-full px-1',
-                          !isPending
-                            ? 'pointer-events-auto cursor-pointer'
-                            : 'pointer-events-none cursor-none'
-                        )}
-                        src={captchaData.picPath}
-                        alt='captcha'
-                        onClick={() => refetchCaptcha()}
-                      />
-                    )}
-                  </div>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button className='mt-2' disabled={isPending}>
-          {loginIsPending ? (
-            <>
-              <IconLoader3 className='animate-spin' />
+                </FormControl>
+                <FormDescription>
+                  <Trans>
+                    填写后直接进入该租户，登录更快；需要在多个租户间选择或切换时请留空。
+                  </Trans>
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button className='mt-2' disabled={isPending}>
+            {loginIsPending ? (
+              <>
+                <IconLoader3 className='animate-spin' />
+                <span>
+                  <Trans>登录</Trans>...
+                </span>
+              </>
+            ) : (
               <span>
-                <Trans>登录</Trans>...
+                <Trans>登录</Trans>
               </span>
-            </>
-          ) : (
-            <span>
-              <Trans>登录</Trans>
-            </span>
-          )}
-        </Button>
+            )}
+          </Button>
 
-        <div className='relative my-2'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t' />
+          <div className='relative my-2'>
+            <div className='absolute inset-0 flex items-center'>
+              <span className='w-full border-t' />
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+              <span className='bg-background text-muted-foreground px-2'>
+                <Trans>或</Trans>
+              </span>
+            </div>
           </div>
-          <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background text-muted-foreground px-2'>
-              <Trans>或</Trans>
-            </span>
-          </div>
-        </div>
 
-        <div className='grid grid-cols-1 gap-2'>
-          <Link to='/email-sign-in' disabled={isPending}>
-            <Button
-              variant='outline'
-              type='button'
-              disabled={isPending}
-              className='w-full'
-            >
-              <IconMail className='h-4 w-4' />
-              <Trans>邮箱</Trans>
-              <Trans>登录</Trans>
-            </Button>
-          </Link>
-          {/* <Button variant='outline' type='button' disabled={isLoading}>
+          <div className='grid grid-cols-1 gap-2'>
+            <Link to='/email-sign-in' disabled={isPending}>
+              <Button
+                variant='outline'
+                type='button'
+                disabled={isPending}
+                className='w-full'
+              >
+                <IconMail className='h-4 w-4' />
+                <Trans>邮箱</Trans>
+                <Trans>登录</Trans>
+              </Button>
+            </Link>
+            {/* <Button variant='outline' type='button' disabled={isLoading}>
             <IconBrandFacebook className='h-4 w-4' /> Facebook
           </Button> */}
-        </div>
-      </form>
+          </div>
+        </form>
       </Form>
       <TenantSelectDialog
         open={!!tenantSelection}

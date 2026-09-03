@@ -20,39 +20,75 @@ import (
 
 type SysTokenService struct{}
 
-// FindAll 获取所有token列表
-func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
+// TokenScope 描述令牌管理请求的可见范围。
+// 会话保存在 Redis 里，不经过 GORM，租户插件管不到，必须在服务层按
+// TokenInfo.TenantId 自行裁剪。
+type TokenScope struct {
+	// TenantId 调用者所属租户
+	TenantId string
+	// IsSuperAdmin 平台超级管理员看全部租户的会话
+	IsSuperAdmin bool
+}
+
+// visible 判断某个会话是否在当前调用者的可见范围内。
+// 超管不受限；其余人只能看到与自己同租户的会话。
+// 单租户模式下所有会话的 TenantId 一致，判定自然恒真。
+func (s TokenScope) visible(tenantId string) bool {
+	if s.IsSuperAdmin {
+		return true
+	}
+	return tenantId == s.TenantId
+}
+
+// FindAll 获取令牌列表（按调用者的租户可见范围裁剪）
+func (s *SysTokenService) FindAll(scope TokenScope) ([]response.SysTokenLogRsp, error) {
 	ctx := context.Background()
 	log := global.Log
 	rdb := global.Redis
 
 	accessTokenKeys := []string{}
 	refreshTokenKeys := []string{}
+
+	// 从租户维度索引集枚举候选 access token，避免 SCAN 全 keyspace。
+	// 平台超管要看全租户，回退到全量扫描（管理端低频操作）；普通会话只扫自己租户的索引。
+	fromIndex := false
+	indexSetKey := ""
 	var cursor uint64
-	pattern := fmt.Sprintf("%s*", util.PrefixUserAcessToken)
-	// SCAN 所有 userAccessToken_:* 的 key
-	for {
-		keys, nextCursor, err := rdb.Scan(ctx, cursor, pattern, 100).Result()
+	if scope.IsSuperAdmin {
+		pattern := fmt.Sprintf("%s*", util.PrefixUserAcessToken)
+		for {
+			keys, nextCursor, err := rdb.Scan(ctx, cursor, pattern, 100).Result()
+			if err != nil {
+				log.Error("Failed to scan user token sets", zap.Error(err))
+				return nil, errors.New("getFailed")
+			}
+			cursor = nextCursor
+
+			for _, key := range keys {
+				tokens, err := rdb.SMembers(ctx, key).Result()
+				if err != nil {
+					log.Warn("Failed to read token set", zap.String("key", key), zap.Error(err))
+					continue
+				}
+				for _, token := range tokens {
+					accessTokenKeys = append(accessTokenKeys, fmt.Sprintf("%s%s", util.PrefixAccessToken, token))
+				}
+			}
+
+			if cursor == 0 {
+				break
+			}
+		}
+	} else {
+		indexSetKey = util.TenantAccessSetKey(scope.TenantId)
+		fromIndex = true
+		members, err := rdb.SMembers(ctx, indexSetKey).Result()
 		if err != nil {
-			log.Error("Failed to scan user token sets", zap.Error(err))
+			log.Error("Failed to read tenant access token index", zap.Error(err))
 			return nil, errors.New("getFailed")
 		}
-		cursor = nextCursor
-
-		for _, key := range keys {
-			tokens, err := rdb.SMembers(ctx, key).Result()
-			if err != nil {
-				log.Warn("Failed to read token set", zap.String("key", key), zap.Error(err))
-				continue
-			}
-			for _, token := range tokens {
-				accessTokenKey := fmt.Sprintf("%s%s", util.PrefixAccessToken, token)
-				accessTokenKeys = append(accessTokenKeys, accessTokenKey)
-			}
-		}
-
-		if cursor == 0 {
-			break
+		for _, token := range members {
+			accessTokenKeys = append(accessTokenKeys, fmt.Sprintf("%s%s", util.PrefixAccessToken, token))
 		}
 	}
 
@@ -76,10 +112,18 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 
 	// Step 3: 解析 JSON 为结构体并收集refreshToken keys
 	result := make(map[string]model.TokenInfo)
+	staleTokens := []string{}
 	for i, cmd := range cmds {
 		val, err := cmd.Result()
 		if err != nil && err != redis.Nil {
 			log.Warn("Failed to get access token value", zap.String("key", accessTokenKeys[i]), zap.Error(err))
+			continue
+		}
+		// 索引里登记了但值已过期/被删的 token：懒清理该租户索引，避免悬空成员累积。
+		if err == redis.Nil {
+			if fromIndex {
+				staleTokens = append(staleTokens, strings.TrimPrefix(accessTokenKeys[i], util.PrefixAccessToken))
+			}
 			continue
 		}
 
@@ -89,10 +133,25 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 			continue
 		}
 
+		// 跨租户会话直接丢弃，不进入后续 refresh token 查询与响应
+		if !scope.visible(info.TenantId) {
+			// 该成员不属于本租户索引，属于悬空/错放成员，顺带清理。
+			if fromIndex {
+				staleTokens = append(staleTokens, strings.TrimPrefix(accessTokenKeys[i], util.PrefixAccessToken))
+			}
+			continue
+		}
+
 		result[accessTokenKeys[i]] = info
 		// 收集refreshToken keys
 		refreshTokenKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, info.RefreshToken)
 		refreshTokenKeys = append(refreshTokenKeys, refreshTokenKey)
+	}
+
+	if fromIndex && len(staleTokens) > 0 {
+		if err := rdb.SRem(ctx, indexSetKey, staleTokens).Err(); err != nil {
+			log.Warn("Failed to prune stale tenant access token index", zap.Error(err))
+		}
 	}
 
 	// Step 4: Pipeline 批量 GET 所有 refreshToken 值
@@ -141,6 +200,7 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 
 		return response.SysTokenLogRsp{
 			UserId:              entry.Value.UserId,
+			TenantId:            entry.Value.TenantId,
 			Username:            entry.Value.Username,
 			AccessToken:         strings.TrimPrefix(entry.Key, util.PrefixAccessToken),
 			RefreshToken:        entry.Value.RefreshToken,
@@ -171,8 +231,8 @@ func (s *SysTokenService) FindAll() ([]response.SysTokenLogRsp, error) {
 	return tokens, nil
 }
 
-// Delete 删除token
-func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
+// Delete 删除token（仅限调用者可见范围内的会话）
+func (s *SysTokenService) Delete(req request.SysTokenDeleteReq, scope TokenScope) error {
 	ctx := context.Background()
 	rdb := global.Redis
 	log := global.Log
@@ -189,6 +249,12 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 			return errors.New("accessTokenNotExist")
 		}
 		return errors.New("getFailed")
+	}
+
+	// 越权防护：令牌 ID 是随机 UUID，但列表接口之外仍可能被猜测/横传，
+	// 跨租户一律按「不存在」处理，既拒绝操作也不泄露该令牌是否存在。
+	if !scope.visible(tokenData.TenantId) {
+		return errors.New("accessTokenNotExist")
 	}
 
 	err = deleteWithTransaction(
@@ -222,8 +288,8 @@ func (s *SysTokenService) Delete(req request.SysTokenDeleteReq) error {
 	return nil
 }
 
-// ModityStatus 修改token状态
-func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) error {
+// ModityStatus 修改token状态（仅限调用者可见范围内的会话）
+func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq, scope TokenScope) error {
 	ctx := context.Background()
 	rdb := global.Redis
 	log := global.Log
@@ -240,6 +306,11 @@ func (s *SysTokenService) ModityStatus(req request.SysTokenModityStatusReq) erro
 			return errors.New("accessTokenNotExist")
 		}
 		return errors.New("getFailed")
+	}
+
+	// 越权防护：跨租户会话按「不存在」处理，理由同 Delete
+	if !scope.visible(tokenData.TenantId) {
+		return errors.New("accessTokenNotExist")
 	}
 
 	rKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, tokenData.RefreshToken)

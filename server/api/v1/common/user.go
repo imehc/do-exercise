@@ -29,8 +29,9 @@ const (
 // userNotFoundErr 与 service 层返回的错误标识保持一致，同时也是 i18n 的翻译 key。
 const userNotFoundErr = "userNotFound"
 
-// checkEmail 检查邮箱是否是本人或者已发送验证码
-func (s *UserApi) checkEmail(ctx *gin.Context, context context.Context, iRedis *redis.Client, userId string, emailType string) (*string, *string, error) {
+// checkEmail 检查邮箱是否是本人或者已发送验证码。
+// userIds 是本次验证码的候选账号集合（匿名邮箱流程下同一邮箱可能命中多个租户的账号）。
+func (s *UserApi) checkEmail(ctx *gin.Context, context context.Context, iRedis *redis.Client, userIds []string, emailType string) (*string, *string, error) {
 	req := &request.Email{}
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		return nil, nil, errors.New("invalidParameter")
@@ -49,7 +50,7 @@ func (s *UserApi) checkEmail(ctx *gin.Context, context context.Context, iRedis *
 		return nil, nil, errors.New("emailSendFailed")
 	}
 
-	if emailData.UserId == userId {
+	if emailData.SharesUser(userIds) {
 		return nil, &emailData.Code, errors.New("emailSendLimit")
 	} else {
 		return nil, nil, errors.New("emailExists")
@@ -75,10 +76,10 @@ func (s *UserApi) getEmailCache(ctx context.Context, iRedis *redis.Client, email
 }
 
 // setEmailCache 将验证码存入redis
-func (s *UserApi) setEmailCache(ctx context.Context, iRedis *redis.Client, emailType, email, code string, userId string, minutes time.Duration) error {
+func (s *UserApi) setEmailCache(ctx context.Context, iRedis *redis.Client, emailType, email, code string, userIds []string, minutes time.Duration) error {
 	emailCache := request.EmailCache{
-		UserId: userId,
-		Code:   code,
+		UserIds: userIds,
+		Code:    code,
 	}
 	emailCacheJson, err := json.Marshal(emailCache)
 	if err != nil {
@@ -120,17 +121,18 @@ func (s *UserApi) checkEmailSendLimit(context context.Context, iRedis *redis.Cli
 	return nil
 }
 
-// sendEmailCode 发送邮箱验证码
-func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.EmailData, userId string) {
+// sendEmailCode 发送邮箱验证码。
+// userIds 为空表示「当前登录用户自己」的流程（绑定/换绑/改密），从会话取。
+func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.EmailData, userIds []string) {
 	iRedis := global.Redis
 	context := context.Background()
 
-	uId := userId
-	if userId == "" {
-		uId = ctx.MustGet("userId").(string)
+	uIds := userIds
+	if len(uIds) == 0 {
+		uIds = []string{ctx.MustGet("userId").(string)}
 	}
 
-	to, _, err := s.checkEmail(ctx, context, iRedis, uId, emailType)
+	to, _, err := s.checkEmail(ctx, context, iRedis, uIds, emailType)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -142,7 +144,7 @@ func (s *UserApi) sendEmailCode(ctx *gin.Context, emailType string, data *util.E
 		response.BadRequest(ctx, err.Error())
 		return
 	}
-	if err := s.setEmailCache(context, iRedis, emailType, *to, code, uId, minute); err != nil {
+	if err := s.setEmailCache(context, iRedis, emailType, *to, code, uIds, minute); err != nil {
 		response.BadRequest(ctx, "emailSendFailed")
 		return
 	}
@@ -184,7 +186,7 @@ func (s *UserApi) bindEmail(ctx *gin.Context, emailType string) {
 		_ = s.clearEmailCache(context, iRedis, emailType, req.Email)
 	}()
 
-	if cache.Code != req.Code || cache.UserId != userId {
+	if cache.Code != req.Code || !cache.Allows(userId) {
 		response.BadRequest(ctx, "captchaError")
 		return
 	}
@@ -202,7 +204,7 @@ func (s *UserApi) SendBindEmailCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "绑定邮箱",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成邮箱绑定：",
-	}, "")
+	}, nil)
 }
 
 // SendRebindEmailCode 发送换绑邮箱验证码
@@ -211,7 +213,7 @@ func (s *UserApi) SendRebindEmailCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "绑定新邮箱",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成新邮箱绑定：",
-	}, "")
+	}, nil)
 }
 
 // SendModifyPasswordCode 发送修改密码验证码
@@ -220,7 +222,7 @@ func (s *UserApi) SendModifyPasswordCode(ctx *gin.Context) {
 		EmailTitle:       "验证码",
 		VerificationType: "重置密码",
 		GreetingText:     "感谢您使用我们的服务，请使用以下验证码完成密码重置：",
-	}, "")
+	}, nil)
 }
 
 // BindEmail 绑定邮箱

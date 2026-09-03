@@ -59,6 +59,13 @@ oss:
   expires: 3600
   secure: false # 是否使用 HTTPS 访问对象存储
 
+# 租户级聚合请求限流（鉴权后按租户计数的固定窗口预算；enable=false 关闭）
+rate_limit:
+  enable: true
+  window_seconds: 1
+  business_per_second: 200
+  platform_per_second: 1000
+
 # email
 email:
   host: smtp.qq.com

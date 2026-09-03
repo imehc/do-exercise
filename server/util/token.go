@@ -14,22 +14,32 @@ import (
 )
 
 const (
-	PrefixAccessToken      = "accessToken:"
-	PrefixRefreshToken     = "refreshToken:"
-	PrefixUserAcessToken   = "userAccessToken_"
-	PrefixUserRefreshToken = "userRefreshToken_"
+	PrefixAccessToken        = "accessToken:"
+	PrefixRefreshToken       = "refreshToken:"
+	PrefixUserAcessToken     = "userAccessToken_"
+	PrefixUserRefreshToken   = "userRefreshToken_"
+	PrefixTenantAccessTokens = "tenantAccessTokens:"
 )
 
+// TenantAccessSetKey 租户维度 access-token 索引集：值为该租户当前活跃 access token。
+// 供按租户列举会话（令牌管理/吊销）使用，避免 SCAN 全 keyspace。
+func TenantAccessSetKey(tenantId string) string {
+	return fmt.Sprintf("%s%s", PrefixTenantAccessTokens, tenantId)
+}
+
 type Token struct {
-	UserId            string
-	Username          string
-	RoleIds           []uint
-	ExpireTime        time.Duration // 有效时间
-	RefreshExpireTime time.Duration
-	Disabled          bool
-	CreatedTime       time.Time
+	UserId              string
+	Username            string
+	TenantId            string
+	AuthorizedTenantIds []string
+	ExpireTime          time.Duration // 有效时间
+	RefreshExpireTime   time.Duration
+	Disabled            bool
+	CreatedTime         time.Time
 	// MustChangePassword 标记该账号仍需强制修改密码
 	MustChangePassword bool
+	// IsSuperAdmin 平台超级管理员标识（仅平台域账号有效）
+	IsSuperAdmin bool
 }
 
 func (t *Token) GenerateToken() (*common.Token, error) {
@@ -44,26 +54,30 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 
 	ctx := context.Background()
 	tokenInfoJson, err := json.Marshal(model.TokenInfo{
-		UserId:             t.UserId,
-		Username:           t.Username,
-		RoleIds:            t.RoleIds,
-		RefreshToken:       refreshToken,
-		Disabled:           t.Disabled,
-		CreatedTime:        t.CreatedTime,
-		ExpiredTime:        t.CreatedTime.Add(t.ExpireTime),
-		MustChangePassword: t.MustChangePassword,
+		UserId:              t.UserId,
+		Username:            t.Username,
+		TenantId:            t.TenantId,
+		AuthorizedTenantIds: t.AuthorizedTenantIds,
+		RefreshToken:        refreshToken,
+		Disabled:            t.Disabled,
+		CreatedTime:         t.CreatedTime,
+		ExpiredTime:         t.CreatedTime.Add(t.ExpireTime),
+		MustChangePassword:  t.MustChangePassword,
+		IsSuperAdmin:        t.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, err
 	}
 	refreshTokenInfoJson, err := json.Marshal(model.RefreshTokenInfo{
-		UserId:             t.UserId,
-		Username:           t.Username,
-		RoleIds:            t.RoleIds,
-		Disabled:           t.Disabled,
-		CreatedTime:        t.CreatedTime,
-		ExpiredTime:        t.CreatedTime.Add(t.RefreshExpireTime),
-		MustChangePassword: t.MustChangePassword,
+		UserId:              t.UserId,
+		Username:            t.Username,
+		TenantId:            t.TenantId,
+		AuthorizedTenantIds: t.AuthorizedTenantIds,
+		Disabled:            t.Disabled,
+		CreatedTime:         t.CreatedTime,
+		ExpiredTime:         t.CreatedTime.Add(t.RefreshExpireTime),
+		MustChangePassword:  t.MustChangePassword,
+		IsSuperAdmin:        t.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, err
@@ -77,6 +91,10 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 	// 将token和refreshToken添加到用户的token集合中
 	pipe.SAdd(ctx, fmt.Sprintf("%s%s", PrefixUserAcessToken, t.UserId), accessToken)
 	pipe.SAdd(ctx, fmt.Sprintf("%s%s", PrefixUserRefreshToken, t.UserId), refreshToken)
+	// 同步维护租户维度的 access-token 索引
+	if t.TenantId != "" {
+		pipe.SAdd(ctx, TenantAccessSetKey(t.TenantId), accessToken)
+	}
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
@@ -89,6 +107,8 @@ func (t *Token) GenerateToken() (*common.Token, error) {
 		RefreshToken:       refreshToken,
 		RefreshExpireTime:  int64(t.RefreshExpireTime.Seconds()), // 将毫秒转换为秒
 		MustChangePassword: t.MustChangePassword,
+		TenantId:           t.TenantId,
+		IsSuperAdmin:       t.IsSuperAdmin,
 	}, nil
 }
 
@@ -152,26 +172,30 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	}
 
 	accessInfoJson, err := json.Marshal(model.TokenInfo{
-		UserId:             refreshTokenInfo.UserId,
-		Username:           refreshTokenInfo.Username,
-		RoleIds:            refreshTokenInfo.RoleIds,
-		RefreshToken:       newRefreshToken, // 新 access 指向新 refresh
-		Disabled:           refreshTokenInfo.Disabled,
-		CreatedTime:        now,
-		ExpiredTime:        now.Add(accessExpire), // 从当前时间重新起算，不再累加原过期时间
-		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		UserId:              refreshTokenInfo.UserId,
+		Username:            refreshTokenInfo.Username,
+		TenantId:            refreshTokenInfo.TenantId,
+		AuthorizedTenantIds: refreshTokenInfo.AuthorizedTenantIds,
+		RefreshToken:        newRefreshToken, // 新 access 指向新 refresh
+		Disabled:            refreshTokenInfo.Disabled,
+		CreatedTime:         now,
+		ExpiredTime:         now.Add(accessExpire), // 从当前时间重新起算，不再累加原过期时间
+		MustChangePassword:  refreshTokenInfo.MustChangePassword,
+		IsSuperAdmin:        refreshTokenInfo.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
 	}
 	refreshInfoJson, err := json.Marshal(model.RefreshTokenInfo{
-		UserId:             refreshTokenInfo.UserId,
-		Username:           refreshTokenInfo.Username,
-		RoleIds:            refreshTokenInfo.RoleIds,
-		Disabled:           refreshTokenInfo.Disabled,
-		CreatedTime:        now,
-		ExpiredTime:        now.Add(refreshExpire),
-		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		UserId:              refreshTokenInfo.UserId,
+		Username:            refreshTokenInfo.Username,
+		TenantId:            refreshTokenInfo.TenantId,
+		AuthorizedTenantIds: refreshTokenInfo.AuthorizedTenantIds,
+		Disabled:            refreshTokenInfo.Disabled,
+		CreatedTime:         now,
+		ExpiredTime:         now.Add(refreshExpire),
+		MustChangePassword:  refreshTokenInfo.MustChangePassword,
+		IsSuperAdmin:        refreshTokenInfo.IsSuperAdmin,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
@@ -179,14 +203,16 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	// 旧 refresh token 记录改写为 rotated 哨兵，保留剩余 TTL 以便捕获重放；
 	// 下一次携带同一 token 到来时走上面的 family-revocation 分支。
 	rotatedJson, err := json.Marshal(model.RefreshTokenInfo{
-		UserId:             refreshTokenInfo.UserId,
-		Username:           refreshTokenInfo.Username,
-		RoleIds:            refreshTokenInfo.RoleIds,
-		Disabled:           true,
-		CreatedTime:        refreshTokenInfo.CreatedTime,
-		ExpiredTime:        refreshTokenInfo.ExpiredTime,
-		MustChangePassword: refreshTokenInfo.MustChangePassword,
-		Rotated:            true,
+		UserId:              refreshTokenInfo.UserId,
+		Username:            refreshTokenInfo.Username,
+		TenantId:            refreshTokenInfo.TenantId,
+		AuthorizedTenantIds: refreshTokenInfo.AuthorizedTenantIds,
+		Disabled:            true,
+		CreatedTime:         refreshTokenInfo.CreatedTime,
+		ExpiredTime:         refreshTokenInfo.ExpiredTime,
+		MustChangePassword:  refreshTokenInfo.MustChangePassword,
+		IsSuperAdmin:        refreshTokenInfo.IsSuperAdmin,
+		Rotated:             true,
 	})
 	if err != nil {
 		return nil, errors.New("refreshFailed")
@@ -204,6 +230,10 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 	pipe.SAdd(ctx, userAccessSetKey, newAccessToken)
 	pipe.SRem(ctx, userRefreshSetKey, refreshToken)
 	pipe.SAdd(ctx, userRefreshSetKey, newRefreshToken)
+	// 新 access 同步登记到租户维度索引
+	if refreshTokenInfo.TenantId != "" {
+		pipe.SAdd(ctx, TenantAccessSetKey(refreshTokenInfo.TenantId), newAccessToken)
+	}
 
 	// 执行管道操作
 	_, err = pipe.Exec(ctx)
@@ -217,93 +247,9 @@ func (t *Token) RefreshToken(refreshToken string) (*common.Token, error) {
 		RefreshToken:       newRefreshToken,
 		RefreshExpireTime:  int64(refreshExpire.Seconds()),
 		MustChangePassword: refreshTokenInfo.MustChangePassword,
+		TenantId:           refreshTokenInfo.TenantId,
+		IsSuperAdmin:       refreshTokenInfo.IsSuperAdmin,
 	}, nil
-}
-
-// updateTokenRoles 更新指定类型token的角色信息
-func updateTokenRoles(ctx context.Context, userId string, roleIds []uint, tokenType string, prefix string) error {
-	setKey := fmt.Sprintf("%s%s", tokenType, userId)
-	tokens, err := global.Redis.SMembers(ctx, setKey).Result()
-	if err != nil {
-		return err
-	}
-	if len(tokens) == 0 {
-		return nil
-	}
-
-	// 批量 GET（1 次往返），替代逐 token 串行 Get
-	tokenKeys := make([]string, len(tokens))
-	getPipe := global.Redis.Pipeline()
-	cmds := make([]*redis.StringCmd, len(tokens))
-	for i, token := range tokens {
-		tokenKeys[i] = fmt.Sprintf("%s%s", prefix, token)
-		cmds[i] = getPipe.Get(ctx, tokenKeys[i])
-	}
-	if _, err := getPipe.Exec(ctx); err != nil && err != redis.Nil {
-		return err
-	}
-
-	// 更新角色 ID 后批量回写，用 KeepTTL 保留原过期时间（省掉逐 token 的 TTL 往返）
-	setPipe := global.Redis.Pipeline()
-	updated := false
-	for i, cmd := range cmds {
-		tokenInfo, err := cmd.Result()
-		if err != nil {
-			continue
-		}
-
-		var tokenData interface{}
-		if prefix == PrefixAccessToken {
-			tokenData = &model.TokenInfo{}
-		} else {
-			tokenData = &model.RefreshTokenInfo{}
-		}
-
-		if err = json.Unmarshal([]byte(tokenInfo), tokenData); err != nil {
-			continue
-		}
-
-		// 更新角色ID
-		switch v := tokenData.(type) {
-		case *model.TokenInfo:
-			v.RoleIds = roleIds
-		case *model.RefreshTokenInfo:
-			v.RoleIds = roleIds
-		}
-
-		tokenInfoJson, err := json.Marshal(tokenData)
-		if err != nil {
-			continue
-		}
-
-		setPipe.SetArgs(ctx, tokenKeys[i], tokenInfoJson, redis.SetArgs{
-			TTL:     0,
-			KeepTTL: true, // 保留原过期时间，省掉逐 token 的 TTL 往返
-		})
-		updated = true
-	}
-	if !updated {
-		return nil
-	}
-	_, err = setPipe.Exec(ctx)
-	return err
-}
-
-// UpdateUserRoleInCache 更新用户角色缓存信息
-func UpdateUserRoleInCache(userId string, roleIds []uint) error {
-	ctx := context.Background()
-
-	// 更新访问令牌的角色信息
-	if err := updateTokenRoles(ctx, userId, roleIds, PrefixUserAcessToken, PrefixAccessToken); err != nil {
-		return err
-	}
-
-	// 更新刷新令牌的角色信息
-	if err := updateTokenRoles(ctx, userId, roleIds, PrefixUserRefreshToken, PrefixRefreshToken); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // RevokeAllUserTokens 吊销某用户的全部会话。

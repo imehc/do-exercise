@@ -61,12 +61,12 @@ func syncApi(routes gin.RoutesInfo) {
 	// 3. 构建已存在记录的map
 	existingMap := make(map[string]system.SysApi)
 	for _, api := range existingApis {
-		existingMap[api.Path] = api
+		existingMap[api.Method+" "+api.Path] = api
 	}
 	// 4. 筛选出需要插入的记录
 	var insertApis []system.SysApi
 	for _, route := range routes {
-		if _, ok := existingMap[route.Path]; !ok {
+		if _, ok := existingMap[route.Method+" "+route.Path]; !ok {
 			insertApis = append(insertApis, system.SysApi{
 				Path:   route.Path,
 				Method: route.Method,

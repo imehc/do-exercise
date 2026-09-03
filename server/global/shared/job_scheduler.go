@@ -190,10 +190,52 @@ func (js *JobScheduler) updateJobStatsToDB(db *gorm.DB, jobId uint, stats *JobSt
 		}).Error
 }
 
+// requireJobOwner 任务必须有明确归属才允许注册/执行。
+//
+// 允许两种归属，其余（空字符串）一律拒绝：
+//   - 业务租户：执行期只看得到本租户数据，由租户插件保证；
+//   - 平台租户（platform）：平台维护类任务，如清理全站空用户名操作日志，
+//     天然需要跨租户，见 jobContext 里的显式旁路。
+//
+// 空归属是历史脏数据或建行时上下文丢失的产物，跑起来会拿到一个「没有租户
+// 过滤」的连接，等于静默跨租户，因此在注册和执行两侧都挡掉。
+func requireJobOwner(job *system.SysJob) error {
+	if job.TenantId == "" {
+		return errors.New("job tenant is required")
+	}
+	return nil
+}
+
+// jobContext 为非 HTTP 任务显式注入租户与创建人上下文。
+// 后台任务不得使用无身份的 context.Background() 访问租户隔离表。
+func jobContext(parent context.Context, job *system.SysJob) context.Context {
+	ctx := context.WithValue(parent, global.ContextTenantIDKey, job.TenantId)
+	// 平台归属的任务显式声明旁路，而不是依赖 ResolveTenantID 对 platform
+	// 恰好返回 ok=false：意图写在代码里，日后改隔离规则时不会被无声改掉。
+	if job.TenantId == global.PlatformTenantID {
+		ctx = context.WithValue(ctx, global.ContextTenantBypassKey, true)
+	}
+	if job.CreatedBy != "" {
+		ctx = context.WithValue(ctx, global.ContextUserIDKey, job.CreatedBy)
+	}
+	return ctx
+}
+
+// platformMaintenanceDB 仅用于需要遍历所有租户任务的调度器维护入口。
+func platformMaintenanceDB(ctx context.Context) *gorm.DB {
+	return global.DB.WithContext(context.WithValue(ctx, global.ContextTenantBypassKey, true))
+}
+
+func (js *JobScheduler) loadJobForMaintenance(jobId uint) (*system.SysJob, error) {
+	var job system.SysJob
+	if err := platformMaintenanceDB(context.Background()).First(&job, jobId).Error; err != nil {
+		return nil, err
+	}
+	return &job, nil
+}
+
 // SyncStatsToDatabase 同步统计信息到数据库
 func (js *JobScheduler) SyncStatsToDatabase() error {
-	db := global.DB.
-		WithContext(context.Background())
 	js.jobMapMutex.Lock()
 	jobIds := make([]uint, 0, len(js.jobMap))
 	for jobId := range js.jobMap {
@@ -201,10 +243,15 @@ func (js *JobScheduler) SyncStatsToDatabase() error {
 	}
 	js.jobMapMutex.Unlock()
 	for _, jobId := range jobIds {
+		job, err := js.loadJobForMaintenance(jobId)
+		if err != nil {
+			continue
+		}
 		stats, err := js.getJobStats(jobId)
 		if err != nil {
 			continue // 跳过不存在的统计信息
 		}
+		db := global.DB.WithContext(jobContext(context.Background(), job))
 		if err := js.updateJobStatsToDB(db, jobId, stats); err != nil {
 			global.Log.Error("同步任务统计信息失败",
 				zap.Uint("jobId", jobId),
@@ -222,6 +269,9 @@ func (js *JobScheduler) SyncStatsToDatabase() error {
 
 // AddJob 添加任务到调度器
 func (js *JobScheduler) AddJob(job *system.SysJob) error {
+	if err := requireJobOwner(job); err != nil {
+		return err
+	}
 	gocronJob, err := js.scheduler.NewJob(
 		gocron.CronJob(job.CronExpression, true), // 使用秒 即六位需要设置为true
 		gocron.NewTask(func() { js.runJob(job) }),
@@ -311,6 +361,9 @@ func (js *JobScheduler) GetJobStatsFromRedis(jobId uint) (*JobStats, error) {
 
 // runJob 执行任务命令
 func (js *JobScheduler) runJob(job *system.SysJob) error {
+	if err := requireJobOwner(job); err != nil {
+		return err
+	}
 	// 记录执行开始时间
 	now := time.Now()
 
@@ -350,7 +403,7 @@ func (js *JobScheduler) runJob(job *system.SysJob) error {
 	}
 
 	// 当设置了Timeout时在上下文中施加超时，避免任务永久卡死；Timeout为0保持原有行为
-	ctx := context.Background()
+	ctx := jobContext(context.Background(), job)
 	cancel := func() {}
 	if job.Timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, time.Duration(job.Timeout)*time.Second)
@@ -377,7 +430,11 @@ func (js *JobScheduler) runJob(job *system.SysJob) error {
 	return nil
 }
 
-// CleanEmptyUsernameOperationLogs 清理sys_operation_log表中username为空的任务实现
+// CleanEmptyUsernameOperationLogs 清理sys_operation_log表中username为空的任务实现。
+//
+// 作用范围由任务归属决定，不在这里另做判断：租户归属的任务只清本租户（插件追加
+// tenant_id 条件），平台归属的任务清全站（jobContext 显式旁路）。`Unscoped()` 只
+// 是为了跳过软删除，租户插件不受它影响。
 func (js *JobScheduler) CleanEmptyUsernameOperationLogs(ctx context.Context) error {
 	db := global.DB.WithContext(ctx)
 	return db.Unscoped().Where("username = '' OR username IS NULL").Delete(&system.SysOperationLog{}).Error
@@ -395,7 +452,7 @@ func (js *JobScheduler) GetScheduler() gocron.Scheduler {
 
 // RestoreJobsFromDatabase 从数据库恢复定时任务
 func (js *JobScheduler) RestoreJobsFromDatabase() error {
-	db := global.DB
+	db := platformMaintenanceDB(context.Background())
 	var jobs []system.SysJob
 
 	// 查询状态为1（正常）的任务
@@ -435,8 +492,11 @@ func (js *JobScheduler) Start() {
 
 // SyncOneJobStatsToDatabase 同步单个任务统计信息到数据库
 func (js *JobScheduler) SyncOneJobStatsToDatabase(jobId uint) error {
-	db := global.DB.
-		WithContext(context.Background())
+	job, err := js.loadJobForMaintenance(jobId)
+	if err != nil {
+		return err
+	}
+	db := global.DB.WithContext(jobContext(context.Background(), job))
 	stats, err := js.getJobStats(jobId)
 	if err != nil {
 		return err

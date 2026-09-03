@@ -85,7 +85,7 @@ make dev
 
 - 若 `deploy/docker/.env.dev` 不存在，则从 `.env.dev.example` 复制一份（按需修改）
 - 启动 `deploy/docker/docker-compose.dev.yml` 中的依赖容器（PostgreSQL / Redis / RustFS，端口映射到宿主机 5432/6379/9000/9001）
-- 等待数据库就绪后，自动加载 `.env.dev` 并执行数据库初始化（`make migrate`，幂等，已有数据自动跳过）
+- 等待数据库就绪后，自动加载 `.env.dev` 并执行数据库迁移（`make migrate`，按版本执行，已执行的版本自动跳过）
 - 启动后端 `air` 热重载服务（监听文件变化自动重新编译运行）
 
 > 注意：首次执行若未检测到 `air`，`make dev` 会提示你先执行 `cd server && make dev-install`，安装后再重新运行 `make dev`。
@@ -129,7 +129,8 @@ source deploy/docker/.env.dev
 set +a
 
 cd server
-make migrate   # 初始化数据库（首次或重置时）
+make migrate   # 执行数据库迁移（首次会灌种子；已执行的版本自动跳过）
+make migrate-status  # 只读查看各迁移版本的执行状态
 make dev       # air 热重载；或用 go run main.go 直接运行
 ```
 
@@ -144,7 +145,7 @@ make dev       # air 热重载；或用 go run main.go 直接运行
 
 ## 默认管理员账户
 
-- 用户名：`admin`
+- 用户名：`superAdmin`
 - 密码：`@admin2025`
 
 请在首次登录后及时修改默认管理员密码以确保安全。

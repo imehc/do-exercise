@@ -1,95 +1,109 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/internal"
+	"github.com/imehc/do-exercise/server/migration"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cobra"
-	"gorm.io/gorm"
 )
 
-var sqlFile string
+var (
+	sqlFile    string
+	statusOnly bool
+)
 
-// defaultAdminHash 是 init.sql 播种的默认管理员口令对应的公开 bcrypt 哈希
-// （对应 README.md 记载的 @admin2025）。任何仍使用该哈希的账号都必须强制改密。
-const defaultAdminHash = "$2a$10$gI7PJi4gyTc.sG2m5ZgbcO/I0E8nLkW2AHhWFxGMaCogU2H/E3YzC"
+// appliedTimeLayout `migrate --status` 里执行时间的展示格式
+const appliedTimeLayout = "2006-01-02 15:04:05"
 
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",
-	Short: "执行数据库初始化",
-	Long:  `执行数据库初始化，需要提供SQL文件路径。`,
+	Short: "执行数据库迁移",
+	Long: `按版本顺序执行尚未执行的数据库迁移。
+
+已执行的版本登记在 schema_migrations 表，重复执行只会跳过；
+每个版本在自己的事务里执行，整轮迁移由 advisory lock 串行化。
+--status 只列出各版本的执行状态，不做任何写入。`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// 检查SQL文件是否存在
-		if _, err := os.Stat(sqlFile); os.IsNotExist(err) {
-			util.Exit(fmt.Sprintf("SQL文件不存在: %s\n", sqlFile), nil)
-		}
-
-		// 读取SQL文件内容
-		sqlContent, err := os.ReadFile(sqlFile)
-		if err != nil {
-			util.Exit("读取SQL文件失败:", err)
-		}
-
-		// 初始化配置和数据库连接
+		// 初始化配置和数据库连接（AutoMigrate 负责建表建列，迁移只做它做不到的部分）
 		internal.InitConfig(configFile)
-		// 获取数据库连接
 		internal.InitGorm(true)
 		db := global.DB
 		if db == nil {
-			util.Exit("获取数据库连接失败", nil)
+			util.Exit("获取数据库连接失败\n", nil)
 		}
+		ctx := context.Background()
 
-		// 默认管理员口令强制轮换。
-		// 对存量数据库（已播种过 init.sql，sys_user 有数据）中的默认管理员打上
-		// must_change_password 标记，强制其在下次登录时修改公开的默认口令。
-		// 该 UPDATE 幂等：仅当密码仍等于公开的默认哈希时才生效，改密后哈希不再匹配。
-		result := db.Exec(
-			"UPDATE sys_user SET must_change_password = TRUE WHERE password = ? AND must_change_password = FALSE",
-			defaultAdminHash,
-		)
-		if result.Error != nil {
-			util.Exit("标记默认管理员强制改密失败: ", result.Error)
-		}
-		if rows := result.RowsAffected; rows > 0 {
-			fmt.Printf("已将 %d 个仍使用默认口令的账号标记为必须改密\n", rows)
-		}
-
-		// 软删除与唯一约束冲突修复：
-		// 旧版用普通唯一索引，软删的账号会永久占用用户名/邮箱，导致同名/同邮箱无法重建。
-		// 现改为 deleted_at IS NULL 的部分唯一索引（由模型 uniqueIndex 标签声明，AutoMigrate 创建）。
-		// 存量库里的旧索引不会自动消失，这里幂等清理，避免重建账号时撞上旧约束。
-		db.Exec("DROP INDEX IF EXISTS idx_sys_user_username")
-		db.Exec("DROP INDEX IF EXISTS idx_sys_user_email")
-
-		// 检查表是否已有数据
-		var count int64
-		err = db.Raw("SELECT COUNT(*) FROM sys_user").Count(&count).Error
-		if err != nil {
-			// 如果表不存在，继续执行初始化
-			fmt.Println("表不存在，开始执行初始化...")
-		} else if count > 0 {
-			fmt.Println("数据库已有数据，跳过初始化")
+		if statusOnly {
+			// 只读视图不需要种子内容，版本 1 不会被执行
+			statuses, err := migration.Statuses(ctx, db, migration.All(""))
+			if err != nil {
+				util.Exit("读取迁移状态失败: %v\n", err)
+			}
+			printStatuses(statuses)
 			return
 		}
 
-		// 执行SQL
-		fmt.Printf("正在执行SQL文件: %s\n", filepath.Base(sqlFile))
-		err = db.Session(&gorm.Session{}).Exec(string(sqlContent)).Error
+		seedSQL := readSeedSQL()
+		executed, err := migration.Run(ctx, db, migration.All(seedSQL))
 		if err != nil {
-			util.Exit("执行SQL失败: ", err)
+			// 失败即中断：已执行的版本已经登记，修完数据后重跑会从断点继续
+			for _, m := range executed {
+				fmt.Printf("已执行 %d_%s\n", m.Version, m.Name)
+			}
+			util.Exit("迁移失败: %v\n", err)
 		}
-		fmt.Println("数据库初始化完成")
+		if len(executed) == 0 {
+			fmt.Println("数据库已是最新版本，无需迁移")
+		} else {
+			for _, m := range executed {
+				fmt.Printf("已执行 %d_%s\n", m.Version, m.Name)
+			}
+			fmt.Printf("迁移完成，共执行 %d 个版本\n", len(executed))
+		}
+
+		if missing := migration.MissingMenuI18nKeys(db); missing != "" {
+			fmt.Printf("以下菜单尚未设置国际化键，界面将回落到菜单名称：%s\n", missing)
+		}
 	},
 }
 
+// readSeedSQL 读取种子 SQL 文件内容（仅版本 1 使用）。
+func readSeedSQL() string {
+	if _, err := os.Stat(sqlFile); os.IsNotExist(err) {
+		util.Exit(fmt.Sprintf("SQL文件不存在: %s\n", sqlFile), nil)
+	}
+	content, err := os.ReadFile(sqlFile)
+	if err != nil {
+		util.Exit("读取SQL文件失败: %v\n", err)
+	}
+	fmt.Printf("种子文件: %s\n", filepath.Base(sqlFile))
+	return string(content)
+}
+
+// printStatuses 输出各版本的执行状态。
+func printStatuses(statuses []migration.Status) {
+	pending := 0
+	for _, s := range statuses {
+		if s.AppliedAt == nil {
+			pending++
+			fmt.Printf("待执行  %4d  %s\n", s.Version, s.Name)
+			continue
+		}
+		fmt.Printf("已执行  %4d  %s  (%s)\n", s.Version, s.Name, s.AppliedAt.Format(appliedTimeLayout))
+	}
+	fmt.Printf("共 %d 个版本，%d 个待执行\n", len(statuses), pending)
+}
+
 func init() {
-	// 添加必需的SQL文件路径标志
-	migrateCmd.Flags().StringVar(&sqlFile, "sql", "", "SQL文件路径（必需）")
-	migrateCmd.MarkFlagRequired("sql")
+	// SQL 文件路径只被版本 1（种子播种）消费，存量库不会用到
+	migrateCmd.Flags().StringVar(&sqlFile, "sql", "init.sql", "种子SQL文件路径（仅首次初始化时使用）")
+	migrateCmd.Flags().BoolVar(&statusOnly, "status", false, "只查看各版本执行状态，不执行迁移")
 
 	// 添加migrate子命令
 	rootCmd.AddCommand(migrateCmd)

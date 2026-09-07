@@ -1,9 +1,10 @@
 import { ColumnDef, CellContext } from '@tanstack/react-table'
 import { t } from '@lingui/core/macro'
 import { useAtomValue } from 'jotai'
-import { languageAtom } from '~/atoms'
+import { languageAtom, originTokenAtom } from '~/atoms'
 import { TokenInfo } from '~/do-exercise-api'
 import { PermissionType, usePermissions, WithPermission } from '~/provider'
+import { formatTenant } from '~/utils/tenant'
 import { DataTableRowActions, InlineCopy } from '~/components/other'
 import {
   createColumn,
@@ -17,6 +18,7 @@ const columnTitleMap = {
   id: (): string => t`序号`,
   userId: (): string => t`用户ID`,
   username: (): string => t`用户名`,
+  tenantId: (): string => t`所属租户`,
   accessToken: (): string => t`令牌`,
   disabled: (): string => t`禁用状态`,
   accessTokenCreated: (): string => t`创建时间`,
@@ -29,6 +31,9 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = (): ColumnDef<DataTableFeatures, TokenInfo>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
+  // 超管的令牌列表跨租户，需要一列标明会话来源；受限管理员只能看到本租户会话，
+  // 该列恒为同一个值，没有展示价值。
+  const isSuperAdmin = !!useAtomValue(originTokenAtom).isSuperAdmin
   const hasUpdate = permissions.some((p) => p === 'update')
   const hasMore = (['update', 'delete'] satisfies PermissionType[]).some((p) =>
     permissions.includes(p)
@@ -95,6 +100,21 @@ export const useColumns = (): ColumnDef<DataTableFeatures, TokenInfo>[] => {
         <div className='w-fit text-nowrap'>{row.original.username}</div>
       ),
     }),
+    ...(isSuperAdmin
+      ? [
+          createColumn<TokenInfo>({
+            key: 'tenantId',
+            title: columnTitleMap.tenantId,
+            cell: ({
+              row,
+            }: CellContext<DataTableFeatures, TokenInfo, unknown>) => (
+              <div className='w-fit text-nowrap'>
+                {formatTenant(row.original.tenantId)}
+              </div>
+            ),
+          }),
+        ]
+      : []),
     createColumn<TokenInfo>({
       key: 'accessToken',
       title: columnTitleMap.accessToken,

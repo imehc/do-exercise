@@ -46,7 +46,7 @@ var allowedUploadExt = map[string]bool{
 // 对象 key 一律由服务端生成：预签名 PUT 在设计上绕过服务端校验，
 // 客户端若能决定 key，就能覆盖任意已有对象（例如他人头像），
 // 因此 file_name 只用来取扩展名，不参与 key 的构造。
-func (s *OssService) GetPresignedUrl(userId string, req model.OssReq) (*model.OssRes, error) {
+func (s *OssService) GetPresignedUrl(userId string, tenantId string, req model.OssReq) (*model.OssRes, error) {
 	if userId == "" {
 		return nil, errors.New("getFailed")
 	}
@@ -60,8 +60,13 @@ func (s *OssService) GetPresignedUrl(userId string, req model.OssReq) (*model.Os
 	if err != nil {
 		return nil, errors.New("getFailed")
 	}
-	// 以 userId 作前缀，便于配额统计与按用户清理
-	objectKey := fmt.Sprintf("%s/%s%s", userId, objectName, ext)
+	// 以 租户/用户 作前缀，便于按租户配额统计与按租户清理。
+	// 平台超管上传时上下文里的租户为空，归到平台前缀下，不落进任何业务租户的空间。
+	prefix := strings.Trim(tenantId, "/")
+	if prefix == "" {
+		prefix = global.PlatformTenantID
+	}
+	objectKey := fmt.Sprintf("%s/%s/%s%s", prefix, userId, objectName, ext)
 
 	client := global.Oss
 	bucketName := global.Config.Oss.BucketName

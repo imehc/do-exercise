@@ -180,6 +180,7 @@ func OperationLogMiddleware() gin.HandlerFunc {
 
 		operationLog := system.SysOperationLog{
 			Username:       c.GetString("username"),
+			TenantId:       c.GetString("tenantId"),
 			Ip:             clientIP,
 			IsInternalIP:   isInternal,
 			UserAgent:      uaRaw,

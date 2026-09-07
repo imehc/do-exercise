@@ -14,7 +14,7 @@
 #
 # 4. 格式化前建议先提交当前更改，格式化会修改文件内容
 
-.PHONY: format import help lint lint-fix install-lint pprof dev dev-install gen migrate
+.PHONY: format import help lint lint-fix install-lint pprof dev dev-install gen migrate migrate-status openapicheck test-db test-integration
 
 # 代码生成器参数（详见 cmd/gen/README.md）
 # 用法: make gen NAME=SysDevice DESC=设备 ROUTE=devices FIELDS="code:string:设备编码 name:string:设备名称"
@@ -35,7 +35,11 @@ help:
 	@echo "  make dev-install - 安装 air 开发工具"
 	@echo "  make pprof      - 启动 pprof 性能分析服务并显示常用分析命令"
 	@echo "  make gen        - 使用代码生成器生成实体 CRUD 六件套"
-	@echo "  make migrate    - 初始化数据库（建表 + 种子数据，已有数据自动跳过）"
+	@echo "  make migrate    - 执行数据库迁移（建表 + 按版本执行，已执行的版本自动跳过）"
+	@echo "  make migrate-status - 查看各迁移版本的执行状态（只读）"
+	@echo "  make openapicheck - 检查 openapi.yaml 与 gin 路由漂移（CI 用，无依赖，离线可跑）"
+	@echo "  make test-db - 幂等创建独立集成测试库 do_exercise_test（需 postgres 容器运行）"
+	@echo "  make test-integration - 运行租户隔离集成测试（需 postgres 容器 + 测试库）"
 	@echo "  make help       - 显示此帮助信息"
 	@echo ""
 	@echo "注意事项："
@@ -87,11 +91,14 @@ dev:
 	@echo "按 Ctrl+C 停止服务器"
 	air
 
-# 初始化数据库（建表 + 种子数据；幂等，已有数据自动跳过）
+# 执行数据库迁移（建表 + 按版本执行；已执行的版本自动跳过）
 migrate:
-	@echo "正在初始化数据库..."
+	@echo "正在执行数据库迁移..."
 	@go run main.go migrate --sql=init.sql
-	@echo "数据库初始化完成！"
+
+# 查看各迁移版本的执行状态（只读，不写库）
+migrate-status:
+	@go run main.go migrate --status
 
 # 启动 pprof 性能分析服务（监听 6060 端口）
 pprof:
@@ -114,3 +121,23 @@ gen:
 	@echo "正在为 $(NAME) 生成实体代码..."
 	@go run ./cmd/gen -name="$(NAME)" -desc="$(DESC)" -path="$(ROUTE)" $(foreach f,$(FIELDS),-field="$(f)")
 	@echo "生成完成，请执行 go build ./... 验证编译"
+
+# 检查 openapi.yaml 与 gin 路由漂移（CI 用，无依赖，离线可跑）
+openapicheck:
+	@echo "正在检查 openapi.yaml 与路由一致性..."
+	@go run . openapicheck --config=config.yaml
+	@echo "openapi 一致性检查通过！"
+
+# 幂等创建独立集成测试库（不碰开发库 do-exercise）
+test-db:
+	@if docker compose -f ../deploy/docker/docker-compose.dev.yml exec -T postgres psql -U admin -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='do_exercise_test'" | grep -q 1; then \
+		echo "测试库 do_exercise_test 已存在"; \
+	else \
+		echo "创建测试库 do_exercise_test ..."; \
+		docker compose -f ../deploy/docker/docker-compose.dev.yml exec -T postgres createdb -U admin do_exercise_test; \
+	fi
+
+# 运行租户隔离集成测试（文件带 integration build tag，日常 go test ./... 不会执行）
+test-integration: test-db
+	@echo "正在运行租户隔离集成测试（连 do_exercise_test）..."
+	@go test -tags integration ./integration/ -count=1 -v

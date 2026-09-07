@@ -20,6 +20,26 @@ func CurrentUserID(tx *gorm.DB) string {
 	return strings.TrimSpace(userId)
 }
 
+// CurrentTenantID 从 GORM 事务上下文安全地取出当前租户 ID。
+// 与 CurrentUserID 相同的兜底策略；不经请求上下文的路径返回空串。
+func CurrentTenantID(tx *gorm.DB) string {
+	v := tx.Statement.Context.Value(global.ContextTenantIDKey)
+	tenantId, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(tenantId)
+}
+
+// CurrentIsSuperAdmin 从 GORM 事务上下文安全地取出「当前操作者是平台超级管理员」标记。
+// 由 ContextMiddleware 从已校验的会话透传；不经请求上下文的路径（迁移、种子、
+// 定时任务）返回 false，即按受限身份处理，属于 fail-closed 的兜底。
+func CurrentIsSuperAdmin(tx *gorm.DB) bool {
+	v := tx.Statement.Context.Value(global.ContextIsSuperAdminKey)
+	isSuperAdmin, ok := v.(bool)
+	return ok && isSuperAdmin
+}
+
 type IdWrapper struct {
 	Id uint `json:"id" gorm:"primarykey;comment:主键"`
 }

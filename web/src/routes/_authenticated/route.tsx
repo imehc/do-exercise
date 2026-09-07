@@ -6,12 +6,14 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router'
-import { originTokenAtom, store } from '~/atoms'
+import { useAtomValue } from 'jotai'
+import { languageAtom, originTokenAtom, store } from '~/atoms'
 import { MenuType, UserApi } from '~/do-exercise-api'
 import { PermissionProvider } from '~/provider'
 import { SearchProvider } from '~/provider/search'
 import { cn } from '~/lib/utils'
 import { handleToMenuTree } from '~/utils/handle-menu-tree'
+import { getMenuLabel } from '~/utils/menu-label'
 import { apiInstance } from '~/hooks/use-api'
 import { useUserProfile } from '~/hooks/use-user'
 import { SidebarProvider } from '~/components/ui/sidebar'
@@ -61,7 +63,7 @@ export const Route = createFileRoute('/_authenticated')({
     }
 
     const hasPermission = menus
-      .filter((item) => item.type === MenuType.menu)
+      .filter((item) => item.type === MenuType.menu && item.visible)
       .some((item) => item.route === location.pathname)
     if (!hasPermission) {
       throw redirect({ to: '/403' })
@@ -72,6 +74,8 @@ export const Route = createFileRoute('/_authenticated')({
 })
 
 function RouteComponent() {
+  // 语言切换不会改变菜单 API 数据，因此显式订阅语言状态以重新计算标签。
+  const language = useAtomValue(languageAtom)
   const { data: userProfile, isLoading: userProfileIsLoading } =
     useUserProfile()
 
@@ -79,27 +83,33 @@ function RouteComponent() {
   const navGroups = useMemo(() => {
     const { directory = [], menu = [] } = handleToMenuTree(data)
     if (directory.length > 0) {
-      return directory.map(
+      return directory
+        .filter((item) => item.visible)
+        .map(
+          (item) =>
+            ({
+              title: getMenuLabel(item),
+              items:
+                item.children
+                  ?.filter((child) => child.visible)
+                  .map((child) => ({
+                    title: getMenuLabel(child),
+                    url: child.route as LinkProps['to'],
+                    icon: child.icon,
+                  })) ?? [],
+            }) as NavGroup
+        )
+    }
+    return menu
+      .filter((item) => item.visible)
+      .map(
         (item) =>
           ({
-            title: item.name,
-            items:
-              item.children?.map((child) => ({
-                title: child.name,
-                url: child.route as LinkProps['to'],
-                icon: child.icon,
-              })) ?? [],
+            title: getMenuLabel(item),
+            items: [],
           }) as NavGroup
       )
-    }
-    return menu.map(
-      (item) =>
-        ({
-          title: item.name,
-          items: [],
-        }) as NavGroup
-    )
-  }, [data])
+  }, [data, language])
 
   const permissions = useMemo(
     () =>

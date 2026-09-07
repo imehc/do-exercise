@@ -51,4 +51,11 @@ jobs:
     - name: Build
       run: |
         cd server
-        go build -v ./cmd 
+        go build -v ./cmd
+
+    - name: OpenAPI drift check
+      run: |
+        cd server
+        # openapicheck 读取 config.yaml；CI 无真实配置，用示例配置占位即可（纯离线，不连库/Redis）
+        cp config.example.yaml config.yaml
+        go run . openapicheck --config=config.yaml

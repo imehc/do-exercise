@@ -32,7 +32,7 @@ export const getBaseSchema = () =>
     confirmPassword: z.string().optional(),
   })
 
-export const getSchema = () =>
+export const getSchema = (checkUsername?: (username: string) => Promise<boolean>) =>
   getBaseSchema()
     .extend({
       username: getUsernameRule(),
@@ -48,17 +48,34 @@ export const getSchema = () =>
         .optional()
         .or(z.literal('')),
       avatar: z.string().optional(),
-      roleIds: z
-        .array(z.number(), {
-          error: t`请选择关联角色`,
-        })
-        .min(1, t`请选择关联角色`),
+      roleIds: z.array(z.number(), {
+        error: t`请选择关联角色`,
+      }),
 
       isEdit: z.boolean().default(false).optional(),
     })
-    .check(({ issues, value }) => {
+    .check(async ({ issues, value }) => {
       if (value.isEdit) {
         return
+      }
+
+      // 创建用户允许不选择角色（角色由后续分配）
+
+      // 校验用户名是否已存在（仅创建模式）
+      if (value.username && checkUsername) {
+        try {
+          const exists = await checkUsername(value.username)
+          if (exists) {
+            issues.push({
+              code: 'custom',
+              path: ['username'],
+              message: t`用户名已存在`,
+              input: value.username,
+            })
+          }
+        } catch {
+          // 查重接口异常时放行，交由后端兜底校验
+        }
       }
 
       // 校验密码是否填写并符合规则

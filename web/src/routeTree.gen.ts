@@ -34,6 +34,7 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/_authenticated/settings/password'
 import { Route as AuthenticatedSystemInfoIndexRouteImport } from './routes/_authenticated/system-info/index'
 import { Route as AuthenticatedTaskIndexRouteImport } from './routes/_authenticated/task/index'
+import { Route as AuthenticatedTenantIndexRouteImport } from './routes/_authenticated/tenant/index'
 import { Route as AuthenticatedTokenIndexRouteImport } from './routes/_authenticated/token/index'
 import { Route as AuthenticatedUserIndexRouteImport } from './routes/_authenticated/user/index'
 
@@ -171,6 +172,12 @@ const AuthenticatedTaskIndexRoute = AuthenticatedTaskIndexRouteImport.update({
   path: '/task/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTenantIndexRoute =
+  AuthenticatedTenantIndexRouteImport.update({
+    id: '/tenant/',
+    path: '/tenant/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTokenIndexRoute = AuthenticatedTokenIndexRouteImport.update({
   id: '/token/',
   path: '/token/',
@@ -207,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/system-info/': typeof AuthenticatedSystemInfoIndexRoute
   '/task/': typeof AuthenticatedTaskIndexRoute
+  '/tenant/': typeof AuthenticatedTenantIndexRoute
   '/token/': typeof AuthenticatedTokenIndexRoute
   '/user/': typeof AuthenticatedUserIndexRoute
 }
@@ -234,6 +242,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/system-info': typeof AuthenticatedSystemInfoIndexRoute
   '/task': typeof AuthenticatedTaskIndexRoute
+  '/tenant': typeof AuthenticatedTenantIndexRoute
   '/token': typeof AuthenticatedTokenIndexRoute
   '/user': typeof AuthenticatedUserIndexRoute
 }
@@ -264,6 +273,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/system-info/': typeof AuthenticatedSystemInfoIndexRoute
   '/_authenticated/task/': typeof AuthenticatedTaskIndexRoute
+  '/_authenticated/tenant/': typeof AuthenticatedTenantIndexRoute
   '/_authenticated/token/': typeof AuthenticatedTokenIndexRoute
   '/_authenticated/user/': typeof AuthenticatedUserIndexRoute
 }
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/system-info/'
     | '/task/'
+    | '/tenant/'
     | '/token/'
     | '/user/'
   fileRoutesByTo: FileRoutesByTo
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/system-info'
     | '/task'
+    | '/tenant'
     | '/token'
     | '/user'
   id:
@@ -350,6 +362,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/system-info/'
     | '/_authenticated/task/'
+    | '/_authenticated/tenant/'
     | '/_authenticated/token/'
     | '/_authenticated/user/'
   fileRoutesById: FileRoutesById
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTaskIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tenant/': {
+      id: '/_authenticated/tenant/'
+      path: '/tenant'
+      fullPath: '/tenant/'
+      preLoaderRoute: typeof AuthenticatedTenantIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/token/': {
       id: '/_authenticated/token/'
       path: '/token'
@@ -597,6 +617,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
   AuthenticatedSystemInfoIndexRoute: typeof AuthenticatedSystemInfoIndexRoute
   AuthenticatedTaskIndexRoute: typeof AuthenticatedTaskIndexRoute
+  AuthenticatedTenantIndexRoute: typeof AuthenticatedTenantIndexRoute
   AuthenticatedTokenIndexRoute: typeof AuthenticatedTokenIndexRoute
   AuthenticatedUserIndexRoute: typeof AuthenticatedUserIndexRoute
 }
@@ -610,6 +631,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
   AuthenticatedSystemInfoIndexRoute: AuthenticatedSystemInfoIndexRoute,
   AuthenticatedTaskIndexRoute: AuthenticatedTaskIndexRoute,
+  AuthenticatedTenantIndexRoute: AuthenticatedTenantIndexRoute,
   AuthenticatedTokenIndexRoute: AuthenticatedTokenIndexRoute,
   AuthenticatedUserIndexRoute: AuthenticatedUserIndexRoute,
 }

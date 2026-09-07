@@ -9,4 +9,5 @@ type ServiceGroup struct {
 	SysTokenService
 	SysInfoService
 	SysJobService
+	SysTenantService
 }

@@ -23,19 +23,19 @@ func InitCasbin() {
 
 	casbinModelText := `
 	[request_definition]
-	r = sub, obj, act
+	r = sub, dom, obj, act
 
 	[policy_definition]
-	p = sub, obj, act
+	p = sub, dom, obj, act
 
 	[role_definition]
-	g = _, _
+	g = _, _, _
 
 	[policy_effect]
 	e = some(where (p.eft == allow))
 
 	[matchers]
-	m = g(r.sub, p.sub) && keyMatch2(r.obj, p.obj) && regexMatch(r.act, p.act)
+	m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && keyMatch2(r.obj, p.obj) && regexMatch(r.act, p.act)
 	`
 
 	m.LoadModelFromText(casbinModelText) // 加载上面的模型

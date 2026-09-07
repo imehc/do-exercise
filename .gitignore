@@ -27,3 +27,4 @@ go.work.sum
 
 # other
 *.DS_Store
+docs/

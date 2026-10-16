@@ -11,6 +11,7 @@ type SysOperationLog struct {
 	model.IdWrapper
 
 	Username       string         `json:"username" gorm:"size:16;comment:请求用户"`
+	TenantId       string         `json:"tenant_id" gorm:"column:tenant_id;type:varchar(32);not null;default:'';index;comment:租户ID"`
 	Ip             string         `json:"ip" gorm:"size:32;comment:IP地址"`
 	IsInternalIP   bool           `json:"is_internal_ip" gorm:"default:false;comment:是否是内网IP"`
 	Address        string         `json:"address" gorm:"size:128;comment:地址"`

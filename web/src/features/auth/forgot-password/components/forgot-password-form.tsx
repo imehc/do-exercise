@@ -1,4 +1,4 @@
-import { HTMLAttributes, useEffect } from 'react'
+import { HTMLAttributes, useEffect, useState } from 'react'
 import { z } from 'zod'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,6 +11,7 @@ import {
   AuthApi,
   ForgetPasswordRequest,
   GetForgetPasswordCodeRequest,
+  TenantOption,
 } from '~/do-exercise-api'
 import { cn } from '~/lib/utils'
 import { encryptPassword } from '~/utils/encrypt'
@@ -30,6 +31,7 @@ import {
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { PasswordInput } from '~/components/password-input'
+import { TenantSelectDialog } from '~/features/auth/components/tenant-select-dialog'
 import { getPasswordRule } from '~/features/user/schemas/action-schema'
 
 type ForgotFormProps = HTMLAttributes<HTMLFormElement>
@@ -90,17 +92,34 @@ export function ForgotPasswordForm({ className, ...props }: ForgotFormProps) {
     },
   })
 
+  // 同一邮箱在多个租户下各有一个账号时，验证码只能证明「邮箱是你的」，
+  // 证明不了要重置哪个租户的口令。服务端此时一个字节都不改、也不消费验证码，
+  // 只回候选租户；选定后带上 tenant_id 重发同一份请求即可，不必重新收信。
+  const [tenantSelection, setTenantSelection] = useState<{
+    payload: ForgetPasswordRequest['forgetPassword']
+    tenants: TenantOption[]
+  } | null>(null)
+
   const { mutate: forgetPassword, isPending: forgetPasswordIsPending } =
     useMutation({
       mutationFn: (value: ForgetPasswordRequest) =>
         authApi.forgetPassword(value),
-      onSuccess: () => {
+      onSuccess: (data, variables) => {
+        if (data.requiresTenantSelection) {
+          setTenantSelection({
+            payload: variables.forgetPassword,
+            tenants: data.availableTenants,
+          })
+          return
+        }
+        setTenantSelection(null)
         toast.success(t`重置密码成功`)
         navigate({
           to: '/sign-in',
         })
       },
       onError: () => {
+        setTenantSelection(null)
         refetchPublicKey()
       },
     })
@@ -118,115 +137,136 @@ export function ForgotPasswordForm({ className, ...props }: ForgotFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-2', className)}
-        {...props}
-      >
-        <FormField
-          control={form.control}
-          name='email'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <Trans>邮箱</Trans>
-              </FormLabel>
-              <div className='flex justify-between gap-x-2 max-sm:flex-col max-sm:gap-y-2'>
-                <Input placeholder={t`请输入邮箱`} {...field} />
-                <Button
-                  type='button'
-                  variant='outline'
-                  className='w-1/3 max-sm:w-full'
-                  disabled={
-                    !email ||
-                    isCounting ||
-                    forgetPasswordCodeIsPending ||
-                    forgetPasswordIsPending ||
-                    publicKeyDataIsLoading
-                  }
-                  onClick={() => {
-                    if (!email) return
-                    getForgetPasswordCode({ email })
-                  }}
-                >
-                  {isCounting ? count : <Trans>发送验证码</Trans>}
-                </Button>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='code'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <Trans>验证码</Trans>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t`请输入验证码`}
-                  {...field}
-                  disabled={forgetPasswordIsPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={cn('grid gap-2', className)}
+          {...props}
+        >
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>邮箱</Trans>
+                </FormLabel>
+                <div className='flex justify-between gap-x-2 max-sm:flex-col max-sm:gap-y-2'>
+                  <Input placeholder={t`请输入邮箱`} {...field} />
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='w-1/3 max-sm:w-full'
+                    disabled={
+                      !email ||
+                      isCounting ||
+                      forgetPasswordCodeIsPending ||
+                      forgetPasswordIsPending ||
+                      publicKeyDataIsLoading
+                    }
+                    onClick={() => {
+                      if (!email) return
+                      getForgetPasswordCode({ email })
+                    }}
+                  >
+                    {isCounting ? count : <Trans>发送验证码</Trans>}
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='code'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>验证码</Trans>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t`请输入验证码`}
+                    {...field}
+                    disabled={forgetPasswordIsPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name='password'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <Trans>密码</Trans>
-              </FormLabel>
-              <FormControl>
-                <PasswordInput
-                  placeholder={t`请输入密码`}
-                  {...field}
-                  disabled={forgetPasswordIsPending}
-                />
-              </FormControl>
-              <FormDescription>
-                <Trans>输入您的新密码。</Trans>
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name='password'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>密码</Trans>
+                </FormLabel>
+                <FormControl>
+                  <PasswordInput
+                    placeholder={t`请输入密码`}
+                    {...field}
+                    disabled={forgetPasswordIsPending}
+                  />
+                </FormControl>
+                <FormDescription>
+                  <Trans>输入您的新密码。</Trans>
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name='confirmPassword'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                <Trans>确认密码</Trans>
-              </FormLabel>
-              <FormControl>
-                <PasswordInput
-                  placeholder={t`请再次输入密码`}
-                  {...field}
-                  disabled={forgetPasswordIsPending}
-                />
-              </FormControl>
-              <FormDescription>
-                <Trans>再次输入您的新密码。</Trans>
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name='confirmPassword'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <Trans>确认密码</Trans>
+                </FormLabel>
+                <FormControl>
+                  <PasswordInput
+                    placeholder={t`请再次输入密码`}
+                    {...field}
+                    disabled={forgetPasswordIsPending}
+                  />
+                </FormControl>
+                <FormDescription>
+                  <Trans>再次输入您的新密码。</Trans>
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button className='mt-2' disabled={forgetPasswordIsPending}>
-          <Trans>继续</Trans>
-        </Button>
-      </form>
-    </Form>
+          <Button className='mt-2' disabled={forgetPasswordIsPending}>
+            <Trans>继续</Trans>
+          </Button>
+        </form>
+      </Form>
+      <TenantSelectDialog
+        open={!!tenantSelection}
+        tenants={tenantSelection?.tenants ?? []}
+        isPending={forgetPasswordIsPending}
+        onSelect={(tenant) => {
+          if (!tenantSelection) return
+          forgetPassword({
+            forgetPassword: {
+              ...tenantSelection.payload,
+              tenantId: tenant.tenantId ?? '',
+            },
+          })
+        }}
+        description={
+          <Trans>该邮箱在多个租户下都有账号，请选择要重置密码的租户</Trans>
+        }
+        pendingText={<Trans>重置中...</Trans>}
+        hint={null}
+      />
+    </>
   )
 }

@@ -6,6 +6,7 @@ import { MenuType, SysMenuTree, SystemMenuApi } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { cn } from '~/lib/utils'
 import { toIconComponent } from '~/utils/icon'
+import { getMenuLabel } from '~/utils/menu-label'
 import { useApi } from '~/hooks/use-api'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -25,6 +26,7 @@ import {
   callMenuTypes,
   callVisibleTypes,
 } from '../data/data'
+import { getMenuScopeLabel } from '../schemas/action-schema'
 
 interface Props {
   open: boolean
@@ -76,7 +78,13 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                       <div className='font-medium'>
                         <Trans>菜单名称</Trans>
                       </div>
-                      <div className='col-span-2'>{menu.name}</div>
+                      <div className='col-span-2'>{getMenuLabel(menu)}</div>
+                    </div>
+                    <div className='grid grid-cols-3 items-center gap-4'>
+                      <div className='font-medium'>
+                        <Trans>国际化键</Trans>
+                      </div>
+                      <div className='col-span-2'>{menu.i18nKey || '-'}</div>
                     </div>
                     <div className='grid grid-cols-3 items-center gap-4'>
                       <div className='font-medium'>
@@ -101,12 +109,6 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                             <Trans>路由</Trans>
                           </div>
                           <div className='col-span-2'>{menu.route}</div>
-                        </div>
-                        <div className='grid grid-cols-3 items-center gap-4'>
-                          <div className='font-medium'>
-                            <Trans>组件</Trans>
-                          </div>
-                          <div className='col-span-2'>{menu.component}</div>
                         </div>
                         <div className='grid grid-cols-3 items-center gap-4'>
                           <div className='font-medium'>
@@ -174,6 +176,21 @@ export function MenuViewInfoDialog({ open, onOpenChange }: Props) {
                         </div>
                       </>
                     )}
+                    <div className='grid grid-cols-3 items-center gap-4'>
+                      <div className='font-medium'>
+                        <Trans>可见范围</Trans>
+                      </div>
+                      <div className='col-span-2 flex items-center gap-2'>
+                        <Badge variant='outline'>
+                          {getMenuScopeLabel(menu.scope ?? 'both')}
+                        </Badge>
+                        {menu.isSystem && (
+                          <Badge variant='outline'>
+                            <Trans>系统内置</Trans>
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                     <div className='grid grid-cols-3 items-center gap-4'>
                       <div className='font-medium'>
                         <Trans>创建时间</Trans>

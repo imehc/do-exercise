@@ -34,7 +34,7 @@ export const makeTreeNodeDataState = (
 
   const enrichNode = (node: TreeNodeDataState, parent?: TreeNodeDataState) => {
     node.parent = parent
-    node.checked = parent?.checked || values.includes(node.value)
+    node.checked = values.includes(node.value)
     node.visible =
       searchValue === undefined ||
       node.name.toLowerCase().includes(searchValue.toLowerCase())

@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
+	"os"
 	"testing"
 	"time"
 
@@ -15,13 +16,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// 本用例需要真实 Redis。默认连本机，并允许用环境变量指向别处（与集成测试同一套变量名）。
+// 用独立的 DB 15：本用例会 DEL availableKeysHash 与全部 publicKey:*，落在 DB 0 会清掉
+// 开发环境正在用的密钥池。
+const (
+	rsaTestRedisDefaultAddr = "localhost:6379"
+	rsaTestRedisDB          = 15
+)
+
+func rsaTestRedisAddr() string {
+	host := os.Getenv("REDIS_HOST")
+	if host == "" {
+		return rsaTestRedisDefaultAddr
+	}
+	port := os.Getenv("REDIS_PORT")
+	if port == "" {
+		port = "6379"
+	}
+	return host + ":" + port
+}
+
 func TestRSACrypto(t *testing.T) {
 	// 初始化Redis客户端
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     rsaTestRedisAddr(),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       rsaTestRedisDB,
 	})
+
+	// Redis 不可达时跳过而不是失败：否则干净环境里 `go test ./...` 默认是红的，
+	// 真实回归会被这一条淹没。要强制跑（例如 CI）就设 RSA_TEST_REQUIRE_REDIS=1。
+	pingCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := redisClient.Ping(pingCtx).Err(); err != nil {
+		redisClient.Close()
+		if os.Getenv("RSA_TEST_REQUIRE_REDIS") != "" {
+			t.Fatalf("RSA_TEST_REQUIRE_REDIS 已设置但 Redis(%s) 不可用: %v", rsaTestRedisAddr(), err)
+		}
+		t.Skipf("跳过：Redis(%s) 不可用（%v）。起一个 Redis 或设置 REDIS_HOST/REDIS_PORT 后重跑", rsaTestRedisAddr(), err)
+	}
 
 	defer func() {
 		ctx := context.Background()

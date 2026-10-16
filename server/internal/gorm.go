@@ -45,6 +45,11 @@ func InitGorm(isAutoMigrate bool) {
 		util.Exit("连接数据库失败: ", err)
 	}
 
+	// 注册行级租户隔离插件（单/多租户统一走该入口，模式差异仅由配置决定）
+	if err := db.Use(&TenantPlugin{}); err != nil {
+		util.Exit("注册租户隔离插件失败: ", err)
+	}
+
 	// 自动迁移数据库表
 	if isAutoMigrate {
 		err = db.AutoMigrate(
@@ -54,6 +59,8 @@ func InitGorm(isAutoMigrate bool) {
 			system.SysApi{},
 			system.SysOperationLog{},
 			system.SysJob{},
+			system.SysTenant{},
+			system.SysUserTenant{},
 			gormadapter.CasbinRule{},
 		)
 		if err != nil {

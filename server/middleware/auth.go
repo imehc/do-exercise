@@ -10,6 +10,8 @@ import (
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common/response"
+	"github.com/imehc/do-exercise/server/model/system"
+	"github.com/imehc/do-exercise/server/util"
 )
 
 // mustChangePasswordWhitelist 强制改密期间仍允许访问的接口。
@@ -20,6 +22,7 @@ var mustChangePasswordWhitelist = map[string]bool{
 	"GET /user/profile":           true, // 基本信息（前端布局依赖）
 	"GET /user/menu":              true, // 菜单（前端布局依赖）
 	"GET /sse":                    true, // SSE 连接（前端布局依赖）
+	"GET /auth/my_tenants":        true, // 可用租户（顶栏当前租户展示依赖，未改密期间仅展示不切换）
 }
 
 // AuthMiddleware 登录验证中间件
@@ -64,6 +67,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// 租户停用或软删除后必须立即阻断旧会话。Redis 会话吊销是主动清理，
+		// 这里的状态复核是兜底，避免 Redis 短暂故障让已停用租户继续访问。
+		if tokenData.TenantId != global.PlatformTenantID {
+			var tenant system.SysTenant
+			if tokenData.TenantId == "" || global.DB.Model(&system.SysTenant{}).
+				Where("tenant_id = ?", tokenData.TenantId).
+				First(&tenant).Error != nil ||
+				!tenant.Status || util.IsTenantExpired(tenant.ExpireTime) {
+				response.Unauthorized(c)
+				c.Abort()
+				return
+			}
+		}
+
 		// 强制改密。默认管理员口令公开，首次登录后必须改密才能使用其他功能。
 		if tokenData.MustChangePassword {
 			key := fmt.Sprintf("%s %s", c.Request.Method, c.FullPath())
@@ -76,9 +93,11 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 将用户ID存储在上下文中
 		c.Set("userId", tokenData.UserId)
-		c.Set("roles", tokenData.RoleIds)
 		c.Set("username", tokenData.Username)
+		c.Set("tenantId", tokenData.TenantId)
+		c.Set("authorizedTenantIds", tokenData.AuthorizedTenantIds)
 		c.Set("accessToken", accessToken)
+		c.Set("isSuperAdmin", tokenData.IsSuperAdmin)
 		c.Next()
 	}
 }

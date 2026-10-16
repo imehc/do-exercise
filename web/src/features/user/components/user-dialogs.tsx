@@ -1,6 +1,7 @@
 import { SysUser } from '~/do-exercise-api'
 import { useFormDialog } from '~/provider'
 import { UserActionDialog } from './user-action-dialog'
+import { UserAssignTenantDialog } from './user-assign-tenant-dialog'
 import { UserDeleteDialog } from './user-delete-dialog'
 import { UserResetPasswordDialog } from './user-reset-password-dialog'
 import { UserViewInfoDialog } from './user-view-info'
@@ -48,6 +49,20 @@ export function UserDialogs({ refetch }: Props) {
                 refetch()
               }
               setOpen('reset')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
+          />
+          <UserAssignTenantDialog
+            key={`user-assign-tenant-${currentRow.id}`}
+            open={open === 'assign-tenant'}
+            onOpenChange={(_, hasRefresh) => {
+              if (hasRefresh) {
+                refetch()
+              }
+              setOpen('assign-tenant')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

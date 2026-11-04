@@ -3,7 +3,7 @@ package system
 import (
 	"errors"
 
-	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
@@ -15,14 +15,59 @@ import (
 
 type SysRoleService struct{}
 
+// roleUserCounts 统计每个角色当前有多少个用户在用。
+//
+// 角色是多人共享对象，改一次授权就改了所有持有者的能力边界，因此授权界面需要
+// 「这次改动影响 N 个人」这个量级信息（见 4.4）。
+//
+// 以 sys_user 作为 Model 而不是关联表 sys_user_role 是有意的：软删条件
+// （deleted_at IS NULL）和租户插件的 tenant_id 都挂在 sys_user 上，关联表两者
+// 皆无。直接查关联表会把已注销的用户算进去，也会让计数越过租户边界。
+func roleUserCounts(db *gorm.DB, roleIds []uint) (map[uint]int64, error) {
+	counts := make(map[uint]int64, len(roleIds))
+	if len(roleIds) == 0 {
+		return counts, nil
+	}
+	var rows []struct {
+		RoleId uint
+		Total  int64
+	}
+	if err := db.Model(&system.SysUser{}).
+		Select("sys_user_role.sys_role_id AS role_id, COUNT(*) AS total").
+		Joins("JOIN sys_user_role ON sys_user_role.sys_user_user_id = sys_user.id").
+		Where("sys_user_role.sys_role_id IN ?", roleIds).
+		Group("sys_user_role.sys_role_id").
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		counts[row.RoleId] = row.Total
+	}
+	return counts, nil
+}
+
 // assignMenus 分配菜单。
 // 空 menuIds、以及菜单未绑定任何 API 这两种情况，语义都是「撤销该角色的全部策略」。
 // 早期实现在这两处提前 return，跳过了 RemoveFilteredPolicy，
-// 导致解除权限的请求返回成功而 Casbin 策略原样保留。
-// 本函数只负责在事务内落库角色-菜单关联表；Casbin p 策略的同步
-// 放在事务提交之后由 syncRolePolicy 统一处理。
+
+// 权限以同事务内的关联记录为准，提交后所有实例即时读取。
 func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds []uint) ([]system.SysMenu, error) {
 	var menus []system.SysMenu
+	var preservedMenus []system.SysMenu
+	if tenantRestricted(tx) {
+		var existingMenus []system.SysMenu
+		if err := tx.Model(role).Association("Menus").Find(&existingMenus); err != nil {
+			return nil, errors.New("menuAssignFailed")
+		}
+		hiddenIds := lo.FilterMap(existingMenus, func(menu system.SysMenu, _ int) (uint, bool) {
+			return menu.Id, IsPlatformOnlyMenu(menu)
+		})
+		if len(hiddenIds) > 0 {
+			if err := tx.Preload("Apis").Where("id IN ?", hiddenIds).Find(&preservedMenus).Error; err != nil {
+				return nil, errors.New("menuAssignFailed")
+			}
+		}
+	}
 	if len(menuIds) > 0 {
 		// 一次查出菜单及其绑定的 API（此前分两次查询同一批行，第二次只为补 Apis）
 		if err := tx.Preload("Apis").Where("id IN ?", menuIds).Find(&menus).Error; err != nil {
@@ -31,7 +76,21 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 		if len(menus) != len(menuIds) {
 			return nil, errors.New("menuNotFound")
 		}
+		// 平台专属菜单（租户管理子树）不在租户的授权范围内。
+		// 不过滤的话，租户管理员只要提交这些 ID 就能给自己造出一个有租户管理权限的角色，
+		// 直接越过平台授权边界，因此这里必须拒绝而不是静默丢弃。
+		//
+		// 判定必须基于库里查出来的行：scope 是权威依据，用 SysMenu{Id: id} 合成的空 scope
+		// 只能命中历史 ID 兜底，新增的 scope=platform 菜单会整批漏过。
+		if tenantRestricted(tx) {
+			for _, menu := range menus {
+				if IsPlatformOnlyMenu(menu) {
+					return nil, errors.New("menuPlatformOnly")
+				}
+			}
+		}
 	}
+	menus = append(menus, preservedMenus...)
 
 	// 建立/清空角色菜单关联
 	if len(menus) == 0 {
@@ -43,45 +102,6 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 	}
 
 	return menus, nil
-}
-
-// syncRolePolicy 在事务提交成功后同步 Casbin p 策略。
-// global.Enforcer 走独立 adapter，无法加入业务事务，必须等 Commit() 成功后再写，
-// 否则提交失败时角色行回滚、策略却已生效（幽灵授权）。
-// 此步失败则角色表现为无权限（fail closed），并尽量回退半成品规则。
-func (s *SysRoleService) syncRolePolicy(role *system.SysRole, menus []system.SysMenu) error {
-	enforcer := global.Enforcer
-	// 无条件清空旧策略，再按新集合重建
-	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code); err != nil {
-		return errors.New("menuAssignFailed")
-	}
-
-	// 将菜单下的APIs合并
-	apis := lo.FlatMap(menus, func(menu system.SysMenu, _ int) []system.SysApi {
-		return menu.Apis
-	})
-	if len(apis) == 0 {
-		// 菜单已分配但未绑定 API：策略为空，菜单列表仍需如实返回
-		return nil
-	}
-
-	// 使用casbin批量添加策略
-	policies := lo.Map(apis, func(item system.SysApi, index int) []string {
-		return []string{
-			role.Code,
-			item.Path,
-			item.Method,
-		}
-	})
-
-	// 添加策略并检查结果
-	success, err := enforcer.AddPolicies(policies)
-	if err != nil || !success {
-		// 补偿：清掉可能已加入的部分策略，回退到无权限态
-		_, _ = enforcer.RemoveFilteredPolicy(0, role.Code)
-		return errors.New("menuAssignFailed")
-	}
-	return nil
 }
 
 // checkRoleExist 检查角色是否存在
@@ -101,11 +121,17 @@ func (s *SysRoleService) checkRoleExist(db *gorm.DB, roleId uint) (*system.SysRo
 	return &role, nil
 }
 
-// checkCodeDuplicate 检查角色编码是否重复
+// checkCodeDuplicate 检查角色编码是否重复。
+//
+// 口径与唯一索引 idx_sys_role_code_tenant 对齐：同租户内、未软删的角色之间唯一。
+// 租户条件由插件回填，这里再显式写一遍——一旦调用方拿到的是旁路租户的连接
+// （平台上下文、维护脚本），少了这一条就会把「别的租户用了这个 code」判成重名。
+// 软删行不参与判定：编码随角色删除一起释放，由部分唯一索引保证两边一致。
 func (s *SysRoleService) checkCodeDuplicate(db *gorm.DB, code string) error {
 	var count int64
 	err := db.Model(&system.SysRole{}).
 		Where("code = ?", code).
+		Where("tenant_id = ?", model.CurrentTenantID(db)).
 		Count(&count).
 		Error
 	if err != nil || count > 0 {
@@ -116,6 +142,11 @@ func (s *SysRoleService) checkCodeDuplicate(db *gorm.DB, code string) error {
 
 // Create 创建角色
 func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*response.SysRoleResp, error) {
+
+	// 角色需归属具体业务租户。
+	if isSuperAdmin(db) {
+		return nil, errors.New("platformTenantRequired")
+	}
 	if err := s.checkCodeDuplicate(db, req.Code); err != nil {
 		return nil, err
 	}
@@ -124,6 +155,9 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 		Name: req.Name,
 		Code: req.Code,
 	}
+	// 显式落租户：DB 行由租户插件回填，这里同步到内存结构体，
+
+	role.TenantId = model.CurrentTenantID(db)
 
 	// 开启事务
 	tx := db.Begin()
@@ -150,11 +184,6 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 		return nil, errors.New("createRoleFailed")
 	}
 
-	// Casbin 策略在事务提交成功之后同步
-	if err := s.syncRolePolicy(role, menus); err != nil {
-		return nil, err
-	}
-
 	return &response.SysRoleResp{
 		Id:        role.Id,
 		Name:      role.Name,
@@ -171,7 +200,7 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 }
 
 // Delete 删除角色。
-// 删除记录、解除用户关联、清理 Casbin 策略三步必须一致：
+
 // 早期实现无事务且不清理 g 规则，一旦策略删除失败，角色虽被软删，
 // 但持有该 role code 的用户仍保留全部权限。
 func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
@@ -179,6 +208,11 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 	existRole, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return err
+	}
+	// 「租户管理员」是创建租户时由平台供应的内建角色，一旦被租户自己删掉，
+	// 该租户将失去管理入口且无法自行恢复，因此对受限调用者一律拒绝。
+	if isTenantAdminRole(existRole) {
+		return errors.New("tenantAdminRoleReadonly")
 	}
 
 	tx := db.Begin()
@@ -212,17 +246,6 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 		return errors.New("deleteRoleFailed")
 	}
 
-	// Casbin 走独立适配器，不在上面的事务内，故放到提交成功之后
-	enforcer := global.Enforcer
-	// p 策略：该角色拥有的权限
-	if _, err := enforcer.RemoveFilteredPolicy(0, existRole.Code); err != nil {
-		return errors.New("deleteRoleFailed")
-	}
-	// g 规则：仍指向该角色的用户绑定，不清理会永久残留
-	if _, err := enforcer.RemoveFilteredGroupingPolicy(1, existRole.Code); err != nil {
-		return errors.New("deleteRoleFailed")
-	}
-
 	return nil
 }
 
@@ -231,6 +254,11 @@ func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleR
 	role, err := s.checkRoleExist(db, id)
 	if err != nil {
 		return err
+	}
+	// 「租户管理员」的菜单集合决定了该租户的权限上限，只能由平台超级管理员调整；
+	// 否则租户管理员可以给自己加上任意菜单（含平台专属），越过平台的授权边界。
+	if isTenantAdminRole(role) && tenantRestricted(db) {
+		return errors.New("tenantAdminRoleReadonly")
 	}
 	role.Name = req.Name
 
@@ -251,7 +279,7 @@ func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleR
 		return errors.New("updateRoleFailed")
 	}
 
-	menus, err := s.assignMenus(tx, role, req.MenuIds)
+	_, err = s.assignMenus(tx, role, req.MenuIds)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -263,10 +291,6 @@ func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleR
 		return errors.New("updateRoleFailed")
 	}
 
-	// 事务提交成功后在 Casbin 同步策略
-	if err := s.syncRolePolicy(role, menus); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -292,10 +316,15 @@ func (s *SysRoleService) Get(db *gorm.DB, id uint) (*response.SysRoleResp, error
 			Name: menu.Name,
 		}
 	}
+	counts, err := roleUserCounts(db, []uint{role.Id})
+	if err != nil {
+		return nil, errors.New("getRoleFailed")
+	}
 	return &response.SysRoleResp{
 		Id:        role.Id,
 		Name:      role.Name,
 		Code:      role.Code,
+		UserCount: counts[role.Id],
 		CreatedAt: role.CreatedAt,
 		CreatedBy: role.CreatedBy,
 		UpdatedAt: role.UpdatedAt,
@@ -333,6 +362,10 @@ func (s *SysRoleService) GetList(db *gorm.DB, req request.QuerySysRoleReq) (comm
 		return common.PageResult[response.SysRoleResp]{}, errors.New("getRoleListFailed")
 	}
 	data := make([]response.SysRoleResp, len(roles))
+	counts, err := roleUserCounts(db, lo.Map(roles, func(role system.SysRole, _ int) uint { return role.Id }))
+	if err != nil {
+		return common.PageResult[response.SysRoleResp]{}, errors.New("getRoleListFailed")
+	}
 	for i, role := range roles {
 		// 转换菜单数据
 		menus := make([]response.SysMenuShortResp, len(role.Menus))
@@ -347,6 +380,7 @@ func (s *SysRoleService) GetList(db *gorm.DB, req request.QuerySysRoleReq) (comm
 			Id:        role.Id,
 			Name:      role.Name,
 			Code:      role.Code,
+			UserCount: counts[role.Id],
 			CreatedAt: role.CreatedAt,
 			CreatedBy: role.CreatedBy,
 			UpdatedAt: role.UpdatedAt,
@@ -365,16 +399,29 @@ func (s *SysRoleService) GetList(db *gorm.DB, req request.QuerySysRoleReq) (comm
 	return result, nil
 }
 
-// GetAll 获取所有角色
-func (s *SysRoleService) GetAll(db *gorm.DB) ([]response.SysRoleShortResp, error) {
+// GetAll 获取所有角色。
+// tenantId 仅平台超级管理员可用（租户成员管理需要列出目标租户的角色）；
+// 受限调用者传入该参数会被忽略，可见范围始终由租户插件锁定在自己的租户。
+func (s *SysRoleService) GetAll(db *gorm.DB, tenantId string) ([]response.SysRoleShortResp, error) {
 	var roles []system.SysRole
 	db = db.Model(&system.SysRole{})
+	if tenantId != "" && isSuperAdmin(db) {
+		db = db.Where("tenant_id = ?", tenantId)
+	}
 	err := db.
 		Order("id ASC").
 		Find(&roles).
 		Error
 	if err != nil {
 		return nil, errors.New("getRoleFailed")
+	}
+
+	// 租户管理员（非超管）创建/编辑用户分配角色时，
+	// 过滤掉「租户管理员」角色，仅展示该租户自己创建的低权限角色。
+	if !isSuperAdmin(db) {
+		roles = lo.Filter(roles, func(role system.SysRole, _ int) bool {
+			return role.Code != TenantAdminRoleCode
+		})
 	}
 
 	return lo.Map(roles, func(role system.SysRole, _ int) response.SysRoleShortResp {

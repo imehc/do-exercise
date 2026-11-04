@@ -81,14 +81,37 @@ func (s *SysUserApi) Get(ctx *gin.Context) {
 	response.Success(ctx, user)
 }
 
-// GetList 获取用户列表
+// UsernameExists 检查用户名是否已存在
+func (s *SysUserApi) UsernameExists(ctx *gin.Context) {
+	username := cast.ToString(ctx.Query("username"))
+	if username == "" {
+		response.BadRequest(ctx, "usernameRequired")
+		return
+	}
+	exists, err := userService.UsernameExists(util.DB(ctx), username)
+	if err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
+	response.Success(ctx, gin.H{"exists": exists})
+}
+
+// GetList 获取用户列表。
+// tenant_id 是平台超级管理员专用的筛选参数（租户成员管理复用本接口）。
+// 只有确认调用者是超管才切到绕过隔离的 DB —— 否则受限调用者只要带上该参数
+// 就会拿到一个不受租户插件约束的连接，直接看到全平台用户。
 func (s *SysUserApi) GetList(ctx *gin.Context) {
 	var req common.Pagination
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.Error(err)
 		return
 	}
-	data, err := userService.GetList(util.DB(ctx), req)
+	tenantId := ctx.Query("tenant_id")
+	db := util.DB(ctx)
+	if tenantId != "" && ctx.GetBool("isSuperAdmin") {
+		db = util.BypassTenantDB(ctx)
+	}
+	data, err := userService.GetList(db, req, tenantId)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return
@@ -115,4 +138,39 @@ func (s *SysUserApi) ResetPassword(ctx *gin.Context) {
 		return
 	}
 	response.NoContent(ctx)
+}
+
+// AssignTenant 给用户分配（复制到）目标租户，仅平台超级管理员可调用
+func (s *SysUserApi) AssignTenant(ctx *gin.Context) {
+	id := cast.ToString(ctx.Param("id"))
+	if id == "" {
+		response.BadRequest(ctx, "idCannotBeEmpty")
+		return
+	}
+	var req request.AssignUserTenantReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.Error(err)
+		return
+	}
+	err := userService.AssignUserToTenant(util.BypassTenantDB(ctx), id, req.TenantId)
+	if err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
+	response.NoContent(ctx)
+}
+
+// ListAssignableTenants 获取指定用户可分配的候选租户列表
+func (s *SysUserApi) ListAssignableTenants(ctx *gin.Context) {
+	id := cast.ToString(ctx.Param("id"))
+	if id == "" {
+		response.BadRequest(ctx, "idCannotBeEmpty")
+		return
+	}
+	tenants, err := userService.ListAssignableTenants(util.BypassTenantDB(ctx), id)
+	if err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
+	response.Success(ctx, tenants)
 }

@@ -20,10 +20,12 @@ type SysJob struct {
 	Description    string     `json:"description" gorm:"size:512;comment:任务描述"`
 	LastTime       *time.Time `json:"last_time" gorm:"comment:上次执行时间"`
 	NextTime       *time.Time `json:"next_time" gorm:"comment:下次执行时间"`
+	ScheduledAt    *time.Time `json:"-" gorm:"comment:最后提交的计划执行时刻"`
 	Times          int64      `json:"times" gorm:"default:0;comment:执行次数"`
 	RetryTimes     uint       `json:"retry_times" gorm:"default:0;comment:重试次数"`
 	RetryInterval  uint       `json:"retry_interval" gorm:"default:0;comment:重试间隔(秒)"`
 	Timeout        uint       `json:"timeout" gorm:"default:0;comment:执行超时时间(秒)"`
+	TenantId       string     `json:"tenant_id" gorm:"column:tenant_id;type:varchar(32);not null;default:'';index;comment:租户ID"`
 
 	model.ControlWrapper
 }

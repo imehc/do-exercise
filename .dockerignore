@@ -17,3 +17,8 @@
 server/logs
 server/tmp
 web/stats.html
+deploy/docker/nginx/certs
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.dev.example

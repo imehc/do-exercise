@@ -5,6 +5,9 @@ import (
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/internal"
+	"github.com/imehc/do-exercise/server/migration"
+	"github.com/imehc/do-exercise/server/storage"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +19,7 @@ var serverCmd = &cobra.Command{
 	Long:  `启动do-exercise后端服务器。`,
 	Run: func(cmd *cobra.Command, args []string) {
 		initComponents()
+		defer storage.StartCollector(global.DB)()
 
 		// 启动服务器
 		defer shared.RSACrypto.Stop()
@@ -42,9 +46,11 @@ func initComponents() {
 	internal.InitConfig(configFile)
 	internal.InitLogger()
 	internal.InitGorm(false)
+	if err := migration.VerifySecurityBaseline(global.DB); err != nil {
+		util.Exit("安全迁移检查失败", err)
+	}
 	internal.InitRedis()
 	internal.InitI18n()
-	internal.InitCasbin()
 	internal.InitOss()
 	internal.InitOther()
 }

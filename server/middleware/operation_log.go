@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"io"
 	"net"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -58,7 +60,7 @@ func operationLogWorker() {
 		batch = make([]system.SysOperationLog, 0, operationLogBatchSize)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if err := global.DB.WithContext(ctx).Create(&logs).Error; err != nil {
+		if err := util.TenantBypass(global.DB.WithContext(ctx)).Create(&logs).Error; err != nil {
 			global.Log.Error("批量写入操作日志失败",
 				zap.Int("count", len(logs)),
 				zap.Error(err))
@@ -94,7 +96,7 @@ func enqueueOperationLog(log system.SysOperationLog) {
 // /auth/* 的响应体是 access/refresh token，refresh_token 还会出现在查询串里，
 // 一旦落库，任何拥有日志读取权限的人都能直接重放会话。
 func isSensitivePath(path string) bool {
-	return strings.HasPrefix(path, "/auth/")
+	return strings.HasPrefix(path, "/auth/") || path == "/system/token/all" || path == "/get_presigned_url" || path == "/get_download_url"
 }
 
 // skipResponseCapture 判断是否跳过响应体缓冲。
@@ -160,7 +162,7 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		sensitive := isSensitivePath(c.Request.URL.Path)
 
 		// 查询串在 /auth/refresh_token 上携带 refresh_token，必须脱敏
-		params := c.Request.URL.RawQuery
+		params := redactQuery(c.Request.URL.Query())
 		if sensitive && params != "" {
 			params = redactedPlaceholder
 		}
@@ -170,16 +172,17 @@ func OperationLogMiddleware() gin.HandlerFunc {
 		// 未缓冲 body 的请求（大/上传/未知长度）用占位符表示。
 		result := redactedPlaceholder
 		if captureResponse {
-			result = truncateString(blw.body.String(), maxStoredBodyLength)
+			result = redactJSON(blw.body.Bytes())
 		}
 
 		requestBody := redactedPlaceholder
 		if body != nil {
-			requestBody = truncateString(string(body), maxStoredBodyLength)
+			requestBody = redactJSON(body)
 		}
 
 		operationLog := system.SysOperationLog{
 			Username:       c.GetString("username"),
+			TenantId:       c.GetString("tenantId"),
 			Ip:             clientIP,
 			IsInternalIP:   isInternal,
 			UserAgent:      uaRaw,
@@ -260,4 +263,46 @@ func isInternalIP(ip string) bool {
 	}
 
 	return false
+}
+
+func sensitiveField(key string) bool {
+	key = strings.ToLower(strings.ReplaceAll(key, "_", ""))
+	return strings.Contains(key, "password") || strings.Contains(key, "token") || strings.Contains(key, "secret") || strings.Contains(key, "authorization") || strings.Contains(key, "presigned") || key == "code" || key == "captcha" || key == "putobjecturl" || key == "getobjecturl"
+}
+func redactJSON(body []byte) string {
+	var value any
+	if json.Unmarshal(body, &value) != nil {
+		return redactedPlaceholder
+	}
+	var walk func(any)
+	walk = func(value any) {
+		switch v := value.(type) {
+		case map[string]any:
+			for key, child := range v {
+				if sensitiveField(key) {
+					v[key] = redactedPlaceholder
+				} else {
+					walk(child)
+				}
+			}
+		case []any:
+			for _, child := range v {
+				walk(child)
+			}
+		}
+	}
+	walk(value)
+	data, err := json.Marshal(value)
+	if err != nil {
+		return redactedPlaceholder
+	}
+	return truncateString(string(data), maxStoredBodyLength)
+}
+func redactQuery(values url.Values) string {
+	for key := range values {
+		if sensitiveField(key) {
+			values.Set(key, redactedPlaceholder)
+		}
+	}
+	return truncateString(values.Encode(), maxStoredBodyLength)
 }

@@ -2,9 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
@@ -13,21 +11,8 @@ import (
 
 // InitOther 初始化其他工具
 func InitOther() {
-	initSnowflake()
 	initEmail()
 	initJobScheduler()
-}
-
-func initSnowflake() {
-	nodeID := int64(1) // 默认值
-	if v := os.Getenv("SNOWFLAKE_NODE_ID"); v != "" {
-		if id, err := strconv.ParseInt(v, 10, 64); err == nil {
-			nodeID = id
-		}
-	}
-	if err := util.InitSnowflake(nodeID); err != nil {
-		util.Exit("初始化雪花算法失败: ", err)
-	}
 }
 
 func initEmail() {

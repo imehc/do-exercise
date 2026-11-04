@@ -6,8 +6,8 @@ export const getPasswordRule = () =>
     .string({
       error: t`密码不能为空`,
     })
-    .min(6, { error: t`密码至少为6个字符` })
-    .max(16, { error: t`密码最多为16个字符` })
+    .min(12, { error: t`密码至少为12个字符` })
+    .max(72, { error: t`密码最多为72个字符` })
     .regex(/[a-zA-Z]/, { error: t`密码必须包含至少一个字母` })
     .regex(/[0-9]/, { error: t`密码必须包含至少一个数字` })
     // eslint-disable-next-line no-useless-escape
@@ -32,7 +32,9 @@ export const getBaseSchema = () =>
     confirmPassword: z.string().optional(),
   })
 
-export const getSchema = () =>
+export const getSchema = (
+  checkUsername?: (username: string) => Promise<boolean>
+) =>
   getBaseSchema()
     .extend({
       username: getUsernameRule(),
@@ -48,17 +50,34 @@ export const getSchema = () =>
         .optional()
         .or(z.literal('')),
       avatar: z.string().optional(),
-      roleIds: z
-        .array(z.number(), {
-          error: t`请选择关联角色`,
-        })
-        .min(1, t`请选择关联角色`),
+      roleIds: z.array(z.number(), {
+        error: t`请选择关联角色`,
+      }),
 
       isEdit: z.boolean().default(false).optional(),
     })
-    .check(({ issues, value }) => {
+    .check(async ({ issues, value }) => {
       if (value.isEdit) {
         return
+      }
+
+      // 创建用户允许不选择角色（角色由后续分配）
+
+      // 校验用户名是否已存在（仅创建模式）
+      if (value.username && checkUsername) {
+        try {
+          const exists = await checkUsername(value.username)
+          if (exists) {
+            issues.push({
+              code: 'custom',
+              path: ['username'],
+              message: t`用户名已存在`,
+              input: value.username,
+            })
+          }
+        } catch {
+          // 查重接口异常时放行，交由后端兜底校验
+        }
       }
 
       // 校验密码是否填写并符合规则

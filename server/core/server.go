@@ -12,8 +12,8 @@ import (
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/router"
-	"github.com/samber/lo"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type server interface {
@@ -48,56 +48,36 @@ func RunServer() {
 
 // syncApi 同步api到数据库
 func syncApi(routes gin.RoutesInfo) {
-	// 1. 获取所有唯一标识
-	var uniqueFields []string
-	for _, route := range routes {
-		uniqueFields = append(uniqueFields, route.Path)
-	}
-	// 2. 查询已存在的记录
-	var existingApis []system.SysApi
-	if err := global.DB.Where("path IN ?", uniqueFields).Find(&existingApis).Error; err != nil {
-		global.Log.Error("查询已存在的api失败", zap.Error(err))
-	}
-	// 3. 构建已存在记录的map
-	existingMap := make(map[string]system.SysApi)
-	for _, api := range existingApis {
-		existingMap[api.Path] = api
-	}
-	// 4. 筛选出需要插入的记录
-	var insertApis []system.SysApi
-	for _, route := range routes {
-		if _, ok := existingMap[route.Path]; !ok {
-			insertApis = append(insertApis, system.SysApi{
-				Path:   route.Path,
-				Method: route.Method,
-			})
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		// Route discovery runs on every replica. Lock before reading to avoid duplicate IDs and paths.
+		if err := tx.Exec("LOCK TABLE sys_api IN SHARE ROW EXCLUSIVE MODE").Error; err != nil {
+			return err
 		}
-	}
-	// 5. 插入新记录
-	if len(insertApis) > 0 {
-		db := global.DB
-		var maxID int64
-		db.Table("sys_api").Select("COALESCE(MAX(id), 0)").Row().Scan(&maxID)
-		apis := lo.Map(insertApis, func(item system.SysApi, index int) *system.SysApi {
-			return &system.SysApi{
-				IdWrapper: model.IdWrapper{
-					Id: uint(maxID) + uint(index) + 1,
-				},
-				Path:   item.Path,
-				Method: item.Method,
+		var existing []system.SysApi
+		if err := tx.Find(&existing).Error; err != nil {
+			return err
+		}
+		known := make(map[string]bool, len(existing))
+		for _, api := range existing {
+			known[api.Method+" "+api.Path] = true
+		}
+		var maxID uint
+		if err := tx.Model(&system.SysApi{}).Select("COALESCE(MAX(id),0)").Scan(&maxID).Error; err != nil {
+			return err
+		}
+		for _, route := range routes {
+			if known[route.Method+" "+route.Path] {
+				continue
 			}
-		})
-
-		// 失败必须回滚。原先是 defer tx.Commit()，即使 Create 报错也照样提交，
-		// 会把部分写入的路由记录持久化下来。
-		tx := db.Begin()
-		if err := tx.Create(apis).Error; err != nil {
-			tx.Rollback()
-			global.Log.Error("同步api失败", zap.Error(err))
-			return
+			maxID++
+			api := system.SysApi{IdWrapper: model.IdWrapper{Id: maxID}, Path: route.Path, Method: route.Method}
+			if err := tx.Create(&api).Error; err != nil {
+				return err
+			}
 		}
-		if err := tx.Commit().Error; err != nil {
-			global.Log.Error("同步api提交失败", zap.Error(err))
-		}
+		return tx.Exec("SELECT setval(pg_get_serial_sequence('sys_api','id'), GREATEST((SELECT COALESCE(MAX(id),1) FROM sys_api),(SELECT last_value FROM sys_api_id_seq)),true)").Error
+	})
+	if err != nil {
+		global.Log.Error("同步api失败", zap.Error(err))
 	}
 }

@@ -5,6 +5,7 @@ import { useAtomValue } from 'jotai'
 import { languageAtom } from '~/atoms'
 import { SysApi } from '~/do-exercise-api'
 import { usePermissions } from '~/provider'
+import { usePlatformResourceReadonly } from '~/hooks/use-tenant'
 import { DataTableRowActions } from '~/components/other'
 import {
   createColumn,
@@ -35,7 +36,9 @@ export const getColumnTitle = (columnId: string): string =>
 export const useColumns = (): ColumnDef<DataTableFeatures, SysApi>[] => {
   useAtomValue(languageAtom)
   const permissions = usePermissions()
-  const hasMore = permissions.some((p) => p === 'update')
+  // sys_api 是全平台共享表，租户侧只读：多租户模式下的非超管不显示编辑入口
+  const readonly = usePlatformResourceReadonly()
+  const hasMore = !readonly && permissions.some((p) => p === 'update')
 
   return [
     {

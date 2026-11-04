@@ -12,7 +12,7 @@ import { useApi } from '~/hooks/use-api'
 import { Switch } from '~/components/ui/switch'
 
 export function ToggleDisabledSwitch({
-  accessToken,
+  sessionId,
   disabled,
 }: ModityTokenStatus) {
   const sysTokenApi = useApi(SystemTokenApi)
@@ -23,13 +23,13 @@ export function ToggleDisabledSwitch({
       await sysTokenApi.updateTokenStatus(values)
       return values.modityTokenStatus.disabled
     },
-    onMutate: async ({ modityTokenStatus: { disabled, accessToken } }) => {
+    onMutate: async ({ modityTokenStatus: { disabled, sessionId } }) => {
       await queryClient.cancelQueries({ queryKey: ['findAllToken'] })
       const previousUsers =
         queryClient.getQueryData<TokenInfo[]>(['findAllToken']) || []
       queryClient.setQueryData<TokenInfo[]>(['findAllToken'], (old = []) =>
         old.map((token) =>
-          token.accessToken === accessToken ? { ...token, disabled } : token
+          token.sessionId === sessionId ? { ...token, disabled } : token
         )
       )
       return { previousUsers }
@@ -49,7 +49,7 @@ export function ToggleDisabledSwitch({
       disabled={isPending}
       onCheckedChange={(value) => {
         update(
-          { modityTokenStatus: { accessToken, disabled: value } },
+          { modityTokenStatus: { sessionId, disabled: value } },
           {
             onSuccess: () => {
               toast.success(value ? t`令牌已禁用` : t`令牌已启用`)

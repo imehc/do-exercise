@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gorm.io/gorm/schema"
 	"os"
 	"path/filepath"
 	"strings"
@@ -103,5 +104,21 @@ func (spec *Spec) register(dir string) error {
 		return err
 	}
 
+	p = filepath.Join(dir, "global", "constant.go")
+	content, err := os.ReadFile(p)
+	if err != nil {
+		return err
+	}
+	table := (schema.NamingStrategy{SingularTable: true}).TableName(spec.Name)
+	marker := "var tenantScopedTables = map[string]bool{"
+	if !strings.Contains(string(content), "\""+table+"\"") {
+		if !strings.Contains(string(content), marker) {
+			return fmt.Errorf("tenant table registry not found")
+		}
+		updated := strings.Replace(string(content), marker, marker+"\n\t\""+table+"\": true,", 1)
+		if err := os.WriteFile(p, []byte(updated), 0o644); err != nil {
+			return err
+		}
+	}
 	return nil
 }

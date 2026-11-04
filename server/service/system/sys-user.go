@@ -4,13 +4,17 @@ import (
 	"errors"
 
 	"github.com/imehc/do-exercise/server/global"
+	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/storage"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type SysUserService struct{}
@@ -18,15 +22,27 @@ type SysUserService struct{}
 // assignRoles 分配角色。
 // 空 roleIds 的语义是「撤销该用户的全部角色」，而不是「不做处理」——
 // 早期实现在此提前 return，导致 role_ids:[] 的解除权限请求返回成功，
-// 但 Casbin 中的 g 规则原样保留，用户实际权限不变。
-// 本函数只负责在事务内落库用户-角色关联表；Casbin 与 Redis 的同步
-// 放在事务提交之后由 syncRolePolicy 统一处理。
+
+// 权限以同事务内的关联记录为准，提交后所有实例即时读取。
 func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds []uint) ([]system.SysRole, error) {
 	var roles []system.SysRole
 	if len(roleIds) > 0 {
 		// 检查角色是否存在
-		if err := tx.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
+		if err := tx.Where("id IN ? AND tenant_id = ?", roleIds, user.TenantId).Find(&roles).Error; err != nil {
 			return nil, errors.New("allRolesNotFound")
+		}
+		if !isSuperAdmin(tx) {
+			for _, role := range roles {
+				if role.Code == TenantAdminRoleCode {
+					var existing int64
+					if err := tx.Table("sys_user_role").Where("sys_user_user_id = ? AND sys_role_id = ?", user.UserId, role.Id).Count(&existing).Error; err != nil {
+						return nil, err
+					}
+					if existing == 0 {
+						return nil, errors.New("tenantAdminRoleReadonly")
+					}
+				}
+			}
 		}
 		if len(roles) != len(roleIds) {
 			return nil, errors.New("roleNotFound")
@@ -43,43 +59,6 @@ func (s *SysUserService) assignRoles(tx *gorm.DB, user *system.SysUser, roleIds 
 	}
 
 	return roles, nil
-}
-
-// syncRolePolicy 在事务提交成功后同步 Casbin g 规则与 Redis 里的角色缓存。
-// global.Enforcer 走独立 adapter（EnableAutoSave 直写 global.DB），无法加入业务事务，
-// 因此必须等 Commit() 成功后执行——否则 Commit 失败时用户行回滚、权限却已生效，
-// 造成「从未创建成功的用户持有真实授权」的幽灵授权。
-// 此处后续若再失败，状态是「无权限 / 角色已过期」（fail closed）而非「越权」，
-// 并由补偿步骤将失效的半成品规则清掉，只把错误抛给上层提示人工介入。
-func (s *SysUserService) syncRolePolicy(user *system.SysUser, roles []system.SysRole) error {
-	roleCodes := make([]string, 0, len(roles))
-	roleIds := make([]uint, 0, len(roles))
-	for _, item := range roles {
-		roleCodes = append(roleCodes, item.Code)
-		roleIds = append(roleIds, item.Id)
-	}
-
-	enforcer := global.Enforcer
-	// 无条件先清空该用户的全部角色，再按新集合重建
-	if _, err := enforcer.DeleteRolesForUser(user.UserId); err != nil {
-		return errors.New("roleAssignFailed")
-	}
-
-	if len(roleCodes) > 0 {
-		if _, err := enforcer.AddRolesForUser(user.UserId, roleCodes); err != nil {
-			// 补偿：清掉可能已加入的部分规则，回退到无权限态
-			_, _ = enforcer.DeleteRolesForUser(user.UserId)
-			return errors.New("roleAssignFailed")
-		}
-	}
-
-	if err := util.UpdateUserRoleInCache(user.UserId, roleIds); err != nil {
-		// 补偿：撤销 Casbin 侧刚写入的规则，保持一致的无权限态
-		_, _ = enforcer.DeleteRolesForUser(user.UserId)
-		return errors.New("roleAssignFailed")
-	}
-
-	return nil
 }
 
 // checkUserExist 检查用户是否存在
@@ -114,6 +93,10 @@ func (s *SysUserService) checkUserNameDuplication(db *gorm.DB, username string) 
 
 // checkEmailDuplication 检查邮箱是否重复
 func (s *SysUserService) checkEmailDuplication(db *gorm.DB, email string) error {
+	// 邮箱可为空，空邮箱不参与唯一性校验
+	if email == "" {
+		return nil
+	}
 	var count int64
 	if err := db.Model(&system.SysUser{}).Where("email =?", email).Count(&count).Error; err != nil || count > 0 {
 		return errors.New("emailExists")
@@ -121,14 +104,31 @@ func (s *SysUserService) checkEmailDuplication(db *gorm.DB, email string) error 
 	return nil
 }
 
+// UsernameExists 检查用户名是否已存在（当前租户域内），供前端创建用户时实时校验
+func (s *SysUserService) UsernameExists(db *gorm.DB, username string) (bool, error) {
+	var count int64
+	if err := db.Model(&system.SysUser{}).Where("username = ?", username).Count(&count).Error; err != nil {
+		return false, errors.New("getUserListFailed")
+	}
+	return count > 0, nil
+}
+
 // Create 创建用户
 func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*response.SysUserResp, error) {
+	req.Avatar = storage.NormalizeAvatar(req.Avatar)
+	if err := util.ValidateNewPassword(req.Password); err != nil {
+		return nil, err
+	}
+	// 用户必须落在具体租户下：平台超管的上下文没有租户，插件回填不出 tenant_id，
+	// 建出来的行会是任何租户都看不见的孤儿。要为某租户建号请先切到该租户。
+	if model.CurrentIsSuperAdmin(db) {
+		return nil, errors.New("platformTenantRequired")
+	}
 	err := s.checkUserNameDuplication(db, req.Username)
 	if err != nil {
 		return nil, err
 	}
-	err = s.checkEmailDuplication(db, req.Email)
-	if err != nil {
+	if err = s.checkEmailDuplication(db, req.Email); err != nil {
 		return nil, err
 	}
 
@@ -140,17 +140,34 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 		Password: req.Password,
 	}
 	user.UserId = util.NextID()
+	// 显式落租户：DB 行由租户插件回填，这里同步到内存结构体，
+
+	user.TenantId = model.CurrentTenantID(db)
 
 	// 开启事务
 	tx := db.Begin()
+	if err := storage.LockAvatar(tx, req.Avatar, user.TenantId); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
+	// 用户数配额校验：超限即整体回滚
+	if err := enforceUserQuota(tx, user.TenantId, 1); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	// 创建用户
 	if err = tx.Create(user).Error; err != nil {
+		tx.Rollback()
+		return nil, errors.New("createUserFailed")
+	}
+	// 记录成员关系：用户与租户的归属与用户行同事务写入
+	if err := addUserTenantMembership(tx, user.UserId, user.TenantId); err != nil {
 		tx.Rollback()
 		return nil, errors.New("createUserFailed")
 	}
@@ -165,11 +182,6 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return nil, errors.New("createUserFailed")
-	}
-
-	// Casbin 与 Redis 在事务提交成功之后同步
-	if err := s.syncRolePolicy(user, roles); err != nil {
-		return nil, err
 	}
 
 	return &response.SysUserResp{
@@ -191,10 +203,16 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 }
 
 // Delete 删除用户。
-// 除软删除记录外，还必须解除 Casbin 角色绑定并吊销全部会话——
+
 // 否则被删用户的 access token 在 TTL 内仍然有效，refresh token 更能持续换发新令牌，
 // 且 casbin_rule 中的 g 规则会永久残留（用户 ID 复用时会泄漏给新用户）。
 func (s *SysUserService) Delete(db *gorm.DB, id string) error {
+	// 删自己会立刻吊销自己的全部会话并解除角色绑定，操作者当场被踢出且无法回滚；
+	// 若删的又是本租户唯一的管理员，该租户就再没有管理入口。一律拒绝。
+	if id == model.CurrentUserID(db) {
+		return errors.New("cannotDeleteSelf")
+	}
+
 	// 先检查用户是否存在
 	user, err := s.checkUserExist(db, id)
 	if err != nil {
@@ -202,6 +220,15 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 	}
 
 	tx := db.Begin()
+	if _, err := lockTenant(tx, user.TenantId); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if _, err := preserveAdministrator(tx, user, nil, true); err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -209,6 +236,11 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 	}()
 
 	if err := tx.Where("id = ?", id).Delete(user).Error; err != nil {
+		tx.Rollback()
+		return errors.New("deleteUserFailed")
+	}
+	// 撤销成员关系：移出用户与用户行的软删除同事务提交
+	if err := removeUserTenantMembership(tx, user.UserId, user.TenantId); err != nil {
 		tx.Rollback()
 		return errors.New("deleteUserFailed")
 	}
@@ -224,11 +256,7 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 		return errors.New("deleteUserFailed")
 	}
 
-	// 以下两步作用于 Casbin 与 Redis，不在上面的事务范围内，
 	// 因此放在提交成功之后执行，避免事务回滚后权限已被误撤销。
-	if _, err := global.Enforcer.DeleteRolesForUser(user.UserId); err != nil {
-		return errors.New("deleteUserFailed")
-	}
 
 	if err := util.RevokeAllUserTokens(user.UserId); err != nil {
 		return errors.New("deleteUserFailed")
@@ -242,16 +270,34 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 
 // Update 更新用户
 func (s *SysUserService) Update(db *gorm.DB, id string, req request.UpdateSysUserReq) error {
+	req.Avatar = storage.NormalizeAvatar(req.Avatar)
 	var existUser *system.SysUser
 	existUser, err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}
+	oldAvatar := existUser.Avatar
 	existUser.Avatar = req.Avatar
 	existUser.Nickname = req.Nickname
 
 	// 开启事务
 	tx := db.Begin()
+	if _, err := lockTenant(tx, existUser.TenantId); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if req.Avatar != oldAvatar {
+		if err := storage.LockAvatar(tx, req.Avatar, existUser.TenantId); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	roleIDs, err := preserveAdministrator(tx, existUser, req.RoleIds, false)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -268,7 +314,7 @@ func (s *SysUserService) Update(db *gorm.DB, id string, req request.UpdateSysUse
 		return errors.New("updateUserFailed")
 	}
 
-	roles, err := s.assignRoles(tx, existUser, req.RoleIds)
+	_, err = s.assignRoles(tx, existUser, roleIDs)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -278,11 +324,6 @@ func (s *SysUserService) Update(db *gorm.DB, id string, req request.UpdateSysUse
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return errors.New("updateUserFailed")
-	}
-
-	// 事务提交成功后同步 Casbin 与 Redis 角色
-	if err := s.syncRolePolicy(existUser, roles); err != nil {
-		return err
 	}
 
 	return nil
@@ -305,13 +346,15 @@ func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, err
 	}
 
 	return &response.SysUserResp{
-		Id:        user.UserId,
-		Username:  user.Username,
-		Nickname:  user.Nickname,
-		Email:     user.Email,
-		Avatar:    user.Avatar,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		Id:         user.UserId,
+		Username:   user.Username,
+		Nickname:   user.Nickname,
+		Email:      user.Email,
+		Avatar:     user.Avatar,
+		TenantId:   user.TenantId,
+		TenantName: tenantNames(db, []string{user.TenantId})[user.TenantId],
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
 		Roles: lo.Map(user.Roles, func(item system.SysRole, index int) response.SysRoleResp {
 			return response.SysRoleResp{
 				Id:   item.Id,
@@ -322,19 +365,54 @@ func (s *SysUserService) Get(db *gorm.DB, id string) (*response.SysUserResp, err
 	}, nil
 }
 
-// GetList 查询用户列表
-func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.PageResult[response.SysUserResp], error) {
+// tenantNames 批量查询租户名称，用于用户列表回填「所属租户」。
+// sys_tenant 是全局目录表、不参与行级隔离，因此这里直接用请求级 DB 即可，
+// 不需要 BypassTenantDB。查不到的租户（已删除或历史脏数据）不入 map，
+// 调用方取到空串后由前端回退展示 tenant_id。
+func tenantNames(db *gorm.DB, tenantIds []string) map[string]string {
+	ids := lo.Filter(lo.Uniq(tenantIds), func(id string, _ int) bool { return id != "" })
+	if len(ids) == 0 {
+		return map[string]string{}
+	}
+	var rows []system.SysTenant
+	if err := db.Session(&gorm.Session{NewDB: true}).
+		Model(&system.SysTenant{}).
+		Select("tenant_id", "name").
+		Where("tenant_id IN ?", ids).
+		Find(&rows).Error; err != nil {
+		// 名称只是展示增强，查不到就退化为只显示 ID，不该让整个列表失败
+		global.Log.Warn("查询租户名称失败", zap.Error(err))
+		return map[string]string{}
+	}
+	return lo.SliceToMap(rows, func(item system.SysTenant) (string, string) {
+		return item.TenantId, item.Name
+	})
+}
+
+// GetList 查询用户列表。
+// tenantId 仅平台超级管理员可用（租户成员管理需要列出指定租户的成员）；
+// 受限调用者传入该参数会被忽略，可见范围始终由租户插件锁定在自己的租户。
+func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination, tenantId string) (common.PageResult[response.SysUserResp], error) {
 	var users []system.SysUser
 	var total int64
 
+	// 按租户筛选只对超管开放；每个 builder 各自加一次条件，避免共享语句状态
+	filterTenant := tenantId != "" && isSuperAdmin(db)
+	scoped := func() *gorm.DB {
+		q := db.Model(&system.SysUser{})
+		if filterTenant {
+			q = q.Where("tenant_id = ?", tenantId)
+		}
+		return q
+	}
+
 	// Count 用独立 builder，避免污染后续 Find 的状态
-	countDB := db.Model(&system.SysUser{})
+	countDB := scoped()
 	if err := countDB.Count(&total).Error; err != nil {
 		return common.PageResult[response.SysUserResp]{}, errors.New("getUserListFailed")
 	}
 	req.Normalize()
-	err := db.
-		Model(&system.SysUser{}).
+	err := scoped().
 		Preload("Roles").
 		Scopes(util.Paginate(req.PageSize, req.Page)).
 		Order("id ASC").
@@ -343,16 +421,21 @@ func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.Pag
 	if err != nil {
 		return common.PageResult[response.SysUserResp]{}, errors.New("getUserListFailed")
 	}
+	names := tenantNames(db, lo.Map(users, func(user system.SysUser, _ int) string {
+		return user.TenantId
+	}))
 	data := make([]response.SysUserResp, len(users))
 	for i, user := range users {
 		data[i] = response.SysUserResp{
-			Id:        user.UserId,
-			Username:  user.Username,
-			Nickname:  user.Nickname,
-			Email:     user.Email,
-			Avatar:    user.Avatar,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+			Id:         user.UserId,
+			Username:   user.Username,
+			Nickname:   user.Nickname,
+			Email:      user.Email,
+			Avatar:     user.Avatar,
+			TenantId:   user.TenantId,
+			TenantName: names[user.TenantId],
+			CreatedAt:  user.CreatedAt,
+			UpdatedAt:  user.UpdatedAt,
 			Roles: lo.Map(user.Roles, func(item system.SysRole, index int) response.SysRoleResp {
 				return response.SysRoleResp{
 					Id:   item.Id,
@@ -375,6 +458,9 @@ func (s *SysUserService) GetList(db *gorm.DB, req common.Pagination) (common.Pag
 
 // ResetPassword 重置密码
 func (s *SysUserService) ResetPassword(db *gorm.DB, id string, req request.UpdateSysUserPasswordReq, oldPassword *string, accessToken string) error {
+	if err := util.ValidateNewPassword(req.Password); err != nil {
+		return err
+	}
 	var existUser *system.SysUser
 	existUser, err := s.checkUserExist(db, id)
 	if err != nil {
@@ -404,11 +490,10 @@ func (s *SysUserService) ResetPassword(db *gorm.DB, id string, req request.Updat
 	}
 
 	// 更新密码
-	if err := db.
-		Model(existUser).
-		Select("Password", "MustChangePassword").
-		Updates(existUser).
-		Error; err != nil {
+	result := db.Model(existUser).Where("auth_version = ?", existUser.AuthVersion).
+		Clauses(clause.Returning{Columns: []clause.Column{{Name: "auth_version"}}}).
+		Updates(map[string]any{"Password": existUser.Password, "MustChangePassword": existUser.MustChangePassword, "auth_version": gorm.Expr("auth_version + 1")})
+	if result.Error != nil || result.RowsAffected != 1 {
 		return errors.New("resetPasswordFailed")
 	}
 
@@ -423,10 +508,141 @@ func (s *SysUserService) ResetPassword(db *gorm.DB, id string, req request.Updat
 		// 管理员代改密码无法证明是本人操作，吊销全部会话并推送强制下线
 		notifySessionRevoked(existUser.UserId, "您的密码已被管理员重置，请重新登录")
 	} else {
-		if err := util.RevokeAllUserTokensExcept(existUser.UserId, accessToken); err != nil {
+		if err := util.RevokeAllUserTokensExcept(existUser.UserId, accessToken, existUser.AuthVersion); err != nil {
 			return errors.New("resetPasswordFailed")
 		}
 	}
 
 	return nil
+}
+
+// AssignUserToTenant 把现有用户复制到目标租户下（保留原租户记录，多租户归属）。
+// 仅平台超级管理员可调用（由 API 层权限控制）。
+// 分配租户只复制账号，不分配角色——目标租户下的角色由该租户管理员在用户管理里后续分配。
+// 排除平台超级管理员；目标租户不能是平台保留租户（platform），也不能与用户当前租户相同；
+// 目标租户下已存在同 username 的记录则跳过（不重复分配）。
+func (s *SysUserService) AssignUserToTenant(db *gorm.DB, id string, tenantId string) error {
+	if err := util.RequirePlatform(db); err != nil {
+		return err
+	}
+	user, err := s.checkUserExist(db, id)
+	if err != nil {
+		return err
+	}
+	if user.IsSuperAdmin {
+		return errors.New("superAdminCannotAssign")
+	}
+	if tenantId == "" || tenantId == global.PlatformTenantID {
+		return errors.New("invalidTenant")
+	}
+	if user.TenantId == tenantId {
+		return errors.New("userAlreadyInTenant")
+	}
+
+	// 校验目标租户存在且启用
+	var target system.SysTenant
+	if err := db.Where("tenant_id = ?", tenantId).First(&target).Error; err != nil {
+		return errors.New("tenantNotFound")
+	}
+	if !target.Status || util.IsTenantExpired(target.ExpireTime) {
+		return errors.New("tenantDisabled")
+	}
+
+	// 目标租户下已存在同 username 的记录则跳过（不重复分配）
+	var count int64
+	if err := db.Model(&system.SysUser{}).
+		Where("tenant_id = ? AND username = ?", tenantId, user.Username).
+		Count(&count).Error; err != nil {
+		return errors.New("assignTenantFailed")
+	}
+	if count > 0 {
+		return errors.New("usernameExistsInTenant")
+	}
+
+	// email 在同一租户内唯一（受 idx_sys_user_email_tenant 条件唯一索引约束）。
+	// 空邮箱不参与唯一性校验（索引仅对 email <> '' 生效），可直接复制。
+	if user.Email != "" {
+		var emailCount int64
+		if err := db.Model(&system.SysUser{}).
+			Where("tenant_id = ? AND email = ?", tenantId, user.Email).
+			Count(&emailCount).Error; err != nil {
+			return errors.New("assignTenantFailed")
+		}
+		if emailCount > 0 {
+			return errors.New("emailExistsInTenant")
+		}
+	}
+
+	// 复制用户记录（复用原密码哈希、昵称邮箱），跳过 BeforeCreate 的密码二次哈希。
+	// 不绑定角色，目标租户下的角色由该租户管理员后续在用户管理里分配。
+	newUser := &system.SysUser{
+		UserId:             util.NextID(),
+		Username:           user.Username,
+		Nickname:           user.Nickname,
+		Email:              user.Email,
+		Avatar:             user.Avatar,
+		Password:           user.Password,
+		MustChangePassword: user.MustChangePassword,
+		ControlWrapper:     model.ControlWrapper{CreatedBy: model.CurrentUserID(db), UpdatedBy: model.CurrentUserID(db)},
+		TenantId:           tenantId,
+	}
+	// 复制用户与记录成员关系放同一事务，避免出现「用户行已建、成员关系缺失」的半同步状态
+	tx := db.Begin()
+	// 用户数配额校验：超限即整体回滚，不放行本次复制
+	if err := enforceUserQuota(tx, newUser.TenantId, 1); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Session(&gorm.Session{SkipHooks: true}).Create(newUser).Error; err != nil {
+		tx.Rollback()
+		global.Log.Error("分配用户到租户失败：复制用户记录出错",
+			zap.String("userId", user.UserId),
+			zap.String("targetTenantId", tenantId),
+			zap.String("username", user.Username),
+			zap.Error(err))
+		return errors.New("assignTenantFailed")
+	}
+	if err := addUserTenantMembership(tx, newUser.UserId, newUser.TenantId); err != nil {
+		tx.Rollback()
+		global.Log.Error("分配用户到租户失败：记录成员关系出错",
+			zap.String("userId", newUser.UserId),
+			zap.String("targetTenantId", tenantId),
+			zap.Error(err))
+		return errors.New("assignTenantFailed")
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return errors.New("assignTenantFailed")
+	}
+	return nil
+}
+
+// ListAssignableTenants 返回指定用户可分配的候选租户列表。
+// 排除平台保留租户（platform）与该用户当前归属租户，仅返回已启用租户。
+func (s *SysUserService) ListAssignableTenants(db *gorm.DB, userId string) ([]response.AssignableTenant, error) {
+	if err := util.RequirePlatform(db); err != nil {
+		return nil, err
+	}
+	var user system.SysUser
+	if err := db.Where("id = ?", userId).First(&user).Error; err != nil {
+		return nil, errors.New("userNotFound")
+	}
+
+	var tenants []system.SysTenant
+	if err := db.
+		Where("status = ?", true).
+		Where("tenant_id != ?", global.PlatformTenantID).
+		Where("tenant_id != ?", user.TenantId).
+		Order("name ASC").
+		Find(&tenants).Error; err != nil {
+		return nil, errors.New("getTenantListFailed")
+	}
+
+	return lo.Map(tenants, func(tenant system.SysTenant, _ int) response.AssignableTenant {
+		return response.AssignableTenant{
+			TenantId: tenant.TenantId,
+			Name:     tenant.Name,
+			Code:     tenant.Code,
+		}
+	}), nil
 }

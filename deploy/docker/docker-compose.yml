@@ -20,6 +20,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
     # ports:
     #   - "5432:5432"
     restart: on-failure:3
@@ -29,8 +35,19 @@ services:
   redis:
     container_name: redis_data
     image: redis:8
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command:
+      - /bin/sh
+      - -ec
+      - exec /usr/local/bin/docker-entrypoint.sh redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "[ \"$$(REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping)\" = PONG ]"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
     # ports:
     #   - "6379:6379"
     restart: on-failure:3
@@ -47,7 +64,7 @@ services:
     environment:
       RUSTFS_ACCESS_KEY: ${OSS_ROOT_ACCESS_KEY} # root 凭证（规范名）
       RUSTFS_SECRET_KEY: ${OSS_ROOT_SECRET_KEY}
-      RUSTFS_RPC_SECRET: ${OSS_RPC_SECRET} # 推荐显式设置，见迁移文档 R6
+      RUSTFS_RPC_SECRET: ${OSS_RPC_SECRET} # 使用独立的强随机密钥
       RUSTFS_ADDRESS: ":9000"               # S3 API 监听
       RUSTFS_CONSOLE_ADDRESS: ":9001"       # Console 监听
       RUSTFS_CONSOLE_ENABLE: "true"
@@ -55,7 +72,7 @@ services:
       - oss_data:/data
     # Console 管理入口（:9001，路径 /rustfs/console，官方不支持子路径反代）。
     # 只绑定宿主机 loopback：本机/SSH 隧道可访问，不暴露到公网（官方建议仅可信网络）。
-    # S3 数据面(9000)仍走 nginx 反代（web 容器 9000:9000），不经此映射。
+    # S3 数据面(9000)通过 web 容器的 HTTPS /oss/ 反代，不经此映射。
     ports:
       - "127.0.0.1:9001:9001"
     # privileged: true 移除（Bitnami 遗留，RustFS 不需要）
@@ -83,7 +100,8 @@ services:
       OSS_APP_ACCESS_KEY: ${OSS_APP_ACCESS_KEY}
       OSS_APP_SECRET_KEY: ${OSS_APP_SECRET_KEY}
     depends_on:
-      - oss
+      oss:
+        condition: service_healthy
     entrypoint: ["/bin/sh", "/init-oss.sh"]
     volumes:
       - ./oss/init-oss.sh:/init-oss.sh:ro
@@ -98,12 +116,19 @@ services:
     build:
       context: ../../server
       dockerfile: ./Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?Set a unique bootstrap administrator password}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DATABASE: ${REDIS_DATABASE:-0}
       OSS_HOST: ${OSS_HOST}
       OSS_PORT: ${OSS_PORT}
       OSS_BUCKET_NAME: ${OSS_BUCKET_NAME}
@@ -116,9 +141,9 @@ services:
       EMAIL_PASS: ${EMAIL_PASS}
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       oss:
         condition: service_healthy
       oss-init:
@@ -139,9 +164,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "9000:9000"
     depends_on:
-      - server
+      server:
+        condition: service_healthy
     restart: on-failure:3
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro

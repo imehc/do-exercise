@@ -1,11 +1,13 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { IconLoader3 } from '@tabler/icons-react'
 import { t } from '@lingui/core/macro'
 import { Trans } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
 import { toast } from 'sonner'
+import { originTokenAtom } from '~/atoms'
 import {
   CreateSysUser,
   CreateUserRequest,
@@ -48,8 +50,24 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
   const { open: openType } = useFormDialog()
   const sysUserApi = useApi(SystemUserApi)
   const sysRoleApi = useApi(SystemRoleApi)
+  // 当前操作者是否为平台超级管理员（超管创建用户时隐藏角色选择，默认无角色）
+  const isSuperAdmin = !!useAtomValue(originTokenAtom).isSuperAdmin
 
   const isEdit = useMemo(() => !!currentRow, [currentRow])
+
+  // 创建模式下实时校验用户名是否已存在，避免重复提交
+  const checkUsername = useCallback(
+    async (username: string) => {
+      try {
+        const res = await sysUserApi.checkUsername({ username })
+        return res._exists ?? false
+      } catch {
+        return false
+      }
+    },
+    [sysUserApi]
+  )
+
   const form = useChan(
     useForm<ActionSysUserFormValues>({
       defaultValues: isEdit
@@ -66,7 +84,7 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
             avatar: '',
             roleIds: [],
           },
-      resolver: zodResolver(getSchema()),
+      resolver: zodResolver(getSchema(checkUsername)),
     })
   )
 
@@ -218,37 +236,39 @@ export function UserActionDialog({ currentRow, open, onOpenChange }: Props) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name='roleIds'
-              render={({ field }) => (
-                <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
-                  <FormLabel className='col-span-2 text-right'>
-                    <Trans>关联角色</Trans>
-                  </FormLabel>
-                  <FormControl>
-                    <StatusRenderer
-                      isLoading={isLoading}
-                      className='col-span-8 h-10'
-                    >
-                      <MultiSelect
-                        className='col-span-8'
-                        modalPopover
-                        options={data.map((item) => ({
-                          label: item.name,
-                          value: item.id,
-                        }))}
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        placeholder={t`请选择关联角色`}
-                        variant='inverted'
-                      />
-                    </StatusRenderer>
-                  </FormControl>
-                  <FormMessage className='col-span-8 col-start-3' />
-                </FormItem>
-              )}
-            />
+            {!(isSuperAdmin && !isEdit) && (
+              <FormField
+                control={form.control}
+                name='roleIds'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-right'>
+                      <Trans>关联角色</Trans>
+                    </FormLabel>
+                    <FormControl>
+                      <StatusRenderer
+                        isLoading={isLoading}
+                        className='col-span-8 h-10'
+                      >
+                        <MultiSelect
+                          className='col-span-8'
+                          modalPopover
+                          options={data.map((item) => ({
+                            label: item.name,
+                            value: item.id,
+                          }))}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          placeholder={t`请选择关联角色`}
+                          variant='inverted'
+                        />
+                      </StatusRenderer>
+                    </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
+            )}
             {!isEdit && (
               <>
                 <FormField

@@ -4,8 +4,7 @@ FROM golang:1.25-alpine AS builder
 # 设置必要的环境变量
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64 
+    GOOS=linux
 
 WORKDIR /build
 
@@ -14,6 +13,7 @@ RUN apk add --no-cache git ca-certificates tzdata
 
 # 首先复制依赖文件
 COPY go.mod go.sum ./
+ARG GOPROXY=https://proxy.golang.org,direct
 RUN go mod download
 
 # 复制源代码
@@ -42,6 +42,7 @@ COPY --from=builder /build/server ./
 COPY --from=builder /build/config.yaml ./
 COPY --from=builder /build/init.sql ./
 COPY --from=builder /build/i18n ./i18n
+COPY --from=builder /build/template ./template
 COPY --from=builder /build/ip2region.xdb ./
 
 RUN chown -R 10001:10001 /app/logs
@@ -53,7 +54,7 @@ EXPOSE 6020
 USER 10001:10001
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=6 \
     CMD wget -q -O /dev/null http://localhost:6020/health || exit 1
 
 # 启动命令

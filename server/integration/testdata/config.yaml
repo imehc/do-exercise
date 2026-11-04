@@ -1,0 +1,61 @@
+# 集成测试专用配置。
+# 数据库/Redis 连接信息由环境变量注入（见 main_test.go 的 Setup），
+# 与 server/config.yaml 的唯一实质差异是 logger 级别，避免测试日志刷屏。
+# 系统只有多租户一种形态，没有开关可切；租户上下文全部来自会话，不来自配置。
+auth:
+  access_expire_time: 2h
+  refresh_expire_time: 7d
+
+system:
+  host: server
+  port: 6020
+  info_interval: 10
+
+logger:
+  level: "warn"
+  directory: "logs"
+  max_size: 10
+  max_backups: 30
+  max_age: 7
+  compress: true
+
+database:
+  sslmode: disable
+  pool:
+    max_connections: 25
+    min_connections: 10
+    max_idle_time: 300
+    max_conn_lifetime: 3600
+    connection_timeout: 5
+
+redis:
+  host: redis
+  port: 6379
+  password: ""
+  database: 0
+  pool:
+    max_connections: 50
+    min_idle_connections: 10
+    max_idle_time: 300
+  timeout:
+    connect: 5
+    read: 3
+    write: 3
+
+captcha:
+  key_long: 6
+  img_width: 240
+  img_height: 80
+  captcha_timeout: 60
+
+oss:
+  expires: 3600
+
+email:
+  host: smtp.qq.com
+  port: 587
+  user: ""
+  pass: ""
+
+disk_list:
+  - mount_point: "/"

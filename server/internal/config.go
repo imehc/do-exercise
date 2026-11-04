@@ -31,19 +31,19 @@ func InitConfig(configFile string) {
 		"oss.access_key":     "OSS_APP_ACCESS_KEY",
 		"oss.secret_key":     "OSS_APP_SECRET_KEY",
 		"oss.presigned_host": "OSS_PRESIGNED_HOST",
-		"database.host":        "POSTGRES_HOST",
-		"database.username":    "POSTGRES_USER",
-		"database.password":    "POSTGRES_PASSWORD",
-		"database.database":    "POSTGRES_DB",
-		"database.port":        "POSTGRES_PORT",
-		"redis.host":           "REDIS_HOST",
-		"redis.port":           "REDIS_PORT",
-		"redis.password":       "REDIS_PASSWORD",
-		"redis.database":       "REDIS_DATABASE",
-		"email.host":           "EMAIL_HOST",
-		"email.port":           "EMAIL_PORT",
-		"email.user":           "EMAIL_USER",
-		"email.pass":           "EMAIL_PASS",
+		"database.host":      "POSTGRES_HOST",
+		"database.username":  "POSTGRES_USER",
+		"database.password":  "POSTGRES_PASSWORD",
+		"database.database":  "POSTGRES_DB",
+		"database.port":      "POSTGRES_PORT",
+		"redis.host":         "REDIS_HOST",
+		"redis.port":         "REDIS_PORT",
+		"redis.password":     "REDIS_PASSWORD",
+		"redis.database":     "REDIS_DATABASE",
+		"email.host":         "EMAIL_HOST",
+		"email.port":         "EMAIL_PORT",
+		"email.user":         "EMAIL_USER",
+		"email.pass":         "EMAIL_PASS",
 	})
 
 	// 读取配置文件
@@ -62,6 +62,9 @@ func InitConfig(configFile string) {
 		util.Exit("配置映射失败: ", err)
 	}
 
+	if global.Config.Oss.GCIntervalSeconds < 0 || global.Config.Oss.GCIntervalSeconds > 86400 || global.Config.Oss.AvatarRetentionHours < 0 || global.Config.Oss.AvatarRetentionHours > 87600 || global.Config.Oss.DeletedTenantRetentionDays < 0 || global.Config.Oss.DeletedTenantRetentionDays > 36500 {
+		util.Exit("对象回收配置超出允许范围", nil)
+	}
 	// 启动时一次性解析并校验 token 时长配置，避免请求期解析失败时生成 0 TTL 的永久 token。
 	util.InitAuthDurations(global.Config.Auth.AccessExpireTime, global.Config.Auth.RefreshExpireTime)
 

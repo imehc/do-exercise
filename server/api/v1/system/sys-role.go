@@ -90,9 +90,17 @@ func (s *SysRoleApi) GetList(ctx *gin.Context) {
 	response.Success(ctx, data)
 }
 
-// GetAll 获取所有角色
+// GetAll 获取所有角色。
+// tenant_id 供平台超级管理员在租户成员管理里列出目标租户的角色。
+// 只有确认调用者是超管才切到 BypassTenantDB —— 否则受限调用者只要带上该参数
+// 就会拿到一个不受租户插件约束的连接，看到全平台角色。
 func (s *SysRoleApi) GetAll(ctx *gin.Context) {
-	data, err := roleService.GetAll(util.DB(ctx))
+	tenantId := ctx.Query("tenant_id")
+	db := util.DB(ctx)
+	if tenantId != "" && ctx.GetBool("isSuperAdmin") {
+		db = util.BypassTenantDB(ctx)
+	}
+	data, err := roleService.GetAll(db, tenantId)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
 		return

@@ -1,7 +1,25 @@
 import * as React from 'react'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { IconCheck, IconChevronDown, IconChevronUp } from '@tabler/icons-react'
+import { Trans } from '@lingui/react/macro'
 import { cn } from '~/lib/utils'
+
+// 递归判断 children 中是否包含 SelectItem（支持 SelectGroup 包裹的情况），
+// 用于在无任何可选项时显示「无数据」空态。
+function containsSelectItem(children: React.ReactNode): boolean {
+  return React.Children.toArray(children).some((child) => {
+    if (!React.isValidElement(child)) {
+      return false
+    }
+    if (child.type === SelectItem) {
+      return true
+    }
+    return containsSelectItem(
+      (child as React.ReactElement<{ children?: React.ReactNode }>).props
+        ?.children
+    )
+  })
+}
 
 function Select({
   ...props
@@ -53,6 +71,7 @@ function SelectContent({
   position = 'popper',
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const hasItems = containsSelectItem(children)
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -74,7 +93,13 @@ function SelectContent({
               'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1'
           )}
         >
-          {children}
+          {hasItems ? (
+            children
+          ) : (
+            <div className='text-muted-foreground pointer-events-none flex h-9 items-center justify-center px-2 text-sm'>
+              <Trans>无数据</Trans>
+            </div>
+          )}
         </SelectPrimitive.Viewport>
         <SelectScrollDownButton />
       </SelectPrimitive.Content>

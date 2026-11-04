@@ -79,12 +79,89 @@ components:
         must_change_password:
           type: boolean
           description: 是否仍需强制修改密码，前端据此跳转改密页
+        tenant_id:
+          type: string
+          description: 当前 token 所属租户ID
+        is_super_admin:
+          type: boolean
+          description: 平台超级管理员标识（仅平台超管登录时返回 true，普通账号不返回该字段）
       required:
         - access_token
         - expire_time
         - refresh_token
         - refresh_expire_time
         - must_change_password
+
+    LoginResult:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: 访问令牌（需选择租户时不返回）
+        expire_time:
+          type: integer
+          format: int64
+          description: 访问令牌过期时间
+        refresh_token:
+          type: string
+          description: 刷新令牌
+        refresh_expire_time:
+          type: integer
+          format: int64
+          description: 刷新令牌过期时间
+        must_change_password:
+          type: boolean
+          description: 是否仍需强制修改密码，前端据此跳转改密页
+        tenant_id:
+          type: string
+          description: 当前 token 所属租户ID
+        is_super_admin:
+          type: boolean
+          description: 平台超级管理员标识（仅平台超管登录时返回 true，普通账号不返回该字段）
+        requires_tenant_selection:
+          type: boolean
+          description: 账号归属多个启用租户，需先选择租户再完成登录
+        login_session_id:
+          type: string
+          description: 多租户登录会话ID（需选择租户时返回，供 select_tenant 使用）
+        available_tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantOption'
+          description: 当前账号可进入的启用租户列表
+      required:
+        - requires_tenant_selection
+        - available_tenants
+
+    SelectTenantRequest:
+      type: object
+      properties:
+        login_session_id:
+          type: string
+          description: 多租户登录会话ID
+        tenant_id:
+          type: string
+          description: 要进入的租户ID
+      required:
+        - login_session_id
+        - tenant_id
+
+    SwitchTenantRequest:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 要切换到的租户ID
+        password:
+          type: string
+          description: 目标租户账号口令（RSA 加密）
+        public_key:
+          type: string
+          description: RSA 公钥
+      required:
+        - tenant_id
+        - password
+        - public_key
 
     Captcha:
       type: object
@@ -112,6 +189,18 @@ components:
         password:
           type: string
           description: 密码
+        tenant_id:
+          type: string
+          description: 租户ID。显式指定登录租户，一般由前端流程内部使用；人工填写请用 tenant_code
+        tenant_code:
+          type: string
+          maxLength: 32
+          # 与创建租户的 code 同一口径（alphanum,2~32）；整体可选，故 pattern 允许空串
+          pattern: '^([a-zA-Z0-9]{2,32})?$'
+          description: >-
+            租户编码（登录页可选填写，2~32 位字母或数字）。填了就只在该租户下验证一次口令，
+            避免同名账号跨租户逐行比对；代价是本次会话仅授权该租户，
+            需要跨租户切换时留空。tenant_id 优先于该字段
         captcha_id:
           type: string
           description: 验证码ID
@@ -143,11 +232,32 @@ components:
         public_key:
           type: string
           description: 公钥
+        tenant_id:
+          type: string
+          description: >-
+            要重置哪个租户下的账号。同一邮箱只归属一个租户时可省略；
+            归属多个租户时服务端返回 requires_tenant_selection 与候选列表，
+            前端选择后带该字段重试（原验证码仍有效）
       required:
         - email
         - code
         - password
         - public_key
+
+    ResetPasswordResult:
+      type: object
+      properties:
+        requires_tenant_selection:
+          type: boolean
+          description: 该邮箱归属多个租户，需先选择租户；此时服务端未做任何修改
+        available_tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantOption'
+          description: 候选租户列表（requires_tenant_selection=true 时非空）
+      required:
+        - requires_tenant_selection
+        - available_tenants
 
     MenuType:
       type: integer
@@ -210,20 +320,30 @@ components:
     Oss:
       type: object
       properties:
-        put_object_url:
+        upload_url:
           type: string
-          description: 上传对象URL
+        form_fields:
+          type: object
+          additionalProperties:
+            type: string
+        object_key:
+          type: string
         get_object_url:
           type: string
-          description: 预签名URL
+          description: 仅公开头像返回永久 URL
         expires:
           type: integer
-          format: int64
-          description: 过期时间戳(秒)
-      required:
-        - put_object_url
-        - get_object_url
-        - expires
+          description: 签名有效秒数
+      required: [upload_url, form_fields, object_key, expires]
+
+    OssDownload:
+      type: object
+      properties:
+        url:
+          type: string
+        expires:
+          type: integer
+      required: [url, expires]
 
     TokenInfo:
       type: object
@@ -234,15 +354,15 @@ components:
         user_id:
           type: string
           format: int64
+        tenant_id:
+          type: string
+          description: 会话所属租户，供平台超级管理员在全量视图里区分来源
         disabled:
           type: boolean
           description: 是否禁用
-        access_token:
+        session_id:
           type: string
-          description: 访问令牌
-        refresh_token:
-          type: string
-          description: 刷新令牌
+          description: 会话管理标识，不可用于认证
         access_token_created:
           type: string
           format: date-time
@@ -262,9 +382,9 @@ components:
       required:
         - username
         - user_id
+        - tenant_id
         - disabled
-        - access_token
-        - refresh_token
+        - session_id
         - access_token_created
         - access_token_expired
         - refresh_token_created
@@ -273,11 +393,11 @@ components:
     DeleteToken:
       type: object
       properties:
-        access_token:
+        session_id:
           type: string
           description: 令牌
       required:
-        - access_token
+        - session_id
 
     ModityTokenStatus:
       allOf:
@@ -298,6 +418,9 @@ components:
         username:
           type: string
           description: 请求用户
+        tenant_id:
+          type: string
+          description: 日志所属租户，供平台超级管理员在全量视图里区分来源
         ip:
           type: string
           description: IP地址
@@ -371,6 +494,7 @@ components:
           description: 更新时间
       required:
         - id
+        - tenant_id
         - ip
         - is_internal_ip
         - user_agent
@@ -561,6 +685,17 @@ components:
         name:
           type: string
           description: 菜单名称
+        i18n_key:
+          type: string
+          description: 菜单国际化键
+        scope:
+          type: string
+          enum: [platform, tenant, both]
+          default: both
+          description: 菜单范围
+        is_system:
+          type: boolean
+          description: 是否系统内置菜单
         sort:
           type: integer
           description: 排序
@@ -582,14 +717,15 @@ components:
               description: 路由
             component:
               type: string
-              description: 组件
+              description: >-
+                组件地址。保留字段：前端是文件式路由，运行期只按 route 匹配，不消费该值，
+                也不再在菜单表单里采集它。存量数据仍会原样返回。
             visible:
               type: boolean
               description: 是否可见
           required:
             - icon
             - route
-            - component
 
     CreateSysMenuWithButton:
       type: object
@@ -603,6 +739,17 @@ components:
         name:
           type: string
           description: 菜单名称
+        i18n_key:
+          type: string
+          description: 菜单国际化键
+        scope:
+          type: string
+          enum: [platform, tenant, both]
+          default: both
+          description: 菜单范围
+        is_system:
+          type: boolean
+          description: 是否系统内置菜单
         permission:
           type: string
           description: 权限标识
@@ -641,6 +788,17 @@ components:
             name:
               type: string
               description: 菜单名称
+            i18n_key:
+              type: string
+              description: 菜单国际化键
+            scope:
+              type: string
+              enum: [platform, tenant, both]
+              default: both
+              description: 菜单范围
+            is_system:
+              type: boolean
+              description: 是否系统内置菜单
             icon:
               type: string
               description: 图标
@@ -664,12 +822,11 @@ components:
           properties:
             component:
               type: string
-              description: 组件
+              description: 组件地址（保留字段，前端不消费；空值时不返回）
             visible:
               type: boolean
               description: 是否可见
       required:
-        - component
         - apis
 
     SysMenuWithButton:
@@ -737,13 +894,29 @@ components:
           description: 路由
         component:
           type: string
-          description: 组件
+          description: 组件地址（保留字段，前端不消费；空值时不返回）
         sort:
           type: integer
           description: 排序
         visible:
           type: boolean
           description: 是否可见
+        i18n_key:
+          type: string
+          description: 菜单国际化键
+        scope:
+          type: string
+          enum: [platform, tenant, both]
+          default: both
+          description: 菜单范围
+        is_system:
+          type: boolean
+          description: 是否系统内置菜单
+        apis:
+          type: array
+          description: 该菜单绑定的接口（授权页预览用的精简字段）
+          items:
+            $ref: "#/components/schemas/SysMenuApiBrief"
         children:
           type: array
           items:
@@ -754,6 +927,26 @@ components:
         - name
         - type
         - children
+
+    SysMenuApiBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        method:
+          type: string
+          description: 请求方法
+        path:
+          type: string
+          description: 接口路径
+        description:
+          type: string
+          description: 接口描述
+      required:
+        - id
+        - method
+        - path
 
     CreateSysRole:
       type: object
@@ -818,11 +1011,16 @@ components:
                   - id
                   - name
               description: 菜单列表
+            user_count:
+              type: integer
+              format: int64
+              description: 当前持有该角色的未注销用户数（授权变更的影响面）
       required:
         - id
         - name
         - code
         - menus
+        - user_count
     ResetSysUserPassword:
       type: object
       properties:
@@ -832,6 +1030,28 @@ components:
       required:
         - password
     
+    AssignUserTenant:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 目标租户ID
+      required:
+        - tenant_id
+
+    AssignableTenant:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 租户ID
+        name:
+          type: string
+          description: 租户名称
+        code:
+          type: string
+          description: 租户编码
+
     CreateSysUser:
       type: object
       properties:
@@ -899,6 +1119,12 @@ components:
              avatar:
                type: string
                description: 头像
+             tenant_id:
+               type: string
+               description: 所属租户ID
+             tenant_name:
+               type: string
+               description: 所属租户名称；平台账号或租户已删除时为空
              roles:
                type: array
                description: 角色ID列表
@@ -923,6 +1149,8 @@ components:
         - id
         - username
         - nickname
+        - tenant_id
+        - tenant_name
         - roles
 
     BindEmail:
@@ -1018,6 +1246,9 @@ components:
         name:
           type: string
           description: 菜单名称
+        i18n_key:
+          type: string
+          description: 菜单国际化键，前端优先按该键取翻译，缺失时回落到 name
         parent_id:
           type: integer
           description: 父菜单ID
@@ -1035,7 +1266,10 @@ components:
           description: 路由
         component:
           type: string
-          description: 组件
+          description: 组件地址（保留字段，前端不消费）
+        visible:
+          type: boolean
+          description: 是否在导航中显示
       required:
         - id
         - name
@@ -1094,12 +1328,18 @@ components:
           description: 执行次数
         retry_times:
           type: integer
+          minimum: 0
+          maximum: 5
           description: 重试次数
         retry_interval:
           type: integer
+          minimum: 0
+          maximum: 300
           description: 重试间隔(秒)
         timeout:
           type: integer
+          minimum: 0
+          maximum: 3600
           description: 执行超时时间(秒)
         created_at:
           type: string
@@ -1153,12 +1393,18 @@ components:
           description: 任务描述
         retry_times:
           type: integer
+          minimum: 0
+          maximum: 5
           description: 重试次数
         retry_interval:
           type: integer
+          minimum: 0
+          maximum: 300
           description: 重试间隔(秒)
         timeout:
           type: integer
+          minimum: 0
+          maximum: 3600
           description: 执行超时时间(秒)
       required:
         - name
@@ -1190,6 +1436,244 @@ components:
       required:
         - meta
         - data
+
+    Tenant:
+      type: object
+      properties:
+        max_users:
+          type: integer
+          minimum: 0
+        max_storage_bytes:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: 存储字节上限，0 表示不限
+        max_tasks:
+          type: integer
+          minimum: 0
+        expire_time:
+          type: string
+          format: date-time
+        tenant_id:
+          type: string
+          description: 租户ID
+        name:
+          type: string
+          description: 租户名称
+        code:
+          type: string
+          description: 租户编码
+        status:
+          type: boolean
+          description: 是否启用
+        remark:
+          type: string
+          description: 备注
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateTenant:
+      type: object
+      properties:
+        max_users:
+          type: integer
+          minimum: 0
+        max_storage_bytes:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: 存储字节上限，0 表示不限
+        max_tasks:
+          type: integer
+          minimum: 0
+        name:
+          type: string
+          description: 租户名称
+          minLength: 2
+        code:
+          type: string
+          description: 租户编码（2~32 位字母或数字；创建后不可修改）
+          minLength: 2
+          maxLength: 32
+          pattern: '^[a-zA-Z0-9]+$'
+        admin_mode:
+          type: string
+          description: 管理员账号模式（new=新建用户，existing=选择现有用户）
+          enum:
+            - new
+            - existing
+        admin_user_id:
+          type: string
+          description: 选择现有用户时的用户ID（admin_mode=existing）
+        admin_username:
+          type: string
+          description: 租户管理员用户名（admin_mode=new）
+        admin_password:
+          type: string
+          description: 租户管理员初始密码（admin_mode=new）
+        remark:
+          type: string
+          description: 备注
+      required:
+        - name
+        - code
+        - admin_mode
+
+    UpdateTenant:
+      type: object
+      properties:
+        max_users:
+          type: integer
+          minimum: 0
+        max_storage_bytes:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: 存储字节上限，0 表示不限
+        max_tasks:
+          type: integer
+          minimum: 0
+        expire_time:
+          type: string
+          format: date-time
+        clear_expire_time:
+          type: boolean
+          description: 清除到期时间，恢复为永不过期
+        name:
+          type: string
+          description: 租户名称
+        status:
+          type: boolean
+          description: 是否启用
+        remark:
+          type: string
+          description: 备注
+      required:
+        - name
+
+    TenantList:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/Pagination'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tenant'
+      required:
+        - meta
+        - data
+
+    TenantOption:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          description: 租户ID
+        name:
+          type: string
+          description: 租户名称
+        code:
+          type: string
+          description: 租户编码
+
+    AssignableUser:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        nickname:
+          type: string
+          description: 昵称
+        email:
+          type: string
+          description: 邮箱
+        tenant_id:
+          type: string
+          description: 当前归属租户ID
+
+    AssignTenantUsers:
+      type: object
+      properties:
+        user_ids:
+          type: array
+          items:
+            type: string
+          description: 要分配的现有用户ID列表
+      required:
+        - user_ids
+
+    AvailableTenants:
+      type: object
+      properties:
+        tenants:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantOption'
+          description: 始终为空（禁止匿名枚举租户），候选租户由登录结果返回
+        permission_actions:
+          type: array
+          description: 权限标识允许的动作枚举，由服务端集中下发
+          items:
+            type: string
+      required:
+        - tenants
+        - permission_actions
+
+    OssObject:
+      type: object
+      properties:
+        object_key: {type: string, maxLength: 512}
+      required: [object_key]
+    OssFile:
+      type: object
+      properties:
+        object_key: {type: string}
+        size: {type: integer, format: int64}
+        state: {type: string}
+        get_object_url: {type: string}
+      required: [object_key, size, state]
+    OssUsage:
+      type: object
+      properties:
+        charged_bytes: {type: integer, format: int64}
+        max_storage_bytes: {type: integer, format: int64}
+      required: [charged_bytes, max_storage_bytes]
+    JobRun:
+      type: object
+      properties:
+        id: {type: string}
+        job_id: {type: integer}
+        tenant_id: {type: string}
+        scheduled: {type: boolean}
+        status: {type: string, enum: [queued, retrying, succeeded, failed, skipped]}
+        attempts: {type: integer}
+        last_error: {type: string}
+        created_at: {type: string, format: date-time}
+        next_attempt_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+      required: [id, job_id, tenant_id, scheduled, status, attempts, created_at, next_attempt_at, last_error]
+    JobRunList:
+      type: object
+      properties:
+        meta: {$ref: '#/components/schemas/Pagination'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/JobRun'}
+      required: [meta, data]
 
 paths:
   /auth/public_key:
@@ -1237,8 +1721,82 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Token"
-          description: "登录成功"
+                $ref: "#/components/schemas/LoginResult"
+          description: "登录成功（单个租户直接返回 token；多个租户时返回 requires_tenant_selection）"
+
+  /auth/select_tenant:
+    post:
+      summary: 多租户登录选择租户
+      operationId: selectTenant
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectTenantRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+          description: "选择成功，返回目标租户 token"
+
+  /auth/switch_tenant:
+    post:
+      summary: 登录后切换租户
+      operationId: switchTenant
+      tags:
+        - auth
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SwitchTenantRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+          description: "切换成功，返回新租户 token"
+
+  /auth/my_tenants:
+    get:
+      summary: 我的可用租户列表（租户切换器）
+      operationId: myTenants
+      tags:
+        - auth
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TenantOption"
+          description: "当前账号可进入的启用租户列表"
+
+  /auth/tenants:
+    get:
+      summary: 可用租户列表（兼容保留）
+      operationId: availableTenants
+      tags:
+        - auth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailableTenants"
+          description: "获取成功"
 
   /auth/code_with_email:
     get:
@@ -1285,8 +1843,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Token"
-          description: "登录成功"
+                $ref: "#/components/schemas/LoginResult"
+          description: "登录成功（邮箱只归属一个租户时直接返回 token；归属多个租户时返回 requires_tenant_selection）"
 
   /auth/refresh_token:
     post:
@@ -1326,8 +1884,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ForgetPassword"
       responses:
-        "204":
-          description: 重置密码成功
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetPasswordResult"
+          description: "重置密码成功；或该邮箱归属多个租户，需带 tenant_id 重试"
 
   /auth/forget_password_code:
     get:
@@ -1361,6 +1923,21 @@ paths:
           schema:
             type: string
           description: 文件名
+        - name: file_size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            maximum: 104857600
+          description: 文件实际字节数，作为签名限制和配额预占
+        - name: purpose
+          in: query
+          schema:
+            type: string
+            enum: [private, avatar]
+            default: private
       responses:
         "200":
           description: "获取成功"
@@ -1368,6 +1945,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Oss"
+
+  /get_download_url:
+    get:
+      summary: 获取本租户文件的短期下载地址
+      operationId: getDownloadUrl
+      tags: [oss]
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: object_key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssDownload'
 
   /auth/logout:
     get:
@@ -1447,6 +2045,181 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SysInfo"
+
+  /system/tenants:
+    post:
+      summary: 创建租户
+      operationId: createTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTenant"
+      responses:
+        "201":
+          description: "创建成功"
+    get:
+      summary: 获取租户列表
+      operationId: findTenants
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: code
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantList"
+          description: "获取成功"
+
+  /system/tenants/assignable_admins:
+    get:
+      summary: 获取可被选作租户管理员的现有用户列表
+      operationId: listAssignableAdmins
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignableUser"
+          description: "获取成功"
+
+  /system/tenants/{id}:
+    get:
+      summary: 获取租户详情
+      operationId: findTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+          description: "获取成功"
+    put:
+      summary: 更新租户
+      operationId: updateTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenant"
+      responses:
+        "204":
+          description: "更新成功"
+    delete:
+      summary: 删除租户
+      operationId: deleteTenant
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "删除成功"
+
+  /system/tenants/{id}/assignable_users:
+    get:
+      summary: 获取可分配给租户的现有用户列表
+      operationId: listAssignableUsers
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignableUser"
+          description: "获取成功"
+
+  /system/tenants/{id}/users:
+    post:
+      summary: 分配现有用户到租户
+      operationId: assignTenantUsers
+      tags:
+        - system-tenant
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignTenantUsers"
+      responses:
+        "204":
+          description: "分配成功"
 
   /system/logs:
     get:
@@ -1681,6 +2454,9 @@ paths:
   /system/menus/tree:
     get:
       summary: 获取菜单树
+      description: >-
+        认证即可读，不参与 Casbin 鉴权：菜单树是权限模型的字典（角色授权弹窗靠它勾选权限），
+        不是「菜单管理」页的私有数据。可见范围仍按 scope 与当前上下文过滤，增删改仍需菜单管理权限
       operationId: findMenuTree
       tags:
         - system-menu
@@ -1823,6 +2599,13 @@ paths:
         - system-role
       security:
         - apiKeyAuth: []
+      parameters:
+        - name: tenant_id
+          in: query
+          required: false
+          description: 按租户筛选，仅平台超级管理员有效（租户成员管理使用）
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -1941,6 +2724,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: tenant_id
+          in: query
+          required: false
+          description: 按租户筛选，仅平台超级管理员有效（租户成员管理使用）
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -1960,6 +2749,30 @@ paths:
           description: "获取成功"
       
 
+  /system/users/check_username:
+    get:
+      summary: 检查用户名是否已存在
+      operationId: checkUsername
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "获取成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
   /system/users/{id}/reset_password:
     put:
       summary: 重置用户密码
@@ -1983,6 +2796,54 @@ paths:
       responses:
         "204":
           description: "重置成功"
+
+  /system/users/{id}/tenant:
+    patch:
+      summary: 分配用户到租户（复制到目标租户，仅平台超级管理员）
+      operationId: assignUserTenant
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignUserTenant"
+      responses:
+        "204":
+          description: "分配成功"
+
+  /system/users/{id}/assignable_tenants:
+    get:
+      summary: 获取用户可分配的候选租户列表（仅平台超级管理员）
+      operationId: listAssignableTenants
+      tags:
+        - system-user
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignableTenant"
+          description: "获取成功"
 
   /user/bind_email_code:
     get:
@@ -2290,3 +3151,69 @@ paths:
       responses:
         '204':
           description: 执行成功
+
+  /files/complete:
+    post:
+      summary: 确认本人的上传已完成
+      operationId: completeUpload
+      tags: [oss]
+      security: [{apiKeyAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OssObject'}
+      responses:
+        '200':
+          description: 上传已登记
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OssFile'}
+  /files:
+    delete:
+      summary: 将本人的文件放入回收队列
+      operationId: deleteFile
+      tags: [oss]
+      security: [{apiKeyAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OssObject'}
+      responses:
+        '204': {description: 已进入回收队列}
+  /files/usage:
+    get:
+      summary: 当前租户的文件与上传预占总量
+      operationId: storageUsage
+      tags: [oss]
+      security: [{apiKeyAuth: []}]
+      responses:
+        '200':
+          description: 当前配额占用
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OssUsage'}
+  /system/jobs/{id}/runs:
+    get:
+      summary: 查看任务执行记录
+      operationId: findJobRuns
+      tags: [system-job]
+      security: [{apiKeyAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: integer}
+        - name: page
+          in: query
+          schema: {type: integer, default: 1}
+        - name: page_size
+          in: query
+          schema: {type: integer, default: 10}
+      responses:
+        '200':
+          description: 执行记录
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/JobRunList'}

@@ -9,8 +9,8 @@ import (
 )
 
 type RequestInfo struct {
-	LastAccessTime time.Time // 上次访问时间
-	RequestNum     int       // 请求计数
+	WindowStart time.Time // 当前固定窗口起始时间
+	RequestNum  int       // 请求计数
 }
 
 // 全局兜底限流参数：所有请求默认 10 次/秒/IP。
@@ -19,7 +19,7 @@ const (
 	timeWindow  = 1 * time.Second
 )
 
-// ipLimiter 按 IP 维度做滑动窗口限流。
+// ipLimiter 按 IP 维度做固定窗口限流。
 // 相比全局 token bucket，按 IP 隔离不会误伤正常的多用户并发流量。
 type ipLimiter struct {
 	mutex       sync.Mutex
@@ -46,7 +46,7 @@ func (l *ipLimiter) startCleanup() {
 		threshold := time.Now().Add(-2 * l.timeWindow)
 		l.mutex.Lock()
 		for ip, info := range l.reqs {
-			if info.LastAccessTime.Before(threshold) {
+			if info.WindowStart.Before(threshold) {
 				delete(l.reqs, ip)
 			}
 		}
@@ -58,19 +58,20 @@ func (l *ipLimiter) startCleanup() {
 func (l *ipLimiter) Handle(c *gin.Context) {
 	ip := c.ClientIP()
 	l.mutex.Lock()
+	now := time.Now()
 
 	info, exists := l.reqs[ip]
 	// 如果IP不存在，初始化并添加到map中
 	if !exists {
-		l.reqs[ip] = &RequestInfo{LastAccessTime: time.Now(), RequestNum: 1}
+		l.reqs[ip] = &RequestInfo{WindowStart: now, RequestNum: 1}
 		l.mutex.Unlock()
 		c.Next()
 		return
 	}
 	// 如果超过时间窗口，重置请求计数
-	if time.Since(info.LastAccessTime) > l.timeWindow {
+	if now.Sub(info.WindowStart) >= l.timeWindow {
 		info.RequestNum = 1
-		info.LastAccessTime = time.Now()
+		info.WindowStart = now
 		l.mutex.Unlock()
 		c.Next()
 		return
@@ -84,8 +85,6 @@ func (l *ipLimiter) Handle(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	// 更新最后访问时间
-	info.LastAccessTime = time.Now()
 	l.mutex.Unlock()
 	c.Next()
 }

@@ -35,10 +35,10 @@ export function TokenDeleteDialog({ open, onOpenChange, currentRow }: Props) {
   const [value, setValue] = useState('')
 
   const handleDelete = () => {
-    if (value.trim() !== currentRow.accessToken) return
+    if (value.trim() !== currentRow.sessionId) return
     handleDel({
       deleteToken: {
-        accessToken: currentRow.accessToken,
+        sessionId: currentRow.sessionId,
       },
     })
   }
@@ -49,7 +49,7 @@ export function TokenDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       open={open}
       onOpenChange={(state) => onOpenChange(state, false)}
       handleConfirm={handleDelete}
-      disabled={value.trim() !== currentRow.accessToken}
+      disabled={value.trim() !== currentRow.sessionId}
       title={
         <span className='text-destructive'>
           <IconAlertTriangle
@@ -61,8 +61,8 @@ export function TokenDeleteDialog({ open, onOpenChange, currentRow }: Props) {
       }
       desc={
         <ConfirmTip
-          text={<Trans>令牌</Trans>}
-          title={currentRow.accessToken}
+          text={<Trans>会话ID</Trans>}
+          title={currentRow.sessionId}
           value={value}
           onChange={setValue}
         />

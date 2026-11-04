@@ -2,7 +2,7 @@ package request
 
 type CreateSysUserReq struct {
 	Username string `json:"username" binding:"required,alphanum,min=2,max=10,startWithLetter,containsLetter"`
-	Password string `json:"password" binding:"required,min=6,max=16,complexPassword"`
+	Password string `json:"password" binding:"required,min=12,max=72,complexPassword"`
 	Nickname string `json:"nickname"`
 	Email    string `json:"email,omitempty" binding:"omitempty,email"`
 	Avatar   string `json:"avatar"`
@@ -18,7 +18,7 @@ type UpdateSysUserReq struct {
 }
 
 type UpdateSysUserPasswordReq struct {
-	Password string `json:"password" binding:"required,min=6,max=16,complexPassword"`
+	Password string `json:"password" binding:"required,min=12,max=72,complexPassword"`
 }
 
 // AssignUserTenantReq 给用户分配（移动）归属租户的请求

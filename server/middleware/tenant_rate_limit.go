@@ -48,7 +48,7 @@ func tenantRateLimitBlocked(ctx context.Context, tenantId string) bool {
 
 	effectiveID := tenantId
 	perSec := rl.BusinessPerSec
-	if effectiveID == "" {
+	if effectiveID == "" || effectiveID == global.PlatformTenantID {
 		effectiveID = global.PlatformTenantID
 		perSec = rl.PlatformPerSec
 	}

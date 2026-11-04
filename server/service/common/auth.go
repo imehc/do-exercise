@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/imehc/do-exercise/server/global"
@@ -145,6 +144,9 @@ func (s *AuthService) matchEnabledTenants(db *gorm.DB, req common.Login) ([]syst
 		matched  bool
 	)
 	for _, u := range rows {
+		if _, err := util.LoadSessionPrincipal(db, u.UserId, u.TenantId); err != nil {
+			continue
+		}
 		hash := util.Hash{Value: u.Password}
 		if !hash.Compare(req.Password) {
 			continue
@@ -167,6 +169,7 @@ func (s *AuthService) matchEnabledTenants(db *gorm.DB, req common.Login) ([]syst
 			TenantId: tenant.TenantId,
 			Name:     tenant.Name,
 			Code:     tenant.Code,
+			UserId:   u.UserId, AuthVersion: u.AuthVersion, TenantVersion: tenant.AuthVersion,
 		})
 	}
 
@@ -198,8 +201,11 @@ func (s *AuthService) checkTenantUsable(db *gorm.DB, tenantId string) error {
 
 // Authenticate 校验指定租户下的用户名密码，返回带角色信息的用户。
 func (s *AuthService) Authenticate(db *gorm.DB, tenantId, username, password string) (*system.SysUser, error) {
+	if err := util.RequireTenantUsable(db, tenantId); err != nil {
+		return nil, err
+	}
 	existUser := &system.SysUser{}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(db.Statement.Context, 5*time.Second)
 	defer cancel()
 	err := db.WithContext(ctx).
 		Preload("Roles").
@@ -215,6 +221,9 @@ func (s *AuthService) Authenticate(db *gorm.DB, tenantId, username, password str
 	hash := util.Hash{Value: existUser.Password}
 	if !hash.Compare(password) {
 		return nil, errors.New("passwordError")
+	}
+	if _, err := util.LoadSessionPrincipal(db, existUser.UserId, existUser.TenantId); err != nil {
+		return nil, err
 	}
 	return existUser, nil
 }
@@ -235,6 +244,9 @@ func (s *AuthService) EnterTenant(db *gorm.DB, tenantId, username string) (*syst
 	if err != nil {
 		errorKey := util.TranslateDBError(err, "userNotFound")
 		return nil, errors.New(errorKey)
+	}
+	if _, err := util.LoadSessionPrincipal(db, user.UserId, user.TenantId); err != nil {
+		return nil, err
 	}
 	return user, nil
 }
@@ -262,12 +274,18 @@ func (s *AuthService) EnterTenantByUserIds(db *gorm.DB, tenantId string, userIds
 		errorKey := util.TranslateDBError(err, "userNotFound")
 		return nil, errors.New(errorKey)
 	}
+	if _, err := util.LoadSessionPrincipal(db, user.UserId, user.TenantId); err != nil {
+		return nil, err
+	}
 	return user, nil
 }
 
 // ResetPassword 重置密码。id 必须由调用方从已校验的来源（邮箱查找、管理员路径参数）取得，
 // 请求结构体不再承载 id 字段，杜绝客户端可控 id 被误用的可能。
 func (s *AuthService) ResetPassword(db *gorm.DB, id string, req request.UserResetPasswordReq) error {
+	if err := util.ValidateNewPassword(req.Password); err != nil {
+		return err
+	}
 	hash := util.Hash{Value: req.Password}
 	password, err := hash.Hash()
 	if err != nil {
@@ -278,6 +296,7 @@ func (s *AuthService) ResetPassword(db *gorm.DB, id string, req request.UserRese
 	err = db.Model(&system.SysUser{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"Password":           password,
 		"MustChangePassword": false,
+		"auth_version":       gorm.Expr("auth_version + 1"),
 	}).Error
 	if err != nil {
 		global.Log.Error("reset password failed", zap.String("userId", id), zap.Error(err))
@@ -287,52 +306,14 @@ func (s *AuthService) ResetPassword(db *gorm.DB, id string, req request.UserRese
 	return nil
 }
 
-func (s *AuthService) Logout(userId string, accessToken string) error {
-	redis := global.Redis
-	log := global.Log
-	accesskey := fmt.Sprintf("%s%s", util.PrefixAccessToken, accessToken)
-	ctx := context.Background()
-	tokenInfo, err := redis.Get(ctx, accesskey).Result()
+func (s *AuthService) Logout(userId, accessToken string) error {
+	data, err := global.Redis.Get(context.Background(), util.PrefixAccessToken+accessToken).Bytes()
 	if err != nil {
-		log.Error("Failed to get token info from Redis", zap.String("userId", userId), zap.Error(err))
-
-		return errors.New("operationFailed")
+		return errors.New("accessTokenNotExist")
 	}
-
-	var tokenData model.TokenInfo
-	if err := json.Unmarshal([]byte(tokenInfo), &tokenData); err != nil {
-		log.Error("Failed to unmarshal token info", zap.String("userId", userId), zap.Error(err))
-		return errors.New("operationFailed")
+	var info model.TokenInfo
+	if json.Unmarshal(data, &info) != nil || info.UserId != userId || info.SessionId == "" {
+		return errors.New("accessTokenNotExist")
 	}
-
-	refreshKey := fmt.Sprintf("%s%s", util.PrefixRefreshToken, tokenData.RefreshToken)
-
-	pipe := redis.Pipeline()
-	if err := pipe.Del(ctx, accesskey).Err(); err != nil {
-		log.Error("Failed to delete access token", zap.String("userId", userId), zap.Error(err))
-		return errors.New("operationFailed")
-	}
-	if err := pipe.Del(ctx, refreshKey).Err(); err != nil {
-		log.Error("Failed to delete refresh token", zap.String("userId", userId), zap.Error(err))
-		return errors.New("operationFailed")
-	}
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		log.Error("Failed to execute pipeline", zap.Error(err))
-		return errors.New("operationFailed")
-	}
-
-	// 清理该用户的无效 access/refresh token
-	err = util.CleanUserTokenSet(tokenData.UserId, util.PrefixUserAcessToken, util.PrefixAccessToken)
-	if err != nil {
-		log.Error("Failed to clean user accessToken set", zap.String("userId", userId), zap.Error(err))
-		return errors.New("operationFailed")
-	}
-	err = util.CleanUserTokenSet(tokenData.UserId, util.PrefixUserRefreshToken, util.PrefixRefreshToken)
-	if err != nil {
-		log.Error("Failed to clean user refreshToken set", zap.String("userId", userId), zap.Error(err))
-		return errors.New("operationFailed")
-	}
-
-	return nil
+	return util.RevokeSession(context.Background(), info.SessionId)
 }

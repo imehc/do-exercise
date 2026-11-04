@@ -1,10 +1,10 @@
 package request
 
 type SysTokenDeleteReq struct {
-	AccessToken string `json:"access_token" binding:"required"`
+	SessionId string `json:"session_id" binding:"required"`
 }
 
 type SysTokenModityStatusReq struct {
-	AccessToken string `json:"access_token" binding:"required"`
-	Disabled    *bool  `json:"disabled" binding:"required"`
+	SessionId string `json:"session_id" binding:"required"`
+	Disabled  *bool  `json:"disabled" binding:"required"`
 }

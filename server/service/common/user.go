@@ -8,6 +8,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	sysReq "github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -34,9 +35,10 @@ func (u *UserService) FindUsersByEmail(db *gorm.DB, email string) ([]system.SysU
 	var users []system.SysUser
 	if err := db.
 		Preload("Roles").
-		Where("email = ?", email).
-		Where("tenant_id <> ?", global.PlatformTenantID).
-		Order("created_at ASC").
+		Joins("JOIN sys_user_tenant membership ON membership.user_id = sys_user.id AND membership.tenant_id = sys_user.tenant_id AND membership.status = TRUE AND membership.deleted_at IS NULL").
+		Where("sys_user.email = ?", email).
+		Where("sys_user.tenant_id <> ?", global.PlatformTenantID).
+		Order("sys_user.created_at ASC").
 		Find(&users).Error; err != nil {
 		return nil, errors.New("userNotFound")
 	}
@@ -50,6 +52,7 @@ func (u *UserService) FindUsersByEmail(db *gorm.DB, email string) ([]system.SysU
 		Find(&tenants).Error; err != nil {
 		return nil, errors.New("userNotFound")
 	}
+	tenants = lo.Filter(tenants, func(t system.SysTenant, _ int) bool { return !util.IsTenantExpired(t.ExpireTime) })
 	enabled := lo.SliceToMap(tenants, func(t system.SysTenant) (string, struct{}) {
 		return t.TenantId, struct{}{}
 	})
@@ -191,7 +194,7 @@ func (u *UserService) GetMenu(db *gorm.DB, id string) (*[]response.UserMenu, err
 
 	// 构建菜单map，避免重复查询
 	menuMap := make(map[uint]system.SysMenu)
-	if user.IsSuperAdmin {
+	if user.IsSuperAdmin && user.TenantId == global.PlatformTenantID {
 		// 平台超级管理员：由 is_super_admin 标识直接授予全部菜单（含平台独有租户管理子树），
 		// 不依赖角色绑定，账号改名/换账号不影响权限；Casbin 中间件对平台超管同样直接放行。
 		for id, m := range allMenus {

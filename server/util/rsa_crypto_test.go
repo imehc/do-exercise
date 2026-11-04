@@ -17,11 +17,11 @@ import (
 )
 
 // 本用例需要真实 Redis。默认连本机，并允许用环境变量指向别处（与集成测试同一套变量名）。
-// 用独立的 DB 15：本用例会 DEL availableKeysHash 与全部 publicKey:*，落在 DB 0 会清掉
+// 用独立的 DB 14：本用例会 DEL availableKeysHash 与全部 publicKey:*，落在 DB 0 会清掉
 // 开发环境正在用的密钥池。
 const (
 	rsaTestRedisDefaultAddr = "localhost:6379"
-	rsaTestRedisDB          = 15
+	rsaTestRedisDB          = 14
 )
 
 func rsaTestRedisAddr() string {
@@ -68,7 +68,12 @@ func TestRSACrypto(t *testing.T) {
 		redisClient.Close()
 	}()
 
+	// Test the explicit operations without a background refill racing assertions and cleanup.
+	if err := redisClient.Del(context.Background(), availableKeysHash, inUseKeysHash).Err(); err != nil {
+		t.Fatal(err)
+	}
 	rsaPool := NewRSACrypto(redisClient)
+	rsaPool.Stop()
 
 	t.Run("测试批量密钥生成", func(t *testing.T) {
 		err := rsaPool.GenerateAndStoreKeys(5)
@@ -78,6 +83,18 @@ func TestRSACrypto(t *testing.T) {
 		count, err := redisClient.HLen(ctx, availableKeysHash).Result()
 		assert.NoError(t, err)
 		assert.Equal(t, int64(5), count)
+	})
+
+	t.Run("empty pool returns a usable key", func(t *testing.T) {
+		assert.NoError(t, redisClient.Del(context.Background(), availableKeysHash).Err())
+		pair, err := rsaPool.GetRandomKeyPair()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pair.PublicKey)
+		encrypted, err := mockEncryptData(pair.PublicKey, "empty pool")
+		assert.NoError(t, err)
+		plain, err := rsaPool.DecryptWithKey(pair.PublicKey, encrypted, true)
+		assert.NoError(t, err)
+		assert.Equal(t, "empty pool", plain)
 	})
 
 	t.Run("测试随机获取密钥对", func(t *testing.T) {

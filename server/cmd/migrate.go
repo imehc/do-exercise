@@ -67,7 +67,7 @@ var migrateCmd = &cobra.Command{
 			fmt.Printf("迁移完成，共执行 %d 个版本\n", len(executed))
 		}
 
-		if missing := migration.MissingMenuI18nKeys(db); missing != "" {
+		if missing := migration.MissingMenuI18nKeys(util.TenantBypass(db)); missing != "" {
 			fmt.Printf("以下菜单尚未设置国际化键，界面将回落到菜单名称：%s\n", missing)
 		}
 	},

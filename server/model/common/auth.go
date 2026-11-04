@@ -34,10 +34,17 @@ type LoginReq struct {
 //     因此记录本次验证码绑定的候选账号 ID（UserIds），选租户后按 ID 收敛。
 //
 // 两者都只能进入 Tenants 里列出的租户，客户端无法扩大授权范围。
+type LoginPrincipal struct {
+	UserId        string `json:"user_id"`
+	AuthVersion   uint64 `json:"auth_version"`
+	TenantVersion uint64 `json:"tenant_version"`
+}
+
 type LoginSession struct {
-	Username string   `json:"username"`
-	Tenants  []string `json:"tenants"`
-	UserIds  []string `json:"user_ids"`
+	Principals map[string]LoginPrincipal `json:"principals"`
+	Username   string                    `json:"username"`
+	Tenants    []string                  `json:"tenants"`
+	UserIds    []string                  `json:"user_ids"`
 }
 
 // SelectTenantReq 多租户登录选择租户请求

@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"context"
 	"fmt"
+	"github.com/imehc/do-exercise/server/migration"
 	"time"
 
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -52,17 +54,19 @@ func InitGorm(isAutoMigrate bool) {
 
 	// 自动迁移数据库表
 	if isAutoMigrate {
-		err = db.AutoMigrate(
-			system.SysUser{},
-			system.SysMenu{},
-			system.SysRole{},
-			system.SysApi{},
-			system.SysOperationLog{},
-			system.SysJob{},
-			system.SysTenant{},
-			system.SysUserTenant{},
-			gormadapter.CasbinRule{},
-		)
+		err = migration.WithSchemaLock(context.Background(), db, func() error {
+			return util.TenantBypass(db).AutoMigrate(
+				system.SysUser{},
+				system.SysMenu{},
+				system.SysRole{},
+				system.SysApi{},
+				system.SysOperationLog{},
+				system.SysJob{},
+				system.SysTenant{},
+				system.SysUserTenant{},
+				gormadapter.CasbinRule{},
+			)
+		})
 		if err != nil {
 			util.Exit("自动迁移数据库表失败: ", err)
 		}

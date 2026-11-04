@@ -2,9 +2,12 @@ package response
 
 // TenantOption 登录页租户选择项
 type TenantOption struct {
-	TenantId string `json:"tenant_id"`
-	Name     string `json:"name"`
-	Code     string `json:"code"`
+	UserId        string `json:"-"`
+	AuthVersion   uint64 `json:"-"`
+	TenantVersion uint64 `json:"-"`
+	TenantId      string `json:"tenant_id"`
+	Name          string `json:"name"`
+	Code          string `json:"code"`
 }
 
 // AvailableTenants 登录页引导数据。

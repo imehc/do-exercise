@@ -213,6 +213,7 @@ func All(seedSQL string) []Migration {
 				return nil
 			},
 		},
+		{Version: 10, Name: "multi_tenant_security", Up: hardenTenantSecurity},
 	}
 }
 

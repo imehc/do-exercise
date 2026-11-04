@@ -114,6 +114,7 @@ func TestAllVersionsAreStable(t *testing.T) {
 		{7, "menu_metadata_backfill"},
 		{8, "sys_menu_scope_not_null"},
 		{9, "sys_user_tenant_membership"},
+		{10, "multi_tenant_security"},
 	}
 
 	got := All("")

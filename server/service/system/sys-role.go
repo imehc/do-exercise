@@ -3,7 +3,6 @@ package system
 import (
 	"errors"
 
-	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/system"
@@ -35,7 +34,7 @@ func roleUserCounts(db *gorm.DB, roleIds []uint) (map[uint]int64, error) {
 	}
 	if err := db.Model(&system.SysUser{}).
 		Select("sys_user_role.sys_role_id AS role_id, COUNT(*) AS total").
-		Joins("JOIN sys_user_role ON sys_user_role.sys_user_id = sys_user.id").
+		Joins("JOIN sys_user_role ON sys_user_role.sys_user_user_id = sys_user.id").
 		Where("sys_user_role.sys_role_id IN ?", roleIds).
 		Group("sys_user_role.sys_role_id").
 		Scan(&rows).Error; err != nil {
@@ -50,9 +49,8 @@ func roleUserCounts(db *gorm.DB, roleIds []uint) (map[uint]int64, error) {
 // assignMenus 分配菜单。
 // 空 menuIds、以及菜单未绑定任何 API 这两种情况，语义都是「撤销该角色的全部策略」。
 // 早期实现在这两处提前 return，跳过了 RemoveFilteredPolicy，
-// 导致解除权限的请求返回成功而 Casbin 策略原样保留。
-// 本函数只负责在事务内落库角色-菜单关联表；Casbin p 策略的同步
-// 放在事务提交之后由 syncRolePolicy 统一处理。
+
+// 权限以同事务内的关联记录为准，提交后所有实例即时读取。
 func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds []uint) ([]system.SysMenu, error) {
 	var menus []system.SysMenu
 	var preservedMenus []system.SysMenu
@@ -106,46 +104,6 @@ func (s *SysRoleService) assignMenus(tx *gorm.DB, role *system.SysRole, menuIds 
 	return menus, nil
 }
 
-// syncRolePolicy 在事务提交成功后同步 Casbin p 策略。
-// global.Enforcer 走独立 adapter，无法加入业务事务，必须等 Commit() 成功后再写，
-// 否则提交失败时角色行回滚、策略却已生效（幽灵授权）。
-// 此步失败则角色表现为无权限（fail closed），并尽量回退半成品规则。
-func (s *SysRoleService) syncRolePolicy(role *system.SysRole, menus []system.SysMenu) error {
-	enforcer := global.Enforcer
-	// 无条件清空旧策略，再按新集合重建（限定在当前租户域，避免误伤其他租户同名角色）
-	if _, err := enforcer.RemoveFilteredPolicy(0, role.Code, role.TenantId); err != nil {
-		return errors.New("menuAssignFailed")
-	}
-
-	// 将菜单下的APIs合并
-	apis := lo.FlatMap(menus, func(menu system.SysMenu, _ int) []system.SysApi {
-		return menu.Apis
-	})
-	if len(apis) == 0 {
-		// 菜单已分配但未绑定 API：策略为空，菜单列表仍需如实返回
-		return nil
-	}
-
-	// 使用casbin批量添加策略
-	policies := lo.Map(apis, func(item system.SysApi, index int) []string {
-		return []string{
-			role.Code,
-			role.TenantId,
-			item.Path,
-			item.Method,
-		}
-	})
-
-	// 添加策略并检查结果
-	success, err := enforcer.AddPolicies(policies)
-	if err != nil || !success {
-		// 补偿：清掉可能已加入的部分策略，回退到无权限态
-		_, _ = enforcer.RemoveFilteredPolicy(0, role.Code, role.TenantId)
-		return errors.New("menuAssignFailed")
-	}
-	return nil
-}
-
 // checkRoleExist 检查角色是否存在
 func (s *SysRoleService) checkRoleExist(db *gorm.DB, roleId uint) (*system.SysRole, error) {
 	var role system.SysRole
@@ -184,8 +142,8 @@ func (s *SysRoleService) checkCodeDuplicate(db *gorm.DB, code string) error {
 
 // Create 创建角色
 func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*response.SysRoleResp, error) {
-	// 角色必须落在具体租户下：Casbin 的 p 规则以 tenant_id 作 dom，
-	// 平台上下文会写出空 dom 的策略，既不生效也无法回收。
+
+	// 角色需归属具体业务租户。
 	if isSuperAdmin(db) {
 		return nil, errors.New("platformTenantRequired")
 	}
@@ -198,7 +156,7 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 		Code: req.Code,
 	}
 	// 显式落租户：DB 行由租户插件回填，这里同步到内存结构体，
-	// 供事务提交后的 Casbin 同步使用（否则 p 规则会写入空 dom）。
+
 	role.TenantId = model.CurrentTenantID(db)
 
 	// 开启事务
@@ -226,11 +184,6 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 		return nil, errors.New("createRoleFailed")
 	}
 
-	// Casbin 策略在事务提交成功之后同步
-	if err := s.syncRolePolicy(role, menus); err != nil {
-		return nil, err
-	}
-
 	return &response.SysRoleResp{
 		Id:        role.Id,
 		Name:      role.Name,
@@ -247,7 +200,7 @@ func (s *SysRoleService) Create(db *gorm.DB, req request.CreateSysRoleReq) (*res
 }
 
 // Delete 删除角色。
-// 删除记录、解除用户关联、清理 Casbin 策略三步必须一致：
+
 // 早期实现无事务且不清理 g 规则，一旦策略删除失败，角色虽被软删，
 // 但持有该 role code 的用户仍保留全部权限。
 func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
@@ -258,7 +211,7 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 	}
 	// 「租户管理员」是创建租户时由平台供应的内建角色，一旦被租户自己删掉，
 	// 该租户将失去管理入口且无法自行恢复，因此对受限调用者一律拒绝。
-	if isTenantAdminRole(existRole) && tenantRestricted(db) {
+	if isTenantAdminRole(existRole) {
 		return errors.New("tenantAdminRoleReadonly")
 	}
 
@@ -290,17 +243,6 @@ func (s *SysRoleService) Delete(db *gorm.DB, id uint) error {
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return errors.New("deleteRoleFailed")
-	}
-
-	// Casbin 走独立适配器，不在上面的事务内，故放到提交成功之后
-	enforcer := global.Enforcer
-	// p 策略：该角色拥有的权限（限定租户域）
-	if _, err := enforcer.RemoveFilteredPolicy(0, existRole.Code, existRole.TenantId); err != nil {
-		return errors.New("deleteRoleFailed")
-	}
-	// g 规则：仍指向该角色的用户绑定，不清理会永久残留
-	if _, err := enforcer.RemoveFilteredGroupingPolicy(1, existRole.Code, existRole.TenantId); err != nil {
 		return errors.New("deleteRoleFailed")
 	}
 
@@ -337,7 +279,7 @@ func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleR
 		return errors.New("updateRoleFailed")
 	}
 
-	menus, err := s.assignMenus(tx, role, req.MenuIds)
+	_, err = s.assignMenus(tx, role, req.MenuIds)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -349,10 +291,6 @@ func (s *SysRoleService) Update(db *gorm.DB, id uint, req request.UpdateSysRoleR
 		return errors.New("updateRoleFailed")
 	}
 
-	// 事务提交成功后在 Casbin 同步策略
-	if err := s.syncRolePolicy(role, menus); err != nil {
-		return err
-	}
 	return nil
 }
 

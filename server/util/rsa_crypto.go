@@ -99,8 +99,8 @@ func (r *RSACrypto) GetRandomKeyPair() (KeyPair, error) {
 				if err = r.generateKeysIfNeeded(tx, len(keys)); err != nil {
 					return err
 				}
-				// 直接重新获取结果
-				return tx.HKeys(ctx, availableKeysHash).Err()
+				// Refill changed the watched pool; retry selection so an empty public key is never returned.
+				return redis.TxFailedErr
 			}
 
 			// 使用更高效的随机选择方式

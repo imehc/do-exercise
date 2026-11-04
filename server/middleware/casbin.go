@@ -39,16 +39,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// sys_api.disabled 为全局接口开关（管理界面可切换）：命中即拒绝所有业务角色。
-		// 置于超管直通之后，平台超管保留管理逃生通道——否则误禁 /system/apis 等管理接口
-		// 将无法通过界面恢复。超管自愿承担"禁用不拦超管"的语义。
-		if util.IsApiDisabled(act, obj) {
-			response.Forbidden(c, "")
-			c.Abort()
-			return
-		}
-
-		if ok, err := global.Enforcer.Enforce(sub, dom, obj, act); err != nil || !ok {
+		if ok, err := util.Authorize(util.DB(c), sub, dom, obj, act); err != nil || !ok {
 			response.Forbidden(c, "")
 			c.Abort()
 			return

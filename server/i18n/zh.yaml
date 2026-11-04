@@ -121,3 +121,6 @@ tenantAdminRoleReadonly: "租户管理员角色由平台维护，不可修改或
 platformTenantRequired: "平台账号不能直接创建无租户归属的用户、角色或定时任务，请先切换到具体租户"
 invalidPermission: "权限标识必须为「父级菜单路由:允许的动作」，请检查父级菜单与所选动作"
 cannotDeleteSelf: "不能删除当前登录账号"
+invalidPassword: "新密码须为 12–72 字节，包含字母、数字和符号"
+lastAdministratorRequired: "必须保留至少一名管理员"
+invalidTenantQuota: "租户配额不能为负数"

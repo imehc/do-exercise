@@ -5,6 +5,8 @@ import (
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
 	"github.com/imehc/do-exercise/server/internal"
+	"github.com/imehc/do-exercise/server/migration"
+	"github.com/imehc/do-exercise/server/util"
 	"github.com/spf13/cobra"
 )
 
@@ -42,9 +44,11 @@ func initComponents() {
 	internal.InitConfig(configFile)
 	internal.InitLogger()
 	internal.InitGorm(false)
+	if err := migration.VerifySecurityBaseline(global.DB); err != nil {
+		util.Exit("安全迁移检查失败", err)
+	}
 	internal.InitRedis()
 	internal.InitI18n()
-	internal.InitCasbin()
 	internal.InitOss()
 	internal.InitOther()
 }

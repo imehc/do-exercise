@@ -10,15 +10,15 @@ type CreateSysTenantReq struct {
 	Name     string `json:"name" binding:"required,min=2,max=64"`
 	Code     string `json:"code" binding:"required,alphanum,min=2,max=32"`
 	Remark   string `json:"remark,omitempty" binding:"omitempty,max=255"`
-	MaxUsers *int   `json:"max_users,omitempty"`
-	MaxTasks *int   `json:"max_tasks,omitempty"`
+	MaxUsers *int   `json:"max_users,omitempty" binding:"omitempty,gte=0"`
+	MaxTasks *int   `json:"max_tasks,omitempty" binding:"omitempty,gte=0"`
 	// AdminMode 管理员账号模式：new / existing
 	AdminMode string `json:"admin_mode" binding:"required,oneof=new existing"`
 	// AdminUserId 选择现有用户时的用户 ID（admin_mode=existing）
-	AdminUserId string `json:"admin_user_id,omitempty" binding:"omitempty"`
+	AdminUserId string `json:"admin_user_id,omitempty" binding:"required_if=AdminMode existing,omitempty"`
 	// AdminUsername / AdminPassword 新建用户时的账号信息（admin_mode=new）
-	AdminUsername string `json:"admin_username,omitempty" binding:"omitempty,alphanum,min=2,max=10,startWithLetter,containsLetter"`
-	AdminPassword string `json:"admin_password,omitempty" binding:"omitempty,min=6,max=16,complexPassword"`
+	AdminUsername string `json:"admin_username,omitempty" binding:"required_if=AdminMode new,omitempty,alphanum,min=2,max=10,startWithLetter,containsLetter"`
+	AdminPassword string `json:"admin_password,omitempty" binding:"required_if=AdminMode new,omitempty,min=12,max=72,complexPassword"`
 }
 
 // AdminMode 常量
@@ -30,11 +30,12 @@ const (
 type UpdateSysTenantReq struct {
 	Name     string `json:"name" binding:"required,min=2,max=64"`
 	Status   *bool  `json:"status"`
-	MaxUsers *int   `json:"max_users,omitempty"`
-	MaxTasks *int   `json:"max_tasks,omitempty"`
+	MaxUsers *int   `json:"max_users,omitempty" binding:"omitempty,gte=0"`
+	MaxTasks *int   `json:"max_tasks,omitempty" binding:"omitempty,gte=0"`
 	// ExpireTime 租户到期时间。过期后视同停用（status=false）；不传则保持不变。
-	ExpireTime *time.Time `json:"expire_time,omitempty"`
-	Remark     string     `json:"remark,omitempty" binding:"omitempty,max=255"`
+	ExpireTime      *time.Time `json:"expire_time,omitempty"`
+	ClearExpireTime bool       `json:"clear_expire_time,omitempty"`
+	Remark          string     `json:"remark,omitempty" binding:"omitempty,max=255"`
 }
 
 type QuerySysTenantReq struct {

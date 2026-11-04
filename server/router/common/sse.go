@@ -80,6 +80,10 @@ func (s *SSERouter) handleSSE(c *gin.Context) {
 			c.SSEvent("message", string(msg))
 			return true
 		case <-ticker.C:
+			if _, err := util.ValidateAccessToken(ctx, c.GetString("accessToken")); err != nil {
+				c.SSEvent("message", `{"type":"session_revoked","content":"会话已失效，请重新登录"}`)
+				return false
+			}
 			// 注释帧：保活，同时让 Stream 有机会回到外层检查连接状态
 			c.SSEvent("ping", "")
 			return true

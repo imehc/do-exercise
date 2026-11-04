@@ -33,3 +33,12 @@ func RequestContextMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// PublicAuthContextMiddleware grants only the authentication entrypoints explicit cross-tenant lookup.
+func PublicAuthContextMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		base := global.DB.WithContext(c.Request.Context())
+		c.Set(global.ContextDBKey, base.WithContext(context.WithValue(base.Statement.Context, global.ContextTenantBypassKey, true)))
+		c.Next()
+	}
+}

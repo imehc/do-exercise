@@ -24,9 +24,10 @@ type AuthApi struct{}
 // buildToken 生成带租户信息的访问令牌
 func (s *AuthApi) buildToken(ctx *gin.Context, user *system.SysUser, available []response.TenantOption) (*common.Token, error) {
 	baseConf := util.Token{
-		UserId:   user.UserId,
-		Username: user.Username,
-		TenantId: user.TenantId,
+		UserId:      user.UserId,
+		AuthVersion: user.AuthVersion,
+		Username:    user.Username,
+		TenantId:    user.TenantId,
 		AuthorizedTenantIds: lo.Map(available, func(item response.TenantOption, _ int) string {
 			return item.TenantId
 		}),
@@ -313,7 +314,11 @@ const (
 
 // createLoginSession 为「待选择租户」的口令登录签发一次性会话
 func (s *AuthApi) createLoginSession(ctx *gin.Context, username string, options []response.TenantOption) (string, error) {
-	return s.saveLoginSession(common.LoginSession{
+	principals := make(map[string]common.LoginPrincipal, len(options))
+	for _, option := range options {
+		principals[option.TenantId] = common.LoginPrincipal{UserId: option.UserId, AuthVersion: option.AuthVersion, TenantVersion: option.TenantVersion}
+	}
+	return s.saveLoginSession(common.LoginSession{Principals: principals,
 		Username: username,
 		Tenants:  tenantIdsOf(options),
 	})
@@ -321,10 +326,18 @@ func (s *AuthApi) createLoginSession(ctx *gin.Context, username string, options 
 
 // createEmailLoginSession 为「待选择租户」的邮箱登录签发一次性会话。
 // 邮箱路径记录候选账号 ID 而非用户名，见 common.LoginSession 的说明。
-func (s *AuthApi) createEmailLoginSession(userIds []string, options []response.TenantOption) (string, error) {
-	return s.saveLoginSession(common.LoginSession{
+func (s *AuthApi) createEmailLoginSession(users []system.SysUser, options []response.TenantOption) (string, error) {
+	principals := make(map[string]common.LoginPrincipal, len(users))
+	for _, user := range users {
+		principal, err := util.LoadSessionPrincipal(global.DB, user.UserId, user.TenantId)
+		if err != nil {
+			return "", err
+		}
+		principals[user.TenantId] = common.LoginPrincipal{UserId: user.UserId, AuthVersion: user.AuthVersion, TenantVersion: principal.TenantVersion}
+	}
+	return s.saveLoginSession(common.LoginSession{Principals: principals,
 		Tenants: tenantIdsOf(options),
-		UserIds: userIds,
+		UserIds: userService.UserIdsOf(users),
 	})
 }
 
@@ -349,7 +362,7 @@ func (s *AuthApi) saveLoginSession(session common.LoginSession) (string, error) 
 
 // getLoginSession 读取登录会话；不存在或已失效返回 loginSessionExpired
 func (s *AuthApi) getLoginSession(sessionId string) (*common.LoginSession, error) {
-	data, err := global.Redis.Get(context.Background(), fmt.Sprintf("%s%s", loginSessionPrefix, sessionId)).Result()
+	data, err := global.Redis.GetDel(context.Background(), fmt.Sprintf("%s%s", loginSessionPrefix, sessionId)).Result()
 	if err != nil {
 		return nil, errors.New("loginSessionExpired")
 	}
@@ -379,23 +392,24 @@ func (s *AuthApi) SelectTenant(ctx *gin.Context) {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
-	// 无论成败都销毁会话，杜绝重用
-	_ = s.destroyLoginSession(req.LoginSessionId)
 
 	if !lo.Contains(session.Tenants, req.TenantId) {
 		response.BadRequest(ctx, "invalidTenant")
 		return
 	}
 
-	// 邮箱登录的会话按候选账号 ID 收敛，口令登录的会话按用户名收敛。
-	var user *system.SysUser
-	if len(session.UserIds) > 0 {
-		user, err = authService.EnterTenantByUserIds(util.DB(ctx), req.TenantId, session.UserIds)
-	} else {
-		user, err = authService.EnterTenant(util.DB(ctx), req.TenantId, session.Username)
+	candidate, ok := session.Principals[req.TenantId]
+	if !ok || candidate.UserId == "" {
+		response.BadRequest(ctx, "loginSessionExpired")
+		return
 	}
-	if err != nil {
-		response.BadRequest(ctx, err.Error())
+	if _, err := util.ValidateSessionVersion(util.DB(ctx), candidate.UserId, req.TenantId, candidate.AuthVersion, candidate.TenantVersion); err != nil {
+		response.BadRequest(ctx, "loginSessionExpired")
+		return
+	}
+	user, err := authService.EnterTenantByUserIds(util.DB(ctx), req.TenantId, []string{candidate.UserId})
+	if err != nil || user.AuthVersion != candidate.AuthVersion {
+		response.BadRequest(ctx, "loginSessionExpired")
 		return
 	}
 
@@ -427,6 +441,10 @@ func (s *AuthApi) SwitchTenant(ctx *gin.Context) {
 		response.BadRequest(ctx, err.Error())
 		return
 	}
+	if err := util.RequireTenantUsable(util.DB(ctx), req.TenantId); err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
 	user, err := authService.Authenticate(util.BypassTenantDB(ctx), req.TenantId, username, password)
 	if err != nil {
 		response.BadRequest(ctx, err.Error())
@@ -440,7 +458,11 @@ func (s *AuthApi) SwitchTenant(ctx *gin.Context) {
 		return
 	}
 	// 吊销当前租户的会话凭据，避免旧租户凭据继续残留
-	_ = authService.Logout(ctx.GetString("userId"), ctx.GetString("accessToken"))
+	if err := authService.Logout(ctx.GetString("userId"), ctx.GetString("accessToken")); err != nil {
+		_ = authService.Logout(user.UserId, token.AccessToken)
+		response.ServerError(ctx)
+		return
+	}
 
 	s.respondLoginResult(ctx, token, options)
 }
@@ -492,7 +514,7 @@ func (s *AuthApi) LoginWithEmail(ctx *gin.Context) {
 
 	options, _ := tenantPublicService.ListEnabledByIDs(util.DB(ctx), userService.TenantIdsOf(users))
 	if len(users) > 1 {
-		sessionId, serr := s.createEmailLoginSession(userService.UserIdsOf(users), options)
+		sessionId, serr := s.createEmailLoginSession(users, options)
 		if serr != nil {
 			response.ServerError(ctx)
 			return

@@ -47,6 +47,7 @@ var LegacyPlatformOnlyMenuIDs = []uint{8, 10, 161, 181, 182, 183, 184, 185}
 // 不在集合内的表（sys_tenant/sys_api/sys_menu/sys_user_role 等）保持全局共享。
 var tenantScopedTables = map[string]bool{
 	"sys_user":          true,
+	"sys_user_tenant":   true,
 	"sys_role":          true,
 	"sys_job":           true,
 	"sys_operation_log": true,

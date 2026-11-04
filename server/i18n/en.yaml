@@ -121,3 +121,6 @@ tenantAdminRoleReadonly: "The tenant admin role is maintained by the platform an
 platformTenantRequired: "Platform accounts cannot create tenant-less users, roles or jobs; switch to a specific tenant first"
 invalidPermission: "The permission must be \"<parent menu route>:<allowed action>\"; check the parent menu and the selected action"
 cannotDeleteSelf: "You cannot delete the account you are signed in with"
+invalidPassword: "New passwords must be 12–72 bytes and contain letters, digits and symbols"
+lastAdministratorRequired: "At least one administrator must remain"
+invalidTenantQuota: "Tenant quotas cannot be negative"

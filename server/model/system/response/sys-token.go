@@ -7,8 +7,7 @@ type SysTokenLogRsp struct {
 	// TenantId 会话所属租户，供平台超级管理员在全量视图里区分来源
 	TenantId            string    `json:"tenant_id"`
 	Username            string    `json:"username"`
-	AccessToken         string    `json:"access_token"`
-	RefreshToken        string    `json:"refresh_token"`
+	SessionId           string    `json:"session_id"`
 	Disabled            bool      `json:"disabled"`
 	AccessTokenCreated  time.Time `json:"access_token_created"`
 	AccessTokenExpired  time.Time `json:"access_token_expired"`

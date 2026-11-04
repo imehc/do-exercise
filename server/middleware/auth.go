@@ -1,17 +1,12 @@
 package middleware
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"time"
-
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/imehc/do-exercise/server/global"
-	"github.com/imehc/do-exercise/server/model"
 	"github.com/imehc/do-exercise/server/model/common/response"
-	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/util"
+	"net/http"
 )
 
 // mustChangePasswordWhitelist 强制改密期间仍允许访问的接口。
@@ -36,54 +31,21 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 验证token
-		ctx := context.Background()
-		tokenInfo, err := global.Redis.Get(ctx, fmt.Sprintf("accessToken:%s", accessToken)).Result()
+		tokenData, err := util.ValidateAccessToken(c.Request.Context(), accessToken)
 		if err != nil {
-			response.Unauthorized(c)
-			c.Abort()
-			return
-		}
-
-		// 解析token信息
-		var tokenData model.TokenInfo
-		if err := json.Unmarshal([]byte(tokenInfo), &tokenData); err != nil {
-			response.ServerError(c)
-			c.Abort()
-			return
-		}
-
-		if tokenData.Disabled {
-			response.Forbidden(c, global.I18.Translate("accessTokenIsDisabled", c.GetString("lang")))
-			c.Abort()
-			return
-		}
-
-		// 防御性过期检查。token 过期以 Redis TTL 为准（吊销走 Redis 删键），
-		// 但若上游误把 TTL 存成 0，token 会变永不过期；这里用 ExpiredTime 兜底。
-		if !tokenData.ExpiredTime.IsZero() && time.Now().After(tokenData.ExpiredTime) {
-			response.Unauthorized(c)
-			c.Abort()
-			return
-		}
-
-		// 租户停用或软删除后必须立即阻断旧会话。Redis 会话吊销是主动清理，
-		// 这里的状态复核是兜底，避免 Redis 短暂故障让已停用租户继续访问。
-		if tokenData.TenantId != global.PlatformTenantID {
-			var tenant system.SysTenant
-			if tokenData.TenantId == "" || global.DB.Model(&system.SysTenant{}).
-				Where("tenant_id = ?", tokenData.TenantId).
-				First(&tenant).Error != nil ||
-				!tenant.Status || util.IsTenantExpired(tenant.ExpireTime) {
-				response.Unauthorized(c)
-				c.Abort()
+			if errors.Is(err, util.ErrAuthDependencyUnavailable) {
+				c.Header("Retry-After", "1")
+				c.AbortWithStatus(http.StatusServiceUnavailable)
 				return
 			}
+			response.Unauthorized(c)
+			c.Abort()
+			return
 		}
 
 		// 强制改密。默认管理员口令公开，首次登录后必须改密才能使用其他功能。
 		if tokenData.MustChangePassword {
-			key := fmt.Sprintf("%s %s", c.Request.Method, c.FullPath())
+			key := c.Request.Method + " " + c.FullPath()
 			if !mustChangePasswordWhitelist[key] {
 				response.Forbidden(c, global.I18.Translate("passwordMustChange", c.GetString("lang")))
 				c.Abort()

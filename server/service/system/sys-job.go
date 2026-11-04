@@ -54,13 +54,15 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 	if job.TenantId == "" && model.CurrentIsSuperAdmin(db) {
 		job.TenantId = global.PlatformTenantID
 	}
-	// 任务数配额校验：超限即拒绝创建
-	if err := enforceJobQuota(db, job.TenantId, 1); err != nil {
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := enforceJobQuota(tx, job.TenantId, 1); err != nil {
+			return err
+		}
+		return tx.Create(job).Error
+	}); err != nil {
 		return nil, err
 	}
-	if err := db.Create(job).Error; err != nil {
-		return nil, errors.New("job.createJobFailed")
-	}
+
 	// 如果创建时状态为1，自动加入调度器
 	if job.Status == 1 {
 		jobScheduler := shared.GetJobScheduler()

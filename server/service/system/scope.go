@@ -21,7 +21,7 @@ import (
 
 // isSuperAdmin 判断当前操作者是否平台超级管理员。
 func isSuperAdmin(db *gorm.DB) bool {
-	return model.CurrentIsSuperAdmin(db)
+	return model.CurrentIsSuperAdmin(db) && model.CurrentTenantID(db) == global.PlatformTenantID
 }
 
 // tenantRestricted 判断当前请求是否受租户可见范围限制。

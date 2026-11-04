@@ -10,7 +10,7 @@ import (
 type AuthRouter struct{}
 
 func (s *AuthRouter) InitAuthRouter(r *gin.RouterGroup) gin.IRoutes {
-	router := r.Group("auth")
+	router := r.Group("auth", middleware.PublicAuthContextMiddleware())
 	{
 		// 昂贵的无认证端点按 IP 单独限流：RSA 签发、验证码生成、邮件发送、登录/改密尝试。
 		router.GET("code_with_email", middleware.IpRateLimitMiddleware(60*time.Second, 3), authApi.SendLoginWithEmailCode)     // 获取使用邮箱登录验证码

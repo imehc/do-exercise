@@ -2,12 +2,13 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/middleware"
 )
 
 type SysTenantRouter struct{}
 
 func (s *SysTenantRouter) InitSysTenantRouter(r *gin.RouterGroup) gin.IRoutes {
-	router := r.Group("tenants")
+	router := r.Group("tenants", middleware.PlatformMiddleware())
 	{
 		router.GET("", tenantApi.GetList)
 		router.POST("", tenantApi.Create)

@@ -48,6 +48,8 @@ var LegacyPlatformOnlyMenuIDs = []uint{8, 10, 161, 181, 182, 183, 184, 185}
 var tenantScopedTables = map[string]bool{
 	"sys_user":          true,
 	"sys_user_tenant":   true,
+	"sys_file":          true,
+	"sys_storage_usage": true,
 	"sys_role":          true,
 	"sys_job":           true,
 	"sys_job_run":       true,

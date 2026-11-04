@@ -115,6 +115,7 @@ func TestAllVersionsAreStable(t *testing.T) {
 		{8, "sys_menu_scope_not_null"},
 		{9, "sys_user_tenant_membership"},
 		{10, "multi_tenant_security"},
+		{11, "job_execution_storage_lifecycle"},
 	}
 
 	got := All("")

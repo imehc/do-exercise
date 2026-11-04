@@ -62,6 +62,9 @@ func InitConfig(configFile string) {
 		util.Exit("配置映射失败: ", err)
 	}
 
+	if global.Config.Oss.GCIntervalSeconds < 0 || global.Config.Oss.GCIntervalSeconds > 86400 || global.Config.Oss.AvatarRetentionHours < 0 || global.Config.Oss.AvatarRetentionHours > 87600 || global.Config.Oss.DeletedTenantRetentionDays < 0 || global.Config.Oss.DeletedTenantRetentionDays > 36500 {
+		util.Exit("对象回收配置超出允许范围", nil)
+	}
 	// 启动时一次性解析并校验 token 时长配置，避免请求期解析失败时生成 0 TTL 的永久 token。
 	util.InitAuthDurations(global.Config.Auth.AccessExpireTime, global.Config.Auth.RefreshExpireTime)
 

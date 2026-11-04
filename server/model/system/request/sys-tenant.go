@@ -7,11 +7,12 @@ import "time"
 //   - admin_mode = new（默认）：新建用户，需 admin_username + admin_password
 //   - admin_mode = existing：选择现有用户（排除平台超级管理员），需 admin_user_id
 type CreateSysTenantReq struct {
-	Name     string `json:"name" binding:"required,min=2,max=64"`
-	Code     string `json:"code" binding:"required,alphanum,min=2,max=32"`
-	Remark   string `json:"remark,omitempty" binding:"omitempty,max=255"`
-	MaxUsers *int   `json:"max_users,omitempty" binding:"omitempty,gte=0"`
-	MaxTasks *int   `json:"max_tasks,omitempty" binding:"omitempty,gte=0"`
+	Name            string `json:"name" binding:"required,min=2,max=64"`
+	Code            string `json:"code" binding:"required,alphanum,min=2,max=32"`
+	Remark          string `json:"remark,omitempty" binding:"omitempty,max=255"`
+	MaxUsers        *int   `json:"max_users,omitempty" binding:"omitempty,gte=0"`
+	MaxStorageBytes *int64 `json:"max_storage_bytes,omitempty" binding:"omitempty,gte=0,lte=9007199254740991"`
+	MaxTasks        *int   `json:"max_tasks,omitempty" binding:"omitempty,gte=0"`
 	// AdminMode 管理员账号模式：new / existing
 	AdminMode string `json:"admin_mode" binding:"required,oneof=new existing"`
 	// AdminUserId 选择现有用户时的用户 ID（admin_mode=existing）
@@ -28,10 +29,11 @@ const (
 )
 
 type UpdateSysTenantReq struct {
-	Name     string `json:"name" binding:"required,min=2,max=64"`
-	Status   *bool  `json:"status"`
-	MaxUsers *int   `json:"max_users,omitempty" binding:"omitempty,gte=0"`
-	MaxTasks *int   `json:"max_tasks,omitempty" binding:"omitempty,gte=0"`
+	Name            string `json:"name" binding:"required,min=2,max=64"`
+	Status          *bool  `json:"status"`
+	MaxUsers        *int   `json:"max_users,omitempty" binding:"omitempty,gte=0"`
+	MaxStorageBytes *int64 `json:"max_storage_bytes,omitempty" binding:"omitempty,gte=0,lte=9007199254740991"`
+	MaxTasks        *int   `json:"max_tasks,omitempty" binding:"omitempty,gte=0"`
 	// ExpireTime 租户到期时间。过期后视同停用（status=false）；不传则保持不变。
 	ExpireTime      *time.Time `json:"expire_time,omitempty"`
 	ClearExpireTime bool       `json:"clear_expire_time,omitempty"`

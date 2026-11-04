@@ -8,6 +8,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/common/request"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	sysReq "github.com/imehc/do-exercise/server/model/system/request"
+	"github.com/imehc/do-exercise/server/storage"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -106,26 +107,26 @@ func (u *UserService) UpdatePassword(db *gorm.DB, id string, oldPassword, passwo
 
 // UpdateProfile 修改用户基本信息
 func (u *UserService) UpdateProfile(db *gorm.DB, id string, req request.UserModifyProfileReq) error {
+	req.Avatar = storage.NormalizeAvatar(req.Avatar)
 	var user *system.SysUser
-	error := db.
+	loadErr := db.
 		Where("id = ?", id).
 		First(&user).
 		Error
-	if error != nil {
+	if loadErr != nil {
 		return errors.New("userNotFound")
 	}
 
-	user.Avatar = req.Avatar
-	user.Nickname = req.Nickname
-
-	if err := db.
-		Model(user).
-		Select("Avatar", "Nickname").
-		Updates(user).
-		Error; err != nil {
-		return errors.New("updateFailed")
-	}
-	return nil
+	return db.Transaction(func(tx *gorm.DB) error {
+		if req.Avatar != user.Avatar {
+			if err := storage.LockAvatar(tx, req.Avatar, user.TenantId); err != nil {
+				return err
+			}
+		}
+		user.Avatar = req.Avatar
+		user.Nickname = req.Nickname
+		return tx.Model(user).Select("Avatar", "Nickname").Updates(user).Error
+	})
 }
 
 // GetProfile 获取用户基本信息

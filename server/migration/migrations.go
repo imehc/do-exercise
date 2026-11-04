@@ -214,6 +214,7 @@ func All(seedSQL string) []Migration {
 			},
 		},
 		{Version: 10, Name: "multi_tenant_security", Up: hardenTenantSecurity},
+		{Version: 11, Name: "job_execution_storage_lifecycle", Up: executionStorageSchema},
 	}
 }
 

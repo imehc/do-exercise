@@ -65,6 +65,8 @@ func InitGorm(isAutoMigrate bool) {
 				system.SysJobRun{},
 				system.SysTenant{},
 				system.SysUserTenant{},
+				system.SysFile{},
+				system.SysStorageUsage{},
 				gormadapter.CasbinRule{},
 			)
 		})

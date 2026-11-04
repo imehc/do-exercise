@@ -1,11 +1,35 @@
 package common
 
 type OssReq struct {
-	FileName string `json:"file_name" form:"file_name" binding:"required"` // 文件名
+	FileName string `json:"file_name" form:"file_name" binding:"required,max=255"`
+	FileSize int64  `json:"file_size" form:"file_size" binding:"required,gt=0,lte=104857600"`
+	Purpose  string `json:"purpose" form:"purpose" binding:"omitempty,oneof=avatar private"`
+}
+type OssRes struct {
+	UploadUrl    string            `json:"upload_url"`
+	FormFields   map[string]string `json:"form_fields"`
+	ObjectKey    string            `json:"object_key"`
+	GetObjectUrl string            `json:"get_object_url,omitempty"`
+	Expires      int               `json:"expires"`
+}
+type OssDownloadReq struct {
+	ObjectKey string `form:"object_key" binding:"required,max=512"`
+}
+type OssDownloadRes struct {
+	Url     string `json:"url"`
+	Expires int    `json:"expires"`
 }
 
-type OssRes struct {
-	PutObjectUrl string `json:"put_object_url"` // 上传地址
-	GetObjectUrl string `json:"get_object_url"` // 下载地址
-	Expires      int    `json:"expires"`        // 过期时间戳
+type OssObjectReq struct {
+	ObjectKey string `json:"object_key" binding:"required,max=512"`
+}
+type OssFileRes struct {
+	ObjectKey    string `json:"object_key"`
+	Size         int64  `json:"size"`
+	State        string `json:"state"`
+	GetObjectUrl string `json:"get_object_url,omitempty"`
+}
+type OssUsageRes struct {
+	ChargedBytes    int64 `json:"charged_bytes"`
+	MaxStorageBytes int64 `json:"max_storage_bytes"`
 }

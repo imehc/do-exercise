@@ -67,8 +67,8 @@ func WithSchemaLock(ctx context.Context, db *gorm.DB, fn func() error) error {
 // default administrator database, including direct invocation of the server command.
 func VerifySecurityBaseline(db *gorm.DB) error {
 	var count int64
-	if err := db.Table("schema_migrations").Where("version = ?", 10).Count(&count).Error; err != nil || count != 1 {
-		return errors.New("run migrate before starting the server (migration 10 is required)")
+	if err := db.Table("schema_migrations").Where("version = ?", 11).Count(&count).Error; err != nil || count != 1 {
+		return errors.New("run migrate before starting the server (migration 11 is required)")
 	}
 	if err := util.TenantBypass(db).Table("sys_user").Where("password = ? AND deleted_at IS NULL", defaultAdminHash).Count(&count).Error; err != nil {
 		return err

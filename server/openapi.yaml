@@ -320,20 +320,30 @@ components:
     Oss:
       type: object
       properties:
-        put_object_url:
+        upload_url:
           type: string
-          description: 上传对象URL
+        form_fields:
+          type: object
+          additionalProperties:
+            type: string
+        object_key:
+          type: string
         get_object_url:
           type: string
-          description: 预签名URL
+          description: 仅公开头像返回永久 URL
         expires:
           type: integer
-          format: int64
-          description: 过期时间戳(秒)
-      required:
-        - put_object_url
-        - get_object_url
-        - expires
+          description: 签名有效秒数
+      required: [upload_url, form_fields, object_key, expires]
+
+    OssDownload:
+      type: object
+      properties:
+        url:
+          type: string
+        expires:
+          type: integer
+      required: [url, expires]
 
     TokenInfo:
       type: object
@@ -350,12 +360,9 @@ components:
         disabled:
           type: boolean
           description: 是否禁用
-        access_token:
+        session_id:
           type: string
-          description: 访问令牌
-        refresh_token:
-          type: string
-          description: 刷新令牌
+          description: 会话管理标识，不可用于认证
         access_token_created:
           type: string
           format: date-time
@@ -377,8 +384,7 @@ components:
         - user_id
         - tenant_id
         - disabled
-        - access_token
-        - refresh_token
+        - session_id
         - access_token_created
         - access_token_expired
         - refresh_token_created
@@ -387,11 +393,11 @@ components:
     DeleteToken:
       type: object
       properties:
-        access_token:
+        session_id:
           type: string
           description: 令牌
       required:
-        - access_token
+        - session_id
 
     ModityTokenStatus:
       allOf:
@@ -1322,12 +1328,18 @@ components:
           description: 执行次数
         retry_times:
           type: integer
+          minimum: 0
+          maximum: 5
           description: 重试次数
         retry_interval:
           type: integer
+          minimum: 0
+          maximum: 300
           description: 重试间隔(秒)
         timeout:
           type: integer
+          minimum: 0
+          maximum: 3600
           description: 执行超时时间(秒)
         created_at:
           type: string
@@ -1381,12 +1393,18 @@ components:
           description: 任务描述
         retry_times:
           type: integer
+          minimum: 0
+          maximum: 5
           description: 重试次数
         retry_interval:
           type: integer
+          minimum: 0
+          maximum: 300
           description: 重试间隔(秒)
         timeout:
           type: integer
+          minimum: 0
+          maximum: 3600
           description: 执行超时时间(秒)
       required:
         - name
@@ -1422,6 +1440,21 @@ components:
     Tenant:
       type: object
       properties:
+        max_users:
+          type: integer
+          minimum: 0
+        max_storage_bytes:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: 存储字节上限，0 表示不限
+        max_tasks:
+          type: integer
+          minimum: 0
+        expire_time:
+          type: string
+          format: date-time
         tenant_id:
           type: string
           description: 租户ID
@@ -1449,6 +1482,18 @@ components:
     CreateTenant:
       type: object
       properties:
+        max_users:
+          type: integer
+          minimum: 0
+        max_storage_bytes:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: 存储字节上限，0 表示不限
+        max_tasks:
+          type: integer
+          minimum: 0
         name:
           type: string
           description: 租户名称
@@ -1485,6 +1530,24 @@ components:
     UpdateTenant:
       type: object
       properties:
+        max_users:
+          type: integer
+          minimum: 0
+        max_storage_bytes:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+          description: 存储字节上限，0 表示不限
+        max_tasks:
+          type: integer
+          minimum: 0
+        expire_time:
+          type: string
+          format: date-time
+        clear_expire_time:
+          type: boolean
+          description: 清除到期时间，恢复为永不过期
         name:
           type: string
           description: 租户名称
@@ -1569,6 +1632,48 @@ components:
       required:
         - tenants
         - permission_actions
+
+    OssObject:
+      type: object
+      properties:
+        object_key: {type: string, maxLength: 512}
+      required: [object_key]
+    OssFile:
+      type: object
+      properties:
+        object_key: {type: string}
+        size: {type: integer, format: int64}
+        state: {type: string}
+        get_object_url: {type: string}
+      required: [object_key, size, state]
+    OssUsage:
+      type: object
+      properties:
+        charged_bytes: {type: integer, format: int64}
+        max_storage_bytes: {type: integer, format: int64}
+      required: [charged_bytes, max_storage_bytes]
+    JobRun:
+      type: object
+      properties:
+        id: {type: string}
+        job_id: {type: integer}
+        tenant_id: {type: string}
+        scheduled: {type: boolean}
+        status: {type: string, enum: [queued, retrying, succeeded, failed, skipped]}
+        attempts: {type: integer}
+        last_error: {type: string}
+        created_at: {type: string, format: date-time}
+        next_attempt_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+      required: [id, job_id, tenant_id, scheduled, status, attempts, created_at, next_attempt_at, last_error]
+    JobRunList:
+      type: object
+      properties:
+        meta: {$ref: '#/components/schemas/Pagination'}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/JobRun'}
+      required: [meta, data]
 
 paths:
   /auth/public_key:
@@ -1818,6 +1923,21 @@ paths:
           schema:
             type: string
           description: 文件名
+        - name: file_size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            maximum: 104857600
+          description: 文件实际字节数，作为签名限制和配额预占
+        - name: purpose
+          in: query
+          schema:
+            type: string
+            enum: [private, avatar]
+            default: private
       responses:
         "200":
           description: "获取成功"
@@ -1825,6 +1945,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Oss"
+
+  /get_download_url:
+    get:
+      summary: 获取本租户文件的短期下载地址
+      operationId: getDownloadUrl
+      tags: [oss]
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: object_key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OssDownload'
 
   /auth/logout:
     get:
@@ -3010,3 +3151,69 @@ paths:
       responses:
         '204':
           description: 执行成功
+
+  /files/complete:
+    post:
+      summary: 确认本人的上传已完成
+      operationId: completeUpload
+      tags: [oss]
+      security: [{apiKeyAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OssObject'}
+      responses:
+        '200':
+          description: 上传已登记
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OssFile'}
+  /files:
+    delete:
+      summary: 将本人的文件放入回收队列
+      operationId: deleteFile
+      tags: [oss]
+      security: [{apiKeyAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OssObject'}
+      responses:
+        '204': {description: 已进入回收队列}
+  /files/usage:
+    get:
+      summary: 当前租户的文件与上传预占总量
+      operationId: storageUsage
+      tags: [oss]
+      security: [{apiKeyAuth: []}]
+      responses:
+        '200':
+          description: 当前配额占用
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/OssUsage'}
+  /system/jobs/{id}/runs:
+    get:
+      summary: 查看任务执行记录
+      operationId: findJobRuns
+      tags: [system-job]
+      security: [{apiKeyAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: integer}
+        - name: page
+          in: query
+          schema: {type: integer, default: 1}
+        - name: page_size
+          in: query
+          schema: {type: integer, default: 10}
+      responses:
+        '200':
+          description: 执行记录
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/JobRunList'}

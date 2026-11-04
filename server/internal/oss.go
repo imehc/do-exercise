@@ -44,36 +44,15 @@ func InitOss() {
 		}
 	}
 
-	// 设置匿名访问规则
-	policy := fmt.Sprintf(`{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Effect": "Allow",
-				"Principal": {
-					"AWS": ["*"]
-				},
-				"Action": [
-					"s3:GetBucketLocation",
-					"s3:ListBucket"
-				],
-				"Resource": ["arn:aws:s3:::%s"]
-			},
-			{
-				"Effect": "Allow",
-				"Principal": {
-					"AWS": ["*"]
-				},
-				"Action": ["s3:GetObject"],
-				"Resource": ["arn:aws:s3:::%s/*"]
-			}
-		]
-	}`, bucketName, bucketName)
-	err = client.SetBucketPolicy(ctx, bucketName, policy)
-	if err != nil {
-		util.Exit("设置匿名访问规则失败", err)
+	// Only intentionally public avatars may be fetched anonymously. Bucket listing and business files remain private.
+	policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/public/avatars/*"]}]}`, bucketName)
+	if err := client.SetBucketPolicy(ctx, bucketName, policy); err != nil {
+		util.Exit("设置对象访问规则失败", err)
 	}
 
 	global.Oss = client
+	if err := MigrateLegacyAvatars(ctx, client); err != nil {
+		util.Exit("迁移旧头像失败", err)
+	}
 	fmt.Println("oss初始化成功")
 }

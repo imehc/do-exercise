@@ -56,6 +56,9 @@ captcha:
 
 # 对象存储连接信息和访问凭据由环境变量注入，Docker 部署使用 deploy/docker/.env
 oss:
+  gc_interval_seconds: 60
+  avatar_retention_hours: 24
+  deleted_tenant_retention_days: 30
   expires: 3600
   secure: false # 是否使用 HTTPS 访问对象存储
 

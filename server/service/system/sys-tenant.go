@@ -36,7 +36,7 @@ func (s *SysTenantService) checkCodeDuplicate(db *gorm.DB, code string) error {
 
 // 平台层调用，经 BypassTenantDB 显式控制 tenant_id。
 func (s *SysTenantService) Create(db *gorm.DB, req request.CreateSysTenantReq) (*response.SysTenantResp, error) {
-	if req.MaxUsers != nil && *req.MaxUsers < 0 || req.MaxTasks != nil && *req.MaxTasks < 0 {
+	if req.MaxUsers != nil && *req.MaxUsers < 0 || req.MaxTasks != nil && *req.MaxTasks < 0 || req.MaxStorageBytes != nil && (*req.MaxStorageBytes < 0 || *req.MaxStorageBytes > 9007199254740991) {
 		return nil, errors.New("invalidTenantQuota")
 	}
 	if req.AdminMode != request.AdminModeNew && req.AdminMode != request.AdminModeExisting {
@@ -66,6 +66,9 @@ func (s *SysTenantService) Create(db *gorm.DB, req request.CreateSysTenantReq) (
 	}
 	if req.MaxUsers != nil {
 		tenant.MaxUsers = *req.MaxUsers
+	}
+	if req.MaxStorageBytes != nil {
+		tenant.MaxStorageBytes = *req.MaxStorageBytes
 	}
 	if req.MaxTasks != nil {
 		tenant.MaxTasks = *req.MaxTasks
@@ -127,15 +130,16 @@ func (s *SysTenantService) Create(db *gorm.DB, req request.CreateSysTenantReq) (
 	}
 
 	return &response.SysTenantResp{
-		TenantId:  tenant.TenantId,
-		Name:      tenant.Name,
-		Code:      tenant.Code,
-		Status:    tenant.Status,
-		MaxUsers:  tenant.MaxUsers,
-		MaxTasks:  tenant.MaxTasks,
-		Remark:    tenant.Remark,
-		CreatedAt: tenant.CreatedAt,
-		CreatedBy: tenant.CreatedBy,
+		TenantId:        tenant.TenantId,
+		Name:            tenant.Name,
+		Code:            tenant.Code,
+		Status:          tenant.Status,
+		MaxUsers:        tenant.MaxUsers,
+		MaxStorageBytes: tenant.MaxStorageBytes,
+		MaxTasks:        tenant.MaxTasks,
+		Remark:          tenant.Remark,
+		CreatedAt:       tenant.CreatedAt,
+		CreatedBy:       tenant.CreatedBy,
 	}, nil
 }
 
@@ -216,7 +220,7 @@ func (s *SysTenantService) provisionAdminUser(
 
 // Update 更新租户（名称/状态/备注）
 func (s *SysTenantService) Update(db *gorm.DB, id string, req request.UpdateSysTenantReq) error {
-	if req.MaxUsers != nil && *req.MaxUsers < 0 || req.MaxTasks != nil && *req.MaxTasks < 0 {
+	if req.MaxUsers != nil && *req.MaxUsers < 0 || req.MaxTasks != nil && *req.MaxTasks < 0 || req.MaxStorageBytes != nil && (*req.MaxStorageBytes < 0 || *req.MaxStorageBytes > 9007199254740991) {
 		return errors.New("invalidTenantQuota")
 	}
 
@@ -239,6 +243,9 @@ func (s *SysTenantService) Update(db *gorm.DB, id string, req request.UpdateSysT
 	}
 	if req.MaxUsers != nil {
 		updates["MaxUsers"] = *req.MaxUsers
+	}
+	if req.MaxStorageBytes != nil {
+		updates["max_storage_bytes"] = *req.MaxStorageBytes
 	}
 	if req.MaxTasks != nil {
 		updates["MaxTasks"] = *req.MaxTasks
@@ -325,18 +332,19 @@ func (s *SysTenantService) Get(db *gorm.DB, id string) (*response.SysTenantResp,
 		return nil, err
 	}
 	return &response.SysTenantResp{
-		TenantId:   tenant.TenantId,
-		Name:       tenant.Name,
-		Code:       tenant.Code,
-		Status:     tenant.Status,
-		ExpireTime: tenant.ExpireTime,
-		MaxUsers:   tenant.MaxUsers,
-		MaxTasks:   tenant.MaxTasks,
-		Remark:     tenant.Remark,
-		CreatedAt:  tenant.CreatedAt,
-		CreatedBy:  tenant.CreatedBy,
-		UpdatedAt:  tenant.UpdatedAt,
-		UpdatedBy:  tenant.UpdatedBy,
+		TenantId:        tenant.TenantId,
+		Name:            tenant.Name,
+		Code:            tenant.Code,
+		Status:          tenant.Status,
+		ExpireTime:      tenant.ExpireTime,
+		MaxUsers:        tenant.MaxUsers,
+		MaxStorageBytes: tenant.MaxStorageBytes,
+		MaxTasks:        tenant.MaxTasks,
+		Remark:          tenant.Remark,
+		CreatedAt:       tenant.CreatedAt,
+		CreatedBy:       tenant.CreatedBy,
+		UpdatedAt:       tenant.UpdatedAt,
+		UpdatedBy:       tenant.UpdatedBy,
 	}, nil
 }
 
@@ -380,18 +388,19 @@ func (s *SysTenantService) GetList(db *gorm.DB, req request.QuerySysTenantReq) (
 	data := make([]response.SysTenantResp, len(tenants))
 	for i, t := range tenants {
 		data[i] = response.SysTenantResp{
-			TenantId:   t.TenantId,
-			Name:       t.Name,
-			Code:       t.Code,
-			Status:     t.Status,
-			ExpireTime: t.ExpireTime,
-			MaxUsers:   t.MaxUsers,
-			MaxTasks:   t.MaxTasks,
-			Remark:     t.Remark,
-			CreatedAt:  t.CreatedAt,
-			CreatedBy:  t.CreatedBy,
-			UpdatedAt:  t.UpdatedAt,
-			UpdatedBy:  t.UpdatedBy,
+			TenantId:        t.TenantId,
+			Name:            t.Name,
+			Code:            t.Code,
+			Status:          t.Status,
+			ExpireTime:      t.ExpireTime,
+			MaxUsers:        t.MaxUsers,
+			MaxStorageBytes: t.MaxStorageBytes,
+			MaxTasks:        t.MaxTasks,
+			Remark:          t.Remark,
+			CreatedAt:       t.CreatedAt,
+			CreatedBy:       t.CreatedBy,
+			UpdatedAt:       t.UpdatedAt,
+			UpdatedBy:       t.UpdatedBy,
 		}
 	}
 	return common.PageResult[response.SysTenantResp]{

@@ -9,6 +9,7 @@ import (
 	"github.com/imehc/do-exercise/server/model/system"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/model/system/response"
+	"github.com/imehc/do-exercise/server/storage"
 	"github.com/imehc/do-exercise/server/util"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -114,6 +115,7 @@ func (s *SysUserService) UsernameExists(db *gorm.DB, username string) (bool, err
 
 // Create 创建用户
 func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*response.SysUserResp, error) {
+	req.Avatar = storage.NormalizeAvatar(req.Avatar)
 	if err := util.ValidateNewPassword(req.Password); err != nil {
 		return nil, err
 	}
@@ -144,6 +146,10 @@ func (s *SysUserService) Create(db *gorm.DB, req request.CreateSysUserReq) (*res
 
 	// 开启事务
 	tx := db.Begin()
+	if err := storage.LockAvatar(tx, req.Avatar, user.TenantId); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -264,11 +270,13 @@ func (s *SysUserService) Delete(db *gorm.DB, id string) error {
 
 // Update 更新用户
 func (s *SysUserService) Update(db *gorm.DB, id string, req request.UpdateSysUserReq) error {
+	req.Avatar = storage.NormalizeAvatar(req.Avatar)
 	var existUser *system.SysUser
 	existUser, err := s.checkUserExist(db, id)
 	if err != nil {
 		return err
 	}
+	oldAvatar := existUser.Avatar
 	existUser.Avatar = req.Avatar
 	existUser.Nickname = req.Nickname
 
@@ -277,6 +285,12 @@ func (s *SysUserService) Update(db *gorm.DB, id string, req request.UpdateSysUse
 	if _, err := lockTenant(tx, existUser.TenantId); err != nil {
 		tx.Rollback()
 		return err
+	}
+	if req.Avatar != oldAvatar {
+		if err := storage.LockAvatar(tx, req.Avatar, existUser.TenantId); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 	roleIDs, err := preserveAdministrator(tx, existUser, req.RoleIds, false)
 	if err != nil {

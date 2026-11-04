@@ -45,6 +45,7 @@ func (spec *Spec) genModel() string {
 	b.WriteString("package system\n\n")
 	b.WriteString("import (\n\t\"time\"\n\n\t\"github.com/imehc/do-exercise/server/model\"\n\t\"gorm.io/gorm\"\n)\n\n")
 	fmt.Fprintf(&b, "// %s %s\ntype %s struct {\n\tmodel.IdWrapper\n", spec.Name, spec.Desc, spec.Name)
+	b.WriteString("\tTenantId string " + bt + `json:"tenant_id" gorm:"not null;size:32;index"` + bt + "\n")
 	for _, f := range spec.Fields {
 		b.WriteString(f.modelField())
 	}

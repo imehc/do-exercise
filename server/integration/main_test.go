@@ -4,15 +4,27 @@ package integration
 
 import (
 	"context"
+	"github.com/imehc/do-exercise/server/migration"
+	"go.uber.org/zap"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/internal"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
+
+func objectStorageTestCredentials() *credentials.Credentials {
+	accessKey, secretKey := os.Getenv("OSS_TEST_ACCESS_KEY"), os.Getenv("OSS_TEST_SECRET_KEY")
+	if accessKey == "" && secretKey == "" {
+		accessKey, secretKey = "tenant-audit-root", "TenantAuditLocalOnly!123"
+	}
+	return credentials.NewStaticV4(accessKey, secretKey, "")
+}
 
 // TestMain 搭建隔离回归测试的运行环境：
 // go test 在包目录（server/integration）运行，先切到 server/ 使相对路径可解析，
@@ -34,8 +46,22 @@ func TestMain(m *testing.M) {
 	setDefaultEnv("REDIS_DATABASE", "15")
 
 	internal.InitConfig("integration/testdata/config.yaml")
+	if !strings.HasSuffix(os.Getenv("POSTGRES_DB"), "_test") {
+		panic("integration tests require an independent database ending in _test")
+	}
+	global.Log = zap.NewNop()
+	internal.InitRedis()
+	internal.InitI18n()
 	internal.InitGorm(true) // 连接测试库并 AutoMigrate（内部注册 TenantPlugin）
 	db = global.DB
+	setDefaultEnv("BOOTSTRAP_ADMIN_PASSWORD", "Integration-Only!123")
+	seed, err := os.ReadFile("init.sql")
+	if err != nil {
+		panic(err)
+	}
+	if _, err := migration.Run(context.Background(), db, migration.All(string(seed))); err != nil {
+		panic(err)
+	}
 
 	code := m.Run()
 	os.Exit(code)
@@ -62,7 +88,7 @@ func tenantDB(tenantID string) *gorm.DB {
 // truncateScopedTables 清空四张租户隔离表并重置自增序列，保证每个用例幂等。
 func truncateScopedTables(t *testing.T) {
 	t.Helper()
-	if err := bypass().Exec(`TRUNCATE sys_user, sys_role, sys_job, sys_operation_log RESTART IDENTITY CASCADE`).Error; err != nil {
+	if err := bypass().Exec(`TRUNCATE sys_storage_usage, sys_job_run, sys_user_tenant, sys_file, sys_user, sys_role, sys_job, sys_operation_log RESTART IDENTITY CASCADE`).Error; err != nil {
 		t.Fatalf("truncate scoped tables: %v", err)
 	}
 }

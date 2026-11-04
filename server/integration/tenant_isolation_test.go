@@ -18,7 +18,7 @@ const (
 // expectedScopedTables 是 tenantScopedTables 当前应登记的租户隔离表。
 // 新增隔离表时必须同步补到 server/global/constant.go 的 tenantScopedTables 与本表：
 // 漏登 map → TestTenantScopedTableRegistry 红；漏进本表 → 新表隔离没有被任何用例覆盖。
-var expectedScopedTables = []string{"sys_user", "sys_role", "sys_job", "sys_operation_log"}
+var expectedScopedTables = []string{"sys_user", "sys_role", "sys_job", "sys_operation_log", "sys_user_tenant", "sys_file"}
 
 // expectedSharedTables 明确不作为租户隔离的共享表（防止被误登记成隔离表）。
 var expectedSharedTables = []string{"sys_tenant", "sys_api", "sys_menu", "casbin_rule"}
@@ -26,6 +26,16 @@ var expectedSharedTables = []string{"sys_tenant", "sys_api", "sys_menu", "casbin
 // TestTenantScopedTableRegistry 锁住「登记表 == 期望集合」：既不许漏登记隔离表，
 // 也不许把共享表误登记。这是「漏登记一张表就泄漏」这条回归的第一道防线。
 func TestTenantScopedTableRegistry(t *testing.T) {
+	var tables []string
+	if err := bypass().Raw("SELECT table_name FROM information_schema.columns WHERE table_schema = 'public' AND column_name = 'tenant_id'").Scan(&tables).Error; err != nil {
+		t.Fatal(err)
+	}
+	for _, table := range tables {
+		if table != "sys_tenant" && !global.IsTenantScopedTable(table) {
+			t.Errorf("tenant table %s missing from isolation registry", table)
+		}
+	}
+
 	for _, name := range expectedScopedTables {
 		if !global.IsTenantScopedTable(name) {
 			t.Errorf("期望 %s 参与租户隔离，但 tenantScopedTables 未登记", name)
@@ -50,6 +60,9 @@ type scopedFixture struct {
 // 且跨租户读取被插件挡住（漏掉 tenantScopedTables 登记就会出现 B 的行在 A 里可见）。
 func TestTenantIsolationPerTable(t *testing.T) {
 	fixtures := []scopedFixture{
+		{table: "sys_user_tenant", markerCol: "user_id", seedA: map[string]any{"user_id": "isoA", "tenant_id": tenantA}, seedB: map[string]any{"user_id": "isoB", "tenant_id": tenantB}},
+		{table: "sys_file", markerCol: "file_name", seedA: map[string]any{"object_key": "isoA", "file_name": "isoA", "tenant_id": tenantA, "user_id": "a", "content_type": "text/plain", "max_size": 100}, seedB: map[string]any{"object_key": "isoB", "file_name": "isoB", "tenant_id": tenantB, "user_id": "b", "content_type": "text/plain", "max_size": 100}},
+
 		{
 			table: "sys_user", markerCol: "username",
 			seedA: map[string]any{"id": "isoA-user", "username": "isoA", "password": "x", "tenant_id": tenantA},

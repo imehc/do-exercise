@@ -4,33 +4,23 @@ package integration
 
 import (
 	"strings"
-	"sync"
 	"testing"
 
-	"github.com/imehc/do-exercise/server/internal"
 	sysmodel "github.com/imehc/do-exercise/server/model/system"
 	sysreq "github.com/imehc/do-exercise/server/model/system/request"
 	syssvc "github.com/imehc/do-exercise/server/service/system"
 )
 
-var (
-	initEnforcerOnce sync.Once
-)
-
-// ensureEnforcer 让走完整服务层的用例可用到 Casbin。进程内只初始化一次。
-func ensureEnforcer() {
-	initEnforcerOnce.Do(func() {
-		internal.InitCasbin()
-	})
-}
-
 // seedQuotaTenant 种一个带配额上限的租户，并登记清理。
 func seedQuotaTenant(t *testing.T, tenantID string, maxUsers, maxTasks int) {
 	t.Helper()
+	if err := bypass().Unscoped().Where("tenant_id = ?", tenantID).Delete(&sysmodel.SysTenant{}).Error; err != nil {
+		t.Fatal(err)
+	}
 	tenant := &sysmodel.SysTenant{
 		TenantId: tenantID,
 		Name:     "quota-" + tenantID,
-		Code:     "quota-" + tenantID,
+		Code:     tenantID,
 		Status:   true,
 		MaxUsers: maxUsers,
 		MaxTasks: maxTasks,
@@ -39,14 +29,13 @@ func seedQuotaTenant(t *testing.T, tenantID string, maxUsers, maxTasks int) {
 		t.Fatalf("seed quota tenant %s: %v", tenantID, err)
 	}
 	t.Cleanup(func() {
-		_ = bypass().Where("tenant_id = ?", tenantID).Delete(&sysmodel.SysTenant{}).Error
+		_ = bypass().Unscoped().Where("tenant_id = ?", tenantID).Delete(&sysmodel.SysTenant{}).Error
 	})
 }
 
 // TestTenantUserQuota 验证用户数配额：上限内可建、超限被拒、0 表示不限。
 func TestTenantUserQuota(t *testing.T) {
 	truncateScopedTables(t)
-	ensureEnforcer()
 
 	const capped = "quota-user-cap"
 	seedQuotaTenant(t, capped, 1, 0)
@@ -90,7 +79,7 @@ func TestTenantJobQuota(t *testing.T) {
 		_, err := svc.Create(tenantDB(tenantID), sysreq.CreateSysJobReq{
 			Name:           name,
 			JobGroup:       "default",
-			CronExpression: "0 0 * * *",
+			CronExpression: "0 0 0 * * *",
 			Command:        "clean_empty_username_operation_logs",
 			Status:         2, // 暂停态：不走调度器
 		})

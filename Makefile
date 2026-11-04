@@ -3,6 +3,7 @@
 
 # 默认使用 deploy/docker 目录下的 docker-compose.yml
 DOCKER_COMPOSE_FILE := deploy/docker/docker-compose.yml
+DOCKER_COMPOSE := docker compose --env-file deploy/docker/.env -f $(DOCKER_COMPOSE_FILE)
 # 开发环境依赖（数据库/Redis/RustFS）
 DEV_COMPOSE_FILE := deploy/docker/docker-compose.dev.yml
 
@@ -21,31 +22,31 @@ certs:
 
 # 启动所有服务
 up:
-	docker compose -f $(DOCKER_COMPOSE_FILE) up -d
+	$(DOCKER_COMPOSE) up -d --build
 
 # 停止并移除所有服务
 down:
-	docker compose -f $(DOCKER_COMPOSE_FILE) down
+	$(DOCKER_COMPOSE) down
 
 # 构建服务
 build:
-	docker compose -f $(DOCKER_COMPOSE_FILE) build
+	$(DOCKER_COMPOSE) build
 
 # 查看服务日志
 logs:
-	docker compose -f $(DOCKER_COMPOSE_FILE) logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 # 查看服务状态
 ps:
-	docker compose -f $(DOCKER_COMPOSE_FILE) ps
+	$(DOCKER_COMPOSE) ps
 
 # 重启服务
 restart:
-	docker compose -f $(DOCKER_COMPOSE_FILE) restart
+	$(DOCKER_COMPOSE) restart
 
 # 清理所有容器和卷
 clean:
-	docker compose -f $(DOCKER_COMPOSE_FILE) down -v --remove-orphans
+	$(DOCKER_COMPOSE) down -v --remove-orphans
 
 # 一键启动开发环境：依赖容器 + 数据库初始化 + 后端热重载
 dev:
@@ -53,9 +54,9 @@ dev:
 		cp deploy/docker/.env.dev.example deploy/docker/.env.dev; \
 		echo "已创建 deploy/docker/.env.dev（按需修改）"; \
 	fi
-	docker compose -f $(DEV_COMPOSE_FILE) up -d
+	docker compose --env-file deploy/docker/.env.dev -f $(DEV_COMPOSE_FILE) up -d
 	@echo "等待数据库就绪..."
-	@i=0; until docker compose -f $(DEV_COMPOSE_FILE) exec -T postgres pg_isready >/dev/null 2>&1; do \
+	@i=0; until docker compose --env-file deploy/docker/.env.dev -f $(DEV_COMPOSE_FILE) exec -T postgres pg_isready >/dev/null 2>&1; do \
 		i=$$((i+1)); \
 		if [ $$i -gt 30 ]; then echo "等待数据库就绪超时"; exit 1; fi; \
 		sleep 2; \
@@ -71,11 +72,11 @@ dev:
 
 # 停止开发环境依赖容器
 dev-down:
-	docker compose -f $(DEV_COMPOSE_FILE) down
+	docker compose --env-file deploy/docker/.env.dev -f $(DEV_COMPOSE_FILE) down
 
 # 查看开发环境依赖日志
 dev-logs:
-	docker compose -f $(DEV_COMPOSE_FILE) logs -f
+	docker compose --env-file deploy/docker/.env.dev -f $(DEV_COMPOSE_FILE) logs -f
 
 # 帮助信息
 help:

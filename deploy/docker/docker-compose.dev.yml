@@ -1,7 +1,7 @@
 # 开发环境依赖（数据库 / Redis / 对象存储 RustFS）
 # 用法：
 #   1. 复制环境变量：cp deploy/docker/.env.dev.example deploy/docker/.env.dev
-#   2. 启动依赖：    docker compose -f deploy/docker/docker-compose.dev.yml up -d
+#   2. 启动依赖：    docker compose --env-file deploy/docker/.env.dev -f deploy/docker/docker-compose.dev.yml up -d
 #   3. 本地运行后端：cd server && make dev
 # 所有端口已映射到宿主机，便于本地进程直接连接（默认端口 5432/6379/9000/9001）。
 volumes:
@@ -38,12 +38,16 @@ services:
     image: redis:8
     env_file:
       - .env.dev
+    command:
+      - /bin/sh
+      - -ec
+      - exec /usr/local/bin/docker-entrypoint.sh redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - dev_redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "[ \"$$(REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping)\" = PONG ]"]
       interval: 5s
       timeout: 3s
       retries: 10

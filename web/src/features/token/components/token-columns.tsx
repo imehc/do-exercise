@@ -19,7 +19,7 @@ const columnTitleMap = {
   userId: (): string => t`用户ID`,
   username: (): string => t`用户名`,
   tenantId: (): string => t`所属租户`,
-  accessToken: (): string => t`令牌`,
+  sessionId: (): string => t`会话ID`,
   disabled: (): string => t`禁用状态`,
   accessTokenCreated: (): string => t`创建时间`,
   accessTokenExpired: (): string => t`到期时间`,
@@ -116,12 +116,12 @@ export const useColumns = (): ColumnDef<DataTableFeatures, TokenInfo>[] => {
         ]
       : []),
     createColumn<TokenInfo>({
-      key: 'accessToken',
-      title: columnTitleMap.accessToken,
+      key: 'sessionId',
+      title: columnTitleMap.sessionId,
       cell: ({ row }: CellContext<DataTableFeatures, TokenInfo, unknown>) => (
         <InlineCopy
           className='w-fit text-nowrap'
-          text={row.original.accessToken}
+          text={row.original.sessionId}
         />
       ),
     }),
@@ -136,7 +136,7 @@ export const useColumns = (): ColumnDef<DataTableFeatures, TokenInfo>[] => {
               const token = row.original
               return (
                 <ToggleDisabledSwitch
-                  accessToken={token.accessToken}
+                  sessionId={token.sessionId}
                   disabled={token.disabled}
                 />
               )

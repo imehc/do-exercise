@@ -6,8 +6,8 @@ export const getPasswordRule = () =>
     .string({
       error: t`密码不能为空`,
     })
-    .min(6, { error: t`密码至少为6个字符` })
-    .max(16, { error: t`密码最多为16个字符` })
+    .min(12, { error: t`密码至少为12个字符` })
+    .max(72, { error: t`密码最多为72个字符` })
     .regex(/[a-zA-Z]/, { error: t`密码必须包含至少一个字母` })
     .regex(/[0-9]/, { error: t`密码必须包含至少一个数字` })
     // eslint-disable-next-line no-useless-escape
@@ -32,7 +32,9 @@ export const getBaseSchema = () =>
     confirmPassword: z.string().optional(),
   })
 
-export const getSchema = (checkUsername?: (username: string) => Promise<boolean>) =>
+export const getSchema = (
+  checkUsername?: (username: string) => Promise<boolean>
+) =>
   getBaseSchema()
     .extend({
       username: getUsernameRule(),

@@ -1,15 +1,12 @@
 import { z } from 'zod'
 import { t } from '@lingui/core/macro'
 import { getOptionalTenantCodeRule } from '~/features/tenant/schemas/action-schema'
-import {
-  getPasswordRule,
-  getUsernameRule,
-} from '~/features/user/schemas/action-schema'
+import { getUsernameRule } from '~/features/user/schemas/action-schema'
 
 export const getSignInActionSchema = () =>
   z.object({
     username: getUsernameRule(),
-    password: getPasswordRule(),
+    password: z.string().min(1).max(72),
     captchaId: z.string({
       error: t`验证码ID不能为空`,
     }),

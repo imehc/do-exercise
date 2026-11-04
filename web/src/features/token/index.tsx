@@ -44,7 +44,7 @@ export default function Token() {
             getColumnTitle={getColumnTitle}
             serchOptions={[
               { key: 'username', placeholder: t`用户名` },
-              { key: 'accessToken', placeholder: t`令牌` },
+              { key: 'sessionId', placeholder: t`令牌` },
             ]}
             stickyColumns={{
               left: ['id'],

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { t } from '@lingui/core/macro'
-import { from, mergeMap, map, iif, of, tap, finalize } from 'rxjs'
-import { fromFetch } from 'rxjs/fetch'
+import { EMPTY, catchError, concatMap, defer, finalize } from 'rxjs'
 import { toast } from 'sonner'
 import { OssApi } from '~/do-exercise-api'
 import { toBase64 } from '~/lib/utils'
@@ -15,7 +14,6 @@ export function useAvatarUploadSubject(
   const [isPending, setIsPending] = useState(false)
   const [upload$, handleUpload] = useSubject<File>()
   const ossApi = useApi(OssApi)
-
   const stableRef = useRef({ onChange, options, ossApi })
   useEffect(() => {
     stableRef.current = { onChange, options, ossApi }
@@ -24,58 +22,55 @@ export function useAvatarUploadSubject(
   useEffect(() => {
     const task = upload$
       .pipe(
-        mergeMap((file) =>
-          iif(
-            () =>
-              !!(
-                stableRef.current.options?.preview && stableRef.current.onChange
-              ),
-            from(toBase64(file)).pipe(
-              tap((base64) =>
-                of(stableRef.current.onChange?.(base64 as string))
-              ),
-              map(() => file)
-            ),
-            of(file)
-          ).pipe(tap(() => setIsPending(true)))
-        ),
-        mergeMap((file) =>
-          from(
-            stableRef.current.ossApi.getPresignedUrl({ fileName: file.name })
-          ).pipe(map((oss) => ({ file, oss })))
-        ),
-        mergeMap(({ file, oss }) =>
-          fromFetch(oss.putObjectUrl, {
-            method: 'PUT',
-            body: file,
+        concatMap((file) => {
+          const controller = new AbortController()
+          return defer(async () => {
+            setIsPending(true)
+            if (stableRef.current.options?.preview) {
+              const preview = await toBase64(file)
+              if (!controller.signal.aborted)
+                stableRef.current.onChange?.(preview as string)
+            }
+            const signed = await stableRef.current.ossApi.getPresignedUrl(
+              { fileName: file.name, fileSize: file.size, purpose: 'avatar' },
+              { signal: controller.signal }
+            )
+            const body = new FormData()
+            Object.entries(signed.formFields).forEach(([key, value]) =>
+              body.append(key, value)
+            )
+            body.append('file', file)
+            const response = await fetch(signed.uploadUrl, {
+              method: 'POST',
+              body,
+              signal: controller.signal,
+            })
+            if (!response.ok || !signed.getObjectUrl)
+              throw new Error('upload failed')
+            const completed = await stableRef.current.ossApi.completeUpload(
+              { ossObject: { objectKey: signed.objectKey } },
+              { signal: controller.signal }
+            )
+            if (!completed.getObjectUrl) throw new Error('upload incomplete')
+            return completed.getObjectUrl
           }).pipe(
-            map((response) => {
-              if (!(response.ok && response.status === 200)) {
-                throw new Error('upload failed')
+            catchError(() => {
+              if (!controller.signal.aborted) {
+                toast.error(t`上传失败`)
+                if (stableRef.current.options?.preview)
+                  stableRef.current.onChange?.(undefined)
               }
-              return oss.getObjectUrl
+              return EMPTY
+            }),
+            finalize(() => {
+              controller.abort()
+              setIsPending(false)
             })
           )
-        ),
-        finalize(() => {
-          setIsPending(false)
-          if (stableRef.current.options?.preview) {
-            stableRef.current.onChange?.(undefined)
-          }
         })
       )
-      .subscribe({
-        next: (url) => {
-          setIsPending(false)
-          stableRef.current.onChange?.(url)
-        },
-        error: () => {
-          toast.error(t`上传失败`)
-        },
-      })
-
+      .subscribe((url) => stableRef.current.onChange?.(url))
     return () => task.unsubscribe()
   }, [upload$])
-
   return { isPending, upload: handleUpload }
 }

@@ -35,6 +35,14 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
     enabled: !!currentRow?.id,
   })
 
+  const { data: runs } = useQuery({
+    queryKey: ['findJobRuns', currentRow?.id],
+    queryFn: () =>
+      systemJobApi.findJobRuns({ id: currentRow!.id, pageSize: 10 }),
+    enabled: open && !!currentRow?.id,
+    refetchInterval: open ? 3000 : false,
+  })
+
   return (
     <Drawer
       shouldScaleBackground
@@ -200,6 +208,58 @@ export function TaskViewInfoDialog({ open, onOpenChange }: Props) {
                       })}
                     </div>
                   </div>
+                </div>
+                <h4 className='text-lg font-medium'>
+                  <Trans>最近执行</Trans>
+                </h4>
+                <div className='overflow-x-auto'>
+                  <table className='w-full text-sm'>
+                    <thead>
+                      <tr>
+                        <th className='text-left'>
+                          <Trans>时间</Trans>
+                        </th>
+                        <th>
+                          <Trans>状态</Trans>
+                        </th>
+                        <th>
+                          <Trans>尝试次数</Trans>
+                        </th>
+                        <th className='text-left'>
+                          <Trans>异常信息</Trans>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {runs?.data.map((run) => (
+                        <tr key={run.id}>
+                          <td>
+                            {i18n.date(run.createdAt, {
+                              dateStyle: 'short',
+                              timeStyle: 'medium',
+                            })}
+                          </td>
+                          <td className='text-center'>
+                            {run.status === 'succeeded' ? (
+                              <Trans>成功</Trans>
+                            ) : run.status === 'failed' ? (
+                              <Trans>失败</Trans>
+                            ) : run.status === 'retrying' ? (
+                              <Trans>等待重试</Trans>
+                            ) : run.status === 'skipped' ? (
+                              <Trans>已跳过</Trans>
+                            ) : (
+                              <Trans>处理中</Trans>
+                            )}
+                          </td>
+                          <td className='text-center'>{run.attempts}</td>
+                          <td className='max-w-xs break-words'>
+                            {run.lastError || '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

@@ -33,9 +33,9 @@ export const getSchema = () =>
     }),
     description: z.string().optional(),
     concurrent: z.boolean().optional(),
-    retryTimes: z.number().optional(),
-    retryInterval: z.number().optional(),
-    timeout: z.number().optional(),
+    retryTimes: z.number().int().min(0).max(5).optional(),
+    retryInterval: z.number().int().min(0).max(300).optional(),
+    timeout: z.number().int().min(0).max(3600).optional(),
     isEdit: z.boolean().default(false).optional(),
   })
 

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { format } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -60,12 +61,22 @@ export function TenantActionDialog({ currentRow, open, onOpenChange }: Props) {
             name: currentRow?.name ?? '',
             code: currentRow?.code ?? '',
             status: currentRow?.status,
+            maxUsers: currentRow?.maxUsers ?? 0,
+            maxTasks: currentRow?.maxTasks ?? 0,
+            maxStorageBytes: currentRow?.maxStorageBytes ?? 0,
+            expireTime: currentRow?.expireTime
+              ? format(currentRow.expireTime, "yyyy-MM-dd'T'HH:mm")
+              : '',
             remark: currentRow?.remark ?? '',
           }
         : {
             isEdit,
             name: '',
             code: '',
+            maxUsers: 0,
+            maxTasks: 0,
+            maxStorageBytes: 0,
+            expireTime: '',
             adminMode: 'new',
             adminUserId: '',
             adminUsername: '',
@@ -121,6 +132,11 @@ export function TenantActionDialog({ currentRow, open, onOpenChange }: Props) {
       saveUpdate({
         name: values.name,
         status: values.status,
+        maxUsers: values.maxUsers,
+        maxTasks: values.maxTasks,
+        maxStorageBytes: values.maxStorageBytes,
+        expireTime: values.expireTime ? new Date(values.expireTime) : undefined,
+        clearExpireTime: !values.expireTime,
         remark: values.remark,
       })
       return
@@ -132,6 +148,9 @@ export function TenantActionDialog({ currentRow, open, onOpenChange }: Props) {
         adminMode: 'existing',
         adminUserId: adminUserId as string,
         remark: values.remark,
+        maxUsers: values.maxUsers,
+        maxTasks: values.maxTasks,
+        maxStorageBytes: values.maxStorageBytes,
       })
       return
     }
@@ -142,6 +161,9 @@ export function TenantActionDialog({ currentRow, open, onOpenChange }: Props) {
       adminUsername: adminUsername as string,
       adminPassword: adminPassword as string,
       remark: values.remark,
+      maxUsers: values.maxUsers,
+      maxTasks: values.maxTasks,
+      maxStorageBytes: values.maxStorageBytes,
     })
   }
 
@@ -361,10 +383,76 @@ export function TenantActionDialog({ currentRow, open, onOpenChange }: Props) {
                           disabled={isPending}
                         />
                         <span className='text-sm'>
-                          {field.value ? <Trans>启用</Trans> : <Trans>停用</Trans>}
+                          {field.value ? (
+                            <Trans>启用</Trans>
+                          ) : (
+                            <Trans>停用</Trans>
+                          )}
                         </span>
                       </div>
                     </FormControl>
+                    <FormMessage className='col-span-8 col-start-3' />
+                  </FormItem>
+                )}
+              />
+            )}
+            {(['maxUsers', 'maxTasks', 'maxStorageBytes'] as const).map(
+              (name) => (
+                <FormField
+                  key={name}
+                  control={form.control}
+                  name={name}
+                  render={({ field }) => (
+                    <FormItem className='grid grid-cols-10 items-center gap-4'>
+                      <FormLabel className='col-span-2 text-right'>
+                        {name === 'maxUsers'
+                          ? t`用户上限`
+                          : name === 'maxTasks'
+                            ? t`任务上限`
+                            : t`存储上限（字节）`}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          className='col-span-8'
+                          type='number'
+                          min={0}
+                          value={field.value ?? 0}
+                          onChange={(event) =>
+                            field.onChange(Number(event.target.value))
+                          }
+                          disabled={isPending}
+                        />
+                      </FormControl>
+                      <p className='text-muted-foreground col-span-8 col-start-3 text-sm'>
+                        <Trans>0 表示不限</Trans>
+                      </p>
+                      <FormMessage className='col-span-8 col-start-3' />
+                    </FormItem>
+                  )}
+                />
+              )
+            )}
+            {isEdit && (
+              <FormField
+                control={form.control}
+                name='expireTime'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-10 items-center gap-4'>
+                    <FormLabel className='col-span-2 text-right'>
+                      <Trans>到期时间</Trans>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className='col-span-8'
+                        type='datetime-local'
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <p className='text-muted-foreground col-span-8 col-start-3 text-sm'>
+                      <Trans>留空表示永不过期</Trans>
+                    </p>
                     <FormMessage className='col-span-8 col-start-3' />
                   </FormItem>
                 )}

@@ -37,6 +37,10 @@ msgstr "{eventCount} 事件"
 msgid "{text}名称:"
 msgstr "{text}名称:"
 
+#: src/features/tenant/components/tenant-action-dialog.tsx:427
+msgid "0 表示不限"
+msgstr "0 表示不限"
+
 #: src/features/system-info/components/system-info-view.tsx:69
 msgid "CPU使用率"
 msgstr "CPU使用率"
@@ -47,7 +51,7 @@ msgstr "CPU核心"
 
 #: src/features/task/components/task-action-dialog.tsx:204
 #: src/features/task/components/task-columns.tsx:24
-#: src/features/task/components/task-view-info.tsx:79
+#: src/features/task/components/task-view-info.tsx:87
 msgid "cron表达式"
 msgstr "cron表达式"
 
@@ -98,11 +102,11 @@ msgstr "三月"
 msgid "上一页"
 msgstr "上一页"
 
-#: src/hooks/use-upload.ts:73
+#: src/hooks/use-upload.ts:59
 msgid "上传失败"
 msgstr "上传失败"
 
-#: src/features/task/components/task-view-info.tsx:133
+#: src/features/task/components/task-view-info.tsx:141
 msgid "上次执行时间"
 msgstr "上次执行时间"
 
@@ -111,7 +115,7 @@ msgstr "上次执行时间"
 msgid "下一页"
 msgstr "下一页"
 
-#: src/features/task/components/task-view-info.tsx:146
+#: src/features/task/components/task-view-info.tsx:154
 msgid "下次执行时间"
 msgstr "下次执行时间"
 
@@ -128,9 +132,9 @@ msgid "下面是随该请求发送的参数和查询数据。"
 msgstr "下面是随该请求发送的参数和查询数据。"
 
 #: src/features/settings/password/schemas/action-schema.ts:25
-#: src/features/tenant/schemas/action-schema.ts:149
-#: src/features/user/schemas/action-schema.ts:123
-#: src/features/user/schemas/action-schema.ts:143
+#: src/features/tenant/schemas/action-schema.ts:166
+#: src/features/user/schemas/action-schema.ts:125
+#: src/features/user/schemas/action-schema.ts:145
 msgid "两次输入的密码不一致"
 msgstr "两次输入的密码不一致"
 
@@ -209,9 +213,6 @@ msgstr "仅租户"
 msgid "代理"
 msgstr "代理"
 
-#: src/features/token/components/token-columns.tsx:22
-#: src/features/token/components/token-delete-dialog.tsx:64
-#: src/features/token/components/token-view-info.tsx:70
 #: src/features/token/index.tsx:47
 msgid "令牌"
 msgstr "令牌"
@@ -253,20 +254,28 @@ msgstr "以下父级菜单未勾选，子权限虽然放开，对应页面仍然
 msgid "以下页面没有勾选任何操作权限，该角色打开后只能看、不能操作"
 msgstr "以下页面没有勾选任何操作权限，该角色打开后只能看、不能操作"
 
+#: src/features/tenant/components/tenant-action-dialog.tsx:411
+msgid "任务上限"
+msgstr "任务上限"
+
 #: src/features/task/components/task-action-dialog.tsx:183
 #: src/features/task/components/task-columns.tsx:23
-#: src/features/task/components/task-view-info.tsx:73
+#: src/features/task/components/task-view-info.tsx:81
 msgid "任务分组"
 msgstr "任务分组"
 
 #: src/features/task/components/task-action-dialog.tsx:163
 #: src/features/task/components/task-columns.tsx:22
-#: src/features/task/components/task-view-info.tsx:67
+#: src/features/task/components/task-view-info.tsx:75
 msgid "任务名称"
 msgstr "任务名称"
 
+#: src/features/task/components/task-action-button.tsx:57
+msgid "任务已加入队列"
+msgstr "任务已加入队列"
+
 #: src/features/task/components/task-columns.tsx:27
-#: src/features/task/components/task-view-info.tsx:127
+#: src/features/task/components/task-view-info.tsx:135
 msgid "任务描述"
 msgstr "任务描述"
 
@@ -274,6 +283,12 @@ msgstr "任务描述"
 #: src/utils/menu-catalog.ts:27
 msgid "menu.task"
 msgstr "任务管理"
+
+#: src/features/token/components/token-columns.tsx:22
+#: src/features/token/components/token-delete-dialog.tsx:64
+#: src/features/token/components/token-view-info.tsx:70
+msgid "会话ID"
+msgstr "会话ID"
 
 #: src/features/auth/email-sign-in/index.tsx:38
 msgid "使用密码登录"
@@ -295,7 +310,7 @@ msgstr "使用邮箱登录"
 #: src/features/settings/password/email-form.tsx:161
 #: src/features/settings/profile/profile-form.tsx:144
 #: src/features/task/components/task-action-dialog.tsx:394
-#: src/features/tenant/components/tenant-action-dialog.tsx:407
+#: src/features/tenant/components/tenant-action-dialog.tsx:495
 #: src/features/user/components/user-action-dialog.tsx:331
 #: src/features/user/components/user-reset-password-dialog.tsx:188
 msgid "保存"
@@ -308,7 +323,7 @@ msgstr "保存"
 #: src/features/settings/password/email-form.tsx:156
 #: src/features/settings/profile/profile-form.tsx:139
 #: src/features/task/components/task-action-dialog.tsx:389
-#: src/features/tenant/components/tenant-action-dialog.tsx:402
+#: src/features/tenant/components/tenant-action-dialog.tsx:490
 #: src/features/user/components/user-action-dialog.tsx:326
 #: src/features/user/components/user-reset-password-dialog.tsx:183
 msgid "保存中"
@@ -351,7 +366,7 @@ msgstr "停止任务"
 msgid "停止成功"
 msgstr "停止成功"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:364
+#: src/features/tenant/components/tenant-action-dialog.tsx:389
 #: src/features/tenant/components/tenant-columns.tsx:92
 msgid "停用"
 msgstr "停用"
@@ -366,7 +381,7 @@ msgid "八月"
 msgstr "八月"
 
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:53
-#: src/features/auth/sign-in/schemas/action-schema.ts:27
+#: src/features/auth/sign-in/schemas/action-schema.ts:24
 msgid "公钥不能为空"
 msgstr "公钥不能为空"
 
@@ -405,9 +420,9 @@ msgstr "关联角色"
 #: src/features/operation-log/components/operation-log-view-params.tsx:47
 #: src/features/operation-log/components/operation-log-view-result.tsx:47
 #: src/features/role/components/role-view-info.tsx:97
-#: src/features/task/components/task-view-info.tsx:212
+#: src/features/task/components/task-view-info.tsx:272
 #: src/features/tenant/components/tenant-members-dialog.tsx:164
-#: src/features/token/components/token-view-info.tsx:151
+#: src/features/token/components/token-view-info.tsx:140
 #: src/features/user/components/user-view-info.tsx:122
 msgid "关闭"
 msgstr "关闭"
@@ -423,6 +438,10 @@ msgstr "再次输入您的新密码。"
 #: src/components/other/data-table/pagination.tsx:168
 msgid "最后一页"
 msgstr "最后一页"
+
+#: src/features/task/components/task-view-info.tsx:213
+msgid "最近执行"
+msgstr "最近执行"
 
 #: src/features/menu/components/menu-action-dialog.tsx:482
 msgid "决定该菜单能否下发给业务租户，留空按「平台与租户」处理"
@@ -511,7 +530,7 @@ msgstr "创建事件"
 #: src/features/menu/components/menu-action-dialog.tsx:166
 #: src/features/role/components/role-action-dialog.tsx:131
 #: src/features/task/components/task-action-dialog.tsx:85
-#: src/features/tenant/components/tenant-action-dialog.tsx:91
+#: src/features/tenant/components/tenant-action-dialog.tsx:102
 #: src/features/user/components/user-action-dialog.tsx:100
 msgid "创建成功"
 msgstr "创建成功"
@@ -521,7 +540,7 @@ msgstr "创建成功"
 #: src/features/operation-log/components/operation-log-view-info.tsx:307
 #: src/features/role/components/role-columns.tsx:20
 #: src/features/task/components/task-columns.tsx:28
-#: src/features/task/components/task-view-info.tsx:183
+#: src/features/task/components/task-view-info.tsx:191
 #: src/features/tenant/components/tenant-columns.tsx:26
 #: src/features/token/components/token-columns.tsx:24
 #: src/features/user/components/user-columns.tsx:33
@@ -593,6 +612,7 @@ msgstr "删除账号"
 msgid "删除账号失败"
 msgstr "删除账号失败"
 
+#: src/features/tenant/components/tenant-action-dialog.tsx:442
 #: src/features/token/components/token-columns.tsx:25
 msgid "到期时间"
 msgstr "到期时间"
@@ -602,14 +622,14 @@ msgid "到租户"
 msgstr "到租户"
 
 #: src/features/token/components/token-view-info.tsx:97
-msgid "刷新令牌"
-msgstr "刷新令牌"
+#~ msgid "刷新令牌"
+#~ msgstr "刷新令牌"
 
-#: src/features/token/components/token-view-info.tsx:108
+#: src/features/token/components/token-view-info.tsx:97
 msgid "刷新令牌创建时间"
 msgstr "刷新令牌创建时间"
 
-#: src/features/token/components/token-view-info.tsx:116
+#: src/features/token/components/token-view-info.tsx:105
 msgid "刷新令牌到期时间"
 msgstr "刷新令牌到期时间"
 
@@ -673,7 +693,7 @@ msgstr "可见范围"
 #: src/features/operation-log/components/operation-log-view-info.tsx:92
 #: src/features/operation-log/components/operation-log-view-info.tsx:150
 #: src/features/operation-log/components/operation-log-view-info.tsx:167
-#: src/features/task/components/task-view-info.tsx:121
+#: src/features/task/components/task-view-info.tsx:129
 msgid "否"
 msgstr "否"
 
@@ -690,7 +710,7 @@ msgstr "启动"
 msgid "启动成功"
 msgstr "启动成功"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:364
+#: src/features/tenant/components/tenant-action-dialog.tsx:387
 #: src/features/tenant/components/tenant-columns.tsx:88
 msgid "启用"
 msgstr "启用"
@@ -767,7 +787,7 @@ msgstr "在此管理您的电子邮件设置。"
 #: src/features/menu/components/menu-view-info.tsx:74
 #: src/features/operation-log/components/operation-log-view-info.tsx:62
 #: src/features/role/components/role-view-info.tsx:53
-#: src/features/task/components/task-view-info.tsx:62
+#: src/features/task/components/task-view-info.tsx:70
 #: src/features/token/components/token-view-info.tsx:53
 #: src/features/user/components/user-view-info.tsx:60
 msgid "基本信息"
@@ -777,12 +797,16 @@ msgstr "基本信息"
 msgid "填写后直接进入该租户，登录更快；需要在多个租户间选择或切换时请留空。"
 msgstr "填写后直接进入该租户，登录更快；需要在多个租户间选择或切换时请留空。"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:379
+#: src/features/task/components/task-view-info.tsx:252
+msgid "处理中"
+msgstr "处理中"
+
+#: src/features/tenant/components/tenant-action-dialog.tsx:467
 #: src/features/tenant/components/tenant-columns.tsx:25
 msgid "备注"
 msgstr "备注"
 
-#: src/features/tenant/schemas/action-schema.ts:68
+#: src/features/tenant/schemas/action-schema.ts:84
 msgid "备注长度不能超过200个字符"
 msgstr "备注长度不能超过200个字符"
 
@@ -792,6 +816,7 @@ msgstr "外观"
 
 #: src/features/operation-log/components/operation-log-columns.tsx:41
 #: src/features/operation-log/components/operation-log-view-info.tsx:200
+#: src/features/task/components/task-view-info.tsx:246
 msgid "失败"
 msgstr "失败"
 
@@ -806,6 +831,10 @@ msgstr "头像"
 msgid "字体"
 msgstr "字体"
 
+#: src/features/tenant/components/tenant-action-dialog.tsx:412
+msgid "存储上限（字节）"
+msgstr "存储上限（字节）"
+
 #: src/components/other/dialog-header-content.tsx:21
 msgid "完成后点击保存。"
 msgstr "完成后点击保存。"
@@ -819,7 +848,7 @@ msgstr "定时任务"
 msgid "定时任务名称"
 msgstr "定时任务名称"
 
-#: src/features/task/components/task-view-info.tsx:50
+#: src/features/task/components/task-view-info.tsx:58
 msgid "定时任务详情"
 msgstr "定时任务详情"
 
@@ -837,8 +866,12 @@ msgid "密码不能为空"
 msgstr "密码不能为空"
 
 #: src/features/user/schemas/action-schema.ts:10
-msgid "密码最多为16个字符"
-msgstr "密码最多为16个字符"
+#~ msgid "密码最多为16个字符"
+#~ msgstr "密码最多为16个字符"
+
+#: src/features/user/schemas/action-schema.ts:10
+msgid "密码最多为72个字符"
+msgstr "密码最多为72个字符"
 
 #: src/features/user/schemas/action-schema.ts:11
 msgid "密码必须包含至少一个字母"
@@ -857,8 +890,12 @@ msgid "密码登录"
 msgstr "密码登录"
 
 #: src/features/user/schemas/action-schema.ts:9
-msgid "密码至少为6个字符"
-msgstr "密码至少为6个字符"
+msgid "密码至少为12个字符"
+msgstr "密码至少为12个字符"
+
+#: src/features/user/schemas/action-schema.ts:9
+#~ msgid "密码至少为6个字符"
+#~ msgstr "密码至少为6个字符"
 
 #: src/features/settings/password/index.tsx:14
 msgid "密码设置"
@@ -876,6 +913,10 @@ msgstr "将用户复制到目标租户下，原租户记录保留。目标租户
 #: src/features/role/components/role-permission-summary.tsx:116
 msgid "尚未勾选任何按钮权限，该角色只能浏览页面"
 msgstr "尚未勾选任何按钮权限，该角色只能浏览页面"
+
+#: src/features/task/components/task-view-info.tsx:226
+msgid "尝试次数"
+msgstr "尝试次数"
 
 #: src/components/other/code-block.tsx:69
 msgid "展开"
@@ -898,13 +939,17 @@ msgstr "已失效菜单 #{id}"
 msgid "已成功更新外观设置"
 msgstr "已成功更新外观设置"
 
-#: src/features/token/components/token-view-info.tsx:137
+#: src/features/token/components/token-view-info.tsx:126
 msgid "已禁用"
 msgstr "已禁用"
 
 #: src/features/tenant/components/tenant-member-row.tsx:63
 #~ msgid "已移除该成员"
 #~ msgstr "已移除该成员"
+
+#: src/features/task/components/task-view-info.tsx:250
+msgid "已跳过"
+msgstr "已跳过"
 
 #: src/components/other/data-table/pagination.tsx:51
 msgid "已选{selectRow}条,共{selectTotalRow}条"
@@ -949,6 +994,10 @@ msgstr "开始日期"
 #: src/components/other/calendar/schemas.ts:9
 msgid "开始日期是必需的"
 msgstr "开始日期是必需的"
+
+#: src/features/task/components/task-view-info.tsx:229
+msgid "异常信息"
+msgstr "异常信息"
 
 #: src/features/settings/password/index.tsx:25
 msgid "当前使用的是系统默认密码，请立即设置新密码后才能继续使用其他功能。"
@@ -996,6 +1045,7 @@ msgstr "您确定要删除这个{text}吗?"
 
 #: src/features/operation-log/components/operation-log-columns.tsx:40
 #: src/features/operation-log/components/operation-log-view-info.tsx:200
+#: src/features/task/components/task-view-info.tsx:244
 msgid "成功"
 msgstr "成功"
 
@@ -1024,19 +1074,19 @@ msgstr "执行任务"
 
 #: src/features/task/components/task-action-dialog.tsx:225
 #: src/features/task/components/task-columns.tsx:25
-#: src/features/task/components/task-view-info.tsx:85
+#: src/features/task/components/task-view-info.tsx:93
 msgid "执行命令"
 msgstr "执行命令"
 
 #: src/features/task/components/task-action-button.tsx:57
-msgid "执行成功"
-msgstr "执行成功"
+#~ msgid "执行成功"
+#~ msgstr "执行成功"
 
-#: src/features/task/components/task-view-info.tsx:159
+#: src/features/task/components/task-view-info.tsx:167
 msgid "执行次数"
 msgstr "执行次数"
 
-#: src/features/task/components/task-view-info.tsx:177
+#: src/features/task/components/task-view-info.tsx:185
 msgid "执行超时时间(秒)"
 msgstr "执行超时时间(秒)"
 
@@ -1170,7 +1220,7 @@ msgstr "新密码"
 msgid "新密码不能与旧密码相同"
 msgstr "新密码不能与旧密码相同"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:235
+#: src/features/tenant/components/tenant-action-dialog.tsx:257
 msgid "新建用户"
 msgstr "新建用户"
 
@@ -1186,12 +1236,16 @@ msgstr "无数据"
 msgid "日"
 msgstr "日"
 
+#: src/features/task/components/task-view-info.tsx:220
+msgid "时间"
+msgstr "时间"
+
 #: src/features/menu/components/menu-columns.tsx:35
 #: src/features/menu/components/menu-view-info.tsx:134
 #: src/features/operation-log/components/operation-log-view-info.tsx:90
 #: src/features/operation-log/components/operation-log-view-info.tsx:148
 #: src/features/operation-log/components/operation-log-view-info.tsx:167
-#: src/features/task/components/task-view-info.tsx:121
+#: src/features/task/components/task-view-info.tsx:129
 msgid "是"
 msgstr "是"
 
@@ -1205,7 +1259,7 @@ msgstr "是否内网IP"
 msgid "是否可见"
 msgstr "是否可见"
 
-#: src/features/task/components/task-view-info.tsx:111
+#: src/features/task/components/task-view-info.tsx:119
 msgid "是否并发执行"
 msgstr "是否并发执行"
 
@@ -1231,13 +1285,13 @@ msgid "昵称"
 msgstr "昵称"
 
 #: src/features/settings/profile/schemas/action-schema.ts:8
-#: src/features/user/schemas/action-schema.ts:41
+#: src/features/user/schemas/action-schema.ts:43
 msgid "昵称长度不能超过10个字符"
 msgstr "昵称长度不能超过10个字符"
 
 #: src/features/task/components/task-action-dialog.tsx:263
 #: src/features/task/components/task-columns.tsx:91
-#: src/features/task/components/task-view-info.tsx:104
+#: src/features/task/components/task-view-info.tsx:112
 msgid "暂停"
 msgstr "暂停"
 
@@ -1284,7 +1338,7 @@ msgstr "更新{text}相关信息。"
 #: src/features/role/components/role-action-dialog.tsx:140
 #: src/features/settings/profile/profile-form.tsx:56
 #: src/features/task/components/task-action-dialog.tsx:95
-#: src/features/tenant/components/tenant-action-dialog.tsx:104
+#: src/features/tenant/components/tenant-action-dialog.tsx:115
 #: src/features/user/components/user-action-dialog.tsx:109
 msgid "更新成功"
 msgstr "更新成功"
@@ -1293,7 +1347,7 @@ msgstr "更新成功"
 #: src/features/menu/components/menu-view-info.tsx:207
 #: src/features/role/components/role-columns.tsx:21
 #: src/features/task/components/task-columns.tsx:29
-#: src/features/task/components/task-view-info.tsx:194
+#: src/features/task/components/task-view-info.tsx:202
 #: src/features/tenant/components/tenant-columns.tsx:27
 #: src/features/user/components/user-columns.tsx:34
 msgid "更新时间"
@@ -1334,7 +1388,7 @@ msgstr "查看"
 msgid "查看令牌详细信息。"
 msgstr "查看令牌详细信息。"
 
-#: src/features/task/components/task-view-info.tsx:53
+#: src/features/task/components/task-view-info.tsx:61
 msgid "查看定时任务详细信息。"
 msgstr "查看定时任务详细信息。"
 
@@ -1408,8 +1462,8 @@ msgstr "正在进行"
 #: src/features/api/components/api-columns.tsx:90
 #: src/features/task/components/task-action-dialog.tsx:261
 #: src/features/task/components/task-columns.tsx:91
-#: src/features/task/components/task-view-info.tsx:102
-#: src/features/token/components/token-view-info.tsx:135
+#: src/features/task/components/task-view-info.tsx:110
+#: src/features/token/components/token-view-info.tsx:124
 msgid "正常"
 msgstr "正常"
 
@@ -1484,8 +1538,9 @@ msgstr "父级菜单必须绑定有效路由"
 
 #: src/features/task/components/task-action-dialog.tsx:246
 #: src/features/task/components/task-columns.tsx:26
-#: src/features/task/components/task-view-info.tsx:91
-#: src/features/tenant/components/tenant-action-dialog.tsx:354
+#: src/features/task/components/task-view-info.tsx:99
+#: src/features/task/components/task-view-info.tsx:223
+#: src/features/tenant/components/tenant-action-dialog.tsx:376
 #: src/features/tenant/components/tenant-columns.tsx:24
 msgid "状态"
 msgstr "状态"
@@ -1542,6 +1597,10 @@ msgstr "用户"
 msgid "用户ID"
 msgstr "用户ID"
 
+#: src/features/tenant/components/tenant-action-dialog.tsx:409
+msgid "用户上限"
+msgstr "用户上限"
+
 #: src/features/user/index.tsx:35
 msgid "用户列表"
 msgstr "用户列表"
@@ -1564,7 +1623,7 @@ msgstr "用户名"
 msgid "用户名不能包含特殊字符"
 msgstr "用户名不能包含特殊字符"
 
-#: src/features/user/schemas/action-schema.ts:72
+#: src/features/user/schemas/action-schema.ts:74
 msgid "用户名已存在"
 msgstr "用户名已存在"
 
@@ -1597,6 +1656,10 @@ msgstr "用户详情"
 msgid "留空则自动识别租户"
 msgstr "留空则自动识别租户"
 
+#: src/features/tenant/components/tenant-action-dialog.tsx:454
+msgid "留空表示永不过期"
+msgstr "留空表示永不过期"
+
 #: src/features/auth/forgot-password/index.tsx:61
 #: src/features/auth/sign-in/components/user-auth-form.tsx:278
 #: src/features/auth/sign-in/components/user-auth-form.tsx:283
@@ -1618,7 +1681,7 @@ msgid "目标租户"
 msgstr "目标租户"
 
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:229
-#: src/features/tenant/components/tenant-action-dialog.tsx:328
+#: src/features/tenant/components/tenant-action-dialog.tsx:350
 #: src/features/user/components/user-action-dialog.tsx:301
 #: src/features/user/components/user-reset-password-dialog.tsx:160
 msgid "确认密码"
@@ -1643,16 +1706,16 @@ msgstr "禁用"
 #: src/features/api/components/api-action.tsx:187
 #: src/features/api/components/api-columns.tsx:27
 #: src/features/token/components/token-columns.tsx:23
-#: src/features/token/components/token-view-info.tsx:124
+#: src/features/token/components/token-view-info.tsx:113
 msgid "禁用状态"
 msgstr "禁用状态"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:162
+#: src/features/tenant/components/tenant-action-dialog.tsx:184
 #: src/features/tenant/components/tenant-delete-dialog.tsx:54
 msgid "租户"
 msgstr "租户"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:176
+#: src/features/tenant/components/tenant-action-dialog.tsx:198
 #: src/features/tenant/components/tenant-columns.tsx:22
 msgid "租户名称"
 msgstr "租户名称"
@@ -1683,7 +1746,7 @@ msgid "租户管理"
 msgstr "租户管理"
 
 #: src/features/auth/sign-in/components/user-auth-form.tsx:251
-#: src/features/tenant/components/tenant-action-dialog.tsx:197
+#: src/features/tenant/components/tenant-action-dialog.tsx:219
 #: src/features/tenant/components/tenant-columns.tsx:23
 msgid "租户编码"
 msgstr "租户编码"
@@ -1746,19 +1809,23 @@ msgstr "第{eventCurrentDay}天, 共{eventTotalDays}天"
 msgid "第一页"
 msgstr "第一页"
 
+#: src/features/task/components/task-view-info.tsx:248
+msgid "等待重试"
+msgstr "等待重试"
+
 #: src/components/other/data-table/toolbar.tsx:87
 msgid "筛选 {key}..."
 msgstr "筛选 {key}..."
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:307
+#: src/features/tenant/components/tenant-action-dialog.tsx:329
 msgid "管理员初始密码"
 msgstr "管理员初始密码"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:286
+#: src/features/tenant/components/tenant-action-dialog.tsx:308
 msgid "管理员用户名"
 msgstr "管理员用户名"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:221
+#: src/features/tenant/components/tenant-action-dialog.tsx:243
 msgid "管理员账号"
 msgstr "管理员账号"
 
@@ -2105,16 +2172,16 @@ msgstr "请输入任务名称"
 msgid "请输入原密码"
 msgstr "请输入原密码"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:383
+#: src/features/tenant/components/tenant-action-dialog.tsx:471
 msgid "请输入备注"
 msgstr "请输入备注"
 
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:210
 #: src/features/auth/sign-in/components/user-auth-form.tsx:197
-#: src/features/tenant/schemas/action-schema.ts:115
+#: src/features/tenant/schemas/action-schema.ts:132
 #: src/features/user/components/user-action-dialog.tsx:284
 #: src/features/user/components/user-reset-password-dialog.tsx:143
-#: src/features/user/schemas/action-schema.ts:86
+#: src/features/user/schemas/action-schema.ts:88
 msgid "请输入密码"
 msgstr "请输入密码"
 
@@ -2128,7 +2195,7 @@ msgstr "请输入您在电子邮件中收到的验证码。"
 #: src/features/settings/email/email-form.tsx:145
 #: src/features/settings/email/email-form.tsx:167
 #: src/features/settings/email/schemas/action-schema.ts:8
-#: src/features/user/schemas/action-schema.ts:46
+#: src/features/user/schemas/action-schema.ts:48
 msgid "请输入您的邮箱"
 msgstr "请输入您的邮箱"
 
@@ -2166,6 +2233,10 @@ msgstr "请输入昵称"
 msgid "请输入有效的cron表达式"
 msgstr "请输入有效的cron表达式"
 
+#: src/features/tenant/schemas/action-schema.ts:80
+msgid "请输入有效的到期时间"
+msgstr "请输入有效的到期时间"
+
 #: src/features/menu/components/menu-action-dialog.tsx:459
 #: src/features/menu/schemas/action-schema.ts:58
 #: src/features/menu/schemas/action-schema.ts:60
@@ -2188,20 +2259,20 @@ msgstr "请输入标题"
 msgid "请输入用户名"
 msgstr "请输入用户名"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:332
-#: src/features/tenant/schemas/action-schema.ts:136
+#: src/features/tenant/components/tenant-action-dialog.tsx:354
+#: src/features/tenant/schemas/action-schema.ts:153
 #: src/features/user/components/user-action-dialog.tsx:305
 #: src/features/user/components/user-reset-password-dialog.tsx:164
-#: src/features/user/schemas/action-schema.ts:109
+#: src/features/user/schemas/action-schema.ts:111
 msgid "请输入确认密码"
 msgstr "请输入确认密码"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:180
+#: src/features/tenant/components/tenant-action-dialog.tsx:202
 #: src/features/tenant/schemas/action-schema.ts:52
 msgid "请输入租户名称"
 msgstr "请输入租户名称"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:201
+#: src/features/tenant/components/tenant-action-dialog.tsx:223
 #: src/features/tenant/schemas/action-schema.ts:21
 msgid "请输入租户编码"
 msgstr "请输入租户编码"
@@ -2210,12 +2281,12 @@ msgstr "请输入租户编码"
 msgid "请输入稳定的翻译键（可选）"
 msgstr "请输入稳定的翻译键（可选）"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:311
+#: src/features/tenant/components/tenant-action-dialog.tsx:333
 msgid "请输入管理员初始密码"
 msgstr "请输入管理员初始密码"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:290
-#: src/features/tenant/schemas/action-schema.ts:94
+#: src/features/tenant/components/tenant-action-dialog.tsx:312
+#: src/features/tenant/schemas/action-schema.ts:111
 msgid "请输入管理员用户名"
 msgstr "请输入管理员用户名"
 
@@ -2286,8 +2357,8 @@ msgstr "请输入重试间隔(秒)"
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:49
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:51
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:190
-#: src/features/auth/sign-in/schemas/action-schema.ts:23
-#: src/features/auth/sign-in/schemas/action-schema.ts:25
+#: src/features/auth/sign-in/schemas/action-schema.ts:20
+#: src/features/auth/sign-in/schemas/action-schema.ts:22
 msgid "请输入验证码"
 msgstr "请输入验证码"
 
@@ -2311,7 +2382,7 @@ msgstr "请选择关联的菜单"
 
 #: src/features/tenant/components/tenant-member-row.tsx:94
 #: src/features/user/components/user-action-dialog.tsx:262
-#: src/features/user/schemas/action-schema.ts:52
+#: src/features/user/schemas/action-schema.ts:54
 msgid "请选择关联角色"
 msgstr "请选择关联角色"
 
@@ -2341,8 +2412,8 @@ msgstr "请选择父级菜单"
 msgid "请选择状态"
 msgstr "请选择状态"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:262
-#: src/features/tenant/schemas/action-schema.ts:82
+#: src/features/tenant/components/tenant-action-dialog.tsx:284
+#: src/features/tenant/schemas/action-schema.ts:99
 msgid "请选择现有用户"
 msgstr "请选择现有用户"
 
@@ -2351,7 +2422,7 @@ msgstr "请选择现有用户"
 msgid "请选择目标租户"
 msgstr "请选择目标租户"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:230
+#: src/features/tenant/components/tenant-action-dialog.tsx:252
 msgid "请选择管理员账号"
 msgstr "请选择管理员账号"
 
@@ -2468,11 +2539,11 @@ msgstr "选择您想要在系统中使用的主题。"
 msgid "选择父级菜单和权限动作后自动生成"
 msgstr "选择父级菜单和权限动作后自动生成"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:238
+#: src/features/tenant/components/tenant-action-dialog.tsx:260
 msgid "选择现有用户"
 msgstr "选择现有用户"
 
-#: src/features/tenant/components/tenant-action-dialog.tsx:253
+#: src/features/tenant/components/tenant-action-dialog.tsx:275
 msgid "选择用户"
 msgstr "选择用户"
 
@@ -2511,7 +2582,7 @@ msgstr "邮箱不能与当前邮箱相同"
 #: src/features/auth/forgot-password/components/forgot-password-form.tsx:43
 #: src/features/auth/otp/components/otp-form.tsx:45
 #: src/features/auth/otp/components/otp-form.tsx:62
-#: src/features/user/schemas/action-schema.ts:46
+#: src/features/user/schemas/action-schema.ts:48
 msgid "邮箱无效"
 msgstr "邮箱无效"
 
@@ -2550,12 +2621,12 @@ msgid "重置用户"
 msgstr "重置用户"
 
 #: src/features/task/components/task-action-dialog.tsx:321
-#: src/features/task/components/task-view-info.tsx:165
+#: src/features/task/components/task-view-info.tsx:173
 msgid "重试次数"
 msgstr "重试次数"
 
 #: src/features/task/components/task-action-dialog.tsx:343
-#: src/features/task/components/task-view-info.tsx:171
+#: src/features/task/components/task-view-info.tsx:179
 msgid "重试间隔(秒)"
 msgstr "重试间隔(秒)"
 
@@ -2609,7 +2680,7 @@ msgstr "验证"
 msgid "验证码"
 msgstr "验证码"
 
-#: src/features/auth/sign-in/schemas/action-schema.ts:14
+#: src/features/auth/sign-in/schemas/action-schema.ts:11
 msgid "验证码ID不能为空"
 msgstr "验证码ID不能为空"
 

@@ -67,12 +67,12 @@ export function TokenViewInfoDialog({ open, onOpenChange }: Props) {
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>
                     <div className='font-medium'>
-                      <Trans>令牌</Trans>
+                      <Trans>会话ID</Trans>
                     </div>
                     <div className='col-span-2'>
                       <InlineCopy
                         className='w-fit text-nowrap'
-                        text={token.accessToken}
+                        text={token.sessionId}
                       />
                     </div>
                   </div>
@@ -90,17 +90,6 @@ export function TokenViewInfoDialog({ open, onOpenChange }: Props) {
                     </div>
                     <div className='col-span-2'>
                       {format(token.accessTokenExpired, 'yyyy-MM-dd HH:mm:ss')}
-                    </div>
-                  </div>
-                  <div className='grid grid-cols-3 items-center gap-4'>
-                    <div className='font-medium'>
-                      <Trans>刷新令牌</Trans>
-                    </div>
-                    <div className='col-span-2'>
-                      <InlineCopy
-                        className='w-fit text-nowrap'
-                        text={token.refreshToken}
-                      />
                     </div>
                   </div>
                   <div className='grid grid-cols-3 items-center gap-4'>

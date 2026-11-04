@@ -54,7 +54,7 @@ export function TaskActionButton({ row, type, refresh }: Props) {
     mutationFn: (values: ExecuteSysJobRequest) =>
       systemJobApi.executeSysJob(values),
     onSuccess: () => {
-      toast.success(t`执行成功`)
+      toast.success(t`任务已加入队列`)
       refresh?.()
     },
   })

@@ -65,6 +65,20 @@ export const getSchema = () =>
       adminPassword: z.string().optional(),
       confirmPassword: z.string().optional(),
       status: z.boolean().optional(),
+      maxUsers: z.number().int().nonnegative().optional(),
+      maxStorageBytes: z
+        .number()
+        .int()
+        .nonnegative()
+        .max(Number.MAX_SAFE_INTEGER)
+        .optional(),
+      maxTasks: z.number().int().nonnegative().optional(),
+      expireTime: z
+        .string()
+        .optional()
+        .refine((value) => !value || !Number.isNaN(Date.parse(value)), {
+          error: t`请输入有效的到期时间`,
+        }),
       remark: z
         .string()
         .max(200, { error: t`备注长度不能超过200个字符` })

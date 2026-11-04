@@ -11,9 +11,9 @@ type CreateSysJobReq struct {
 	Status         uint8  `json:"status" binding:"required,oneof=1 2"`
 	Concurrent     bool   `json:"concurrent"`
 	Description    string `json:"description"`
-	RetryTimes     uint   `json:"retry_times"`
-	RetryInterval  uint   `json:"retry_interval"`
-	Timeout        uint   `json:"timeout"`
+	RetryTimes     uint   `json:"retry_times" binding:"lte=5"`
+	RetryInterval  uint   `json:"retry_interval" binding:"lte=300"`
+	Timeout        uint   `json:"timeout" binding:"lte=3600"`
 }
 
 // UpdateSysJobReq 更新定时任务请求

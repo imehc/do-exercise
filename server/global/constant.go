@@ -50,6 +50,7 @@ var tenantScopedTables = map[string]bool{
 	"sys_user_tenant":   true,
 	"sys_role":          true,
 	"sys_job":           true,
+	"sys_job_run":       true,
 	"sys_operation_log": true,
 }
 

@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imehc/do-exercise/server/model/common"
 	"github.com/imehc/do-exercise/server/model/common/response"
 	"github.com/imehc/do-exercise/server/model/system/request"
 	"github.com/imehc/do-exercise/server/util"
@@ -134,4 +135,23 @@ func (s *SysJobApi) Execute(ctx *gin.Context) {
 		return
 	}
 	response.NoContent(ctx)
+}
+
+func (s *SysJobApi) GetRuns(ctx *gin.Context) {
+	id := cast.ToUint(ctx.Param("id"))
+	if id == 0 {
+		response.BadRequest(ctx, "idCannotBeEmpty")
+		return
+	}
+	var req common.Pagination
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.Error(err)
+		return
+	}
+	data, err := jobService.GetRuns(util.DB(ctx), id, req)
+	if err != nil {
+		response.BadRequest(ctx, err.Error())
+		return
+	}
+	response.Success(ctx, data)
 }

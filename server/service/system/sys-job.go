@@ -2,7 +2,6 @@ package system
 
 import (
 	"errors"
-	"time"
 
 	"github.com/imehc/do-exercise/server/global"
 	"github.com/imehc/do-exercise/server/global/shared"
@@ -31,7 +30,13 @@ func (s *SysJobService) checkJobExist(db *gorm.DB, jobId uint) (*system.SysJob, 
 
 // Create 创建定时任务
 func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*response.SysJobResp, error) {
+	if err := shared.ValidateExecutionOptions(req.RetryTimes, req.RetryInterval, req.Timeout); err != nil {
+		return nil, err
+	}
 	// 命令必须在白名单内。放行任意字符串等同于开放容器内的 shell。
+	if err := shared.ValidateJobSchedule(req.CronExpression); err != nil {
+		return nil, err
+	}
 	if !shared.IsRegisteredCommand(req.Command) {
 		return nil, errors.New("job.unregisteredCommand")
 	}
@@ -75,7 +80,13 @@ func (s *SysJobService) Create(db *gorm.DB, req request.CreateSysJobReq) (*respo
 
 // Update 更新定时任务
 func (s *SysJobService) Update(db *gorm.DB, id uint, req request.UpdateSysJobReq) error {
+	if err := shared.ValidateExecutionOptions(req.RetryTimes, req.RetryInterval, req.Timeout); err != nil {
+		return err
+	}
 	// 命令必须在白名单内，防止通过更新绕过创建时的校验
+	if err := shared.ValidateJobSchedule(req.CronExpression); err != nil {
+		return err
+	}
 	if !shared.IsRegisteredCommand(req.Command) {
 		return errors.New("job.unregisteredCommand")
 	}
@@ -136,12 +147,16 @@ func (s *SysJobService) Get(db *gorm.DB, id uint) (*response.SysJobResp, error) 
 
 	resp := s.convertToResp(job)
 
-	// 尝试从Redis获取实时统计信息
+	// 从数据库获取已提交的执行统计
 	jobScheduler := shared.GetJobScheduler()
-	if stats, err := jobScheduler.GetJobStatsFromRedis(job.Id); err == nil {
-		// 如果Redis中有统计信息，使用Redis的数据
-		resp.LastTime = &stats.LastTime
-		resp.NextTime = &stats.NextTime
+	if stats, err := jobScheduler.GetJobStats(job.Id); err == nil {
+		// 所有实例共享数据库统计
+		if !stats.LastTime.IsZero() {
+			resp.LastTime = &stats.LastTime
+		}
+		if !stats.NextTime.IsZero() {
+			resp.NextTime = &stats.NextTime
+		}
 		resp.Times = stats.Times
 	}
 
@@ -206,16 +221,11 @@ func (s *SysJobService) Start(db *gorm.DB, id uint) error {
 	}
 
 	jobScheduler := shared.GetJobScheduler()
-	if jobScheduler.IsJobInScheduler(job.Id) {
-		return errors.New("job.alreadyInScheduler")
-	}
-
-	if err := jobScheduler.AddJob(job); err != nil {
-		return errors.New("job.startJobFailed")
-	}
-
 	job.Status = 1
 	if err := db.Save(job).Error; err != nil {
+		return errors.New("job.startJobFailed")
+	}
+	if err := jobScheduler.AddJob(job); err != nil {
 		return errors.New("job.startJobFailed")
 	}
 
@@ -260,24 +270,8 @@ func (s *SysJobService) Execute(db *gorm.DB, id uint) error {
 		return err
 	}
 
-	// 记录执行开始时间
-	now := time.Now()
-	jobScheduler := shared.GetJobScheduler()
-
-	// 执行任务
-	err = jobScheduler.ExecuteJob(job)
-	if err != nil {
-		return errors.New("job.executeJobFailed")
-	}
-
-	// 只更新last_time和times，不更新next_time
-	return db.Model(&system.SysJob{}).
-		Where("id = ?", id).
-		Updates(map[string]interface{}{
-			"last_time": now,
-			"next_time": nil,
-			"times":     gorm.Expr("times + 1"),
-		}).Error
+	_, err = shared.GetJobScheduler().SubmitJob(job)
+	return err
 }
 
 // GetJobStats 获取任务统计信息
@@ -290,7 +284,7 @@ func (s *SysJobService) GetJobStats(db *gorm.DB, id uint) (*shared.JobStats, err
 
 	// 从Redis获取统计信息
 	jobScheduler := shared.GetJobScheduler()
-	stats, err := jobScheduler.GetJobStatsFromRedis(id)
+	stats, err := jobScheduler.GetJobStats(id)
 	if err != nil {
 		return nil, errors.New("job.getJobFailed")
 	}
@@ -325,4 +319,20 @@ func (s *SysJobService) convertToResp(job *system.SysJob) *response.SysJobResp {
 		UpdatedAt:      job.UpdatedAt,
 		UpdatedBy:      job.UpdatedBy,
 	}
+}
+
+func (s *SysJobService) GetRuns(db *gorm.DB, id uint, req common.Pagination) (*common.PageResult[system.SysJobRun], error) {
+	if _, err := s.checkJobExist(db, id); err != nil {
+		return nil, err
+	}
+	req.Normalize()
+	var total int64
+	var runs []system.SysJobRun
+	if err := db.Model(&system.SysJobRun{}).Where("job_id = ?", id).Count(&total).Error; err != nil {
+		return nil, err
+	}
+	if err := db.Where("job_id = ?", id).Order("created_at DESC,id DESC").Scopes(util.Paginate(req.PageSize, req.Page)).Find(&runs).Error; err != nil {
+		return nil, err
+	}
+	return &common.PageResult[system.SysJobRun]{Data: runs, Meta: common.PageMeta{Total: total, Page: req.Page, PageSize: req.PageSize}}, nil
 }

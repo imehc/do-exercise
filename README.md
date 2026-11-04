@@ -34,15 +34,15 @@ cd do-exercise
 
 ### 2. 配置文件准备
 
-- 将 `deploy/docker/.env.example` 重命名为 `.env`，并根据实际需求填写配置项
-- 将 `server/config.example.yaml` 重命名为 `config.yaml`，并根据实际需求修改配置项
+- 将 `deploy/docker/.env.example` 复制为 `deploy/docker/.env`，填写实际凭据及 `BOOTSTRAP_ADMIN_PASSWORD`
+- 将 `server/config.example.yaml` 复制为 `server/config.yaml`，并根据实际需求修改配置项
 - Docker 部署时，数据库和 RustFS 的连接地址、账号、密码、Bucket 等运行环境配置放在 `deploy/docker/.env`
 - `server/config.yaml` 只保留应用默认参数，如连接池、日志、验证码、RustFS 预签名有效期等
 - **本地开发时，如不使用 Docker，请通过环境变量或本地配置填写实际可访问的主机地址（如 `127.0.0.1` 或本机局域网 IP），而不是 Docker 容器名称**
 
 ### 3. 证书准备
 
-- 如运行 `docker-compose` 时提示 `certs` 目录不存在，请执行 `make certs` 生成自签名证书，或将你自己的证书手动放到 `deploy/docker/nginx/certs` 目录下
+- 本地可以执行 `make certs` 生成自签名证书。生产环境将实际域名的证书与私钥放到 `deploy/docker/nginx/certs/server.crt`、`server.key`，并修改 Nginx 的 `server_name`
 
 ### 4. 启动服务
 
@@ -58,6 +58,8 @@ make logs
 ```
 
 前端默认访问：https://localhost  
+
+Compose 自动等待依赖就绪、初始化存储桶并执行数据库迁移，无需手动导入 SQL。完整配置及备份恢复操作见 [Docker 部署说明](deploy/docker/README.md)。
 
 ### 5. 本地开发
 
@@ -146,9 +148,9 @@ make dev       # air 热重载；或用 go run main.go 直接运行
 ## 默认管理员账户
 
 - 用户名：`superAdmin`
-- 密码：`@admin2025`
+- 密码：首次迁移时配置的 `BOOTSTRAP_ADMIN_PASSWORD`（12–72 字节，包含大小写字母、数字和符号）
 
-请在首次登录后及时修改默认管理员密码以确保安全。
+首次登录后必须修改管理员密码。账号归属、会话、文件访问和部署要求见 [多租户说明与注意事项](MULTI_TENANCY.md)。后端启动前需要完成数据库迁移。
 
 ## 常见问题
 

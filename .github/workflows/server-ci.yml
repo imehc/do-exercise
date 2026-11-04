@@ -18,7 +18,7 @@ jobs:
 
     services:
       redis:
-        image: redis:7
+        image: redis:8
         ports:
           - 6379:6379
         options: >-
@@ -26,6 +26,50 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: integration-local-only
+          POSTGRES_DB: do_exercise_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U admin -d do_exercise_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      oss:
+        image: rustfs/rustfs:1.0.0-rc.1
+        env:
+          RUSTFS_ACCESS_KEY: tenant-audit-root
+          RUSTFS_SECRET_KEY: TenantAuditLocalOnly!123
+          RUSTFS_RPC_SECRET: TenantAuditRpcLocalOnly123456789
+          RUSTFS_VOLUMES: /data
+          RUSTFS_CONSOLE_ENABLE: "false"
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://127.0.0.1:9000/health/ready"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 40s
+
+    env:
+      OSS_TEST_ENDPOINT: localhost:9000
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: integration-local-only
+      POSTGRES_DB: do_exercise_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 15
+      RSA_TEST_REQUIRE_REDIS: 1
+      BOOTSTRAP_ADMIN_PASSWORD: Integration-Only!123
 
     steps:
     - name: Checkout code
@@ -47,6 +91,7 @@ jobs:
       run: |
         cd server
         go test -v ./...
+        go test -race -tags integration ./integration -count=1
       
     - name: Build
       run: |

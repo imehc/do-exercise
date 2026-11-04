@@ -93,7 +93,8 @@ func (js *JobScheduler) loadJobForMaintenance(id uint) (*system.SysJob, error) {
 	return &job, err
 }
 func revision(job *system.SysJob) string {
-	return fmt.Sprintf("%s/%d", job.CronExpression, job.UpdatedAt.UnixNano())
+	// PostgreSQL timestamps retain microseconds; nanoseconds differ after a round trip.
+	return fmt.Sprintf("%s/%d", job.CronExpression, job.UpdatedAt.UnixMicro())
 }
 func (js *JobScheduler) AddJob(job *system.SysJob) error {
 	if err := requireJobOwner(job); err != nil {

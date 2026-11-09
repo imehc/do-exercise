@@ -268,8 +268,8 @@ importers:
         specifier: ^0.8.1
         version: 0.8.1(@trivago/prettier-plugin-sort-imports@6.0.2(prettier@3.9.6)(supports-color@10.2.2))(prettier@3.9.6)
       rollup-plugin-visualizer:
-        specifier: ^7.1.1
-        version: 7.1.1(rolldown@1.2.6)
+        specifier: ^7.1.2
+        version: 7.1.2(rolldown@1.2.6)
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
@@ -3943,8 +3943,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  rollup-plugin-visualizer@7.1.1:
-    resolution: {integrity: sha512-ThaGiHTU8XW02OkK80TrTHATraJmM9OAduU4otal+7gyXLpYEtmGBLfx5kW+EHvvLwn03YGW2NnwKUIqsYlJAA==}
+  rollup-plugin-visualizer@7.1.2:
+    resolution: {integrity: sha512-+yrEz9LJ7fxd7T0yj4GPvcKHKfJNzTzKT7FHiF3f/US+7EaWlgB8PoGbUOlobD4Al8v6TeCCl/Fgbov5FV/DaA==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -7864,7 +7864,7 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.6
       '@rolldown/binding-win32-x64-msvc': 1.2.6
 
-  rollup-plugin-visualizer@7.1.1(rolldown@1.2.6):
+  rollup-plugin-visualizer@7.1.2(rolldown@1.2.6):
     dependencies:
       open: 11.0.2
       picomatch: 4.0.7

@@ -29,7 +29,7 @@ require (
 	github.com/cloudwego/base64x v0.1.7 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.11.2 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
 	github.com/gin-contrib/sse v1.1.1 // indirect
 	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/glebarez/sqlite v1.11.0 // indirect
@@ -94,10 +94,9 @@ require (
 )
 
 require (
-	github.com/bwmarrin/snowflake v0.3.0
 	github.com/casbin/gorm-adapter/v3 v3.41.0
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.5
+	github.com/go-playground/validator/v10 v10.30.6
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20260530042244-d638015592ac
 	github.com/matoous/go-nanoid/v2 v2.1.0

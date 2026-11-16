@@ -80,7 +80,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/arch v0.27.0 // indirect
 	golang.org/x/image v0.41.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
@@ -94,7 +94,6 @@ require (
 )
 
 require (
-	github.com/bwmarrin/snowflake v0.3.0
 	github.com/casbin/gorm-adapter/v3 v3.41.0
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.5
@@ -118,7 +117,7 @@ require (
 	golang.org/x/crypto v0.58.0
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1

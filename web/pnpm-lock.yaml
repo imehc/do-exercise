@@ -202,8 +202,8 @@ importers:
         specifier: ^6.6.0
         version: 6.6.0(rolldown@1.2.6)(supports-color@10.2.2)
       '@lingui/swc-plugin':
-        specifier: ^6.6.0
-        version: 6.7.0(@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))
+        specifier: ^6.7.1
+        version: 6.7.1(@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))
       '@lingui/vite-plugin':
         specifier: ^6.6.0
         version: 6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@lingui/babel-plugin-lingui-macro@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@10.2.2))(@babel/runtime@7.29.7)(rolldown@1.2.6)(vite@8.2.2(@types/node@26.4.0)(jiti@2.7.0)(yaml@2.9.0)))(rolldown@1.2.6)(supports-color@10.2.2)(vite@8.2.2(@types/node@26.4.0)(jiti@2.7.0)(yaml@2.9.0))
@@ -658,17 +658,10 @@ packages:
       babel-plugin-macros:
         optional: true
 
-  '@lingui/swc-plugin@6.7.0':
-    resolution: {integrity: sha512-TRLHfeQT/q9JXy0cBGOtbfcEWJFF1szjPCVM4AT1HdZyfGj+dQ0r8hHq+08c4iXZLzlsYilzw+bZJ3TahG5g5w==}
+  '@lingui/swc-plugin@6.7.1':
+    resolution: {integrity: sha512-AgfQCypr6VhWCoJTO033j+8LqcPHAYuV5YYoqLQgRZDVB5kjpBqun8WdrRLMkprag0g2lnCUd51KWU7yZywC8w==}
     peerDependencies:
       '@lingui/core': 5 || 6
-      '@swc/core': '*'
-      next: '*'
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      next:
-        optional: true
 
   '@lingui/vite-plugin@6.6.0':
     resolution: {integrity: sha512-1kZMeGNk5hYQzrEPA3RcXQKb106VC26GqxpXpjVIhS4r2sT4c4gztk70T65VSwyZ7Uyc1pIpXxys3uY2DTfHKw==}
@@ -4878,7 +4871,7 @@ snapshots:
       - '@babel/core'
       - '@babel/types'
 
-  '@lingui/swc-plugin@6.7.0(@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))':
+  '@lingui/swc-plugin@6.7.1(@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))':
     dependencies:
       '@lingui/conf': 6.6.0
       '@lingui/core': 6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8)

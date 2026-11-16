@@ -6,7 +6,7 @@ require (
 	github.com/casbin/casbin/v3 v3.11.0
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-gonic/gin v1.12.0
-	github.com/go-co-op/gocron/v2 v2.22.0
+	github.com/go-co-op/gocron/v2 v2.23.1
 	github.com/go-playground/locales v0.14.2
 	github.com/go-playground/universal-translator v0.18.2
 	github.com/google/uuid v1.6.0
@@ -94,7 +94,6 @@ require (
 )
 
 require (
-	github.com/bwmarrin/snowflake v0.3.0
 	github.com/casbin/gorm-adapter/v3 v3.41.0
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.5

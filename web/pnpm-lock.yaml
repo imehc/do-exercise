@@ -24,8 +24,8 @@ importers:
         specifier: ^7.0.6
         version: 7.0.6(@standard-schema/spec@1.1.0)(ajv-formats@3.0.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.87.0(react@19.2.8))(zod@4.6.7)
       '@lingui/core':
-        specifier: ^6.6.0
-        version: 6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8)
+        specifier: ^6.12.0
+        version: 6.12.0(@babel/core@7.29.7(supports-color@10.2.2))
       '@lingui/detect-locale':
         specifier: ^6.6.0
         version: 6.6.0
@@ -203,7 +203,7 @@ importers:
         version: 6.6.0(rolldown@1.2.19)(supports-color@10.2.2)
       '@lingui/swc-plugin':
         specifier: ^6.7.1
-        version: 6.7.1(@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))
+        version: 6.7.1(@lingui/core@6.12.0(@babel/core@7.29.7(supports-color@10.2.2)))
       '@lingui/vite-plugin':
         specifier: ^6.6.0
         version: 6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@lingui/babel-plugin-lingui-macro@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@10.2.2))(@babel/runtime@7.29.7)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.4.0)(jiti@2.7.0)(yaml@2.9.0)))(rolldown@1.2.19)(supports-color@10.2.2)(vite@8.3.8(@types/node@26.4.0)(jiti@2.7.0)(yaml@2.9.0))
@@ -607,6 +607,15 @@ packages:
     resolution: {integrity: sha512-QfCS4SjZYvVZFaiF44e/mLsdzCqQvRSGoVJWkb8nc51FkNpOZkwFLiwLtRnWgvm0ce7GeG51czMsG7RFPPCXqw==}
     engines: {node: '>=22.19.0'}
 
+  '@lingui/babel-plugin-lingui-macro@6.12.0':
+    resolution: {integrity: sha512-hG7KVmE8loEOJwDQyjheJzrtpxKbvFFJ+wQ5k0N7dO9ED03mRG0HO2XCjZUsB+UZEu0CUn/k3yrwJAQ8/4/dEQ==}
+    engines: {node: '>=22.19.0'}
+    peerDependencies:
+      '@babel/core': ^7.20.12 || ^8.0.0
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+
   '@lingui/babel-plugin-lingui-macro@6.6.0':
     resolution: {integrity: sha512-FEBrnIx66lAeD9LGueRIen8IEj+aT7bDaMVmPNIITQNBCm2iC4mNcUtEV1/rAaVpfKKnh5uTdQowWmddB2D7iw==}
     engines: {node: '>=22.19.0'}
@@ -632,9 +641,22 @@ packages:
       rolldown:
         optional: true
 
+  '@lingui/conf@6.12.0':
+    resolution: {integrity: sha512-A4Xcip2Mcgd0iN/rs3RpxDc8MPlYiET9elP44knC7IVpJwH5zb7feK8NFsdtFQ3YlJebdLz6Qk6zjrCbq5TZKg==}
+    engines: {node: '>=22.19.0'}
+
   '@lingui/conf@6.6.0':
     resolution: {integrity: sha512-4NUxQh6VXZSBocAKATuJJ6+dOF/M3OTd5WtbND7eSi5tZtVKF0qFMcKFfx8aiUJFo+KP/wYnBBiDPvPLkJvqcA==}
     engines: {node: '>=22.19.0'}
+
+  '@lingui/core@6.12.0':
+    resolution: {integrity: sha512-ya/N3Jb64MiaovtEy58NleSsKFL0iTRqRxEZDXtzNllbd47yOFe3hENFD4OaI2wJByjZMZfJprfw4p9jQeYPTQ==}
+    engines: {node: '>=22.19.0'}
+    peerDependencies:
+      babel-plugin-macros: 2 || 3
+    peerDependenciesMeta:
+      babel-plugin-macros:
+        optional: true
 
   '@lingui/core@6.6.0':
     resolution: {integrity: sha512-vqL7LkU2iDAHcaHYzFGbdYovHLdHamG0Zh7r5F9O7C1J1sEPZSMQfkddk2FFeSZHy5j7Na7hzIGGJTZutgiZRg==}
@@ -651,6 +673,10 @@ packages:
 
   '@lingui/format-po@6.6.0':
     resolution: {integrity: sha512-vOUYBYC+81Gl/tJWqEMM2ah+W06M3zWjb78qNwRtl3UhNhoDbduZpNayDQ7RoEA9NtxNQ75Fx7946+0GPnHy7Q==}
+    engines: {node: '>=22.19.0'}
+
+  '@lingui/message-utils@6.12.0':
+    resolution: {integrity: sha512-WIRy9tnthJVudnEcNdnNNh2ZMyeSoM1eTrB8BDK5A/+BefWoHSH/Pue7wEAhRlepPgVNp+lv+/ax5O16EEqlBg==}
     engines: {node: '>=22.19.0'}
 
   '@lingui/message-utils@6.6.0':
@@ -752,6 +778,10 @@ packages:
         optional: true
       '@nestjs/websockets':
         optional: true
+
+  '@noble/hashes@2.4.0':
+    resolution: {integrity: sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==}
+    engines: {node: '>= 20.19.0'}
 
   '@nuxtjs/opencollective@0.3.2':
     resolution: {integrity: sha512-um0xL3fO7Mf4fDxcqx9KryrB7zgRM5JSlvGN5AGkP6JLM5XEKyjeAiPbNxdXVXQ16isuAhYpvP88NgL2BGd6aA==}
@@ -5025,6 +5055,13 @@ snapshots:
     dependencies:
       '@lingui/conf': 6.6.0
 
+  '@lingui/babel-plugin-lingui-macro@6.12.0(@babel/core@7.29.7(supports-color@10.2.2))':
+    dependencies:
+      '@lingui/conf': 6.12.0
+      '@lingui/message-utils': 6.12.0
+    optionalDependencies:
+      '@babel/core': 7.29.7(supports-color@10.2.2)
+
   '@lingui/babel-plugin-lingui-macro@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8)':
     dependencies:
       '@lingui/conf': 6.6.0
@@ -5062,12 +5099,26 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
+  '@lingui/conf@6.12.0':
+    dependencies:
+      jest-validate: 29.7.0
+      jiti: 2.7.0
+      lilconfig: 3.1.3
+      normalize-path: 3.0.0
+
   '@lingui/conf@6.6.0':
     dependencies:
       jest-validate: 29.7.0
       jiti: 2.7.0
       lilconfig: 3.1.3
       normalize-path: 3.0.0
+
+  '@lingui/core@6.12.0(@babel/core@7.29.7(supports-color@10.2.2))':
+    dependencies:
+      '@lingui/babel-plugin-lingui-macro': 6.12.0(@babel/core@7.29.7(supports-color@10.2.2))
+      '@lingui/message-utils': 6.12.0
+    transitivePeerDependencies:
+      - '@babel/core'
 
   '@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8)':
     dependencies:
@@ -5085,6 +5136,12 @@ snapshots:
       '@lingui/message-utils': 6.6.0
       pofile-ts: 4.0.3
 
+  '@lingui/message-utils@6.12.0':
+    dependencies:
+      '@messageformat/date-skeleton': 1.1.0
+      '@messageformat/parser': 5.1.1
+      '@noble/hashes': 2.4.0
+
   '@lingui/message-utils@6.6.0':
     dependencies:
       '@messageformat/date-skeleton': 1.1.0
@@ -5101,10 +5158,10 @@ snapshots:
       - '@babel/core'
       - '@babel/types'
 
-  '@lingui/swc-plugin@6.7.1(@lingui/core@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))':
+  '@lingui/swc-plugin@6.7.1(@lingui/core@6.12.0(@babel/core@7.29.7(supports-color@10.2.2)))':
     dependencies:
       '@lingui/conf': 6.6.0
-      '@lingui/core': 6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8)
+      '@lingui/core': 6.12.0(@babel/core@7.29.7(supports-color@10.2.2))
 
   '@lingui/vite-plugin@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@lingui/babel-plugin-lingui-macro@6.6.0(@babel/core@7.29.7(supports-color@10.2.2))(@babel/types@7.29.8))(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@10.2.2))(@babel/runtime@7.29.7)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.4.0)(jiti@2.7.0)(yaml@2.9.0)))(rolldown@1.2.19)(supports-color@10.2.2)(vite@8.3.8(@types/node@26.4.0)(jiti@2.7.0)(yaml@2.9.0))':
     dependencies:
@@ -5171,6 +5228,8 @@ snapshots:
       rxjs: 7.8.2
       tslib: 2.8.1
       uid: 2.0.2
+
+  '@noble/hashes@2.4.0': {}
 
   '@nuxtjs/opencollective@0.3.2':
     dependencies:

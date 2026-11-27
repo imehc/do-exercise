@@ -49,7 +49,10 @@ func TestObjectStorageTenantIsolation(t *testing.T) {
 	for _, item := range []*common.OssRes{private, avatar} {
 		t.Cleanup(func() { _ = client.RemoveObject(ctx, bucket, item.ObjectKey, minio.RemoveObjectOptions{}) })
 	}
-	upload := func(item *common.OssRes, content []byte, tamper string) int {
+	// upload 返回对象存储的响应状态码。err 非 nil 表示连接在拿到响应之前就中断了：
+	// 对“越界/类型不符”这类会被服务端提前拒绝的请求，连接中断本身就等于被拒绝，
+	// 由调用方按语义判断，不能一律当成测试失败。
+	upload := func(item *common.OssRes, content []byte, tamper string) (int, error) {
 		var body bytes.Buffer
 		writer := multipart.NewWriter(&body)
 		for key, value := range item.FormFields {
@@ -67,21 +70,27 @@ func TestObjectStorageTenantIsolation(t *testing.T) {
 		must(t, err)
 		request.Header.Set("Content-Type", writer.FormDataContentType())
 		response, err := http.DefaultClient.Do(request)
-		must(t, err)
+		if err != nil {
+			return 0, err
+		}
 		defer response.Body.Close()
 		_, _ = io.Copy(io.Discard, response.Body)
-		return response.StatusCode
+		return response.StatusCode, nil
 	}
-	if status := upload(private, []byte("private tenant data"), ""); status < 200 || status >= 300 {
-		t.Fatalf("signed private upload: %d", status)
+	if status, err := upload(private, []byte("private tenant data"), ""); err != nil || status < 200 || status >= 300 {
+		t.Fatalf("signed private upload: status=%d err=%v", status, err)
 	}
-	if status := upload(avatar, []byte("image bytes"), ""); status < 200 || status >= 300 {
-		t.Fatalf("signed avatar upload: %d", status)
+	if status, err := upload(avatar, []byte("image bytes"), ""); err != nil || status < 200 || status >= 300 {
+		t.Fatalf("signed avatar upload: status=%d err=%v", status, err)
 	}
-	if status := upload(avatar, []byte("bad mime"), "text/html"); status < 400 {
-		t.Fatalf("tampered MIME accepted: %d", status)
+	if status, err := upload(avatar, []byte("bad mime"), "text/html"); err != nil || status < 400 {
+		t.Fatalf("tampered MIME accepted: status=%d err=%v", status, err)
 	}
-	if status := upload(avatar, make([]byte, (10<<20)+1), ""); status < 400 {
+	// 预签名策略的 content-length-range 是 [FileSize, FileSize]（avatar 为 11 字节），
+	// 只要超过 11 字节就会被同一条策略拒绝，因此探针用 12 字节即可，不必灌 10 MiB。
+	// 服务端会在读完 body 之前关闭连接，客户端侧表现为 broken pipe / connection reset；
+	// 这种中断本身就是“请求被拒绝”，只有连接正常结束且返回 2xx 才是越界真的被接受。
+	if status, err := upload(avatar, make([]byte, 12), ""); err == nil && status < 400 {
 		t.Fatalf("oversize accepted: %d", status)
 	}
 	get := func(target string) int {

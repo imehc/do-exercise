@@ -18,6 +18,12 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    # @lingui/* 绑定在同一条版本线上，必须一起升：只升其中一个会在 node_modules
+    # 里留下两份 @lingui/core，tsc 会因为 I18n 的私有字段声明不同报 TS2322。
+    groups:
+      lingui:
+        patterns:
+          - "@lingui/*"
       
   - package-ecosystem: "gomod"
     directory: "/server"
